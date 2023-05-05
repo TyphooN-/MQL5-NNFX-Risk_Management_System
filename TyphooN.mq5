@@ -38,14 +38,12 @@
 #include <Trade\AccountInfo.mqh>
 #include <Trade\SymbolInfo.mqh>
 #include <Orchard\RiskCalc.mqh>
-
 // Classes
 CPositionInfo     Position; // Trade wrapper
 CTrade            Trade;    // Trade wrapper
 COrderInfo        Order;    // Order wrapper
 CAccountInfo      Account;  // Account wrapper
 CSymbolInfo       Symbol;   // Symbol wrapper
-
 // input vars
 input group    "User Vars";
 input double   Risk=0.3;
@@ -56,7 +54,6 @@ input double   TPInitialPips=20;
 input int   OrderDigitNormalization=2;
 input group    "Appearance";
 input int      HorizontalLineThickness = 3;
-
 // global vars
 double TP = 0;
 double SL = 0;
@@ -65,7 +62,6 @@ double Ask = 0;
 double risk_money = 0;
 double lotsglobal = 0;
 bool LimitLineExists = false;
-
 // defines
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
 #define INDENT_TOP        (10)      // indent from top (with allowance for border width)
@@ -73,32 +69,29 @@ bool LimitLineExists = false;
 #define BUTTON_WIDTH      (100)     // size by X coordinate
 #define BUTTON_HEIGHT     (20)      // size by Y coordinate
 #define CONTROLS_GAP_Y    (23)      // gap by Y coordinate
-
 // Class CControlsDialog
 // Usage: main dialog of the Controls application
 class TyWindow : public CAppDialog
 {
-protected:
+   protected:
 
-private:
-   CButton           buttonTrade;
-   CButton           buttonLimit;
-   CButton           buttonBuyLines;
-   CButton           buttonSellLines;
-   CButton           buttonDestroyLines;
-   CButton           buttonSetTPSL;
-   CButton           buttonClosePositions;
-   CButton           buttonCloseLimits;
-   CButton           buttonProtect;
-
-public:
-                     TyWindow(void);
-                    ~TyWindow(void);
-   // create
-   virtual bool      Create(const long chart,const string name,const int subwin,const int x1,const int y1,const int x2,const int y2);
-   // chart event handler
-   virtual bool      OnEvent(const int id,const long &lparam,const double &dparam,const string &sparam);
-
+   private:
+      CButton           buttonTrade;
+      CButton           buttonLimit;
+      CButton           buttonBuyLines;
+      CButton           buttonSellLines;
+      CButton           buttonDestroyLines;
+      CButton           buttonSetTPSL;
+      CButton           buttonClosePositions;
+      CButton           buttonCloseLimits;
+      CButton           buttonProtect;
+   public:
+                              TyWindow(void);
+                              ~TyWindow(void);
+      // create
+      virtual bool            Create(const long chart,const string name,const int subwin,const int x1,const int y1,const int x2,const int y2);
+      // chart event handler
+      virtual bool            OnEvent(const int id,const long &lparam,const double &dparam,const string &sparam);
 protected:
    // create dependent controls
    bool              CreateButtonTrade(void);
@@ -110,7 +103,6 @@ protected:
    bool              CreateButtonClosePositions(void);
    bool              CreateButtonCloseLimits(void);
    bool              CreateButtonProtect(void);
-
    // handlers of the dependent controls events
    void              OnClickTrade(void);
    void              OnClickLimit(void);
@@ -169,7 +161,6 @@ bool TyWindow::Create(const long chart,const string name,const int subwin,const 
    // succeed
    return(true);
 }
-  
 // Global Variable
 TyWindow ExtDialog;
 // Expert initialization function
@@ -185,10 +176,10 @@ if(!ExtDialog.Create(0,"TyphooN Risk Management",0,40,40,276,200))
   }
 // Expert deinitialization function
 void OnDeinit(const int reason)
-  {
+{
    // destroy dialog
    ExtDialog.Destroy(reason);
-  }
+}
 void OnTick()
 {
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
@@ -208,9 +199,8 @@ void OnTrade()
 {
 
 }
-
 bool TyWindow::CreateButtonTrade(void)
-  {
+{
    // coordinates
    int x1=INDENT_LEFT;
    int y1=INDENT_TOP;
@@ -225,9 +215,9 @@ bool TyWindow::CreateButtonTrade(void)
       return(false);
    // succeed
    return(true);
-  }
+}
 bool TyWindow::CreateButtonLimit(void)
-  {
+{
    // coordinates
    int x1=INDENT_LEFT+(BUTTON_WIDTH+CONTROLS_GAP_X);
    int y1=INDENT_TOP;
@@ -242,10 +232,9 @@ bool TyWindow::CreateButtonLimit(void)
       return(false);
    // succeed
    return(true);
-  }
-  
+}
 bool TyWindow::CreateButtonBuyLines(void)
-  {
+{
    // coordinates
    int x1=INDENT_LEFT;
    int y1=INDENT_TOP+CONTROLS_GAP_Y;
@@ -260,9 +249,9 @@ bool TyWindow::CreateButtonBuyLines(void)
       return(false);
    // succeed
    return(true);
-  }
+}
 bool TyWindow::CreateButtonSellLines(void)
-  {
+{
    // coordinates
    int x1=INDENT_LEFT+(BUTTON_WIDTH+CONTROLS_GAP_X);
    int y1=INDENT_TOP+CONTROLS_GAP_Y;
@@ -275,10 +264,9 @@ bool TyWindow::CreateButtonSellLines(void)
       return(false);
    if(!Add(buttonSellLines))
       return(false);
-   // succeed
-   return(true);
-  }
-  
+ // succeed
+ return(true);
+} 
 bool TyWindow::CreateButtonDestroyLines(void)
 {
    // coordinates
@@ -330,7 +318,6 @@ bool TyWindow::CreateButtonClosePositions(void)
    // succeed
    return(true);
 }
-
 bool TyWindow::CreateButtonCloseLimits(void)
 {
    // coordinates
@@ -348,8 +335,6 @@ bool TyWindow::CreateButtonCloseLimits(void)
    // succeed
    return(true);
 }
-
-
 bool TyWindow::CreateButtonProtect(void)
 {
    // coordinates
@@ -367,7 +352,6 @@ bool TyWindow::CreateButtonProtect(void)
    // succeed
    return(true);
 }
-
 void TyWindow::OnClickTrade(void)
 {
    SL = ObjectGetDouble(0, "SL_LINE", OBJPROP_PRICE, 0);
@@ -483,7 +467,6 @@ void TyWindow::OnClickSellLines(void)
    ObjectSetInteger(0, "TP_LINE", OBJPROP_WIDTH,HorizontalLineThickness);
    ObjectSetInteger(0, "TP_LINE", OBJPROP_SELECTABLE, 1);
   }
-
 void TyWindow::OnClickProtect(void)
 {
    for(int i=0; i<PositionsTotal(); i++)
@@ -506,13 +489,11 @@ void TyWindow::OnClickProtect(void)
       }
    }
 }
-
 void TyWindow::OnClickDestroyLines(void)
 {
    ObjectsDeleteAll(0,-1,OBJ_HLINE);
    LimitLineExists = false;
 }
-
 void TyWindow::OnClickSetTPSL(void)
 {
    SL = ObjectGetDouble(0, "SL_LINE", OBJPROP_PRICE, 0);
@@ -528,7 +509,7 @@ void TyWindow::OnClickSetTPSL(void)
                         if(!Trade.PositionModify(PositionGetTicket(i), SL, TP)) {
                             Print("Failed to modify TP/SL. Error code: ", GetLastError());
                         }
-      }
+                        }
       }
    }
 }
@@ -558,7 +539,6 @@ int result = MessageBox("Do you want to close all positions on " + _Symbol + "?"
     }
     }
 }
-
 void TyWindow::OnClickCloseLimits()
 {
    int result = MessageBox("Do you want to close all limit orders?", "Close Limit Orders", MB_YESNO | MB_ICONQUESTION);
