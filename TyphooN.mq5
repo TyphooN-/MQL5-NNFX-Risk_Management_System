@@ -1,10 +1,5 @@
-/*
-   TyphooN.mqh
-   Copyright 2003, TyphooN (Decapool.net)
-   https://www.decapool.net/
-*/
-
-/**=
+/**=             TyphooN.mqh  (TyphooN's MQL5 Risk Management System)
+ *               Copyright 2023, TyphooN (https://www.decapool.net/)
  *
  * Disclaimer and Licence
  *
