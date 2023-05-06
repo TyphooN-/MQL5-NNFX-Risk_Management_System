@@ -46,7 +46,7 @@ input int      MagicNumber=13;
 input double   ProtectionPips=10;
 input double   SLInitialPips=10;
 input double   TPInitialPips=20;
-input int   OrderDigitNormalization=2;
+input int      OrderDigitNormalization=2;
 input group    "Appearance";
 input int      HorizontalLineThickness = 3;
 // global vars
@@ -186,20 +186,17 @@ void OnTick()
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (Risk / 100));
- 
    double total_profit = 0;
    double total_risk = 0;
    double total_tpprofit = 0;
    double total_pl = 0;
    double total_tp = 0;
    double rr = 0;
-
    for(int i = 0; i < PositionsTotal(); i++)
    {
       if(PositionSelectByTicket(PositionGetTicket(i)))
       {
          if(PositionGetSymbol(i) != _Symbol) continue;
-
          double profit = PositionGetDouble(POSITION_PROFIT);
          double risk = PositionGetDouble(POSITION_VOLUME) * (PositionGetDouble(POSITION_PRICE_OPEN) - PositionGetDouble(POSITION_SL));
          double tpprofit = 0;
@@ -310,8 +307,8 @@ bool TyWindow::CreateButtonSellLines(void)
       return(false);
    if(!Add(buttonSellLines))
       return(false);
- // succeed
- return(true);
+   // succeed
+   return(true);
 } 
 bool TyWindow::CreateButtonDestroyLines(void)
 {
@@ -420,7 +417,6 @@ void TyWindow::OnClickTrade(void)
    SL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
    TP = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
    double max_volume = NormalizeDouble(SymbolInfoDouble(_Symbol,SYMBOL_VOLUME_MAX),_Digits);
-
    Trade.SetExpertMagicNumber(MagicNumber);
    if (LimitLineExists==true) {
         double Limit_Price = ObjectGetDouble(0, "Limit_Line", OBJPROP_PRICE, 0);
@@ -459,17 +455,17 @@ void TyWindow::OnClickTrade(void)
       if(TP>SL){
       lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, Ask - SL),OrderDigitNormalization);
          if(lotsglobal > max_volume)
-          {
+         {
               lotsglobal = max_volume;
-          }
-          if(Trade.Buy(lotsglobal, NULL, 0, SL, TP, NULL))
-          {
+         }
+         if(Trade.Buy(lotsglobal, NULL, 0, SL, TP, NULL))
+         {
             Print("Buy trade opened successfully");
-          }
-          else
-          {
+         }
+         else
+         {
             Print("Failed to open buy trade, error: ", Trade.ResultRetcode());
-          }
+         }
       }
       else if (SL>TP){
       lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, SL - Bid),OrderDigitNormalization);
@@ -505,7 +501,7 @@ void TyWindow::OnClickLimit()
    }
 }
 void TyWindow::OnClickBuyLines(void)
-  {
+{
    ObjectDelete(0, "SL_Line");
    ObjectDelete(0, "TP_Line");
    ObjectDelete(0, "Limit_Line");
@@ -518,9 +514,9 @@ void TyWindow::OnClickBuyLines(void)
    ObjectSetInteger(0, "TP_Line", OBJPROP_COLOR, clrLime);
    ObjectSetInteger(0, "TP_Line", OBJPROP_WIDTH,HorizontalLineThickness);
    ObjectSetInteger(0, "TP_Line", OBJPROP_SELECTABLE, 1);
-  }
+}
 void TyWindow::OnClickSellLines(void)
-  {
+{
    ObjectDelete(0, "SL_Line");
    ObjectDelete(0, "TP_Line");
    ObjectDelete(0, "Limit_Line");
@@ -533,7 +529,7 @@ void TyWindow::OnClickSellLines(void)
    ObjectSetInteger(0, "TP_Line", OBJPROP_COLOR, clrLime);
    ObjectSetInteger(0, "TP_Line", OBJPROP_WIDTH,HorizontalLineThickness);
    ObjectSetInteger(0, "TP_Line", OBJPROP_SELECTABLE, 1);
-  }
+}
 void TyWindow::OnClickDestroyLines(void)
 {
    ObjectDelete(0, "SL_Line");
@@ -615,8 +611,6 @@ void TyWindow::OnClickCloseLimits()
 void TyWindow::OnClickSetTP(void)
 {
    TP = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
-   
-   
    if (TP !=0)
    {
       for(int i = 0; i < PositionsTotal(); i++) {
@@ -634,8 +628,6 @@ void TyWindow::OnClickSetTP(void)
 void TyWindow::OnClickSetSL(void)
 {
    SL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
-   
-   
    if (SL !=0)
    {
       for(int i = 0; i < PositionsTotal(); i++) {
