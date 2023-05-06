@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.001"
+#property version   "1.002"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -76,10 +76,11 @@ class TyWindow : public CAppDialog
       CButton           buttonBuyLines;
       CButton           buttonSellLines;
       CButton           buttonDestroyLines;
-      CButton           buttonSetTPSL;
+      CButton           buttonProtect;
       CButton           buttonClosePositions;
       CButton           buttonCloseLimits;
-      CButton           buttonProtect;
+      CButton           buttonSetTP;
+      CButton           buttonSetSL;
    public:
                               TyWindow(void);
                               ~TyWindow(void);
@@ -87,27 +88,29 @@ class TyWindow : public CAppDialog
       virtual bool            Create(const long chart,const string name,const int subwin,const int x1,const int y1,const int x2,const int y2);
       // chart event handler
       virtual bool            OnEvent(const int id,const long &lparam,const double &dparam,const string &sparam);
-protected:
-   // create dependent controls
-   bool              CreateButtonTrade(void);
-   bool              CreateButtonLimit(void);
-   bool              CreateButtonBuyLines(void);
-   bool              CreateButtonSellLines(void);
-   bool              CreateButtonDestroyLines(void);
-   bool              CreateButtonSetTPSL(void);
-   bool              CreateButtonClosePositions(void);
-   bool              CreateButtonCloseLimits(void);
-   bool              CreateButtonProtect(void);
-   // handlers of the dependent controls events
-   void              OnClickTrade(void);
-   void              OnClickLimit(void);
-   void              OnClickBuyLines(void);
-   void              OnClickSellLines(void);
-   void              OnClickDestroyLines(void);
-   void              OnClickSetTPSL(void);
-   void              OnClickClosePositions(void);
-   void              OnClickCloseLimits(void);
-   void              OnClickProtect(void);
+   protected:
+      // create dependent controls
+      bool              CreateButtonTrade(void);
+      bool              CreateButtonLimit(void);
+      bool              CreateButtonBuyLines(void);
+      bool              CreateButtonSellLines(void);
+      bool              CreateButtonDestroyLines(void);
+      bool              CreateButtonProtect(void);
+      bool              CreateButtonClosePositions(void);
+      bool              CreateButtonCloseLimits(void);
+      bool              CreateButtonSetTP(void);
+      bool              CreateButtonSetSL(void);
+      // handlers of the dependent controls events
+      void              OnClickTrade(void);
+      void              OnClickLimit(void);
+      void              OnClickBuyLines(void);
+      void              OnClickSellLines(void);
+      void              OnClickDestroyLines(void);
+      void              OnClickProtect(void);
+      void              OnClickClosePositions(void);
+      void              OnClickCloseLimits(void);
+      void              OnClickSetTP(void);
+      void              OnClickSetSL(void);
 };
 // Event Handling
 EVENT_MAP_BEGIN(TyWindow)
@@ -116,10 +119,11 @@ ON_EVENT(ON_CLICK, buttonLimit, OnClickLimit)
 ON_EVENT(ON_CLICK, buttonBuyLines, OnClickBuyLines)
 ON_EVENT(ON_CLICK, buttonSellLines, OnClickSellLines)
 ON_EVENT(ON_CLICK, buttonDestroyLines, OnClickDestroyLines)
-ON_EVENT(ON_CLICK, buttonSetTPSL, OnClickSetTPSL)
+ON_EVENT(ON_CLICK, buttonProtect, OnClickProtect)
 ON_EVENT(ON_CLICK, buttonClosePositions, OnClickClosePositions)
 ON_EVENT(ON_CLICK, buttonCloseLimits, OnClickCloseLimits)
-ON_EVENT(ON_CLICK, buttonProtect, OnClickProtect)
+ON_EVENT(ON_CLICK, buttonSetTP, OnClickSetTP)
+ON_EVENT(ON_CLICK, buttonSetSL, OnClickSetSL)
 EVENT_MAP_END(CAppDialog)
 // Constructor
 TyWindow::TyWindow(void)
@@ -145,14 +149,16 @@ bool TyWindow::Create(const long chart,const string name,const int subwin,const 
       return(false);
    if(!CreateButtonDestroyLines())
       return(false);
-   if(!CreateButtonSetTPSL())
+   if(!CreateButtonProtect())
       return(false);
    if(!CreateButtonClosePositions())
       return(false);
    if(!CreateButtonCloseLimits())
       return(false);
-   if(!CreateButtonProtect())
-      return(false);
+      if(!CreateButtonSetTP())
+   return(false);
+      if(!CreateButtonSetSL())
+   return(false);
    // succeed
    return(true);
 }
@@ -214,19 +220,19 @@ void OnTick()
    }
    string info1 = "Total P/L: $ " + DoubleToString(total_profit, 2) + " / Risk: $" + DoubleToString(total_risk, 2); 
    ObjectCreate(0,"info1Label", OBJ_LABEL,0,0,0);
-   ObjectSetString(0,"info1Label",OBJPROP_FONT,"Arial");
-   ObjectSetInteger(0,"info1Label",OBJPROP_FONTSIZE,13);
+   ObjectSetString(0,"info1Label",OBJPROP_FONT,"Courier New");
+   ObjectSetInteger(0,"info1Label",OBJPROP_FONTSIZE,10);
    ObjectSetString(0,"info1Label",OBJPROP_TEXT,info1);
-   ObjectSetInteger(0,"info1Label", OBJPROP_XDISTANCE, 280);
+   ObjectSetInteger(0,"info1Label", OBJPROP_XDISTANCE, 310);
    ObjectSetInteger(0,"info1Label",OBJPROP_YDISTANCE,20);
    ObjectSetInteger(0,"info1Label",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"info1Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string info2 = "Total TP: $ " + DoubleToString(total_tp, 2) + " / RR: " + DoubleToString(rr, 2); 
    ObjectCreate(0,"info2Label", OBJ_LABEL,0,0,0);
-   ObjectSetString(0,"info2Label",OBJPROP_FONT,"Arial");
-   ObjectSetInteger(0,"info2Label",OBJPROP_FONTSIZE,13);
+   ObjectSetString(0,"info2Label",OBJPROP_FONT,"Courier New");
+   ObjectSetInteger(0,"info2Label",OBJPROP_FONTSIZE,10);
    ObjectSetString(0,"info2Label",OBJPROP_TEXT,info2);
-   ObjectSetInteger(0,"info2Label", OBJPROP_XDISTANCE, 280);
+   ObjectSetInteger(0,"info2Label", OBJPROP_XDISTANCE, 310);
    ObjectSetInteger(0,"info2Label",OBJPROP_YDISTANCE,40);
    ObjectSetInteger(0,"info2Label",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"info2Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
@@ -324,7 +330,7 @@ bool TyWindow::CreateButtonDestroyLines(void)
    // succeed
    return(true);
 }
-bool TyWindow::CreateButtonSetTPSL(void)
+bool TyWindow::CreateButtonProtect(void)
 {
    // coordinates
    int x1=INDENT_LEFT+(BUTTON_WIDTH+CONTROLS_GAP_X);
@@ -332,11 +338,11 @@ bool TyWindow::CreateButtonSetTPSL(void)
    int x2=x1+BUTTON_WIDTH;
    int y2=y1+BUTTON_HEIGHT;
    // create
-   if(!buttonSetTPSL.Create(0,"Set TP/SL",0,x1,y1,x2,y2))
+   if(!buttonProtect.Create(0,"PROTECT",0,x1,y1,x2,y2))
       return(false);
-   if(!buttonSetTPSL.Text("Set TP/SL"))
+   if(!buttonProtect.Text("PROTECT"))
       return(false);
-   if(!Add(buttonSetTPSL))
+   if(!Add(buttonProtect))
       return(false);
    // succeed
    return(true);
@@ -375,7 +381,7 @@ bool TyWindow::CreateButtonCloseLimits(void)
    // succeed
    return(true);
 }
-bool TyWindow::CreateButtonProtect(void)
+bool TyWindow::CreateButtonSetTP(void)
 {
    // coordinates
    int x1=INDENT_LEFT;
@@ -383,11 +389,28 @@ bool TyWindow::CreateButtonProtect(void)
    int x2=x1+BUTTON_WIDTH;
    int y2=y1+BUTTON_HEIGHT;
    // create
-   if(!buttonProtect.Create(0,"PROTECT",0,x1,y1,x2,y2))
+   if(!buttonSetTP.Create(0,"Set TP",0,x1,y1,x2,y2))
       return(false);
-   if(!buttonProtect.Text("PROTECT"))
+   if(!buttonSetTP.Text("Set TP"))
       return(false);
-   if(!Add(buttonProtect))
+   if(!Add(buttonSetTP))
+      return(false);
+   // succeed
+   return(true);
+}
+bool TyWindow::CreateButtonSetSL(void)
+{
+   // coordinates
+   int x1=INDENT_LEFT+(BUTTON_WIDTH+CONTROLS_GAP_X);
+   int y1=INDENT_TOP+4*CONTROLS_GAP_Y;
+   int x2=x1+BUTTON_WIDTH;
+   int y2=y1+BUTTON_HEIGHT;
+   // create
+   if(!buttonSetSL.Create(0,"Set SL",0,x1,y1,x2,y2))
+      return(false);
+   if(!buttonSetSL.Text("Set SL"))
+      return(false);
+   if(!Add(buttonSetSL))
       return(false);
    // succeed
    return(true);
@@ -507,51 +530,31 @@ void TyWindow::OnClickSellLines(void)
    ObjectSetInteger(0, "TP_LINE", OBJPROP_WIDTH,HorizontalLineThickness);
    ObjectSetInteger(0, "TP_LINE", OBJPROP_SELECTABLE, 1);
   }
-void TyWindow::OnClickProtect(void)
-{
-   for(int i=0; i<PositionsTotal(); i++)
-   {
-      if(PositionSelectByTicket(PositionGetTicket(i)))
-      {
-          if (PositionGetSymbol(i) != _Symbol) continue;
-         {
-            if(PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
-            {
-               SL = (PositionGetDouble(POSITION_PRICE_OPEN) + (ProtectionPips*(SYMBOL_DIGITS/100)));
-            }
-            else if(PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL)
-            {
-               SL = (PositionGetDouble(POSITION_PRICE_OPEN) - (ProtectionPips*(SYMBOL_DIGITS/100)));
-            }
-            double ProtectTP = PositionGetDouble(POSITION_TP);
-            Trade.PositionModify(PositionGetTicket(i), SL, ProtectTP);
-         }
-      }
-   }
-}
 void TyWindow::OnClickDestroyLines(void)
 {
    ObjectsDeleteAll(0,-1,OBJ_HLINE);
    LimitLineExists = false;
 }
-void TyWindow::OnClickSetTPSL(void)
+void TyWindow::OnClickProtect(void)
 {
-   SL = ObjectGetDouble(0, "SL_LINE", OBJPROP_PRICE, 0);
-   TP = ObjectGetDouble(0, "TP_LINE", OBJPROP_PRICE, 0);
-   
-   
-   if (SL !=0 || TP !=0)
+   for(int i=0; i<PositionsTotal(); i++)
    {
-      for(int i = 0; i < PositionsTotal(); i++) {
       if(PositionSelectByTicket(PositionGetTicket(i))) {
       if (PositionGetSymbol(i) != _Symbol) continue;
       if(Position.Magic() != MagicNumber ) continue;
-                        if(!Trade.PositionModify(PositionGetTicket(i), SL, TP)) {
-                            Print("Failed to modify TP/SL. Error code: ", GetLastError());
-                        }
-                        }
+      if(PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
+      {
+         SL = (PositionGetDouble(POSITION_PRICE_OPEN) + (ProtectionPips*(SYMBOL_DIGITS/100)));
       }
-   }
+      else if(PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL)
+      {
+         SL = (PositionGetDouble(POSITION_PRICE_OPEN) - (ProtectionPips*(SYMBOL_DIGITS/100)));
+      }
+      double ProtectTP = PositionGetDouble(POSITION_TP);
+      if(!Trade.PositionModify(PositionGetTicket(i), SL, ProtectTP))
+         Print("Failed to modify TP. Error code: ", GetLastError());
+      }
+      }
 }
 void TyWindow::OnClickClosePositions(void)
 {
@@ -601,5 +604,43 @@ void TyWindow::OnClickCloseLimits()
                Print("Order #", Order.Ticket(), " close failed with error ", GetLastError());
            }
        }
+   }
+}
+void TyWindow::OnClickSetTP(void)
+{
+   TP = ObjectGetDouble(0, "TP_LINE", OBJPROP_PRICE, 0);
+   
+   
+   if (TP !=0)
+   {
+      for(int i = 0; i < PositionsTotal(); i++) {
+      if(PositionSelectByTicket(PositionGetTicket(i))) {
+      if (PositionGetSymbol(i) != _Symbol) continue;
+      if(Position.Magic() != MagicNumber ) continue;
+         Trade.PositionModify(PositionGetTicket(i), PositionGetDouble(POSITION_SL), TP);
+         if(!Trade.PositionModify(PositionGetTicket(i), PositionGetDouble(POSITION_SL), TP)) {
+            Print("Failed to modify TP. Error code: ", GetLastError());
+            }
+            }
+      }
+   }
+}
+void TyWindow::OnClickSetSL(void)
+{
+   SL = ObjectGetDouble(0, "SL_LINE", OBJPROP_PRICE, 0);
+   
+   
+   if (SL !=0)
+   {
+      for(int i = 0; i < PositionsTotal(); i++) {
+      if(PositionSelectByTicket(PositionGetTicket(i))) {
+      if (PositionGetSymbol(i) != _Symbol) continue;
+      if(Position.Magic() != MagicNumber ) continue;
+         Trade.PositionModify(PositionGetTicket(i), SL, PositionGetDouble(POSITION_TP));
+         if(!Trade.PositionModify(PositionGetTicket(i), SL, PositionGetDouble(POSITION_TP))) {
+            Print("Failed to modify TP. Error code: ", GetLastError());
+            }
+            }
+      }
    }
 }
