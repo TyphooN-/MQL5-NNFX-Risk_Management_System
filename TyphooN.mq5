@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.002"
+#property version   "1.003"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -168,7 +168,7 @@ TyWindow ExtDialog;
 int OnInit()
 {
 // create application dialog
-if(!ExtDialog.Create(0,"TyphooN Risk Management",0,40,40,276,200))
+if(!ExtDialog.Create(0,"TyphooN Risk Management",0,40,40,272,200))
    return(INIT_FAILED);
    // run application
    ExtDialog.Run();
@@ -417,8 +417,8 @@ bool TyWindow::CreateButtonSetSL(void)
 }
 void TyWindow::OnClickTrade(void)
 {
-   SL = ObjectGetDouble(0, "SL_LINE", OBJPROP_PRICE, 0);
-   TP = ObjectGetDouble(0, "TP_LINE", OBJPROP_PRICE, 0);
+   SL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
+   TP = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
    double max_volume = NormalizeDouble(SymbolInfoDouble(_Symbol,SYMBOL_VOLUME_MAX),_Digits);
 
    Trade.SetExpertMagicNumber(MagicNumber);
@@ -506,33 +506,39 @@ void TyWindow::OnClickLimit()
 }
 void TyWindow::OnClickBuyLines(void)
   {
-   ObjectsDeleteAll(0,-1,OBJ_HLINE);
+   ObjectDelete(0, "SL_Line");
+   ObjectDelete(0, "TP_Line");
+   ObjectDelete(0, "Limit_Line");
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
-   ObjectCreate(0, "SL_LINE", OBJ_HLINE, 0, 0, (Ask - SLInitialPips));
-   ObjectSetInteger(0, "SL_LINE", OBJPROP_COLOR, clrRed);
-   ObjectSetInteger(0, "SL_LINE", OBJPROP_WIDTH,HorizontalLineThickness);
-   ObjectSetInteger(0, "SL_LINE", OBJPROP_SELECTABLE, 1);
-   ObjectCreate(0, "TP_LINE", OBJ_HLINE, 0, 0, (Ask + TPInitialPips));
-   ObjectSetInteger(0, "TP_LINE", OBJPROP_COLOR, clrLime);
-   ObjectSetInteger(0, "TP_LINE", OBJPROP_WIDTH,HorizontalLineThickness);
-   ObjectSetInteger(0, "TP_LINE", OBJPROP_SELECTABLE, 1);
+   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask - SLInitialPips));
+   ObjectSetInteger(0, "SL_Line", OBJPROP_COLOR, clrRed);
+   ObjectSetInteger(0, "SL_Line", OBJPROP_WIDTH,HorizontalLineThickness);
+   ObjectSetInteger(0, "SL_Line", OBJPROP_SELECTABLE, 1);
+   ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + TPInitialPips));
+   ObjectSetInteger(0, "TP_Line", OBJPROP_COLOR, clrLime);
+   ObjectSetInteger(0, "TP_Line", OBJPROP_WIDTH,HorizontalLineThickness);
+   ObjectSetInteger(0, "TP_Line", OBJPROP_SELECTABLE, 1);
   }
 void TyWindow::OnClickSellLines(void)
   {
-   ObjectsDeleteAll(0,-1,OBJ_HLINE);
+   ObjectDelete(0, "SL_Line");
+   ObjectDelete(0, "TP_Line");
+   ObjectDelete(0, "Limit_Line");
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
-   ObjectCreate(0, "SL_LINE", OBJ_HLINE, 0, 0, (Bid + SLInitialPips));
-   ObjectSetInteger(0, "SL_LINE", OBJPROP_COLOR, clrRed);
-   ObjectSetInteger(0, "SL_LINE", OBJPROP_WIDTH,HorizontalLineThickness);
-   ObjectSetInteger(0, "SL_LINE", OBJPROP_SELECTABLE, 1);
-   ObjectCreate(0, "TP_LINE", OBJ_HLINE, 0, 0, (Bid - TPInitialPips));
-   ObjectSetInteger(0, "TP_LINE", OBJPROP_COLOR, clrLime);
-   ObjectSetInteger(0, "TP_LINE", OBJPROP_WIDTH,HorizontalLineThickness);
-   ObjectSetInteger(0, "TP_LINE", OBJPROP_SELECTABLE, 1);
+   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid + SLInitialPips));
+   ObjectSetInteger(0, "SL_Line", OBJPROP_COLOR, clrRed);
+   ObjectSetInteger(0, "SL_Line", OBJPROP_WIDTH,HorizontalLineThickness);
+   ObjectSetInteger(0, "SL_Line", OBJPROP_SELECTABLE, 1);
+   ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - TPInitialPips));
+   ObjectSetInteger(0, "TP_Line", OBJPROP_COLOR, clrLime);
+   ObjectSetInteger(0, "TP_Line", OBJPROP_WIDTH,HorizontalLineThickness);
+   ObjectSetInteger(0, "TP_Line", OBJPROP_SELECTABLE, 1);
   }
 void TyWindow::OnClickDestroyLines(void)
 {
-   ObjectsDeleteAll(0,-1,OBJ_HLINE);
+   ObjectDelete(0, "SL_Line");
+   ObjectDelete(0, "TP_Line");
+   ObjectDelete(0, "Limit_Line");
    LimitLineExists = false;
 }
 void TyWindow::OnClickProtect(void)
@@ -608,7 +614,7 @@ void TyWindow::OnClickCloseLimits()
 }
 void TyWindow::OnClickSetTP(void)
 {
-   TP = ObjectGetDouble(0, "TP_LINE", OBJPROP_PRICE, 0);
+   TP = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
    
    
    if (TP !=0)
@@ -627,7 +633,7 @@ void TyWindow::OnClickSetTP(void)
 }
 void TyWindow::OnClickSetSL(void)
 {
-   SL = ObjectGetDouble(0, "SL_LINE", OBJPROP_PRICE, 0);
+   SL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
    
    
    if (SL !=0)
