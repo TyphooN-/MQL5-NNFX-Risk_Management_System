@@ -28,7 +28,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.000"
+#property version   "1.001"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -185,7 +185,59 @@ void OnTick()
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (Risk / 100));
+ 
+   double total_profit = 0;
+   double total_risk = 0;
+   double total_tpprofit = 0;
+   double total_pl = 0;
+   double total_tp = 0;
+   double rr = 0;
+
+   for(int i = 0; i < PositionsTotal(); i++)
+   {
+      if(PositionSelectByTicket(PositionGetTicket(i)))
+      {
+         if(PositionGetSymbol(i) != _Symbol) continue;
+
+         double profit = PositionGetDouble(POSITION_PROFIT);
+         double risk = PositionGetDouble(POSITION_VOLUME) * (PositionGetDouble(POSITION_PRICE_OPEN) - PositionGetDouble(POSITION_SL));
+         double tpprofit = 0;
+         if (PositionGetDouble(POSITION_TP) > PositionGetDouble(POSITION_SL))
+         {
+            tpprofit = PositionGetDouble(POSITION_VOLUME) *(PositionGetDouble(POSITION_TP) - PositionGetDouble(POSITION_PRICE_OPEN));
+         }
+         if (PositionGetDouble(POSITION_SL) > PositionGetDouble(POSITION_TP))
+         {
+            tpprofit = PositionGetDouble(POSITION_VOLUME) *(PositionGetDouble(POSITION_PRICE_OPEN) - PositionGetDouble(POSITION_TP));
+         }
+         total_profit += profit;
+         total_risk += risk;
+         total_tp += tpprofit;
+         total_pl = total_profit;
+         rr = total_tp/MathAbs(total_risk);
+      }
+   }
+   string info1 = "Total P/L: $ " + DoubleToString(total_profit, 2) + " / Risk: $" + DoubleToString(total_risk, 2); 
+   ObjectCreate(0,"info1Label", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"info1Label",OBJPROP_FONT,"Arial");
+   ObjectSetInteger(0,"info1Label",OBJPROP_FONTSIZE,13);
+   ObjectSetString(0,"info1Label",OBJPROP_TEXT,info1);
+   ObjectSetInteger(0,"info1Label", OBJPROP_XDISTANCE, 280);
+   ObjectSetInteger(0,"info1Label",OBJPROP_YDISTANCE,20);
+   ObjectSetInteger(0,"info1Label",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"info1Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string info2 = "Total TP: $ " + DoubleToString(total_tp, 2) + " / RR: " + DoubleToString(rr, 2); 
+   ObjectCreate(0,"info2Label", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"info2Label",OBJPROP_FONT,"Arial");
+   ObjectSetInteger(0,"info2Label",OBJPROP_FONTSIZE,13);
+   ObjectSetString(0,"info2Label",OBJPROP_TEXT,info2);
+   ObjectSetInteger(0,"info2Label", OBJPROP_XDISTANCE, 280);
+   ObjectSetInteger(0,"info2Label",OBJPROP_YDISTANCE,40);
+   ObjectSetInteger(0,"info2Label",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"info2Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
 }
+
+
 // Expert chart event function
 void OnChartEvent(const int id,         // event ID  
                   const long& lparam,   // event parameter of the long type
