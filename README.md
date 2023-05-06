@@ -22,6 +22,8 @@ TyphooN's MQL5-Risk_Management_System (Expert)
 
 -Set SL modifies existing position SL level.
 
+-Displays Total P/L, Risk, Total profit at TP, and RR of the positions on the chart.
+
 ### User Vars
 -Risk (set to % risk per position or limit order).
 
