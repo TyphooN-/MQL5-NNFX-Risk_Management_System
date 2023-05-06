@@ -1,5 +1,38 @@
 # MQL5-Risk_Management_System
 TyphooN's MQL5-Risk_Management_System (Expert)
+
+### Features
+-Simple trade management via SL, TP, and Limit lines places on the chart.-Open trade button to execute a position or order.
+
+-Limit Line places a Limit line on the chart, and will place a limit order when this line is present on the chart rather than market execution.
+
+-Buy Lines places TP and SL lines on the chart for a buy position.
+
+-Sell Lines places TP and SL lines on the chart for a sell position.
+
+-Destroy Lines removes all expert placed horizontal lines from the chart.
+
+-Protect button sets a slightly in profit (above break even) stop loss level.
+
+-Close Positions Button orders to close all orders on the active chart symbol.
+
+-Close Limits button to close all limit orders.
+
+-Set TP modifies existing position TP level.
+
+-Set SL modifies existing position SL level.
+
+### User Vars
+-Risk (set to % risk per position or limit order).
+
+-MagicNumber (can be set to anything the user wants, but this expert will only modify trades/positions that match the MagicNumber on the chart).
+
+-SLInitialPips and TPInitialPips (will change where the TP and SL line appear on the chart).  SL and TP lines are selectable and draggable, so that the user can set TP and SL before or after order creation.
+
+-OrderDigitNormalization - the # of decimal places the lot size is truncated to.  2 is the default, some symbols may require setting to 1 or 0 to place orders depending on market specs.
+
+-HorizontalLineThickness - how thick SL, TP, and Limit lines are on the chart.
+
 ### Usage
 
 This project is intended and may be freely used for education and entertainment purposes.
