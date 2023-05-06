@@ -236,8 +236,6 @@ void OnTick()
    ObjectSetInteger(0,"info2Label",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"info2Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
 }
-
-
 // Expert chart event function
 void OnChartEvent(const int id,         // event ID  
                   const long& lparam,   // event parameter of the long type
@@ -245,11 +243,6 @@ void OnChartEvent(const int id,         // event ID
                   const string& sparam) // event parameter of the string type
 {
    ExtDialog.ChartEvent(id,lparam,dparam,sparam);
-}
-// OnTrade function
-void OnTrade()
-{
-
 }
 bool TyWindow::CreateButtonTrade(void)
 {
