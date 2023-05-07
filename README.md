@@ -29,7 +29,7 @@ TyphooN's MQL5-Risk_Management_System (Expert)
 
 -MagicNumber (can be set to anything the user wants, but this expert will only modify trades/positions that match the MagicNumber on the chart).
 
--SLInitialPips and TPInitialPips (will change where the TP and SL line appear on the chart).  SL and TP lines are selectable and draggable, so that the user can set TP and SL before or after order creation.
+-ProtectionATRMulti, TPATRMulti, and SLATRMulti (will change where the TP and SL line appear on the chart, and how far in profit "PROTECT" places stop loss).
 
 -OrderDigitNormalization - the # of decimal places the lot size is truncated to.  2 is the default, some symbols may require setting to 1 or 0 to place orders depending on market specs.
 
