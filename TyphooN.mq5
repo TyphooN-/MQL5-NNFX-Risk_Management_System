@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.003"
+#property version   "1.004"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -43,11 +43,10 @@ CSymbolInfo       Symbol;   // Symbol wrapper
 input group    "User Vars";
 input double   Risk=0.3;
 input int      MagicNumber=13;
-input double   ProtectionPips=10;
-input double   SLInitialPips=10;
-input double   TPInitialPips=20;
+input double   ProtectionATRMulti=1.337;
+input double   SLATRMulti=3.14;
+input double   TPATRMulti=6.9;
 input int      OrderDigitNormalization=2;
-input group    "Appearance";
 input int      HorizontalLineThickness = 3;
 // global vars
 double TP = 0;
@@ -56,6 +55,7 @@ double Bid = 0;
 double Ask = 0;
 double risk_money = 0;
 double lotsglobal = 0;
+double ATR = 0;
 bool LimitLineExists = false;
 // defines
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
@@ -186,6 +186,7 @@ void OnTick()
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (Risk / 100));
+   ATR = iATR(_Symbol, PERIOD_CURRENT, 14);
    double total_profit = 0;
    double total_risk = 0;
    double total_tpprofit = 0;
@@ -224,6 +225,7 @@ void OnTick()
    ObjectSetInteger(0,"info1Label",OBJPROP_YDISTANCE,20);
    ObjectSetInteger(0,"info1Label",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"info1Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   double ATRPoint = ATR * _Point;
    string info2 = "Total TP: $ " + DoubleToString(total_tp, 2) + " / RR: " + DoubleToString(rr, 2); 
    ObjectCreate(0,"info2Label", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"info2Label",OBJPROP_FONT,"Courier New");
@@ -506,11 +508,11 @@ void TyWindow::OnClickBuyLines(void)
    ObjectDelete(0, "TP_Line");
    ObjectDelete(0, "Limit_Line");
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
-   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask - SLInitialPips));
+   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask - (ATR * SLATRMulti)));
    ObjectSetInteger(0, "SL_Line", OBJPROP_COLOR, clrRed);
    ObjectSetInteger(0, "SL_Line", OBJPROP_WIDTH,HorizontalLineThickness);
    ObjectSetInteger(0, "SL_Line", OBJPROP_SELECTABLE, 1);
-   ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + TPInitialPips));
+   ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * TPATRMulti)));
    ObjectSetInteger(0, "TP_Line", OBJPROP_COLOR, clrLime);
    ObjectSetInteger(0, "TP_Line", OBJPROP_WIDTH,HorizontalLineThickness);
    ObjectSetInteger(0, "TP_Line", OBJPROP_SELECTABLE, 1);
@@ -521,11 +523,11 @@ void TyWindow::OnClickSellLines(void)
    ObjectDelete(0, "TP_Line");
    ObjectDelete(0, "Limit_Line");
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
-   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid + SLInitialPips));
+   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid + (ATR * SLATRMulti)));
    ObjectSetInteger(0, "SL_Line", OBJPROP_COLOR, clrRed);
    ObjectSetInteger(0, "SL_Line", OBJPROP_WIDTH,HorizontalLineThickness);
    ObjectSetInteger(0, "SL_Line", OBJPROP_SELECTABLE, 1);
-   ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - TPInitialPips));
+   ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * TPATRMulti)));
    ObjectSetInteger(0, "TP_Line", OBJPROP_COLOR, clrLime);
    ObjectSetInteger(0, "TP_Line", OBJPROP_WIDTH,HorizontalLineThickness);
    ObjectSetInteger(0, "TP_Line", OBJPROP_SELECTABLE, 1);
@@ -546,15 +548,14 @@ void TyWindow::OnClickProtect(void)
       if(Position.Magic() != MagicNumber ) continue;
       if(PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
       {
-         SL = (PositionGetDouble(POSITION_PRICE_OPEN) + (ProtectionPips*(SYMBOL_DIGITS/100)));
+         SL = PositionGetDouble(POSITION_PRICE_OPEN) + ( ATR * ProtectionATRMulti * _Point );
       }
       else if(PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL)
       {
-         SL = (PositionGetDouble(POSITION_PRICE_OPEN) - (ProtectionPips*(SYMBOL_DIGITS/100)));
+         SL = PositionGetDouble(POSITION_PRICE_OPEN) - ( ATR * ProtectionATRMulti *  _Point );
       }
-      double ProtectTP = PositionGetDouble(POSITION_TP);
-      if(!Trade.PositionModify(PositionGetTicket(i), SL, ProtectTP))
-         Print("Failed to modify TP. Error code: ", GetLastError());
+      if(!Trade.PositionModify(PositionGetTicket(i), SL, PositionGetDouble(POSITION_TP)))
+         Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
       }
       }
 }
