@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.004"
+#property version   "1.005"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -43,11 +43,12 @@ CSymbolInfo       Symbol;   // Symbol wrapper
 input group    "User Vars";
 input double   Risk=0.3;
 input int      MagicNumber=13;
-input double   ProtectionATRMulti=1.337;
-input double   SLATRMulti=3.14;
-input double   TPATRMulti=6.9;
+input double   ProtectionATRMulti=0.1337;
+input double   SLATRMulti=0.1;
+input double   TPATRMulti=0.3;
 input int      OrderDigitNormalization=2;
 input int      HorizontalLineThickness = 3;
+input double   InfoMulti=1;
 // global vars
 double TP = 0;
 double SL = 0;
@@ -56,6 +57,7 @@ double Ask = 0;
 double risk_money = 0;
 double lotsglobal = 0;
 double ATR = 0;
+//double InfoMulti = 0;
 bool LimitLineExists = false;
 // defines
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
@@ -187,36 +189,35 @@ void OnTick()
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (Risk / 100));
    ATR = iATR(_Symbol, PERIOD_CURRENT, 14);
-   double total_profit = 0;
    double total_risk = 0;
    double total_tpprofit = 0;
    double total_pl = 0;
    double total_tp = 0;
    double rr = 0;
+   double digits = _Digits;
    for(int i = 0; i < PositionsTotal(); i++)
    {
       if(PositionSelectByTicket(PositionGetTicket(i)))
       {
          if(PositionGetSymbol(i) != _Symbol) continue;
          double profit = PositionGetDouble(POSITION_PROFIT);
-         double risk = PositionGetDouble(POSITION_VOLUME) * (PositionGetDouble(POSITION_PRICE_OPEN) - PositionGetDouble(POSITION_SL));
+         double risk = (PositionGetDouble(POSITION_VOLUME) * ((PositionGetDouble(POSITION_PRICE_OPEN) - PositionGetDouble(POSITION_SL)))/_Point*InfoMulti);
          double tpprofit = 0;
          if (PositionGetDouble(POSITION_TP) > PositionGetDouble(POSITION_SL))
          {
-            tpprofit = PositionGetDouble(POSITION_VOLUME) *(PositionGetDouble(POSITION_TP) - PositionGetDouble(POSITION_PRICE_OPEN));
+            tpprofit = (PositionGetDouble(POSITION_VOLUME) *((PositionGetDouble(POSITION_TP) - PositionGetDouble(POSITION_PRICE_OPEN)))/_Point*InfoMulti);
          }
          if (PositionGetDouble(POSITION_SL) > PositionGetDouble(POSITION_TP))
          {
-            tpprofit = PositionGetDouble(POSITION_VOLUME) *(PositionGetDouble(POSITION_PRICE_OPEN) - PositionGetDouble(POSITION_TP));
+            tpprofit = (PositionGetDouble(POSITION_VOLUME) *((PositionGetDouble(POSITION_PRICE_OPEN) - PositionGetDouble(POSITION_TP)))/_Point*InfoMulti);
          }
-         total_profit += profit;
+         total_pl += profit;
          total_risk += risk;
          total_tp += tpprofit;
-         total_pl = total_profit;
          rr = total_tp/MathAbs(total_risk);
       }
    }
-   string info1 = "Total P/L: $ " + DoubleToString(total_profit, 2) + " / Risk: $" + DoubleToString(total_risk, 2); 
+   string info1 = "Total P/L: $ " + DoubleToString(total_pl, 2) + " / Risk: $" + DoubleToString(total_risk, 2); 
    ObjectCreate(0,"info1Label", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"info1Label",OBJPROP_FONT,"Courier New");
    ObjectSetInteger(0,"info1Label",OBJPROP_FONTSIZE,10);
@@ -226,7 +227,7 @@ void OnTick()
    ObjectSetInteger(0,"info1Label",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"info1Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    double ATRPoint = ATR * _Point;
-   string info2 = "Total TP: $ " + DoubleToString(total_tp, 2) + " / RR: " + DoubleToString(rr, 2); 
+   string info2 = "Total TP: $ " + DoubleToString(total_tp, 2) + " / RR: " + DoubleToString(rr, 2);
    ObjectCreate(0,"info2Label", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"info2Label",OBJPROP_FONT,"Courier New");
    ObjectSetInteger(0,"info2Label",OBJPROP_FONTSIZE,10);
