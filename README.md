@@ -2,7 +2,9 @@
 TyphooN's MQL5-Risk_Management_System (Expert)
 
 ### Features
--Simple trade management via SL, TP, and Limit lines places on the chart.-Open trade button to execute a position or order.
+-Simple trade management via SL, TP, and Limit lines places on the chart.
+
+-Open trade button to execute a position or order.
 
 -Limit Line places a Limit line on the chart, and will place a limit order when this line is present on the chart rather than market execution.
 
@@ -34,6 +36,8 @@ TyphooN's MQL5-Risk_Management_System (Expert)
 -OrderDigitNormalization - the # of decimal places the lot size is truncated to.  2 is the default, some symbols may require setting to 1 or 0 to place orders depending on market specs.
 
 -HorizontalLineThickness - how thick SL, TP, and Limit lines are on the chart.
+
+-InfoMulti - multiplier to fix chart info text (RR/Risk/TP) values.  Will look into a more elegant solution for long term.
 
 ### Usage
 
