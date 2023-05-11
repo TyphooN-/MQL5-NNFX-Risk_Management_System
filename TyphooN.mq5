@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.005"
+#property version   "1.006"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -41,14 +41,15 @@ CAccountInfo      Account;  // Account wrapper
 CSymbolInfo       Symbol;   // Symbol wrapper
 // input vars
 input group    "User Vars";
-input double   Risk=0.3;
+input double   Risk=0.2;
 input int      MagicNumber=13;
-input double   ProtectionATRMulti=0.1337;
+input double   ProtectionATRMulti=0.01337;
 input double   SLATRMulti=0.1;
 input double   TPATRMulti=0.3;
 input int      OrderDigitNormalization=2;
-input int      HorizontalLineThickness = 3;
+input int      HorizontalLineThickness=3;
 input double   InfoMulti=1;
+
 // global vars
 double TP = 0;
 double SL = 0;
@@ -183,6 +184,17 @@ void OnDeinit(const int reason)
    // destroy dialog
    ExtDialog.Destroy(reason);
 }
+string TimeTilNextBar(ENUM_TIMEFRAMES tf=PERIOD_CURRENT)
+{
+   datetime now=TimeCurrent();
+   datetime bartime=iTime(NULL,tf,0);
+   datetime remainingTime=bartime+PeriodSeconds(tf)-now;
+   MqlDateTime mdt;
+   TimeToStruct(remainingTime,mdt);
+   if(mdt.day_of_year>0) return StringFormat("%d d %d h %d m %d s",mdt.day_of_year,mdt.hour,mdt.min,mdt.sec);
+   if(mdt.hour>0) return StringFormat("%d h %d m %d s",mdt.hour,mdt.min,mdt.sec);
+   return StringFormat("%d m %d s",mdt.min,mdt.sec);
+}
 void OnTick()
 {
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
@@ -194,22 +206,23 @@ void OnTick()
    double total_pl = 0;
    double total_tp = 0;
    double rr = 0;
-   double digits = _Digits;
    for(int i = 0; i < PositionsTotal(); i++)
    {
       if(PositionSelectByTicket(PositionGetTicket(i)))
       {
          if(PositionGetSymbol(i) != _Symbol) continue;
          double profit = PositionGetDouble(POSITION_PROFIT);
-         double risk = (PositionGetDouble(POSITION_VOLUME) * ((PositionGetDouble(POSITION_PRICE_OPEN) - PositionGetDouble(POSITION_SL)))/_Point*InfoMulti);
+         double risk = 0;
          double tpprofit = 0;
          if (PositionGetDouble(POSITION_TP) > PositionGetDouble(POSITION_SL))
          {
             tpprofit = (PositionGetDouble(POSITION_VOLUME) *((PositionGetDouble(POSITION_TP) - PositionGetDouble(POSITION_PRICE_OPEN)))/_Point*InfoMulti);
+            risk = (PositionGetDouble(POSITION_VOLUME) * ((PositionGetDouble(POSITION_PRICE_OPEN) - PositionGetDouble(POSITION_SL)))/_Point*InfoMulti);
          }
          if (PositionGetDouble(POSITION_SL) > PositionGetDouble(POSITION_TP))
          {
             tpprofit = (PositionGetDouble(POSITION_VOLUME) *((PositionGetDouble(POSITION_PRICE_OPEN) - PositionGetDouble(POSITION_TP)))/_Point*InfoMulti);
+            risk = (PositionGetDouble(POSITION_VOLUME) * ((PositionGetDouble(POSITION_SL) - PositionGetDouble(POSITION_PRICE_OPEN)))/_Point*InfoMulti);
          }
          total_pl += profit;
          total_risk += risk;
@@ -222,20 +235,73 @@ void OnTick()
    ObjectSetString(0,"info1Label",OBJPROP_FONT,"Courier New");
    ObjectSetInteger(0,"info1Label",OBJPROP_FONTSIZE,10);
    ObjectSetString(0,"info1Label",OBJPROP_TEXT,info1);
-   ObjectSetInteger(0,"info1Label", OBJPROP_XDISTANCE, 310);
+   ObjectSetInteger(0,"info1Label", OBJPROP_XDISTANCE, 360);
    ObjectSetInteger(0,"info1Label",OBJPROP_YDISTANCE,20);
    ObjectSetInteger(0,"info1Label",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"info1Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   double ATRPoint = ATR * _Point;
    string info2 = "Total TP: $ " + DoubleToString(total_tp, 2) + " / RR: " + DoubleToString(rr, 2);
    ObjectCreate(0,"info2Label", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"info2Label",OBJPROP_FONT,"Courier New");
    ObjectSetInteger(0,"info2Label",OBJPROP_FONTSIZE,10);
    ObjectSetString(0,"info2Label",OBJPROP_TEXT,info2);
-   ObjectSetInteger(0,"info2Label", OBJPROP_XDISTANCE, 310);
+   ObjectSetInteger(0,"info2Label", OBJPROP_XDISTANCE, 360);
    ObjectSetInteger(0,"info2Label",OBJPROP_YDISTANCE,40);
    ObjectSetInteger(0,"info2Label",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"info2Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string info3 = "M15: " + TimeTilNextBar(PERIOD_M15);
+   ObjectCreate(0,"info3Label", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"info3Label",OBJPROP_FONT,"Courier New");
+   ObjectSetInteger(0,"info3Label",OBJPROP_FONTSIZE,10);
+   ObjectSetString(0,"info3Label",OBJPROP_TEXT,info3);
+   ObjectSetInteger(0,"info3Label", OBJPROP_XDISTANCE, 360);
+   ObjectSetInteger(0,"info3Label",OBJPROP_YDISTANCE,60);
+   ObjectSetInteger(0,"info3Label",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"info3Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string info4 = "H1 : " + TimeTilNextBar(PERIOD_H1);
+   ObjectCreate(0,"info4Label", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"info4Label",OBJPROP_FONT,"Courier New");
+   ObjectSetInteger(0,"info4Label",OBJPROP_FONTSIZE,10);
+   ObjectSetString(0,"info4Label",OBJPROP_TEXT,info4);
+   ObjectSetInteger(0,"info4Label", OBJPROP_XDISTANCE, 360);
+   ObjectSetInteger(0,"info4Label",OBJPROP_YDISTANCE,80);
+   ObjectSetInteger(0,"info4Label",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"info4Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string info5 = "D1 : " + TimeTilNextBar(PERIOD_D1);
+   ObjectCreate(0,"info5Label", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"info5Label",OBJPROP_FONT,"Courier New");
+   ObjectSetInteger(0,"info5Label",OBJPROP_FONTSIZE,10);
+   ObjectSetString(0,"info5Label",OBJPROP_TEXT,info5);
+   ObjectSetInteger(0,"info5Label", OBJPROP_XDISTANCE, 360);
+   ObjectSetInteger(0,"info5Label",OBJPROP_YDISTANCE,100);
+   ObjectSetInteger(0,"info5Label",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"info5Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string info6 ="M30: " + TimeTilNextBar(PERIOD_M30);
+   ObjectCreate(0,"info6Label", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"info6Label",OBJPROP_FONT,"Courier New");
+   ObjectSetInteger(0,"info6Label",OBJPROP_FONTSIZE,10);
+   ObjectSetString(0,"info6Label",OBJPROP_TEXT,info6);
+   ObjectSetInteger(0,"info6Label", OBJPROP_XDISTANCE, 200);
+   ObjectSetInteger(0,"info6Label",OBJPROP_YDISTANCE,60);
+   ObjectSetInteger(0,"info6Label",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"info6Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string info7 = "H4 : " + TimeTilNextBar(PERIOD_H4);
+   ObjectCreate(0,"info7Label", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"info7Label",OBJPROP_FONT,"Courier New");
+   ObjectSetInteger(0,"info7Label",OBJPROP_FONTSIZE,10);
+   ObjectSetString(0,"info7Label",OBJPROP_TEXT,info7);
+   ObjectSetInteger(0,"info7Label", OBJPROP_XDISTANCE, 200);
+   ObjectSetInteger(0,"info7Label",OBJPROP_YDISTANCE,80);
+   ObjectSetInteger(0,"info7Label",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"info7Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string info8 = "W1 : " + TimeTilNextBar(PERIOD_W1);
+   ObjectCreate(0,"info8Label", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"info8Label",OBJPROP_FONT,"Courier New");
+   ObjectSetInteger(0,"info8Label",OBJPROP_FONTSIZE,10);
+   ObjectSetString(0,"info8Label",OBJPROP_TEXT,info8);
+   ObjectSetInteger(0,"info8Label", OBJPROP_XDISTANCE, 200);
+   ObjectSetInteger(0,"info8Label",OBJPROP_YDISTANCE,100);
+   ObjectSetInteger(0,"info8Label",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"info8Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
 }
 // Expert chart event function
 void OnChartEvent(const int id,         // event ID  
