@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.006"
+#property version   "1.007"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -575,7 +575,7 @@ void TyWindow::OnClickBuyLines(void)
    ObjectDelete(0, "TP_Line");
    ObjectDelete(0, "Limit_Line");
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
-   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask - (ATR * SLATRMulti)));
+   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * SLATRMulti)));
    ObjectSetInteger(0, "SL_Line", OBJPROP_COLOR, clrRed);
    ObjectSetInteger(0, "SL_Line", OBJPROP_WIDTH,HorizontalLineThickness);
    ObjectSetInteger(0, "SL_Line", OBJPROP_SELECTABLE, 1);
@@ -590,7 +590,7 @@ void TyWindow::OnClickSellLines(void)
    ObjectDelete(0, "TP_Line");
    ObjectDelete(0, "Limit_Line");
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
-   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid + (ATR * SLATRMulti)));
+   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * SLATRMulti)));
    ObjectSetInteger(0, "SL_Line", OBJPROP_COLOR, clrRed);
    ObjectSetInteger(0, "SL_Line", OBJPROP_WIDTH,HorizontalLineThickness);
    ObjectSetInteger(0, "SL_Line", OBJPROP_SELECTABLE, 1);
