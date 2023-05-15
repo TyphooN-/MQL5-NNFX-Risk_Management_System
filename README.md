@@ -73,7 +73,7 @@ these TERMS OF USE and that you agree to be bound by such Terms of Use ("License
 
 ### Copyright information
 
-Copyright © 2013-2022 - Novateq Pty Ltd - All Rights Reserved
+Copyright © 2023 - Decapool.net - All Rights Reserved
 
 ### Disclaimer and Risk Warnings
 
