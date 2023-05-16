@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.007"
+#property version   "1.008"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -191,9 +191,10 @@ string TimeTilNextBar(ENUM_TIMEFRAMES tf=PERIOD_CURRENT)
    datetime remainingTime=bartime+PeriodSeconds(tf)-now;
    MqlDateTime mdt;
    TimeToStruct(remainingTime,mdt);
-   if(mdt.day_of_year>0) return StringFormat("%d d %d h %d m %d s",mdt.day_of_year,mdt.hour,mdt.min,mdt.sec);
+   if(mdt.day_of_year>0) return StringFormat("%d d %d h %d m",mdt.day_of_year,mdt.hour,mdt.min);
    if(mdt.hour>0) return StringFormat("%d h %d m %d s",mdt.hour,mdt.min,mdt.sec);
-   return StringFormat("%d m %d s",mdt.min,mdt.sec);
+   if(mdt.min>0) return StringFormat("%d m %d s",mdt.min,mdt.sec);
+   return StringFormat("%d s",mdt.sec);
 }
 void OnTick()
 {
@@ -235,7 +236,7 @@ void OnTick()
    ObjectSetString(0,"info1Label",OBJPROP_FONT,"Courier New");
    ObjectSetInteger(0,"info1Label",OBJPROP_FONTSIZE,10);
    ObjectSetString(0,"info1Label",OBJPROP_TEXT,info1);
-   ObjectSetInteger(0,"info1Label", OBJPROP_XDISTANCE, 360);
+   ObjectSetInteger(0,"info1Label", OBJPROP_XDISTANCE, 320);
    ObjectSetInteger(0,"info1Label",OBJPROP_YDISTANCE,20);
    ObjectSetInteger(0,"info1Label",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"info1Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
@@ -244,7 +245,7 @@ void OnTick()
    ObjectSetString(0,"info2Label",OBJPROP_FONT,"Courier New");
    ObjectSetInteger(0,"info2Label",OBJPROP_FONTSIZE,10);
    ObjectSetString(0,"info2Label",OBJPROP_TEXT,info2);
-   ObjectSetInteger(0,"info2Label", OBJPROP_XDISTANCE, 360);
+   ObjectSetInteger(0,"info2Label", OBJPROP_XDISTANCE, 320);
    ObjectSetInteger(0,"info2Label",OBJPROP_YDISTANCE,40);
    ObjectSetInteger(0,"info2Label",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"info2Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
@@ -253,7 +254,7 @@ void OnTick()
    ObjectSetString(0,"info3Label",OBJPROP_FONT,"Courier New");
    ObjectSetInteger(0,"info3Label",OBJPROP_FONTSIZE,10);
    ObjectSetString(0,"info3Label",OBJPROP_TEXT,info3);
-   ObjectSetInteger(0,"info3Label", OBJPROP_XDISTANCE, 360);
+   ObjectSetInteger(0,"info3Label", OBJPROP_XDISTANCE, 320);
    ObjectSetInteger(0,"info3Label",OBJPROP_YDISTANCE,60);
    ObjectSetInteger(0,"info3Label",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"info3Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
@@ -262,7 +263,7 @@ void OnTick()
    ObjectSetString(0,"info4Label",OBJPROP_FONT,"Courier New");
    ObjectSetInteger(0,"info4Label",OBJPROP_FONTSIZE,10);
    ObjectSetString(0,"info4Label",OBJPROP_TEXT,info4);
-   ObjectSetInteger(0,"info4Label", OBJPROP_XDISTANCE, 360);
+   ObjectSetInteger(0,"info4Label", OBJPROP_XDISTANCE, 320);
    ObjectSetInteger(0,"info4Label",OBJPROP_YDISTANCE,80);
    ObjectSetInteger(0,"info4Label",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"info4Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
@@ -271,7 +272,7 @@ void OnTick()
    ObjectSetString(0,"info5Label",OBJPROP_FONT,"Courier New");
    ObjectSetInteger(0,"info5Label",OBJPROP_FONTSIZE,10);
    ObjectSetString(0,"info5Label",OBJPROP_TEXT,info5);
-   ObjectSetInteger(0,"info5Label", OBJPROP_XDISTANCE, 360);
+   ObjectSetInteger(0,"info5Label", OBJPROP_XDISTANCE, 320);
    ObjectSetInteger(0,"info5Label",OBJPROP_YDISTANCE,100);
    ObjectSetInteger(0,"info5Label",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"info5Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
@@ -280,7 +281,7 @@ void OnTick()
    ObjectSetString(0,"info6Label",OBJPROP_FONT,"Courier New");
    ObjectSetInteger(0,"info6Label",OBJPROP_FONTSIZE,10);
    ObjectSetString(0,"info6Label",OBJPROP_TEXT,info6);
-   ObjectSetInteger(0,"info6Label", OBJPROP_XDISTANCE, 200);
+   ObjectSetInteger(0,"info6Label", OBJPROP_XDISTANCE, 160);
    ObjectSetInteger(0,"info6Label",OBJPROP_YDISTANCE,60);
    ObjectSetInteger(0,"info6Label",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"info6Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
@@ -289,7 +290,7 @@ void OnTick()
    ObjectSetString(0,"info7Label",OBJPROP_FONT,"Courier New");
    ObjectSetInteger(0,"info7Label",OBJPROP_FONTSIZE,10);
    ObjectSetString(0,"info7Label",OBJPROP_TEXT,info7);
-   ObjectSetInteger(0,"info7Label", OBJPROP_XDISTANCE, 200);
+   ObjectSetInteger(0,"info7Label", OBJPROP_XDISTANCE, 160);
    ObjectSetInteger(0,"info7Label",OBJPROP_YDISTANCE,80);
    ObjectSetInteger(0,"info7Label",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"info7Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
@@ -298,7 +299,7 @@ void OnTick()
    ObjectSetString(0,"info8Label",OBJPROP_FONT,"Courier New");
    ObjectSetInteger(0,"info8Label",OBJPROP_FONTSIZE,10);
    ObjectSetString(0,"info8Label",OBJPROP_TEXT,info8);
-   ObjectSetInteger(0,"info8Label", OBJPROP_XDISTANCE, 200);
+   ObjectSetInteger(0,"info8Label", OBJPROP_XDISTANCE, 160);
    ObjectSetInteger(0,"info8Label",OBJPROP_YDISTANCE,100);
    ObjectSetInteger(0,"info8Label",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"info8Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
