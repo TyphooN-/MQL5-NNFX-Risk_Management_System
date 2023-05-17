@@ -37,8 +37,6 @@ TyphooN's MQL5-Risk_Management_System (Expert)
 
 -HorizontalLineThickness - how thick SL, TP, and Limit lines are on the chart.
 
--InfoMulti - multiplier to fix chart info text (RR/Risk/TP) values.  Will look into a more elegant solution for long term.
-
 ### Usage
 
 This project is intended and may be freely used for education and entertainment purposes.
