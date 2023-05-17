@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.008"
+#property version   "1.009"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -39,17 +39,20 @@ CTrade            Trade;    // Trade wrapper
 COrderInfo        Order;    // Order wrapper
 CAccountInfo      Account;  // Account wrapper
 CSymbolInfo       Symbol;   // Symbol wrapper
+// orchard compat functions
+string BaseCurrency() { return ( AccountInfoString( ACCOUNT_CURRENCY ) ); }
+double Point( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_POINT ) ); }
+double TickSize( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_SIZE ) ); }
+double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_VALUE ) ); }
 // input vars
 input group    "User Vars";
-input double   Risk=0.2;
+input double   Risk=0.3;
 input int      MagicNumber=13;
-input double   ProtectionATRMulti=0.01337;
-input double   SLATRMulti=0.1;
-input double   TPATRMulti=0.3;
+input double   ProtectionATRMulti=1.337;
+input double   SLATRMulti=0.3;
+input double   TPATRMulti=0.9;
 input int      OrderDigitNormalization=2;
 input int      HorizontalLineThickness=3;
-input double   InfoMulti=1;
-
 // global vars
 double TP = 0;
 double SL = 0;
@@ -58,7 +61,7 @@ double Ask = 0;
 double risk_money = 0;
 double lotsglobal = 0;
 double ATR = 0;
-//double InfoMulti = 0;
+double InfoMulti = 0;
 bool LimitLineExists = false;
 // defines
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
@@ -196,6 +199,16 @@ string TimeTilNextBar(ENUM_TIMEFRAMES tf=PERIOD_CURRENT)
    if(mdt.min>0) return StringFormat("%d m %d s",mdt.min,mdt.sec);
    return StringFormat("%d s",mdt.sec);
 }
+double PointValue() {
+   double tickSize      = TickSize( _Symbol );
+   double tickValue     = TickValue( _Symbol );
+   double point         = Point( _Symbol );
+   double ticksPerPoint = tickSize / point;
+   double pointValue    = tickValue / ticksPerPoint;
+ //  PrintFormat( "tickSize=%f, tickValue=%f, point=%f, ticksPerPoint=%f, pointValue=%f",
+ //               tickSize, tickValue, point, ticksPerPoint, pointValue );
+   return ( pointValue );
+}
 void OnTick()
 {
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
@@ -207,6 +220,44 @@ void OnTick()
    double total_pl = 0;
    double total_tp = 0;
    double rr = 0;
+   double point = PointValue();
+   long calcmode = SymbolInfoInteger(_Symbol, SYMBOL_TRADE_CALC_MODE);
+   // calcmode 4 is SYMBOL_CALC_MODE_CFDLEVERAGE
+   // calcmode 0 is SYMBOL_CALC_MODE_FOREX
+   if (point == 0.1 && calcmode == 4)
+   {
+      InfoMulti = 0.1;
+   }
+   else if (point == 0.01 && calcmode == 4)
+   {
+      InfoMulti = 100;
+   }
+// else if (point > 0.72 && point < 0.73 && calcmode == 0) // USDJPY FTMO can't find good value because point value is constantly slightly changing 
+// {
+//    InfoMulti = 0.0016;
+//  }
+// else if (point > 0.74 && point < 0.75 && calcmode == 0) // USDCAD FTMO can't find good value because point value is constantly slightly changing 
+// {
+//    InfoMulti = 0.0016;
+//  }
+// else if (point > 1.113 && point < 1.114 && calcmode == 0) // USDCHF FTMO can't find good value because point value is constantly slightly changing 
+// {
+//    InfoMulti = 0.0016;
+//  }
+   else if (point == 1 && calcmode == 4)
+   {
+      InfoMulti = 0.01;
+   }
+   else if (point == 1 && calcmode == 0)
+   {
+      InfoMulti = 0.00001;
+   }
+   else if (point == 5 && calcmode == 4)
+   {
+      InfoMulti=0.00004;
+   }
+   //  Print(calcmode);
+   // Print (point);
    for(int i = 0; i < PositionsTotal(); i++)
    {
       if(PositionSelectByTicket(PositionGetTicket(i)))
@@ -217,13 +268,13 @@ void OnTick()
          double tpprofit = 0;
          if (PositionGetDouble(POSITION_TP) > PositionGetDouble(POSITION_SL))
          {
-            tpprofit = (PositionGetDouble(POSITION_VOLUME) *((PositionGetDouble(POSITION_TP) - PositionGetDouble(POSITION_PRICE_OPEN)))/_Point*InfoMulti);
-            risk = (PositionGetDouble(POSITION_VOLUME) * ((PositionGetDouble(POSITION_PRICE_OPEN) - PositionGetDouble(POSITION_SL)))/_Point*InfoMulti);
+            tpprofit = ( (PositionGetDouble(POSITION_VOLUME) * ((PositionGetDouble(POSITION_TP) - PositionGetDouble(POSITION_PRICE_OPEN)) / (point * InfoMulti))));
+            risk = ( (PositionGetDouble(POSITION_VOLUME) * ((PositionGetDouble(POSITION_PRICE_OPEN) - PositionGetDouble(POSITION_SL)) / (point * InfoMulti))));
          }
          if (PositionGetDouble(POSITION_SL) > PositionGetDouble(POSITION_TP))
          {
-            tpprofit = (PositionGetDouble(POSITION_VOLUME) *((PositionGetDouble(POSITION_PRICE_OPEN) - PositionGetDouble(POSITION_TP)))/_Point*InfoMulti);
-            risk = (PositionGetDouble(POSITION_VOLUME) * ((PositionGetDouble(POSITION_SL) - PositionGetDouble(POSITION_PRICE_OPEN)))/_Point*InfoMulti);
+            tpprofit = ( (PositionGetDouble(POSITION_VOLUME) * ((PositionGetDouble(POSITION_PRICE_OPEN) - PositionGetDouble(POSITION_TP)) / (point * InfoMulti))));
+            risk = ( (PositionGetDouble(POSITION_VOLUME) * ((PositionGetDouble(POSITION_SL) - PositionGetDouble(POSITION_PRICE_OPEN)) / (point * InfoMulti))));
          }
          total_pl += profit;
          total_risk += risk;
