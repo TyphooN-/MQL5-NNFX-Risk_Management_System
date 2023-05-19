@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.011"
+#property version   "1.012"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -225,13 +225,14 @@ void OnTick()
    string symbolcurrencybase = SymbolInfoString(_Symbol,SYMBOL_CURRENCY_BASE);
    // calcmode 4 is SYMBOL_CALC_MODE_CFDLEVERAGE
    // calcmode 0 is SYMBOL_CALC_MODE_FOREX
-  // Print (symbolcurrencybase);
+   // Print (symbolcurrencybase);
+    Print (point);
    if (point == 0.001 && calcmode == 4 && symbolcurrencyprofit == "USD" && symbolcurrencybase== "USD")
    { // XRPUSD FTMO
       InfoMulti = 10;
    }
    else if (point == 0.01 && calcmode == 4 && symbolcurrencyprofit == "USD" && symbolcurrencybase== "USD")
-   { // US30, US100, US500, US2000, XPDUSD, XPTUSD | BTCUSD, DASHUSD, DOGEUSD, DOTUSD, ETHUSD, LTCUSD, NEOUSD FTMO
+   { // US30, US100, US500, US2000, XPDUSD, XPTUSD | BTCUSD, DASHUSD, DOGEUSD, DOTUSD, ETHUSD, LTCUSD, NEOUSD, XMRUSD FTMO
      // AAPL, AMZN, BABA, BAC, GOOG, META, MSFT, NFLX, NVDA, PFE, RACE, T, TSLA, V, WMT, ZM FTMO
       InfoMulti = 100;
       if (_Symbol == "DOGEUSD")
@@ -244,7 +245,7 @@ void OnTick()
       }
    }
    else if (point == 0.1 && calcmode == 4 && symbolcurrencyprofit == "USD" && symbolcurrencybase== "USD")
-   { // DX.f, USOIL FTMO
+   { // DX.f, UKOIL, USOIL FTMO
       InfoMulti = 0.1;
    }
    else if (point == 0.009999999999999998 && calcmode == 4 && symbolcurrencyprofit == "USD" && symbolcurrencybase== "USD")
@@ -274,7 +275,7 @@ void OnTick()
       InfoMulti = 220;
    }
    else if (symbolcurrencyprofit == "EUR" && symbolcurrencybase == "EUR" && calcmode == 4)
-   { // AIRF, ALVG, BAYGn, DBKGn, IBE, LVMH, VOWG_p, EU50, FRA40, GER40, SPN50 FTMO -- needs further tweaking
+   { // AIRF, ALVG, BAYGn, DBKGn, IBE, LVMH, VOWG_p, EU50, FRA40, GER40, SPN35 FTMO -- needs further tweaking
       InfoMulti = 85;
    }
    else if (symbolcurrencyprofit == "HKD" && symbolcurrencybase == "HKD" && calcmode == 4)
@@ -330,6 +331,10 @@ void OnTick()
    else if (symbolcurrencybase == "USD" && symbolcurrencyprofit == "HUF" && calcmode == 0)
    { // USDHUF FTMO -- needs further tweaking
       InfoMulti = 0.01;
+   }
+   else if (symbolcurrencybase == "USD" && symbolcurrencyprofit == "ILS" && calcmode == 0)
+   { // USDILS FTMO -- needs further tweaking
+      InfoMulti = 0.000011;
    }
    else if (symbolcurrencybase == "USD" && symbolcurrencyprofit == "JPY" && calcmode == 0)
    { // USDJPY FTMO -- needs further tweaking
@@ -399,7 +404,6 @@ void OnTick()
    { // AUDJPY, CADJPY, CHFJPY, EURJPY, GBPJPY, NZDJPY FTMO -- needs further tweaking
       InfoMulti = 0.0019;
    }
-   // Print (point);
    for(int i = 0; i < PositionsTotal(); i++)
    {
       if(PositionSelectByTicket(PositionGetTicket(i)))
