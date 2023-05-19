@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.010"
+#property version   "1.011"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -225,12 +225,14 @@ void OnTick()
    string symbolcurrencybase = SymbolInfoString(_Symbol,SYMBOL_CURRENCY_BASE);
    // calcmode 4 is SYMBOL_CALC_MODE_CFDLEVERAGE
    // calcmode 0 is SYMBOL_CALC_MODE_FOREX
-   if (point == 0.001 && calcmode == 4 && symbolcurrencyprofit== "USD" && symbolcurrencybase== "USD")
+  // Print (symbolcurrencybase);
+   if (point == 0.001 && calcmode == 4 && symbolcurrencyprofit == "USD" && symbolcurrencybase== "USD")
    { // XRPUSD FTMO
       InfoMulti = 10;
    }
-   else if (point == 0.01 && calcmode == 4 && symbolcurrencyprofit== "USD" && symbolcurrencybase== "USD")
-   { // US30, US100, US500, XPDUSD, XPTUSD | BTCUSD, DASHUSD, DOGEUSD, DOTUSD, ETHUSD, LTCUSD, NEOUSD FTMO
+   else if (point == 0.01 && calcmode == 4 && symbolcurrencyprofit == "USD" && symbolcurrencybase== "USD")
+   { // US30, US100, US500, US2000, XPDUSD, XPTUSD | BTCUSD, DASHUSD, DOGEUSD, DOTUSD, ETHUSD, LTCUSD, NEOUSD FTMO
+     // AAPL, AMZN, BABA, BAC, GOOG, META, MSFT, NFLX, NVDA, PFE, RACE, T, TSLA, V, WMT, ZM FTMO
       InfoMulti = 100;
       if (_Symbol == "DOGEUSD")
       {
@@ -241,116 +243,163 @@ void OnTick()
          InfoMulti =10;
       }
    }
-   else if (point == 0.1 && calcmode == 4 && symbolcurrencyprofit== "USD" && symbolcurrencybase== "USD")
-   { // DX, USOIL FTMO
+   else if (point == 0.1 && calcmode == 4 && symbolcurrencyprofit == "USD" && symbolcurrencybase== "USD")
+   { // DX.f, USOIL FTMO
       InfoMulti = 0.1;
    }
-   else if (point == 0.009999999999999998 && calcmode == 4 && symbolcurrencyprofit== "USD" && symbolcurrencybase== "USD")
+   else if (point == 0.009999999999999998 && calcmode == 4 && symbolcurrencyprofit == "USD" && symbolcurrencybase== "USD")
    { // ADAUSD FTMO
       InfoMulti = 1;
    }   
-   else if (point == 1 && calcmode == 4 && symbolcurrencyprofit== "USD" && symbolcurrencybase== "USD")
-   { // NATGAS.f, XAUUSD FTMO
+   else if (point == 1 && calcmode == 4 && symbolcurrencyprofit == "USD" && symbolcurrencybase== "USD")
+   { // NATGAS.f, USTN10.f, XAUUSD FTMO
       InfoMulti = 0.01;
       if (_Symbol == "NATGAS.f")
       {
          InfoMulti =0.001;
       }
    }
-   else if (point == 1 && calcmode == 0 && symbolcurrencyprofit== "USD" && symbolcurrencybase== "USD")
-   { // AUDUSD, ERBN, EURUSD, GBPUSD, NZDUSD FTMO
+   else if (point == 1 && calcmode == 0 && symbolcurrencyprofit == "USD" && symbolcurrencybase== "USD")
+   { // AUDUSD, ERBN.f, EURUSD, GBPUSD, NZDUSD FTMO
       InfoMulti = 0.00001;
    }
-   else if (point == 5 && calcmode == 4 && symbolcurrencyprofit== "USD" && symbolcurrencybase== "USD")
+   else if (point == 5 && calcmode == 4 && symbolcurrencyprofit == "USD" && symbolcurrencybase== "USD")
    { // XAGUSD FTMO
       InfoMulti=0.00004;
    }
-   //  experiment below as these currencies have fluctuating point values
-   else if (symbolcurrencyprofit == "AUD" && symbolcurrencybase== "USD" && calcmode == 4)
-   { // AUS200 FTMO -- untested
-      point = 0.0065;
-      InfoMulti = 1;
+   //  Symbols below have fluctuating point values
+   //  Info text is 90-99% accurate on all pairs that need further tweaking with correct digits
+   else if (symbolcurrencyprofit == "AUD" && symbolcurrencybase == "AUD" && calcmode == 4)
+   { // AUS200 FTMO -- needs further tweaking
+      InfoMulti = 220;
    }
-   else if (symbolcurrencyprofit == "EUR" && symbolcurrencybase== "USD" && calcmode == 4)
-   { // EU50 / FRA40 / GER40 / SPN50 FTMO -- untested
-      point = 0.1085;
-      InfoMulti = 1;
+   else if (symbolcurrencyprofit == "EUR" && symbolcurrencybase == "EUR" && calcmode == 4)
+   { // AIRF, ALVG, BAYGn, DBKGn, IBE, LVMH, VOWG_p, EU50, FRA40, GER40, SPN50 FTMO -- needs further tweaking
+      InfoMulti = 85;
    }
-   else if (symbolcurrencyprofit == "HKD" && symbolcurrencybase== "USD" && calcmode == 4)
-   { // HK50 FTMO -- untested
-      point = 0.00125;
-      InfoMulti = 0.002;
+   else if (symbolcurrencyprofit == "HKD" && symbolcurrencybase == "HKD" && calcmode == 4)
+   { // HK50 FTMO -- needs further tweaking
+      InfoMulti = 6100;
    }
-   else if (symbolcurrencyprofit == "JPY" && symbolcurrencybase== "USD" && calcmode == 4)
-   { // JP225 FTMO -- untested
-      point = 0.0000725;
-      InfoMulti = 1;
+   else if (symbolcurrencyprofit == "JPY" && symbolcurrencybase == "JPY" && calcmode == 4)
+   { // JP225 FTMO -- needs further tweaking
+      InfoMulti = 1910000;
    }
-   else if (symbolcurrencyprofit == "GBP" && symbolcurrencybase== "USD" && calcmode == 4)
-   { // UK100 FTMO -- untested
-      point = 0.0125;
-      InfoMulti = 1;
+   else if (symbolcurrencyprofit == "GBP" && symbolcurrencybase == "GBP" && calcmode == 4)
+   { // UK100 FTMO -- needs further tweaking
+      InfoMulti = 64;
    }
-   else if (symbolcurrencyprofit == "CAD" && calcmode == 0)
-   { // USDCAD FTMO -- untested
-      point = 0.74;
-      InfoMulti = 1;
+   else if (symbolcurrencyprofit == "AUD" && symbolcurrencybase == "USD" && calcmode == 4)
+   { // XAAAUD / XAGAUD -- needs further tweaking
+      if (_Symbol == "XAUAUD")
+      {
+         InfoMulti = 0.0225;
+      }
+      if (_Symbol == "XAGAUD")
+      {
+         InfoMulti = 0.00009;
+      }
    }
-   else if (symbolcurrencyprofit == "CHF" && calcmode == 0)
+   else if (symbolcurrencyprofit == "EUR" && symbolcurrencybase == "USD" && calcmode == 4)
+   { // XAUEUR / XAGEUR -- needs further tweaking
+      if (_Symbol == "XAUEUR")
+      {
+         InfoMulti = 0.0085;
+      }
+      if (_Symbol == "XAGEUR")
+      {
+         InfoMulti = 0.000034;
+      }
+   }
+   else if (symbolcurrencybase == "USD" &&symbolcurrencyprofit == "CAD" && calcmode == 0)
+   { // USDCAD FTMO -- needs further tweaking
+      InfoMulti = .0000165;
+   }
+   else if (symbolcurrencybase == "USD" && symbolcurrencyprofit == "CHF" && calcmode == 0)
    { // USDCHF FTMO -- untested
-      point = 1.113;
-      InfoMulti = 1;
+      InfoMulti = 0.000009;
    }
-   else if (symbolcurrencyprofit == "CZK" && symbolcurrencybase== "USD" && calcmode == 0)
-   { // USDCZK FTMO -- needs further tweaking, correct digits
-      point = 0.49;
+   else if (symbolcurrencybase == "USD" && symbolcurrencyprofit == "CZK" && calcmode == 0)
+   { // USDCZK FTMO -- needs further tweaking
       InfoMulti = 0.0004;
    }
-   else if (symbolcurrencyprofit == "HKD" && symbolcurrencybase== "USD" && calcmode == 0)
-   { // USDHKD FTMO -- needs further tweaking, correct digits
-      point = 0.125;
+   else if (symbolcurrencybase == "USD" && symbolcurrencyprofit == "HKD" && calcmode == 0)
+   { // USDHKD FTMO -- needs further tweaking
       InfoMulti = 0.002;
    }
-   else if (symbolcurrencyprofit == "HUF" && symbolcurrencybase== "USD" && calcmode == 0)
-   { // USDHUF FTMO -- needs further tweaking, correct digits
-      point = 0.2925;
+   else if (symbolcurrencybase == "USD" && symbolcurrencyprofit == "HUF" && calcmode == 0)
+   { // USDHUF FTMO -- needs further tweaking
       InfoMulti = 0.01;
    }
-   else if (symbolcurrencyprofit == "JPY" && calcmode == 0)
-   { // USDJPY FTMO -- needs further tweaking, correct digits
-      point = 0.72;
-      InfoMulti = 0.001745;
+   else if (symbolcurrencybase == "USD" && symbolcurrencyprofit == "JPY" && calcmode == 0)
+   { // USDJPY FTMO -- needs further tweaking
+      InfoMulti = 0.00149;
    }
-   else if (symbolcurrencyprofit == "MXN" && calcmode == 0)
-   { // USDMXN FTMO -- untested
-      point = 0.0565;
-      InfoMulti = 1;
+   else if (symbolcurrencybase == "USD" && symbolcurrencyprofit == "MXN" && calcmode == 0)
+   { // USDMXN FTMO -- needs further tweaking
+      InfoMulti = .003;
    }
-   else if (symbolcurrencyprofit == "NOK" && calcmode == 0)
-   { // USDNOK FTMO -- untested
-      point = 0.0925;
-      InfoMulti = 1;
+   else if (symbolcurrencybase == "USD" && symbolcurrencyprofit == "NOK" && calcmode == 0)
+   { // USDNOK FTMO -- needs further tweaking
+      InfoMulti = .00119;
    }
-   else if (symbolcurrencyprofit == "PLN" && symbolcurrencybase== "USD" && calcmode == 0)
-   { // USDPLN FTMO -- untested
-      point = 0.2395;
-      InfoMulti = 1;
+   else if (symbolcurrencybase == "USD" && symbolcurrencyprofit == "PLN" && calcmode == 0)
+   { // USDPLN FTMO -- needs further tweaking
+      InfoMulti = .00016;
    }
-   else if (symbolcurrencyprofit == "SEK" && calcmode == 0)
-   { // USDSEK FTMO -- untested
-      point = 0.0955;
-      InfoMulti = 1;
+   else if (symbolcurrencybase == "USD" && symbolcurrencyprofit == "SEK" && calcmode == 0)
+   { // USDSEK FTMO -- needs further tweaking
+      InfoMulti = 0.00085;
    }
-   else if (symbolcurrencyprofit == "TRY" && symbolcurrencybase== "USD" && calcmode == 0)
-   { // USDTRY FTMO -- untested
-      point = 0.0505;
-      InfoMulti = 1;
+   else if (symbolcurrencybase == "USD" && symbolcurrencyprofit == "TRY" && calcmode == 0)
+   { // USDTRY FTMO -- needs further tweaking
+      InfoMulti = 0.0038;
    }
-   else if (symbolcurrencyprofit == "ZAR" && symbolcurrencybase== "USD" && calcmode == 0)
-   { // USDZAR FTMO -- untested
-      point = 0.05185;
-      InfoMulti = 1;
+   else if (symbolcurrencybase == "USD" && symbolcurrencyprofit == "ZAR" && calcmode == 0)
+   { // USDZAR FTMO -- needs further tweaking
+      InfoMulti = 0.0033;
    }
+   else if (symbolcurrencybase == "EUR" && symbolcurrencyprofit == "CZK" && calcmode == 0)
+   { // EURCZK FTMO -- needs further tweaking
+      InfoMulti = 0.000483785;
+   }
+   else if (symbolcurrencybase == "EUR" && symbolcurrencyprofit == "GBP" && calcmode == 0)
+   { // EURGBP FTMO -- needs further tweaking
+      InfoMulti = 0.000006454;
+   }
+   else if (symbolcurrencybase == "EUR" && symbolcurrencyprofit == "HUF" && calcmode == 0)
+   { // EURHUF FTMO -- needs further tweaking
+      InfoMulti = 0.012081;
+   }
+   else if (symbolcurrencybase == "EUR" && symbolcurrencyprofit == "NOK" && calcmode == 0)
+   { // EURNOK FTMO -- needs further tweaking
+      InfoMulti = 0.0011835;
+   }
+   else if (symbolcurrencybase == "EUR" && symbolcurrencyprofit == "PLN" && calcmode == 0)
+   { // EURPLN FTMO -- needs further tweaking
+      InfoMulti = 0.0001765;
+   }
+   else if ((symbolcurrencybase == "AUD" || symbolcurrencybase == "EUR" || symbolcurrencybase == "GBP") && symbolcurrencyprofit == "NZD" && calcmode == 0)
+   { // AUDNZD, EURNZD, GBPNZD FTMO -- needs further tweaking
+      InfoMulti = 0.000025365;
+   }
+   else if ((symbolcurrencybase == "EUR" || symbolcurrencybase == "GBP") && symbolcurrencyprofit == "AUD" && calcmode == 0)
+   { // EURAUD, GBPAUD FTMO -- needs further tweaking
+      InfoMulti = 0.000022515;
+   }
+   else if ((symbolcurrencybase == "AUD" || symbolcurrencybase == "EUR" || symbolcurrencybase == "GBP" || symbolcurrencybase == "NZD") && symbolcurrencyprofit == "CAD" && calcmode == 0)
+   { // AUDCAD, EURCAD, GBPCAD, NZDCAD FTMO -- needs further tweaking
+      InfoMulti = 0.000018245;
+   }
+   else if ((symbolcurrencybase == "AUD" || symbolcurrencybase == "CAD" || symbolcurrencybase == "EUR" || symbolcurrencybase == "GBP" || symbolcurrencybase == "NZD") && symbolcurrencyprofit == "CHF" && calcmode == 0)
+   { // AUDCHF, CADCHF, EURCHF, GBPCHF, NZDCHF FTMO -- needs further tweaking
+      InfoMulti = 0.000008082;
+   }
+   else if ((symbolcurrencybase == "AUD" || symbolcurrencybase == "CAD" || symbolcurrencybase == "CHF" || symbolcurrencybase == "EUR" || symbolcurrencybase == "GBP" || symbolcurrencybase == "NZD") && symbolcurrencyprofit == "JPY" && calcmode == 0)
+   { // AUDJPY, CADJPY, CHFJPY, EURJPY, GBPJPY, NZDJPY FTMO -- needs further tweaking
+      InfoMulti = 0.0019;
+   }
+   // Print (point);
    for(int i = 0; i < PositionsTotal(); i++)
    {
       if(PositionSelectByTicket(PositionGetTicket(i)))
