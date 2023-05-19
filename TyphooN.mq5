@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.009"
+#property version   "1.010"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -46,13 +46,12 @@ double TickSize( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRA
 double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_VALUE ) ); }
 // input vars
 input group    "User Vars";
-input double   Risk=0.3;
-input int      MagicNumber=13;
-input double   ProtectionATRMulti=1.337;
-input double   SLATRMulti=0.3;
-input double   TPATRMulti=0.9;
-input int      OrderDigitNormalization=2;
-input int      HorizontalLineThickness=3;
+input double   Risk                    = 0.3;
+input int      MagicNumber             = 13;
+input double   ProtectionATRMulti      = 1.337;
+input double   SLATRMulti              = 0.3;
+input double   TPATRMulti              = 0.9;
+input int      HorizontalLineThickness = 3;
 // global vars
 double TP = 0;
 double SL = 0;
@@ -222,42 +221,136 @@ void OnTick()
    double rr = 0;
    double point = PointValue();
    long calcmode = SymbolInfoInteger(_Symbol, SYMBOL_TRADE_CALC_MODE);
+   string symbolcurrencyprofit = SymbolInfoString(_Symbol,SYMBOL_CURRENCY_PROFIT);
+   string symbolcurrencybase = SymbolInfoString(_Symbol,SYMBOL_CURRENCY_BASE);
    // calcmode 4 is SYMBOL_CALC_MODE_CFDLEVERAGE
    // calcmode 0 is SYMBOL_CALC_MODE_FOREX
-   if (point == 0.1 && calcmode == 4)
-   {
+   if (point == 0.001 && calcmode == 4 && symbolcurrencyprofit== "USD" && symbolcurrencybase== "USD")
+   { // XRPUSD FTMO
+      InfoMulti = 10;
+   }
+   else if (point == 0.01 && calcmode == 4 && symbolcurrencyprofit== "USD" && symbolcurrencybase== "USD")
+   { // US30, US100, US500, XPDUSD, XPTUSD | BTCUSD, DASHUSD, DOGEUSD, DOTUSD, ETHUSD, LTCUSD, NEOUSD FTMO
+      InfoMulti = 100;
+      if (_Symbol == "DOGEUSD")
+      {
+         InfoMulti = 0.1;
+      }
+      if (_Symbol == "DOTUSD")
+      {
+         InfoMulti =10;
+      }
+   }
+   else if (point == 0.1 && calcmode == 4 && symbolcurrencyprofit== "USD" && symbolcurrencybase== "USD")
+   { // DX, USOIL FTMO
       InfoMulti = 0.1;
    }
-   else if (point == 0.01 && calcmode == 4)
-   {
-      InfoMulti = 100;
-   }
-// else if (point > 0.72 && point < 0.73 && calcmode == 0) // USDJPY FTMO can't find good value because point value is constantly slightly changing 
-// {
-//    InfoMulti = 0.0016;
-//  }
-// else if (point > 0.74 && point < 0.75 && calcmode == 0) // USDCAD FTMO can't find good value because point value is constantly slightly changing 
-// {
-//    InfoMulti = 0.0016;
-//  }
-// else if (point > 1.113 && point < 1.114 && calcmode == 0) // USDCHF FTMO can't find good value because point value is constantly slightly changing 
-// {
-//    InfoMulti = 0.0016;
-//  }
-   else if (point == 1 && calcmode == 4)
-   {
+   else if (point == 0.009999999999999998 && calcmode == 4 && symbolcurrencyprofit== "USD" && symbolcurrencybase== "USD")
+   { // ADAUSD FTMO
+      InfoMulti = 1;
+   }   
+   else if (point == 1 && calcmode == 4 && symbolcurrencyprofit== "USD" && symbolcurrencybase== "USD")
+   { // NATGAS.f, XAUUSD FTMO
       InfoMulti = 0.01;
+      if (_Symbol == "NATGAS.f")
+      {
+         InfoMulti =0.001;
+      }
    }
-   else if (point == 1 && calcmode == 0)
-   {
+   else if (point == 1 && calcmode == 0 && symbolcurrencyprofit== "USD" && symbolcurrencybase== "USD")
+   { // AUDUSD, ERBN, EURUSD, GBPUSD, NZDUSD FTMO
       InfoMulti = 0.00001;
    }
-   else if (point == 5 && calcmode == 4)
-   {
+   else if (point == 5 && calcmode == 4 && symbolcurrencyprofit== "USD" && symbolcurrencybase== "USD")
+   { // XAGUSD FTMO
       InfoMulti=0.00004;
    }
-   //  Print(calcmode);
-   // Print (point);
+   //  experiment below as these currencies have fluctuating point values
+   else if (symbolcurrencyprofit == "AUD" && symbolcurrencybase== "USD" && calcmode == 4)
+   { // AUS200 FTMO -- untested
+      point = 0.0065;
+      InfoMulti = 1;
+   }
+   else if (symbolcurrencyprofit == "EUR" && symbolcurrencybase== "USD" && calcmode == 4)
+   { // EU50 / FRA40 / GER40 / SPN50 FTMO -- untested
+      point = 0.1085;
+      InfoMulti = 1;
+   }
+   else if (symbolcurrencyprofit == "HKD" && symbolcurrencybase== "USD" && calcmode == 4)
+   { // HK50 FTMO -- untested
+      point = 0.00125;
+      InfoMulti = 0.002;
+   }
+   else if (symbolcurrencyprofit == "JPY" && symbolcurrencybase== "USD" && calcmode == 4)
+   { // JP225 FTMO -- untested
+      point = 0.0000725;
+      InfoMulti = 1;
+   }
+   else if (symbolcurrencyprofit == "GBP" && symbolcurrencybase== "USD" && calcmode == 4)
+   { // UK100 FTMO -- untested
+      point = 0.0125;
+      InfoMulti = 1;
+   }
+   else if (symbolcurrencyprofit == "CAD" && calcmode == 0)
+   { // USDCAD FTMO -- untested
+      point = 0.74;
+      InfoMulti = 1;
+   }
+   else if (symbolcurrencyprofit == "CHF" && calcmode == 0)
+   { // USDCHF FTMO -- untested
+      point = 1.113;
+      InfoMulti = 1;
+   }
+   else if (symbolcurrencyprofit == "CZK" && symbolcurrencybase== "USD" && calcmode == 0)
+   { // USDCZK FTMO -- needs further tweaking, correct digits
+      point = 0.49;
+      InfoMulti = 0.0004;
+   }
+   else if (symbolcurrencyprofit == "HKD" && symbolcurrencybase== "USD" && calcmode == 0)
+   { // USDHKD FTMO -- needs further tweaking, correct digits
+      point = 0.125;
+      InfoMulti = 0.002;
+   }
+   else if (symbolcurrencyprofit == "HUF" && symbolcurrencybase== "USD" && calcmode == 0)
+   { // USDHUF FTMO -- needs further tweaking, correct digits
+      point = 0.2925;
+      InfoMulti = 0.01;
+   }
+   else if (symbolcurrencyprofit == "JPY" && calcmode == 0)
+   { // USDJPY FTMO -- needs further tweaking, correct digits
+      point = 0.72;
+      InfoMulti = 0.001745;
+   }
+   else if (symbolcurrencyprofit == "MXN" && calcmode == 0)
+   { // USDMXN FTMO -- untested
+      point = 0.0565;
+      InfoMulti = 1;
+   }
+   else if (symbolcurrencyprofit == "NOK" && calcmode == 0)
+   { // USDNOK FTMO -- untested
+      point = 0.0925;
+      InfoMulti = 1;
+   }
+   else if (symbolcurrencyprofit == "PLN" && symbolcurrencybase== "USD" && calcmode == 0)
+   { // USDPLN FTMO -- untested
+      point = 0.2395;
+      InfoMulti = 1;
+   }
+   else if (symbolcurrencyprofit == "SEK" && calcmode == 0)
+   { // USDSEK FTMO -- untested
+      point = 0.0955;
+      InfoMulti = 1;
+   }
+   else if (symbolcurrencyprofit == "TRY" && symbolcurrencybase== "USD" && calcmode == 0)
+   { // USDTRY FTMO -- untested
+      point = 0.0505;
+      InfoMulti = 1;
+   }
+   else if (symbolcurrencyprofit == "ZAR" && symbolcurrencybase== "USD" && calcmode == 0)
+   { // USDZAR FTMO -- untested
+      point = 0.05185;
+      InfoMulti = 1;
+   }
    for(int i = 0; i < PositionsTotal(); i++)
    {
       if(PositionSelectByTicket(PositionGetTicket(i)))
@@ -366,10 +459,10 @@ void OnChartEvent(const int id,         // event ID
 bool TyWindow::CreateButtonTrade(void)
 {
    // coordinates
-   int x1=INDENT_LEFT;
-   int y1=INDENT_TOP;
-   int x2=x1+BUTTON_WIDTH;
-   int y2=y1+BUTTON_HEIGHT;
+   int x1 = INDENT_LEFT;
+   int y1 = INDENT_TOP;
+   int x2 = x1 + BUTTON_WIDTH;
+   int y2 = y1 + BUTTON_HEIGHT;
    // create
    if(!buttonTrade.Create(0,"Open Trade",0,x1,y1,x2,y2))
       return(false);
@@ -383,10 +476,10 @@ bool TyWindow::CreateButtonTrade(void)
 bool TyWindow::CreateButtonLimit(void)
 {
    // coordinates
-   int x1=INDENT_LEFT+(BUTTON_WIDTH+CONTROLS_GAP_X);
-   int y1=INDENT_TOP;
-   int x2=x1+BUTTON_WIDTH;
-   int y2=y1+BUTTON_HEIGHT;
+   int x1 = INDENT_LEFT + (BUTTON_WIDTH + CONTROLS_GAP_X);
+   int y1 = INDENT_TOP;
+   int x2 = x1 + BUTTON_WIDTH;
+   int y2 = y1 + BUTTON_HEIGHT;
    // create
    if(!buttonLimit.Create(0,"Limit Line",0,x1,y1,x2,y2))
       return(false);
@@ -400,10 +493,10 @@ bool TyWindow::CreateButtonLimit(void)
 bool TyWindow::CreateButtonBuyLines(void)
 {
    // coordinates
-   int x1=INDENT_LEFT;
-   int y1=INDENT_TOP+CONTROLS_GAP_Y;
-   int x2=x1+BUTTON_WIDTH;
-   int y2=y1+BUTTON_HEIGHT;
+   int x1 = INDENT_LEFT;
+   int y1 = INDENT_TOP + CONTROLS_GAP_Y;
+   int x2 = x1 + BUTTON_WIDTH;
+   int y2 = y1 + BUTTON_HEIGHT;
    // create
    if(!buttonBuyLines.Create(0,"Buy Lines",0,x1,y1,x2,y2))
       return(false);
@@ -417,10 +510,10 @@ bool TyWindow::CreateButtonBuyLines(void)
 bool TyWindow::CreateButtonSellLines(void)
 {
    // coordinates
-   int x1=INDENT_LEFT+(BUTTON_WIDTH+CONTROLS_GAP_X);
-   int y1=INDENT_TOP+CONTROLS_GAP_Y;
-   int x2=x1+BUTTON_WIDTH;
-   int y2=y1+BUTTON_HEIGHT;
+   int x1 = INDENT_LEFT + (BUTTON_WIDTH + CONTROLS_GAP_X);
+   int y1 = INDENT_TOP + CONTROLS_GAP_Y;
+   int x2 = x1 + BUTTON_WIDTH;
+   int y2 = y1 + BUTTON_HEIGHT;
    // create
    if(!buttonSellLines.Create(0,"Sell Lines",0,x1,y1,x2,y2))
       return(false);
@@ -434,10 +527,10 @@ bool TyWindow::CreateButtonSellLines(void)
 bool TyWindow::CreateButtonDestroyLines(void)
 {
    // coordinates
-   int x1=INDENT_LEFT;
-   int y1=INDENT_TOP+2*CONTROLS_GAP_Y;
-   int x2=x1+BUTTON_WIDTH;
-   int y2=y1+BUTTON_HEIGHT;
+   int x1 = INDENT_LEFT;
+   int y1 = INDENT_TOP + 2 * CONTROLS_GAP_Y;
+   int x2 = x1 + BUTTON_WIDTH;
+   int y2 = y1 + BUTTON_HEIGHT;
    // create
    if(!buttonDestroyLines.Create(0,"Destroy Lines",0,x1,y1,x2,y2))
       return(false);
@@ -451,10 +544,10 @@ bool TyWindow::CreateButtonDestroyLines(void)
 bool TyWindow::CreateButtonProtect(void)
 {
    // coordinates
-   int x1=INDENT_LEFT+(BUTTON_WIDTH+CONTROLS_GAP_X);
-   int y1=INDENT_TOP+2*CONTROLS_GAP_Y;
-   int x2=x1+BUTTON_WIDTH;
-   int y2=y1+BUTTON_HEIGHT;
+   int x1 = INDENT_LEFT + (BUTTON_WIDTH + CONTROLS_GAP_X);
+   int y1 = INDENT_TOP + 2 * CONTROLS_GAP_Y;
+   int x2 = x1 + BUTTON_WIDTH;
+   int y2 = y1 + BUTTON_HEIGHT;
    // create
    if(!buttonProtect.Create(0,"PROTECT",0,x1,y1,x2,y2))
       return(false);
@@ -468,10 +561,10 @@ bool TyWindow::CreateButtonProtect(void)
 bool TyWindow::CreateButtonClosePositions(void)
 {
    // coordinates
-   int x1=INDENT_LEFT;
-   int y1=INDENT_TOP+3*CONTROLS_GAP_Y;
-   int x2=x1+BUTTON_WIDTH;
-   int y2=y1+BUTTON_HEIGHT;
+   int x1 = INDENT_LEFT;
+   int y1 = INDENT_TOP + 3 * CONTROLS_GAP_Y;
+   int x2 = x1 + BUTTON_WIDTH;
+   int y2 = y1 + BUTTON_HEIGHT;
    // create
    if(!buttonClosePositions.Create(0,"Close Positions",0,x1,y1,x2,y2))
       return(false);
@@ -485,10 +578,10 @@ bool TyWindow::CreateButtonClosePositions(void)
 bool TyWindow::CreateButtonCloseLimits(void)
 {
    // coordinates
-   int x1=INDENT_LEFT+(BUTTON_WIDTH+CONTROLS_GAP_X);
-   int y1=INDENT_TOP+3*CONTROLS_GAP_Y;
-   int x2=x1+BUTTON_WIDTH;
-   int y2=y1+BUTTON_HEIGHT;
+   int x1 = INDENT_LEFT + (BUTTON_WIDTH + CONTROLS_GAP_X);
+   int y1 = INDENT_TOP + 3 * CONTROLS_GAP_Y;
+   int x2 = x1 + BUTTON_WIDTH;
+   int y2 = y1 + BUTTON_HEIGHT;
    // create
    if(!buttonCloseLimits.Create(0,"Close Limits",0,x1,y1,x2,y2))
       return(false);
@@ -502,10 +595,10 @@ bool TyWindow::CreateButtonCloseLimits(void)
 bool TyWindow::CreateButtonSetTP(void)
 {
    // coordinates
-   int x1=INDENT_LEFT;
-   int y1=INDENT_TOP+4*CONTROLS_GAP_Y;
-   int x2=x1+BUTTON_WIDTH;
-   int y2=y1+BUTTON_HEIGHT;
+   int x1 = INDENT_LEFT;
+   int y1 = INDENT_TOP + 4 * CONTROLS_GAP_Y;
+   int x2 = x1 + BUTTON_WIDTH;
+   int y2 = y1 +BUTTON_HEIGHT;
    // create
    if(!buttonSetTP.Create(0,"Set TP",0,x1,y1,x2,y2))
       return(false);
@@ -519,10 +612,10 @@ bool TyWindow::CreateButtonSetTP(void)
 bool TyWindow::CreateButtonSetSL(void)
 {
    // coordinates
-   int x1=INDENT_LEFT+(BUTTON_WIDTH+CONTROLS_GAP_X);
-   int y1=INDENT_TOP+4*CONTROLS_GAP_Y;
-   int x2=x1+BUTTON_WIDTH;
-   int y2=y1+BUTTON_HEIGHT;
+   int x1 = INDENT_LEFT + (BUTTON_WIDTH + CONTROLS_GAP_X);
+   int y1 = INDENT_TOP + 4 * CONTROLS_GAP_Y;
+   int x2 = x1 + BUTTON_WIDTH;
+   int y2 = y1 + BUTTON_HEIGHT;
    // create
    if(!buttonSetSL.Create(0,"Set SL",0,x1,y1,x2,y2))
       return(false);
@@ -538,11 +631,21 @@ void TyWindow::OnClickTrade(void)
    SL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
    TP = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
    double max_volume = NormalizeDouble(SymbolInfoDouble(_Symbol,SYMBOL_VOLUME_MAX),_Digits);
+   double min_volume = SymbolInfoDouble(_Symbol,SYMBOL_VOLUME_MIN);
    Trade.SetExpertMagicNumber(MagicNumber);
-   if (LimitLineExists==true) {
+   int OrderDigits = 0;
+   if (min_volume == 0.01)
+   {
+      OrderDigits = 2;
+   }
+   else if (min_volume == 1)
+   {
+      OrderDigits = 0;
+   }
+   if (LimitLineExists == true) {
         double Limit_Price = ObjectGetDouble(0, "Limit_Line", OBJPROP_PRICE, 0);
-        if(TP>SL){
-        lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, Ask - SL),OrderDigitNormalization);
+        if(TP > SL){
+        lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, Ask - SL),OrderDigits);
             if(lotsglobal > max_volume)
             {
                lotsglobal = max_volume;
@@ -553,11 +656,11 @@ void TyWindow::OnClickTrade(void)
                }
                else
                 {
-                  Print("Failed to open buy limit, error: ", Trade.ResultRetcode());
+                  Print("Failed to open buy limit, error: " + Trade.ResultRetcode() + " | " + Trade.ResultRetcodeDescription());
                 }
             }
-            else if (SL>TP){
-            lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, SL - Bid),OrderDigitNormalization);
+            else if (SL > TP){
+            lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, SL - Bid),OrderDigits);
                if(lotsglobal > max_volume)
                {
                   lotsglobal = max_volume;
@@ -568,13 +671,13 @@ void TyWindow::OnClickTrade(void)
                }
                else
                {
-                  Print("Failed to open sell limit, error: ", Trade.ResultRetcode());
+                  Print("Failed to open sell limit, error: " + Trade.ResultRetcode() + " | " + Trade.ResultRetcodeDescription());
                }
             }
    }
-   else if (LimitLineExists==false){
-      if(TP>SL){
-      lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, Ask - SL),OrderDigitNormalization);
+   else if (LimitLineExists == false){
+      if(TP > SL){
+      lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, Ask - SL),OrderDigits);
          if(lotsglobal > max_volume)
          {
               lotsglobal = max_volume;
@@ -585,11 +688,11 @@ void TyWindow::OnClickTrade(void)
          }
          else
          {
-            Print("Failed to open buy trade, error: ", Trade.ResultRetcode());
+            Print("Failed to open buy trade, error: " + Trade.ResultRetcode() + " | " + Trade.ResultRetcodeDescription());
          }
       }
-      else if (SL>TP){
-      lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, SL - Bid),OrderDigitNormalization);
+      else if (SL > TP){
+      lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, SL - Bid),OrderDigits);
 
          if(lotsglobal > max_volume)
          {
@@ -601,7 +704,7 @@ void TyWindow::OnClickTrade(void)
          }
          else
          {
-            Print("Failed to open sell trade, error: ", Trade.ResultRetcode());
+            Print("Failed to open sell trade, error: " + Trade.ResultRetcode() + " | " + Trade.ResultRetcodeDescription());
       }
          ObjectDelete(0, "Limit_Line");  
     }
