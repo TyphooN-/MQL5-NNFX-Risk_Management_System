@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.013"
+#property version   "1.014"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -49,8 +49,8 @@ input group    "User Vars";
 input double   Risk                    = 0.3;
 input int      MagicNumber             = 13;
 input double   ProtectionATRMulti      = 1.337;
-input double   SLATRMulti              = 3;
-input double   TPATRMulti              = 9;
+input double   SLATRMulti              = 3.0;
+input double   TPATRMulti              = 9.0;
 input int      HorizontalLineThickness = 3;
 // global vars
 double TP = 0;
@@ -241,7 +241,7 @@ void OnTick()
       }
       if (_Symbol == "DOTUSD")
       {
-         InfoMulti =10;
+         InfoMulti = 10;
       }
    }
    else if (point == 0.1 && calcmode == 4 && symbolcurrencyprofit == "USD" && symbolcurrencybase== "USD")
@@ -257,7 +257,7 @@ void OnTick()
       InfoMulti = 0.01;
       if (_Symbol == "NATGAS.f")
       {
-         InfoMulti =0.001;
+         InfoMulti = 0.001;
       }
    }
    else if (point == 1 && calcmode == 0 && symbolcurrencyprofit == "USD" && symbolcurrencybase== "USD")
@@ -266,7 +266,7 @@ void OnTick()
    }
    else if (point == 5 && calcmode == 4 && symbolcurrencyprofit == "USD" && symbolcurrencybase== "USD")
    { // XAGUSD FTMO
-      InfoMulti=0.00004;
+      InfoMulti = 0.00004;
    }
    //  Symbols below have fluctuating point values
    //  Info text is 90-99% accurate on all pairs that need further tweaking with correct digits
@@ -428,78 +428,100 @@ void OnTick()
          rr = total_tp/MathAbs(total_risk);
       }
    }
-   string info1 = "Total P/L: $ " + DoubleToString(total_pl, 2) + " / Risk: $" + DoubleToString(total_risk, 2); 
-   ObjectCreate(0,"info1Label", OBJ_LABEL,0,0,0);
-   ObjectSetString(0,"info1Label",OBJPROP_FONT,"Courier New");
-   ObjectSetInteger(0,"info1Label",OBJPROP_FONTSIZE,10);
-   ObjectSetString(0,"info1Label",OBJPROP_TEXT,info1);
-   ObjectSetInteger(0,"info1Label", OBJPROP_XDISTANCE, 320);
-   ObjectSetInteger(0,"info1Label",OBJPROP_YDISTANCE,20);
-   ObjectSetInteger(0,"info1Label",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"info1Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   string info2 = "Total TP: $ " + DoubleToString(total_tp, 2) + " / RR: " + DoubleToString(rr, 2);
-   ObjectCreate(0,"info2Label", OBJ_LABEL,0,0,0);
-   ObjectSetString(0,"info2Label",OBJPROP_FONT,"Courier New");
-   ObjectSetInteger(0,"info2Label",OBJPROP_FONTSIZE,10);
-   ObjectSetString(0,"info2Label",OBJPROP_TEXT,info2);
-   ObjectSetInteger(0,"info2Label", OBJPROP_XDISTANCE, 320);
-   ObjectSetInteger(0,"info2Label",OBJPROP_YDISTANCE,40);
-   ObjectSetInteger(0,"info2Label",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"info2Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   string info3 = "M15: " + TimeTilNextBar(PERIOD_M15);
-   ObjectCreate(0,"info3Label", OBJ_LABEL,0,0,0);
-   ObjectSetString(0,"info3Label",OBJPROP_FONT,"Courier New");
-   ObjectSetInteger(0,"info3Label",OBJPROP_FONTSIZE,10);
-   ObjectSetString(0,"info3Label",OBJPROP_TEXT,info3);
-   ObjectSetInteger(0,"info3Label", OBJPROP_XDISTANCE, 320);
-   ObjectSetInteger(0,"info3Label",OBJPROP_YDISTANCE,60);
-   ObjectSetInteger(0,"info3Label",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"info3Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   string info4 = "H1 : " + TimeTilNextBar(PERIOD_H1);
-   ObjectCreate(0,"info4Label", OBJ_LABEL,0,0,0);
-   ObjectSetString(0,"info4Label",OBJPROP_FONT,"Courier New");
-   ObjectSetInteger(0,"info4Label",OBJPROP_FONTSIZE,10);
-   ObjectSetString(0,"info4Label",OBJPROP_TEXT,info4);
-   ObjectSetInteger(0,"info4Label", OBJPROP_XDISTANCE, 320);
-   ObjectSetInteger(0,"info4Label",OBJPROP_YDISTANCE,80);
-   ObjectSetInteger(0,"info4Label",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"info4Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   string info5 = "D1 : " + TimeTilNextBar(PERIOD_D1);
-   ObjectCreate(0,"info5Label", OBJ_LABEL,0,0,0);
-   ObjectSetString(0,"info5Label",OBJPROP_FONT,"Courier New");
-   ObjectSetInteger(0,"info5Label",OBJPROP_FONTSIZE,10);
-   ObjectSetString(0,"info5Label",OBJPROP_TEXT,info5);
-   ObjectSetInteger(0,"info5Label", OBJPROP_XDISTANCE, 320);
-   ObjectSetInteger(0,"info5Label",OBJPROP_YDISTANCE,100);
-   ObjectSetInteger(0,"info5Label",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"info5Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   string info6 ="M30: " + TimeTilNextBar(PERIOD_M30);
-   ObjectCreate(0,"info6Label", OBJ_LABEL,0,0,0);
-   ObjectSetString(0,"info6Label",OBJPROP_FONT,"Courier New");
-   ObjectSetInteger(0,"info6Label",OBJPROP_FONTSIZE,10);
-   ObjectSetString(0,"info6Label",OBJPROP_TEXT,info6);
-   ObjectSetInteger(0,"info6Label", OBJPROP_XDISTANCE, 160);
-   ObjectSetInteger(0,"info6Label",OBJPROP_YDISTANCE,60);
-   ObjectSetInteger(0,"info6Label",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"info6Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   string info7 = "H4 : " + TimeTilNextBar(PERIOD_H4);
-   ObjectCreate(0,"info7Label", OBJ_LABEL,0,0,0);
-   ObjectSetString(0,"info7Label",OBJPROP_FONT,"Courier New");
-   ObjectSetInteger(0,"info7Label",OBJPROP_FONTSIZE,10);
-   ObjectSetString(0,"info7Label",OBJPROP_TEXT,info7);
-   ObjectSetInteger(0,"info7Label", OBJPROP_XDISTANCE, 160);
-   ObjectSetInteger(0,"info7Label",OBJPROP_YDISTANCE,80);
-   ObjectSetInteger(0,"info7Label",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"info7Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   string info8 = "W1 : " + TimeTilNextBar(PERIOD_W1);
-   ObjectCreate(0,"info8Label", OBJ_LABEL,0,0,0);
-   ObjectSetString(0,"info8Label",OBJPROP_FONT,"Courier New");
-   ObjectSetInteger(0,"info8Label",OBJPROP_FONTSIZE,10);
-   ObjectSetString(0,"info8Label",OBJPROP_TEXT,info8);
-   ObjectSetInteger(0,"info8Label", OBJPROP_XDISTANCE, 160);
-   ObjectSetInteger(0,"info8Label",OBJPROP_YDISTANCE,100);
-   ObjectSetInteger(0,"info8Label",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"info8Label",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string FontName="Courier New";
+   int FontSize=8;
+   int LeftColumnX=280;
+   int RightColumnX=130;
+   string infoPL = "Total P/L: $" + DoubleToString(total_pl, 2); 
+   ObjectCreate(0,"infoPL", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"infoPL",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoPL",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetString(0,"infoPL",OBJPROP_TEXT,infoPL);
+   ObjectSetInteger(0,"infoPL", OBJPROP_XDISTANCE, LeftColumnX);
+   ObjectSetInteger(0,"infoPL",OBJPROP_YDISTANCE,20);
+   ObjectSetInteger(0,"infoPL",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoPL",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string infoRisk = "Risk: $" + DoubleToString(total_risk, 2);
+   ObjectCreate(0,"infoRisk", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"infoRisk",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoRisk",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetString(0,"infoRisk",OBJPROP_TEXT,infoRisk);
+   ObjectSetInteger(0,"infoRisk", OBJPROP_XDISTANCE, RightColumnX);
+   ObjectSetInteger(0,"infoRisk",OBJPROP_YDISTANCE,20);
+   ObjectSetInteger(0,"infoRisk",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoRisk",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string infoTP = "Total TP: $" + DoubleToString(total_tp, 2);
+   ObjectCreate(0,"infoTP", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"infoTP",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoTP",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetString(0,"infoTP",OBJPROP_TEXT,infoTP);
+   ObjectSetInteger(0,"infoTP", OBJPROP_XDISTANCE, LeftColumnX);
+   ObjectSetInteger(0,"infoTP",OBJPROP_YDISTANCE,40);
+   ObjectSetInteger(0,"infoTP",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoTP",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string infoRR  = "RR: " + DoubleToString(rr, 2);
+   ObjectCreate(0,"infoRR", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"infoRR",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoRR",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetString(0,"infoRR",OBJPROP_TEXT,infoRR);
+   ObjectSetInteger(0,"infoRR", OBJPROP_XDISTANCE, RightColumnX);
+   ObjectSetInteger(0,"infoRR",OBJPROP_YDISTANCE,40);
+   ObjectSetInteger(0,"infoRR",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoRR",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string infoM15 = "M15: " + TimeTilNextBar(PERIOD_M15);
+   ObjectCreate(0,"infoM15", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"infoM15",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoM15",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetString(0,"infoM15",OBJPROP_TEXT,infoM15);
+   ObjectSetInteger(0,"infoM15", OBJPROP_XDISTANCE, LeftColumnX);
+   ObjectSetInteger(0,"infoM15",OBJPROP_YDISTANCE,60);
+   ObjectSetInteger(0,"infoM15",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoM15",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string infoH1 = "H1 : " + TimeTilNextBar(PERIOD_H1);
+   ObjectCreate(0,"infoH1", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"infoH1",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoH1",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetString(0,"infoH1",OBJPROP_TEXT,infoH1);
+   ObjectSetInteger(0,"infoH1", OBJPROP_XDISTANCE, LeftColumnX);
+   ObjectSetInteger(0,"infoH1",OBJPROP_YDISTANCE,80);
+   ObjectSetInteger(0,"infoH1",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoH1",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string infoD1 = "D1 : " + TimeTilNextBar(PERIOD_D1);
+   ObjectCreate(0,"infoD1", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"infoD1",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoD1",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetString(0,"infoD1",OBJPROP_TEXT,infoD1);
+   ObjectSetInteger(0,"infoD1", OBJPROP_XDISTANCE, LeftColumnX);
+   ObjectSetInteger(0,"infoD1",OBJPROP_YDISTANCE,100);
+   ObjectSetInteger(0,"infoD1",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoD1",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string infoM30 ="M30: " + TimeTilNextBar(PERIOD_M30);
+   ObjectCreate(0,"infoM30", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"infoM30",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoM30",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetString(0,"infoM30",OBJPROP_TEXT,infoM30);
+   ObjectSetInteger(0,"infoM30", OBJPROP_XDISTANCE, RightColumnX);
+   ObjectSetInteger(0,"infoM30",OBJPROP_YDISTANCE,60);
+   ObjectSetInteger(0,"infoM30",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoM30",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string infoH4 = "H4 : " + TimeTilNextBar(PERIOD_H4);
+   ObjectCreate(0,"infoH4", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"infoH4",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoH4",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetString(0,"infoH4",OBJPROP_TEXT,infoH4);
+   ObjectSetInteger(0,"infoH4", OBJPROP_XDISTANCE, RightColumnX);
+   ObjectSetInteger(0,"infoH4",OBJPROP_YDISTANCE,80);
+   ObjectSetInteger(0,"infoH4",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoH4",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string infoW1 = "W1 : " + TimeTilNextBar(PERIOD_W1);
+   ObjectCreate(0,"infoW1", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"infoW1",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoW1",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetString(0,"infoW1",OBJPROP_TEXT,infoW1);
+   ObjectSetInteger(0,"infoW1", OBJPROP_XDISTANCE, RightColumnX);
+   ObjectSetInteger(0,"infoW1",OBJPROP_YDISTANCE,100);
+   ObjectSetInteger(0,"infoW1",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoW1",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
 }
 // Expert chart event function
 void OnChartEvent(const int id,         // event ID  
