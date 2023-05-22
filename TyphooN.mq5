@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.012"
+#property version   "1.013"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -49,8 +49,8 @@ input group    "User Vars";
 input double   Risk                    = 0.3;
 input int      MagicNumber             = 13;
 input double   ProtectionATRMulti      = 1.337;
-input double   SLATRMulti              = 0.3;
-input double   TPATRMulti              = 0.9;
+input double   SLATRMulti              = 3;
+input double   TPATRMulti              = 9;
 input int      HorizontalLineThickness = 3;
 // global vars
 double TP = 0;
@@ -226,7 +226,7 @@ void OnTick()
    // calcmode 4 is SYMBOL_CALC_MODE_CFDLEVERAGE
    // calcmode 0 is SYMBOL_CALC_MODE_FOREX
    // Print (symbolcurrencybase);
-    Print (point);
+   // Print (point);
    if (point == 0.001 && calcmode == 4 && symbolcurrencyprofit == "USD" && symbolcurrencybase== "USD")
    { // XRPUSD FTMO
       InfoMulti = 10;
@@ -334,7 +334,7 @@ void OnTick()
    }
    else if (symbolcurrencybase == "USD" && symbolcurrencyprofit == "ILS" && calcmode == 0)
    { // USDILS FTMO -- needs further tweaking
-      InfoMulti = 0.000011;
+      InfoMulti = 0.0000109;
    }
    else if (symbolcurrencybase == "USD" && symbolcurrencyprofit == "JPY" && calcmode == 0)
    { // USDJPY FTMO -- needs further tweaking
@@ -783,11 +783,11 @@ void TyWindow::OnClickBuyLines(void)
    ObjectDelete(0, "TP_Line");
    ObjectDelete(0, "Limit_Line");
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
-   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * SLATRMulti)));
+   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * SLATRMulti * PointValue())));
    ObjectSetInteger(0, "SL_Line", OBJPROP_COLOR, clrRed);
    ObjectSetInteger(0, "SL_Line", OBJPROP_WIDTH,HorizontalLineThickness);
    ObjectSetInteger(0, "SL_Line", OBJPROP_SELECTABLE, 1);
-   ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * TPATRMulti)));
+   ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * TPATRMulti * PointValue())));
    ObjectSetInteger(0, "TP_Line", OBJPROP_COLOR, clrLime);
    ObjectSetInteger(0, "TP_Line", OBJPROP_WIDTH,HorizontalLineThickness);
    ObjectSetInteger(0, "TP_Line", OBJPROP_SELECTABLE, 1);
@@ -798,11 +798,11 @@ void TyWindow::OnClickSellLines(void)
    ObjectDelete(0, "TP_Line");
    ObjectDelete(0, "Limit_Line");
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
-   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * SLATRMulti)));
+   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * SLATRMulti * PointValue())));
    ObjectSetInteger(0, "SL_Line", OBJPROP_COLOR, clrRed);
    ObjectSetInteger(0, "SL_Line", OBJPROP_WIDTH,HorizontalLineThickness);
    ObjectSetInteger(0, "SL_Line", OBJPROP_SELECTABLE, 1);
-   ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * TPATRMulti)));
+   ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * TPATRMulti * PointValue())));
    ObjectSetInteger(0, "TP_Line", OBJPROP_COLOR, clrLime);
    ObjectSetInteger(0, "TP_Line", OBJPROP_WIDTH,HorizontalLineThickness);
    ObjectSetInteger(0, "TP_Line", OBJPROP_SELECTABLE, 1);
@@ -823,11 +823,11 @@ void TyWindow::OnClickProtect(void)
       if(Position.Magic() != MagicNumber ) continue;
       if(PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
       {
-         SL = PositionGetDouble(POSITION_PRICE_OPEN) + ( ATR * ProtectionATRMulti * _Point );
+         SL = PositionGetDouble(POSITION_PRICE_OPEN) + ( ATR * ProtectionATRMulti * PointValue() );
       }
       else if(PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL)
       {
-         SL = PositionGetDouble(POSITION_PRICE_OPEN) - ( ATR * ProtectionATRMulti *  _Point );
+         SL = PositionGetDouble(POSITION_PRICE_OPEN) - ( ATR * ProtectionATRMulti *  PointValue() );
       }
       if(!Trade.PositionModify(PositionGetTicket(i), SL, PositionGetDouble(POSITION_TP)))
          Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
