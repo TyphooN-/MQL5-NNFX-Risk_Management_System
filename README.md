@@ -26,6 +26,8 @@ TyphooN's MQL5-Risk_Management_System (Expert)
 
 -Displays Total P/L, Risk, Total profit at TP, and RR of the positions on the chart.
 
+-Has been tested extensively on FTMO and Eightcap brokers.  YMMV on other brokers.
+
 ### User Vars
 -Risk (set to % risk per position or limit order).
 
