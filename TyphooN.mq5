@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.015"
+#property version   "1.016"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -530,6 +530,10 @@ void TyWindow::OnClickTrade(void)
    if (min_volume == 0.01)
    {
       OrderDigits = 2;
+   }
+   if (min_volume == 0.1)
+   {
+      OrderDigits = 1;
    }
    else if (min_volume == 1)
    {
