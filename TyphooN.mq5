@@ -219,7 +219,6 @@ void OnTick()
    double total_pl = 0;
    double total_tp = 0;
    double rr = 0;
-   double point = PointValue();
    long calcmode = SymbolInfoInteger(_Symbol, SYMBOL_TRADE_CALC_MODE);
    string symbolcurrencyprofit = SymbolInfoString(_Symbol,SYMBOL_CURRENCY_PROFIT);
    string symbolcurrencybase = SymbolInfoString(_Symbol,SYMBOL_CURRENCY_BASE);
