@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.016"
+#property version   "1.100"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -33,6 +33,8 @@
 #include <Trade\AccountInfo.mqh>
 #include <Trade\SymbolInfo.mqh>
 #include <Orchard\RiskCalc.mqh>
+#define XRGB(r,g,b)    (0xFF000000|(uchar(r)<<16)|(uchar(g)<<8)|uchar(b))
+#define GETRGB(clr)    ((clr)&0xFFFFFF)
 // Classes
 CPositionInfo     Position; // Trade wrapper
 CTrade            Trade;    // Trade wrapper
@@ -91,6 +93,10 @@ class TyWindow : public CAppDialog
                               ~TyWindow(void);
       // create
       virtual bool            Create(const long chart,const string name,const int subwin,const int x1,const int y1,const int x2,const int y2);
+      // handlers of drag
+      virtual bool      OnDialogDragStart(void);
+      virtual bool      OnDialogDragProcess(void);
+      virtual bool      OnDialogDragEnd(void);
       // chart event handler
       virtual bool            OnEvent(const int id,const long &lparam,const double &dparam,const string &sparam);
    protected:
@@ -547,29 +553,29 @@ void TyWindow::OnClickTrade(void)
             {
                lotsglobal = max_volume;
             }
-               if (Trade.BuyLimit(lotsglobal, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
-               {
-                  Print("Buy Limit opened successfully");
-               }
-               else
-                {
-                  Print("Failed to open buy limit, error: " + Trade.ResultRetcode() + " | " + Trade.ResultRetcodeDescription());
-                }
+            if (Trade.BuyLimit(lotsglobal, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
+            {
+               Print("Buy Limit opened successfully");
+            }
+            else
+             {
+               Print("Failed to open buy limit, error: " + Trade.ResultRetcode() + " | " + Trade.ResultRetcodeDescription());
+            }
             }
             else if (SL > TP){
             lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, SL - Bid),OrderDigits);
-               if(lotsglobal > max_volume)
-               {
-                  lotsglobal = max_volume;
-               }
-               if (Trade.SellLimit(lotsglobal, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
-               {
-                  Print("Sell Limit opened successfully");
-               }
-               else
-               {
-                  Print("Failed to open sell limit, error: " + Trade.ResultRetcode() + " | " + Trade.ResultRetcodeDescription());
-               }
+            if(lotsglobal > max_volume)
+            {
+               lotsglobal = max_volume;
+            }
+            if (Trade.SellLimit(lotsglobal, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
+            {
+               Print("Sell Limit opened successfully");
+            }
+            else
+            {
+               Print("Failed to open sell limit, error: " + Trade.ResultRetcode() + " | " + Trade.ResultRetcodeDescription());
+            }
             }
    }
    else if (LimitLineExists == false){
@@ -628,12 +634,23 @@ void TyWindow::OnClickBuyLines(void)
    ObjectDelete(0, "TP_Line");
    ObjectDelete(0, "Limit_Line");
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
-   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * SLATRMulti * PointValue())));
+   double DigitMulti = 0;
+   if (_Digits == 2)
+   {
+      DigitMulti = 1;
+      ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * SLATRMulti * PointValue() * DigitMulti)));
+      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * TPATRMulti * PointValue() * DigitMulti)));
+   }
+   else if(_Digits == 3)
+   {
+      DigitMulti = 0.1;
+      ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * SLATRMulti * PointValue() * DigitMulti)));
+      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * TPATRMulti * PointValue() * DigitMulti)));
+   }
    ObjectSetInteger(0, "SL_Line", OBJPROP_COLOR, clrRed);
    ObjectSetInteger(0, "SL_Line", OBJPROP_WIDTH,HorizontalLineThickness);
    ObjectSetInteger(0, "SL_Line", OBJPROP_SELECTABLE, 1);
    ObjectSetInteger(0, "SL_Line", OBJPROP_BACK, true);
-   ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * TPATRMulti * PointValue())));
    ObjectSetInteger(0, "TP_Line", OBJPROP_COLOR, clrLime);
    ObjectSetInteger(0, "TP_Line", OBJPROP_WIDTH,HorizontalLineThickness);
    ObjectSetInteger(0, "TP_Line", OBJPROP_SELECTABLE, 1);
@@ -645,12 +662,23 @@ void TyWindow::OnClickSellLines(void)
    ObjectDelete(0, "TP_Line");
    ObjectDelete(0, "Limit_Line");
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
-   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * SLATRMulti * PointValue())));
+   double DigitMulti = 0;
+   if (_Digits == 2)
+   {
+      DigitMulti = 1;
+      ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * SLATRMulti * PointValue() * DigitMulti)));
+      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * TPATRMulti * PointValue() * DigitMulti)));
+   }
+   if (_Digits == 3)
+   {
+      DigitMulti = 0.1;
+      ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * SLATRMulti * PointValue() * DigitMulti)));
+      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * TPATRMulti * PointValue() * DigitMulti)));
+   }
    ObjectSetInteger(0, "SL_Line", OBJPROP_COLOR, clrRed);
    ObjectSetInteger(0, "SL_Line", OBJPROP_WIDTH,HorizontalLineThickness);
    ObjectSetInteger(0, "SL_Line", OBJPROP_SELECTABLE, 1);
    ObjectSetInteger(0, "SL_Line", OBJPROP_BACK, true);
-   ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * TPATRMulti * PointValue())));
    ObjectSetInteger(0, "TP_Line", OBJPROP_COLOR, clrLime);
    ObjectSetInteger(0, "TP_Line", OBJPROP_WIDTH,HorizontalLineThickness);
    ObjectSetInteger(0, "TP_Line", OBJPROP_SELECTABLE, 1);
@@ -766,4 +794,109 @@ void TyWindow::OnClickSetSL(void)
             }
       }
    }
+}
+bool TyWindow::OnDialogDragStart(void)
+{
+   string prefix=Name();
+   int total=ExtDialog.ControlsTotal();
+   for(int i=0;i<total;i++)
+   {
+      CWnd*obj=ExtDialog.Control(i);
+      string name=obj.Name();
+      if(name==prefix+"Border")
+      {
+         CPanel *panel=(CPanel*) obj;
+         panel.ColorBackground(clrNONE);
+         ChartRedraw();
+      }
+      if(name==prefix+"Back")
+      {
+         CPanel *panel=(CPanel*) obj;
+         panel.ColorBackground(clrNONE);
+         ChartRedraw();
+      }
+      if(name==prefix+"Client")
+      {
+         CWndClient *wndclient=(CWndClient*) obj;
+         wndclient.ColorBackground(clrNONE);
+         wndclient.ColorBorder(clrNONE);
+         int client_total=wndclient.ControlsTotal();
+         for(int j=0;j<client_total;j++)
+         {
+            CWnd*client_obj=wndclient.Control(j);
+            string client_name=client_obj.Name();
+            if(client_name=="Button1")
+            {
+               CButton *button=(CButton*) client_obj;
+               button.ColorBackground(clrNONE);
+               ChartRedraw();
+            }
+         }
+         ChartRedraw();
+      }
+   }
+   return(CDialog::OnDialogDragStart());
+}
+bool TyWindow::OnDialogDragProcess(void)
+{
+   string prefix=Name();
+   int total=ExtDialog.ControlsTotal();
+   for(int i=0;i<total;i++)
+   {
+      CWnd*obj=ExtDialog.Control(i);
+      string name=obj.Name();
+      if(name==prefix+"Back")
+      {
+         CPanel *panel=(CPanel*) obj;
+         color clr=(color)GETRGB(XRGB(rand()%255,rand()%255,rand()%255));
+         panel.ColorBorder(clr);
+         ChartRedraw();
+      }
+   }
+   return(CDialog::OnDialogDragProcess());
+}
+bool TyWindow::OnDialogDragEnd(void)
+{
+   string prefix=Name();
+   int total=ExtDialog.ControlsTotal();
+   for(int i=0;i<total;i++)
+   {
+      CWnd*obj=ExtDialog.Control(i);
+      string name=obj.Name();
+      if(name==prefix+"Border")
+      {
+         CPanel *panel=(CPanel*) obj;
+         panel.ColorBackground(CONTROLS_DIALOG_COLOR_BG);
+         panel.ColorBorder(CONTROLS_DIALOG_COLOR_BORDER_LIGHT);
+         ChartRedraw();
+      }
+      if(name==prefix+"Back")
+      {
+         CPanel *panel=(CPanel*) obj;
+         panel.ColorBackground(CONTROLS_DIALOG_COLOR_BG);
+         color border=(m_panel_flag) ? CONTROLS_DIALOG_COLOR_BG : CONTROLS_DIALOG_COLOR_BORDER_DARK;
+         panel.ColorBorder(border);
+         ChartRedraw();
+      }
+      if(name==prefix+"Client")
+      {
+         CWndClient *wndclient=(CWndClient*) obj;
+         wndclient.ColorBackground(CONTROLS_DIALOG_COLOR_CLIENT_BG);
+         wndclient.ColorBorder(CONTROLS_DIALOG_COLOR_CLIENT_BORDER);
+         int client_total=wndclient.ControlsTotal();
+         for(int j=0;j<client_total;j++)
+         {
+            CWnd*client_obj=wndclient.Control(j);
+            string client_name=client_obj.Name();
+            if(client_name=="Button1")
+            {
+               CButton *button=(CButton*) client_obj;
+               button.ColorBackground(CONTROLS_BUTTON_COLOR_BG);
+               ChartRedraw();
+            }
+      }
+      ChartRedraw();
+      }
+   }
+   return(CDialog::OnDialogDragEnd());
 }
