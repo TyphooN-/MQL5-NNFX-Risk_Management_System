@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.101"
+#property version   "1.102"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -724,6 +724,15 @@ void TyWindow::OnClickDestroyLines(void)
 }
 void TyWindow::OnClickProtect(void)
 {
+   double DigitMulti = 0;
+   if (_Digits == 2)
+   {
+      DigitMulti = 1;
+   }
+   if (_Digits == 3)
+   {
+      DigitMulti = 0.1;
+   }
    for(int i=0; i<PositionsTotal(); i++)
    {
       if(PositionSelectByTicket(PositionGetTicket(i))) {
@@ -731,11 +740,11 @@ void TyWindow::OnClickProtect(void)
       if(Position.Magic() != MagicNumber ) continue;
       if(PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
       {
-         SL = PositionGetDouble(POSITION_PRICE_OPEN) + ( ATR * ProtectionATRMulti * PointValue() );
+         SL = PositionGetDouble(POSITION_PRICE_OPEN) + ( ATR * ProtectionATRMulti * PointValue() * DigitMulti );
       }
       else if(PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL)
       {
-         SL = PositionGetDouble(POSITION_PRICE_OPEN) - ( ATR * ProtectionATRMulti *  PointValue() );
+         SL = PositionGetDouble(POSITION_PRICE_OPEN) - ( ATR * ProtectionATRMulti *  PointValue() * DigitMulti );
       }
       if(!Trade.PositionModify(PositionGetTicket(i), SL, PositionGetDouble(POSITION_TP)))
          Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
