@@ -6,11 +6,11 @@ TyphooN's MQL5-Risk_Management_System (Expert)
 
 -Open trade button to execute a position or order.
 
--Limit Line places a Limit line on the chart, and will place a limit order when this line is present on the chart rather than market execution.
+-Limit Line places a Limit line (White) on the chart, and will place a limit order when this line is present on the chart rather than market execution.
 
--Buy Lines places TP and SL lines on the chart for a buy position.
+-Buy Lines places TP (Green) and SL (Red) lines on the chart for a buy position.
 
--Sell Lines places TP and SL lines on the chart for a sell position.
+-Sell Lines places TP (Green) and SL (Red) lines on the chart for a sell position.
 
 -Destroy Lines removes all expert placed horizontal lines from the chart.
 
@@ -20,9 +20,9 @@ TyphooN's MQL5-Risk_Management_System (Expert)
 
 -Close Limits button to close all limit orders.
 
--Set TP modifies existing position TP level.
+-Set TP modifies existing position TP level to the price that the TP (Green) line is currently at.
 
--Set SL modifies existing position SL level.
+-Set SL modifies existing position SL level to the price that the SL (Red) line is currently at.
 
 -Displays Total P/L, Risk, Total profit at TP, and RR of the positions on the chart.
 
