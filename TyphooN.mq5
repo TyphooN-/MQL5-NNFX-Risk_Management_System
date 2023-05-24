@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.100"
+#property version   "1.101"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -62,7 +62,6 @@ double Ask = 0;
 double risk_money = 0;
 double lotsglobal = 0;
 double ATR = 0;
-double InfoMulti = 0;
 bool LimitLineExists = false;
 // defines
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
@@ -238,13 +237,25 @@ void OnTick()
          double tpprofit = 0;
          if (PositionGetDouble(POSITION_TP) > PositionGetDouble(POSITION_SL))
          {
-            OrderCalcProfit(ORDER_TYPE_BUY, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), PositionGetDouble(POSITION_TP), tpprofit);
-            OrderCalcProfit(ORDER_TYPE_BUY, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), PositionGetDouble(POSITION_SL), risk);
+            if (!OrderCalcProfit(ORDER_TYPE_BUY, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), PositionGetDouble(POSITION_TP), tpprofit))
+            {
+               Print(GetLastError());
+            }
+            if (!OrderCalcProfit(ORDER_TYPE_BUY, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), PositionGetDouble(POSITION_SL), risk))
+            {
+               Print(GetLastError());
+            }
          }
          if (PositionGetDouble(POSITION_SL) > PositionGetDouble(POSITION_TP))
          {
-           OrderCalcProfit(ORDER_TYPE_SELL, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), PositionGetDouble(POSITION_TP), tpprofit);
-           OrderCalcProfit(ORDER_TYPE_SELL, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), PositionGetDouble(POSITION_SL), risk);
+            if (!OrderCalcProfit(ORDER_TYPE_SELL, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), PositionGetDouble(POSITION_TP), tpprofit))
+            {
+               Print(GetLastError());
+            }
+            if (!OrderCalcProfit(ORDER_TYPE_SELL, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), PositionGetDouble(POSITION_SL), risk))
+            {
+               Print(GetLastError());
+            }
          }
          total_pl += profit;
          total_risk += risk;
@@ -256,7 +267,19 @@ void OnTick()
    int FontSize=8;
    int LeftColumnX=280;
    int RightColumnX=130;
-   string infoPL = "Total P/L: $" + DoubleToString(total_pl, 2); 
+   string infoPL;
+   if (total_pl < 0)
+   {
+      infoPL = "Total P/L: -$" + DoubleToString(MathAbs(total_pl), 2); 
+   }
+   if (total_pl == 0)
+   {
+      infoPL = "Total P/L: $" + DoubleToString(MathAbs(total_pl), 2); 
+   }
+   else if (total_pl > 0)
+   {
+      infoPL = "Total P/L: $" + DoubleToString(total_pl, 2);
+   }
    ObjectCreate(0,"infoPL", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"infoPL",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoPL",OBJPROP_FONTSIZE,FontSize);
@@ -265,7 +288,15 @@ void OnTick()
    ObjectSetInteger(0,"infoPL",OBJPROP_YDISTANCE,20);
    ObjectSetInteger(0,"infoPL",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoPL",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   string infoRisk = "Risk: $" + DoubleToString(total_risk, 2);
+   string infoRisk;
+   if (total_risk <= 0)
+   {
+      infoRisk = "Risk: $" + DoubleToString(MathAbs(total_risk), 2);
+   }
+   else if (total_risk > 0)
+   {
+      infoRisk = "SL Profit:" + DoubleToString(total_risk, 2);
+   }
    ObjectCreate(0,"infoRisk", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"infoRisk",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoRisk",OBJPROP_FONTSIZE,FontSize);
@@ -558,8 +589,8 @@ void TyWindow::OnClickTrade(void)
                Print("Buy Limit opened successfully");
             }
             else
-             {
-               Print("Failed to open buy limit, error: " + Trade.ResultRetcode() + " | " + Trade.ResultRetcodeDescription());
+            {
+               Print("Failed to open buy limit, error: " + IntegerToString(Trade.ResultRetcode()) + " | " + Trade.ResultRetcodeDescription());
             }
             }
             else if (SL > TP){
@@ -574,7 +605,7 @@ void TyWindow::OnClickTrade(void)
             }
             else
             {
-               Print("Failed to open sell limit, error: " + Trade.ResultRetcode() + " | " + Trade.ResultRetcodeDescription());
+               Print("Failed to open sell limit, error: " + IntegerToString(Trade.ResultRetcode()) + " | " + Trade.ResultRetcodeDescription());
             }
             }
    }
@@ -591,7 +622,7 @@ void TyWindow::OnClickTrade(void)
          }
          else
          {
-            Print("Failed to open buy trade, error: " + Trade.ResultRetcode() + " | " + Trade.ResultRetcodeDescription());
+            Print("Failed to open buy trade, error: " + IntegerToString(Trade.ResultRetcode()) + " | " + Trade.ResultRetcodeDescription());
          }
       }
       else if (SL > TP){
@@ -607,7 +638,7 @@ void TyWindow::OnClickTrade(void)
          }
          else
          {
-            Print("Failed to open sell trade, error: " + Trade.ResultRetcode() + " | " + Trade.ResultRetcodeDescription());
+            Print("Failed to open sell trade, error: " + IntegerToString(Trade.ResultRetcode()) + " | " + Trade.ResultRetcodeDescription());
       }
          ObjectDelete(0, "Limit_Line");  
     }
