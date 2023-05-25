@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.102"
+#property version   "1.103"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -265,8 +265,8 @@ void OnTick()
    }
    string FontName="Courier New";
    int FontSize=8;
-   int LeftColumnX=280;
-   int RightColumnX=130;
+   int LeftColumnX=310;
+   int RightColumnX=150;
    string infoPL;
    if (total_pl < 0)
    {
@@ -289,13 +289,16 @@ void OnTick()
    ObjectSetInteger(0,"infoPL",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoPL",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoRisk;
+   string infoRR;
    if (total_risk <= 0)
    {
       infoRisk = "Risk: $" + DoubleToString(MathAbs(total_risk), 2);
+      infoRR  = "RR : " + DoubleToString(rr, 2);
    }
    else if (total_risk > 0)
    {
-      infoRisk = "SL Profit:" + DoubleToString(total_risk, 2);
+      infoRisk = "SL Profit: $" + DoubleToString(total_risk, 2);
+      infoRR  = "RR : INFINITY";
    }
    ObjectCreate(0,"infoRisk", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"infoRisk",OBJPROP_FONT,FontName);
@@ -314,7 +317,6 @@ void OnTick()
    ObjectSetInteger(0,"infoTP",OBJPROP_YDISTANCE,40);
    ObjectSetInteger(0,"infoTP",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoTP",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   string infoRR  = "RR: " + DoubleToString(rr, 2);
    ObjectCreate(0,"infoRR", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"infoRR",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoRR",OBJPROP_FONTSIZE,FontSize);
@@ -644,7 +646,7 @@ void TyWindow::OnClickTrade(void)
     }
    }
 }
-void TyWindow::OnClickLimit()
+void TyWindow::OnClickLimit(void)
 {
    if (!LimitLineExists) {
       ObjectCreate(0, "Limit_Line", OBJ_HLINE, 0, TimeCurrent(), Ask);
@@ -737,7 +739,7 @@ void TyWindow::OnClickProtect(void)
    {
       if(PositionSelectByTicket(PositionGetTicket(i))) {
       if (PositionGetSymbol(i) != _Symbol) continue;
-      if(Position.Magic() != MagicNumber ) continue;
+      if(PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
       if(PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
       {
          SL = PositionGetDouble(POSITION_PRICE_OPEN) + ( ATR * ProtectionATRMulti * PointValue() * DigitMulti );
@@ -763,7 +765,7 @@ int result = MessageBox("Do you want to close all positions on " + _Symbol + "?"
    for(int i=PositionsTotal()-1;i>=0;i--)
    {
    if (PositionGetSymbol(i) != _Symbol) continue;
-   if(Position.Magic() != MagicNumber ) continue;
+   if(PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
    {
       if(Trade.PositionClose(Position.Ticket()))
       {
@@ -777,7 +779,7 @@ int result = MessageBox("Do you want to close all positions on " + _Symbol + "?"
     }
     }
 }
-void TyWindow::OnClickCloseLimits()
+void TyWindow::OnClickCloseLimits(void)
 {
    int result = MessageBox("Do you want to close all limit orders?", "Close Limit Orders", MB_YESNO | MB_ICONQUESTION);
    if (result == IDNO)
@@ -804,34 +806,38 @@ void TyWindow::OnClickCloseLimits()
 void TyWindow::OnClickSetTP(void)
 {
    TP = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
-   if (TP !=0)
+   if (TP != 0)
    {
-      for(int i = 0; i < PositionsTotal(); i++) {
-      if(PositionSelectByTicket(PositionGetTicket(i))) {
-      if (PositionGetSymbol(i) != _Symbol) continue;
-      if(Position.Magic() != MagicNumber ) continue;
-         Trade.PositionModify(PositionGetTicket(i), PositionGetDouble(POSITION_SL), TP);
-         if(!Trade.PositionModify(PositionGetTicket(i), PositionGetDouble(POSITION_SL), TP)) {
-            Print("Failed to modify TP. Error code: ", GetLastError());
+      for (int i = 0; i < PositionsTotal(); i++)
+      {
+         if (PositionSelectByTicket(PositionGetTicket(i)))
+         {
+            if (PositionGetSymbol(i) != _Symbol) continue;
+            if (PositionGetInteger(POSITION_MAGIC)!= MagicNumber) continue;
+            if (!Trade.PositionModify(PositionGetTicket(i), PositionGetDouble(POSITION_SL), TP))
+            {
+               Print("Failed to modify TP. Error code: ", GetLastError());
             }
-            }
+         }
       }
    }
 }
 void TyWindow::OnClickSetSL(void)
 {
    SL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
-   if (SL !=0)
+   if (SL != 0)
    {
-      for(int i = 0; i < PositionsTotal(); i++) {
-      if(PositionSelectByTicket(PositionGetTicket(i))) {
-      if (PositionGetSymbol(i) != _Symbol) continue;
-      if(Position.Magic() != MagicNumber ) continue;
-         Trade.PositionModify(PositionGetTicket(i), SL, PositionGetDouble(POSITION_TP));
-         if(!Trade.PositionModify(PositionGetTicket(i), SL, PositionGetDouble(POSITION_TP))) {
-            Print("Failed to modify TP. Error code: ", GetLastError());
+      for (int i = 0; i < PositionsTotal(); i++)
+      {
+         if (PositionSelectByTicket(PositionGetTicket(i)))
+         {
+            if (PositionGetSymbol(i) != _Symbol) continue;
+            if (PositionGetInteger(POSITION_MAGIC)!= MagicNumber) continue;
+            if (!Trade.PositionModify(PositionGetTicket(i), SL, PositionGetDouble(POSITION_TP)))
+            {
+               Print("Failed to modify SL. Error code: ", GetLastError());
             }
-            }
+         }
       }
    }
 }
