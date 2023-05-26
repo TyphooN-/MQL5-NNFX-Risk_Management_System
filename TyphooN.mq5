@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.103"
+#property version   "1.104"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -52,7 +52,7 @@ input double   Risk                    = 0.3;
 input int      MagicNumber             = 13;
 input double   ProtectionATRMulti      = 1.337;
 input double   SLATRMulti              = 3.0;
-input double   TPATRMulti              = 9.0;
+input double   TPATRMulti              = 11.0;
 input int      HorizontalLineThickness = 3;
 // global vars
 double TP = 0;
@@ -667,16 +667,41 @@ void TyWindow::OnClickBuyLines(void)
    ObjectDelete(0, "TP_Line");
    ObjectDelete(0, "Limit_Line");
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+   Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    double DigitMulti = 0;
    if (_Digits == 2)
    {
-      DigitMulti = 1;
-      ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * SLATRMulti * PointValue() * DigitMulti)));
-      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * TPATRMulti * PointValue() * DigitMulti)));
+      if (_Symbol == "XAUUSD")
+      {
+         DigitMulti = 0.1;
+         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * SLATRMulti * PointValue() * DigitMulti)));
+         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * TPATRMulti * PointValue() * DigitMulti)));
+      }
+      else
+      {
+         DigitMulti = 100;
+         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * SLATRMulti * PointValue() * DigitMulti)));
+         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * TPATRMulti * PointValue() * DigitMulti)));
+      }
    }
    else if(_Digits == 3)
    {
-      DigitMulti = 0.1;
+      if (_Symbol == "XAGUSD")
+      {
+         DigitMulti = 0.0001;
+         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * SLATRMulti * PointValue() * DigitMulti)));
+         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * TPATRMulti * PointValue() * DigitMulti)));
+      }
+      else
+      {
+         DigitMulti = 0.01;
+         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * SLATRMulti * PointValue() * DigitMulti)));
+         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * TPATRMulti * PointValue() * DigitMulti)));
+      }
+   }
+   if(_Digits == 5)
+   {
+      DigitMulti = 0.00002;
       ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * SLATRMulti * PointValue() * DigitMulti)));
       ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * TPATRMulti * PointValue() * DigitMulti)));
    }
@@ -694,19 +719,44 @@ void TyWindow::OnClickSellLines(void)
    ObjectDelete(0, "SL_Line");
    ObjectDelete(0, "TP_Line");
    ObjectDelete(0, "Limit_Line");
+   Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    double DigitMulti = 0;
    if (_Digits == 2)
    {
-      DigitMulti = 1;
-      ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * SLATRMulti * PointValue() * DigitMulti)));
-      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * TPATRMulti * PointValue() * DigitMulti)));
+      if (_Symbol == "XAUUSD")
+      {
+         DigitMulti = 0.1;
+         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * SLATRMulti * PointValue() * DigitMulti)));
+         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * TPATRMulti * PointValue() * DigitMulti)));
+      }
+      else
+      {
+         DigitMulti = 100;
+         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * SLATRMulti * PointValue() * DigitMulti)));
+         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * TPATRMulti * PointValue() * DigitMulti)));
+      }
    }
    if (_Digits == 3)
    {
-      DigitMulti = 0.1;
+      if (_Symbol == "XAGUSD")
+      {
+         DigitMulti = 0.0001;
+         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * SLATRMulti * PointValue() * DigitMulti)));
+         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * TPATRMulti * PointValue() * DigitMulti)));
+      }
+      else
+      {
+         DigitMulti = 0.01;
+         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * SLATRMulti * PointValue() * DigitMulti)));
+         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * TPATRMulti * PointValue() * DigitMulti)));
+      }
+   }
+   if(_Digits == 5)
+   {
+      DigitMulti = 0.00002;
       ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * SLATRMulti * PointValue() * DigitMulti)));
-      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * TPATRMulti * PointValue() * DigitMulti)));
+      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * TPATRMulti * PointValue() * DigitMulti)));  
    }
    ObjectSetInteger(0, "SL_Line", OBJPROP_COLOR, clrRed);
    ObjectSetInteger(0, "SL_Line", OBJPROP_WIDTH,HorizontalLineThickness);
@@ -729,11 +779,29 @@ void TyWindow::OnClickProtect(void)
    double DigitMulti = 0;
    if (_Digits == 2)
    {
-      DigitMulti = 1;
+      if (_Symbol == "XAUUSD")
+      {
+         DigitMulti = 0.1;
+      }
+      else
+      {
+         DigitMulti = 100;
+      }
    }
    if (_Digits == 3)
    {
-      DigitMulti = 0.1;
+      if (_Symbol == "XAGUSD")
+      {
+         DigitMulti = 0.0001;
+      }
+      else
+      {
+         DigitMulti = 0.01;
+      }
+   }
+   if (_Digits == 5)
+   {
+      DigitMulti = 0.00002;
    }
    for(int i=0; i<PositionsTotal(); i++)
    {
