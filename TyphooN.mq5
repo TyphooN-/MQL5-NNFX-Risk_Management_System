@@ -684,7 +684,7 @@ void TyWindow::OnClickBuyLines(void)
          ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * TPATRMulti * PointValue() * DigitMulti)));
       }
    }
-   else if(_Digits == 3)
+   if(_Digits == 3)
    {
       if (_Symbol == "XAGUSD")
       {
