@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.106"
+#property version   "1.107"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -223,11 +223,9 @@ void OnTick()
    double total_tpprofit = 0;
    double total_pl = 0;
    double total_tp = 0;
+   double total_margin = 0;
    double rr = 0;
    double tprr = 0;
-   long calcmode = SymbolInfoInteger(_Symbol, SYMBOL_TRADE_CALC_MODE);
-   string symbolcurrencyprofit = SymbolInfoString(_Symbol,SYMBOL_CURRENCY_PROFIT);
-   string symbolcurrencybase = SymbolInfoString(_Symbol,SYMBOL_CURRENCY_BASE);
    for(int i = 0; i < PositionsTotal(); i++)
    {
       if(PositionSelectByTicket(PositionGetTicket(i)))
@@ -236,8 +234,13 @@ void OnTick()
          double profit = PositionGetDouble(POSITION_PROFIT);
          double risk = 0;
          double tpprofit = 0;
+         double margin = 0;
          if (PositionGetDouble(POSITION_TP) > PositionGetDouble(POSITION_SL))
          {
+            if (!OrderCalcMargin(ORDER_TYPE_BUY, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), margin))
+            {
+               Print(GetLastError());
+            }
             if (!OrderCalcProfit(ORDER_TYPE_BUY, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), PositionGetDouble(POSITION_TP), tpprofit))
             {
                Print(GetLastError());
@@ -249,6 +252,10 @@ void OnTick()
          }
          if (PositionGetDouble(POSITION_SL) > PositionGetDouble(POSITION_TP))
          {
+            if (!OrderCalcMargin(ORDER_TYPE_SELL, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), margin))
+            {
+               Print(GetLastError());
+            }
             if (!OrderCalcProfit(ORDER_TYPE_SELL, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), PositionGetDouble(POSITION_TP), tpprofit))
             {
                Print(GetLastError());
@@ -258,9 +265,11 @@ void OnTick()
                Print(GetLastError());
             }
          }
+         
          total_pl += profit;
          total_risk += risk;
          total_tp += tpprofit;
+         total_margin += margin;
          tprr = total_tp/MathAbs(total_risk);
          rr = total_pl/MathAbs(total_risk);
       }
@@ -301,7 +310,7 @@ void OnTick()
    ObjectSetInteger(0,"infoPL",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoPL",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoRisk = "Risk: $" + DoubleToString(MathAbs(total_risk), 2);
-   string infoTPRR = "TP RR :" + DoubleToString(tprr, 2);
+   string infoTPRR = "TP RR: " + DoubleToString(tprr, 2);
    if (total_risk <= 0)
    {
       infoRisk = "Risk: $" + DoubleToString(MathAbs(total_risk), 2);
@@ -343,15 +352,15 @@ void OnTick()
    ObjectSetInteger(0,"infoRR",OBJPROP_YDISTANCE,(YRowWidth * 3));
    ObjectSetInteger(0,"infoRR",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoRR",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   string infoM5 ="M5 : " + TimeTilNextBar(PERIOD_M5);
-   ObjectCreate(0,"infoM5", OBJ_LABEL,0,0,0);
-   ObjectSetString(0,"infoM5",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoM5",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetString(0,"infoM5",OBJPROP_TEXT,infoM5);
-   ObjectSetInteger(0,"infoM5", OBJPROP_XDISTANCE, RightColumnX);
-   ObjectSetInteger(0,"infoM5",OBJPROP_YDISTANCE,(YRowWidth * 3));
-   ObjectSetInteger(0,"infoM5",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoM5",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string infoMargin = "Margin: $" + DoubleToString(total_margin, 2);
+   ObjectCreate(0,"infoMargin", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"infoMargin",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoMargin",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetString(0,"infoMargin",OBJPROP_TEXT,infoMargin);
+   ObjectSetInteger(0,"infoMargin", OBJPROP_XDISTANCE, RightColumnX);
+   ObjectSetInteger(0,"infoMargin",OBJPROP_YDISTANCE,(YRowWidth * 3));
+   ObjectSetInteger(0,"infoMargin",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoMargin",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoM15 = "M15: " + TimeTilNextBar(PERIOD_M15);
    ObjectCreate(0,"infoM15", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"infoM15",OBJPROP_FONT,FontName);
