@@ -105,8 +105,8 @@ int  OnCalculate( const int        rates_total,       // grandezza delle timeser
    {
       Y = DoubleToString(sum_day.m_sum/sum_day.m_days/pnt,0);
       m = sum_m.m_sum/sum_m.m_days/pnt;
-      w = sum_w.m_sum/sum_m.m_days/pnt;
-      W = DoubleToString(sum_w.m_sum/sum_m.m_days/pnt,0);
+      w = sum_w.m_sum / sum_w.m_days / pnt;
+      W = DoubleToString(sum_w.m_sum / sum_w.m_days / pnt, 0);
       M = DoubleToString(sum_m.m_sum/sum_m.m_days/pnt,0);
       m6 = sum_6m.m_sum / sum_6m.m_days;
       h = (hi-Bid)/pnt;
