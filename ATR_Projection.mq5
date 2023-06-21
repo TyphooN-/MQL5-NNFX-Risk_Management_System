@@ -23,7 +23,7 @@
  **/
 #property indicator_chart_window
 #property indicator_plots 0
-#property version "1.002"
+#property version "1.003"
 input int    ATR_Period                    = 14;
 input bool   H1_ATR_Projections            = true;
 input bool   H4_ATR_Projections            = true;
@@ -210,7 +210,7 @@ int OnCalculate(const int        rates_total,
         atrLevelBelowH1currentOpen = currentOpenH1 - avgH1;
     }
    datetime endTimeCurrentD1 = iTime(_Symbol, PERIOD_D1, 0);
-   datetime endTime = endTimeCurrentD1 + 58350;
+   datetime endTime = endTimeCurrentD1 + 60260;
 if (D1_ATR_Projections && _Period <= PERIOD_W1)
 {
    datetime startTimeD1 = iTime(_Symbol, PERIOD_D1, 4);
