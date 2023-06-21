@@ -23,7 +23,7 @@
  **/
 #property indicator_chart_window
 #property indicator_plots 0
-#property version "1.00"
+#property version "1.001"
 input int    ATR_Period                    = 14;
 input bool   H1_ATR_Projections            = true;
 input bool   H4_ATR_Projections            = true;
@@ -144,6 +144,8 @@ int OnCalculate(const int        rates_total,
     currentOpenMN1 = iClose(_Symbol, PERIOD_MN1, 0);
     prevCloseH4 = iClose(_Symbol, PERIOD_H4, 1);
     currentOpenH4 = iClose(_Symbol, PERIOD_H4, 0);
+    prevCloseH1 = iClose(_Symbol, PERIOD_H1, 1);
+    currentOpenH1 = iClose(_Symbol, PERIOD_H1, 0);
     // Calculate the number of bars to be processed
     int limit = rates_total - prev_calculated;
     // If there are no new bars, return
