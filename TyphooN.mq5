@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.107"
+#property version   "1.108"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -198,10 +198,10 @@ string TimeTilNextBar(ENUM_TIMEFRAMES tf=PERIOD_CURRENT)
    datetime remainingTime=bartime+PeriodSeconds(tf)-now;
    MqlDateTime mdt;
    TimeToStruct(remainingTime,mdt);
-   if(mdt.day_of_year>0) return StringFormat("%d d %d h %d m",mdt.day_of_year,mdt.hour,mdt.min);
-   if(mdt.hour>0) return StringFormat("%d h %d m %d s",mdt.hour,mdt.min,mdt.sec);
-   if(mdt.min>0) return StringFormat("%d m %d s",mdt.min,mdt.sec);
-   return StringFormat("%d s",mdt.sec);
+   if(mdt.day_of_year>0) return StringFormat("%dD %dH %dM",mdt.day_of_year,mdt.hour,mdt.min);
+   if(mdt.hour>0) return StringFormat("%dH %dM %ds",mdt.hour,mdt.min,mdt.sec);
+   if(mdt.min>0) return StringFormat("%dM %ds",mdt.min,mdt.sec);
+   return StringFormat("%ds",mdt.sec);
 }
 double PointValue() {
    double tickSize      = TickSize( _Symbol );
@@ -265,7 +265,6 @@ void OnTick()
                Print(GetLastError());
             }
          }
-         
          total_pl += profit;
          total_risk += risk;
          total_tp += tpprofit;
