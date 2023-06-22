@@ -23,7 +23,7 @@
  **/
 #property indicator_chart_window
 #property indicator_plots 0
-#property version "1.005"
+#property version "1.006"
 input int    ATR_Period                    = 14;
 input bool   H1_ATR_Projections            = true;
 input bool   H1_Historical_Projection      = true;
@@ -115,28 +115,6 @@ int OnInit()
    copiedH4 = CopyBuffer(handle_iATR_H4, 0, 0, ATR_Period, iATR_H4);
    copiedH1 = CopyBuffer(handle_iATR_H1, 0, 0, (ATR_Period+1), iATR_H1);
    copiedM30 = CopyBuffer(handle_iATR_M30, 0, 0, ATR_Period, iATR_M30);
-   // Check if buffer values are successfully copied
-   if (copiedD1 != ATR_Period || copiedW1 != ATR_Period || copiedMN1 != ATR_Period ||
-      copiedH4 != ATR_Period || copiedH1 != (ATR_Period+1) || copiedM30 != ATR_Period)
-   {
-   // Print error message and return INIT_FAILED
-   Print("Failed to copy buffer values for iATR indicator");
-   // Print the handles that do not have a value of ATR_Period
-   if (copiedD1 != ATR_Period)
-      Print("copiedD1: ", copiedD1);
-   if (copiedW1 != ATR_Period)
-      Print("copiedW1: ", copiedW1);
-   if (copiedMN1 != ATR_Period)
-      Print("copiedMN1: ", copiedMN1);
-   if (copiedH4 != ATR_Period)
-      Print("copiedH4: ", copiedH4);
-   if (copiedH1 != (ATR_Period + 1))
-      Print("copiedH1: ", copiedH1);
-   if (copiedM30 != ATR_Period)
-      Print("copiedM30: ", copiedM30);
-   return INIT_FAILED;
-}
-
    return INIT_SUCCEEDED;
 }
 void OnDeinit(const int pReason)
@@ -214,7 +192,7 @@ int OnCalculate(const int        rates_total,
    {
       atrLevelAboveD1prevClose = prevCloseD1 + avgD1;
       atrLevelBelowD1prevClose = prevCloseD1 - avgD1;
-      datetime startTimeD1 = iTime(_Symbol, PERIOD_D1, 4);
+      datetime startTimeD1 = iTime(_Symbol, PERIOD_D1, 7);
       if (UsePrevClose) {
          ObjectCreate(0, objname + "LineTopD1_PrevClose", OBJ_TREND, 0, startTimeD1, prevCloseD1 + avgD1, endTime, prevCloseD1 + avgD1);
          ObjectSetInteger(0, objname + "LineTopD1_PrevClose", OBJPROP_STYLE, ATR_linestyle);
@@ -370,6 +348,7 @@ int OnCalculate(const int        rates_total,
          ObjectSetInteger(0, objname + "LineBottomH1_CurrentOpen", OBJPROP_BACK, ATR_Line_Background);
       }
       if (H1_Historical_Projection) {
+   //   Print (DoubleToString(avgH1_Historical,8));
          datetime startTimeH1Historical = iTime(_Symbol, PERIOD_H1, 13);
          if (UsePrevClose) {
             atrLevelAboveH1prevCloseHistorical = prevCloseH1Historical + avgH1_Historical;
@@ -401,8 +380,38 @@ int OnCalculate(const int        rates_total,
          }
 }
    }
-   string infoText1 = "ATR | M30: " + DoubleToString(avgM30, 3) + " H1: " + DoubleToString(avgH1, 3) + " H4: " + DoubleToString(avgH4, 3);
-   string infoText2 = "ATR | D1: " + DoubleToString(avgD1, 3) + " W1: " + DoubleToString(avgW1, 3) + " MN1: " + DoubleToString(avgMN1, 3);
+   double M30info = 0;
+   double H1info = 0;
+   double H4info = 0;
+   double D1info = 0;
+   double W1info = 0;
+   double MN1info = 0;
+   if (copiedD1 != ATR_Period)
+      D1info = copiedD1;
+   if (copiedW1 != ATR_Period)
+      W1info = copiedW1;
+   if (copiedMN1 != ATR_Period)
+      MN1info = copiedMN1;
+   if (copiedH4 != ATR_Period)
+      H4info = copiedH4;
+   if (copiedH1 != (ATR_Period + 1))
+      H1info = copiedH1;
+   if (copiedM30 != ATR_Period)
+      M30info = copiedM30;
+    if (copiedD1 == ATR_Period)
+      D1info = avgD1;
+   if (copiedW1 == ATR_Period)
+      W1info = avgW1;
+   if (copiedMN1 == ATR_Period)
+      MN1info = avgMN1;
+   if (copiedH4 == ATR_Period)
+      H4info = avgH4;
+   if (copiedH1 == (ATR_Period + 1))
+      H1info = avgH1;
+   if (copiedM30 == ATR_Period)
+      M30info = avgM30;
+   string infoText1 = "ATR | M30: " + DoubleToString(M30info, 3) + " H1: " + DoubleToString(H1info, 3) + " H4: " + DoubleToString(H4info, 3);
+   string infoText2 = "ATR | D1: " + DoubleToString(D1info, 3) + " W1: " + DoubleToString(W1info, 3) + " MN1: " + DoubleToString(MN1info, 3);
    ObjectSetString(0, objname + "Info1", OBJPROP_TEXT, infoText1);
    ObjectSetString(0, objname + "Info2", OBJPROP_TEXT, infoText2);
    return rates_total;
