@@ -22,8 +22,9 @@
  *
  **/
 #property indicator_chart_window
+#property indicator_buffers 6
 #property indicator_plots 0
-#property version "1.006"
+#property version "1.007"
 input int    ATR_Period                    = 14;
 input bool   H1_ATR_Projections            = true;
 input bool   H1_Historical_Projection      = true;
@@ -31,8 +32,8 @@ input bool   H4_ATR_Projections            = true;
 input bool   D1_ATR_Projections            = true;
 input bool   W1_ATR_Projections            = true;
 input bool   MN1_ATR_Projections           = true;
-input bool   UsePrevClose                  = true;
-input bool   UseCurrentOpen                = false;
+input bool   UsePrevClose                  = false;
+input bool   UseCurrentOpen                = true;
 input ENUM_LINE_STYLE ATR_linestyle        = STYLE_DOT;
 input int    ATR_Linethickness             = 2;
 input color  ATR_Line_Color                = clrYellow;
@@ -41,25 +42,25 @@ input string FontName                      = "Courier New";
 input int    FontSize                      = 8;
 input color  FontColor                     = clrWhite;
 const ENUM_BASE_CORNER Corner              = CORNER_RIGHT_UPPER;
-input int    HorizPos                      = 310;
-input int    VertPos                       = 140;
+input int    HorizPos                      = 290;
+input int    VertPos                       = 81;
 string objname = "ATR";
 int handle_iATR_D1, handle_iATR_W1, handle_iATR_MN1, handle_iATR_H4, handle_iATR_H1, handle_iATR_M30;
 double iATR_D1[], iATR_W1[], iATR_MN1[], iATR_H4[], iATR_H1[], iATR_M30[];
 int copiedD1, copiedW1, copiedMN1, copiedH4, copiedH1, copiedM30;
 double avgD1, avgD, avgW1, avgH4, avgH1, avgH1_Historical, avgMN1, avgM30;
-double prevCloseD1 = 0.0;
-double currentOpenD1 = 0.0;
-double prevCloseW1 = 0.0;
-double currentOpenW1 = 0.0;
-double prevCloseMN1 = 0.0;
-double currentOpenMN1 = 0.0;
-double prevCloseH4 = 0.0;
-double currentOpenH4 = 0.0;
-double prevCloseH1 = 0.0;
-double currentOpenH1 = 0.0;
-double prevCloseH1Historical = 0.0;
-double currentOpenH1Historical = 0.0;
+double prevCloseD1 = 0;
+double currentOpenD1 = 0;
+double prevCloseW1 = 0;
+double currentOpenW1 = 0;
+double prevCloseMN1 = 0;
+double currentOpenMN1 = 0;
+double prevCloseH4 = 0;
+double currentOpenH4 = 0;
+double prevCloseH1 = 0;
+double currentOpenH1 = 0;
+double prevCloseH1Historical = 0;
+double currentOpenH1Historical = 0;
 int OnInit()
 {
    ObjectCreate(0, objname + "Info1", OBJ_LABEL, 0, 0, 0);
@@ -71,7 +72,7 @@ int OnInit()
    ObjectSetInteger(0, objname + "Info1", OBJPROP_COLOR, FontColor);
    ObjectCreate(0, objname + "Info2", OBJ_LABEL, 0, 0, 0);
    ObjectSetInteger(0, objname + "Info2", OBJPROP_XDISTANCE, HorizPos);
-   ObjectSetInteger(0, objname + "Info2", OBJPROP_YDISTANCE, VertPos + (FontSize * 2));
+   ObjectSetInteger(0, objname + "Info2", OBJPROP_YDISTANCE, VertPos + 10);
    ObjectSetInteger(0, objname + "Info2", OBJPROP_CORNER, Corner);
    ObjectSetString(0, objname + "Info2", OBJPROP_FONT, FontName);
    ObjectSetInteger(0, objname + "Info2", OBJPROP_FONTSIZE, FontSize);
@@ -132,18 +133,6 @@ int OnCalculate(const int        rates_total,
                const long&     volume[],
                const int&      spread[])
 {
-   prevCloseD1 = iClose(_Symbol, PERIOD_D1, 1);
-   currentOpenD1 = iClose(_Symbol, PERIOD_D1, 0);
-   prevCloseW1 = iClose(_Symbol, PERIOD_W1, 1);
-   currentOpenW1 = iClose(_Symbol, PERIOD_W1, 0);
-   prevCloseMN1 = iClose(_Symbol, PERIOD_MN1, 1);
-   currentOpenMN1 = iClose(_Symbol, PERIOD_MN1, 0);
-   prevCloseH4 = iClose(_Symbol, PERIOD_H4, 1);
-   currentOpenH4 = iClose(_Symbol, PERIOD_H4, 0);
-   prevCloseH1 = iClose(_Symbol, PERIOD_H1, 1);
-   currentOpenH1 = iClose(_Symbol, PERIOD_H1, 0);
-   prevCloseH1Historical = iClose(_Symbol, PERIOD_H1, 2);
-   currentOpenH1Historical = iClose(_Symbol, PERIOD_H1, 1);
    // Calculate the number of bars to be processed
    int limit = rates_total - prev_calculated;
    // If there are no new bars, return
@@ -162,6 +151,53 @@ int OnCalculate(const int        rates_total,
       avgH1_Historical = iATR_H1[1];
       avgM30 = iATR_M30[0];
    }
+   double M30info = 0;
+   double H1info = 0;
+   double H4info = 0;
+   double D1info = 0;
+   double W1info = 0;
+   double MN1info = 0;
+   if (copiedD1 != ATR_Period)
+      D1info = copiedD1;
+   if (copiedW1 != ATR_Period)
+      W1info = copiedW1;
+   if (copiedMN1 != ATR_Period)
+      MN1info = copiedMN1;
+   if (copiedH4 != ATR_Period)
+      H4info = copiedH4;
+   if (copiedH1 != (ATR_Period + 1))
+      H1info = copiedH1;
+   if (copiedM30 != ATR_Period)
+      M30info = copiedM30;
+    if (copiedD1 == ATR_Period)
+      D1info = avgD1;
+   if (copiedW1 == ATR_Period)
+      W1info = avgW1;
+   if (copiedMN1 == ATR_Period)
+      MN1info = avgMN1;
+   if (copiedH4 == ATR_Period)
+      H4info = avgH4;
+   if (copiedH1 == (ATR_Period + 1))
+      H1info = avgH1;
+   if (copiedM30 == ATR_Period)
+      M30info = avgM30;
+   string infoText1 = "ATR | M30: " + DoubleToString(M30info, 3) + " H1: " + DoubleToString(H1info, 3) + " H4: " + DoubleToString(H4info, 3);
+   string infoText2 = "ATR | D1: " + DoubleToString(D1info, 3) + " W1: " + DoubleToString(W1info, 3) + " MN: " + DoubleToString(MN1info, 3);
+   ObjectSetString(0, objname + "Info1", OBJPROP_TEXT, infoText1);
+   ObjectSetString(0, objname + "Info2", OBJPROP_TEXT, infoText2);
+   static int waitCountATR = 2;
+   if ( waitCountATR > 0 ) {
+      copiedD1 = CopyBuffer(handle_iATR_D1, 0, 0, ATR_Period, iATR_D1);
+      copiedW1 = CopyBuffer(handle_iATR_W1, 0, 0, ATR_Period, iATR_W1);
+      copiedMN1 = CopyBuffer(handle_iATR_MN1, 0, 0, ATR_Period, iATR_MN1);
+      copiedH4 = CopyBuffer(handle_iATR_H4, 0, 0, ATR_Period, iATR_H4);
+      copiedH1 = CopyBuffer(handle_iATR_H1, 0, 0, (ATR_Period+1), iATR_H1);
+      copiedM30 = CopyBuffer(handle_iATR_M30, 0, 0, ATR_Period, iATR_M30);
+      waitCountATR--;
+      PrintFormat( "Waiting for ATR data" );
+      return ( prev_calculated );
+   }
+   //    PrintFormat( "ATR Data is now available" );
    // Initialize vars
    double atrLevelAboveD1prevClose = 0.0;
    double atrLevelBelowD1prevClose = 0.0;
@@ -188,6 +224,36 @@ int OnCalculate(const int        rates_total,
    double atrLevelAboveH1currentOpenHistorical = 0.0;
    double atrLevelBelowH1currentOpenHistorical = 0.0;
    datetime endTime = time[rates_total - 1];
+   if (UsePrevClose) {
+      static int waitCountPrevClose = 3;
+      if ( waitCountPrevClose > 0 ) {
+         prevCloseD1 = iClose(_Symbol, PERIOD_D1, 1);
+         prevCloseW1 = iClose(_Symbol, PERIOD_W1, 1);
+         prevCloseMN1 = iClose(_Symbol, PERIOD_MN1, 1);
+         prevCloseH4 = iClose(_Symbol, PERIOD_H4, 1);
+         prevCloseH1 = iClose(_Symbol, PERIOD_H1, 1);
+         prevCloseH1Historical = iClose(_Symbol, PERIOD_H1, 2);
+         waitCountPrevClose--;
+         PrintFormat( "Waiting for PrevClose Data" );
+         return ( prev_calculated );
+      }
+    //     PrintFormat( "PrevClose Data is now available" );
+   }
+   if (UseCurrentOpen) {
+      static int waitCountCurrentOpen = 3;
+      if ( waitCountCurrentOpen > 0 ) {
+         currentOpenD1 = iOpen(_Symbol, PERIOD_D1, 0);
+         currentOpenW1 = iOpen(_Symbol, PERIOD_W1, 0);
+         currentOpenMN1 = iOpen(_Symbol, PERIOD_MN1, 0);
+         currentOpenH4 = iOpen(_Symbol, PERIOD_H4, 0);
+         currentOpenH1 = iOpen(_Symbol, PERIOD_H1, 0);
+         currentOpenH1Historical = iOpen(_Symbol, PERIOD_H1, 1);
+         waitCountCurrentOpen--;
+         PrintFormat( "Waiting for CurrentOpen Data" );
+         return ( prev_calculated );
+      }
+    //     PrintFormat( "CurrentOpen Data is now available" );
+    }
    if (D1_ATR_Projections && _Period <= PERIOD_W1)
    {
       atrLevelAboveD1prevClose = prevCloseD1 + avgD1;
@@ -222,7 +288,7 @@ int OnCalculate(const int        rates_total,
    }
    if (W1_ATR_Projections)
    {
-      datetime startTimeW1 = iTime(_Symbol, PERIOD_W1, 3);
+      datetime startTimeW1 = iTime(_Symbol, PERIOD_W1, 4);
       if (UsePrevClose) {
          atrLevelAboveW1prevClose = prevCloseW1 + avgW1;
          atrLevelBelowW1prevClose = prevCloseW1 - avgW1;
@@ -378,41 +444,7 @@ int OnCalculate(const int        rates_total,
             ObjectSetInteger(0, objname + "LineBottomH1Historical_CurrentOpen", OBJPROP_COLOR, ATR_Line_Color);
             ObjectSetInteger(0, objname + "LineBottomH1Historical_CurrentOpen", OBJPROP_BACK, ATR_Line_Background);
          }
-}
    }
-   double M30info = 0;
-   double H1info = 0;
-   double H4info = 0;
-   double D1info = 0;
-   double W1info = 0;
-   double MN1info = 0;
-   if (copiedD1 != ATR_Period)
-      D1info = copiedD1;
-   if (copiedW1 != ATR_Period)
-      W1info = copiedW1;
-   if (copiedMN1 != ATR_Period)
-      MN1info = copiedMN1;
-   if (copiedH4 != ATR_Period)
-      H4info = copiedH4;
-   if (copiedH1 != (ATR_Period + 1))
-      H1info = copiedH1;
-   if (copiedM30 != ATR_Period)
-      M30info = copiedM30;
-    if (copiedD1 == ATR_Period)
-      D1info = avgD1;
-   if (copiedW1 == ATR_Period)
-      W1info = avgW1;
-   if (copiedMN1 == ATR_Period)
-      MN1info = avgMN1;
-   if (copiedH4 == ATR_Period)
-      H4info = avgH4;
-   if (copiedH1 == (ATR_Period + 1))
-      H1info = avgH1;
-   if (copiedM30 == ATR_Period)
-      M30info = avgM30;
-   string infoText1 = "ATR | M30: " + DoubleToString(M30info, 3) + " H1: " + DoubleToString(H1info, 3) + " H4: " + DoubleToString(H4info, 3);
-   string infoText2 = "ATR | D1: " + DoubleToString(D1info, 3) + " W1: " + DoubleToString(W1info, 3) + " MN1: " + DoubleToString(MN1info, 3);
-   ObjectSetString(0, objname + "Info1", OBJPROP_TEXT, infoText1);
-   ObjectSetString(0, objname + "Info2", OBJPROP_TEXT, infoText2);
+   }
    return rates_total;
 }
