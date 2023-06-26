@@ -24,7 +24,7 @@
 #property indicator_chart_window
 #property indicator_buffers 6
 #property indicator_plots 0
-#property version "1.007"
+#property version "1.008"
 input int    ATR_Period                    = 14;
 input bool   H1_ATR_Projections            = true;
 input bool   H1_Historical_Projection      = true;
@@ -37,7 +37,7 @@ input bool   UseCurrentOpen                = true;
 input ENUM_LINE_STYLE ATR_linestyle        = STYLE_DOT;
 input int    ATR_Linethickness             = 2;
 input color  ATR_Line_Color                = clrYellow;
-input bool   ATR_Line_Background           = false;
+input bool   ATR_Line_Background           = true;
 input string FontName                      = "Courier New";
 input int    FontSize                      = 8;
 input color  FontColor                     = clrWhite;
@@ -181,8 +181,8 @@ int OnCalculate(const int        rates_total,
       H1info = avgH1;
    if (copiedM30 == ATR_Period)
       M30info = avgM30;
-   string infoText1 = "ATR | M30: " + DoubleToString(M30info, 3) + " H1: " + DoubleToString(H1info, 3) + " H4: " + DoubleToString(H4info, 3);
-   string infoText2 = "ATR | D1: " + DoubleToString(D1info, 3) + " W1: " + DoubleToString(W1info, 3) + " MN: " + DoubleToString(MN1info, 3);
+   string infoText1 = "ATR| M30: " + DoubleToString(M30info, 3) + " H1: " + DoubleToString(H1info, 3) + " H4: " + DoubleToString(H4info, 3);
+   string infoText2 = "ATR| D1: " + DoubleToString(D1info, 3) + " W1: " + DoubleToString(W1info, 3) + " MN: " + DoubleToString(MN1info, 3);
    ObjectSetString(0, objname + "Info1", OBJPROP_TEXT, infoText1);
    ObjectSetString(0, objname + "Info2", OBJPROP_TEXT, infoText2);
    static int waitCountATR = 2;
