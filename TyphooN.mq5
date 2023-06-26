@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.108"
+#property version   "1.109"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -275,9 +275,9 @@ void OnTick()
    }
    string FontName="Courier New";
    int FontSize=8;
-   int LeftColumnX=310;
-   int RightColumnX=150;
-   int YRowWidth = 20;
+   int LeftColumnX=290;
+   int RightColumnX=130;
+   int YRowWidth = 10;
    string infoPL;
    string infoRR;
    if (rr >= 0 )
@@ -305,7 +305,7 @@ void OnTick()
    ObjectSetInteger(0,"infoPL",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoPL",OBJPROP_TEXT,infoPL);
    ObjectSetInteger(0,"infoPL", OBJPROP_XDISTANCE, LeftColumnX);
-   ObjectSetInteger(0,"infoPL",OBJPROP_YDISTANCE,YRowWidth);
+   ObjectSetInteger(0,"infoPL",OBJPROP_YDISTANCE,(YRowWidth * 2));
    ObjectSetInteger(0,"infoPL",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoPL",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoRisk = "Risk: $" + DoubleToString(MathAbs(total_risk), 2);
@@ -323,34 +323,18 @@ void OnTick()
    ObjectSetInteger(0,"infoRisk",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoRisk",OBJPROP_TEXT,infoRisk);
    ObjectSetInteger(0,"infoRisk", OBJPROP_XDISTANCE, RightColumnX);
-   ObjectSetInteger(0,"infoRisk",OBJPROP_YDISTANCE,YRowWidth);
+   ObjectSetInteger(0,"infoRisk",OBJPROP_YDISTANCE,(YRowWidth * 2));
    ObjectSetInteger(0,"infoRisk",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoRisk",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   string infoTP = "Total TP: $" + DoubleToString(total_tp, 2);
+   string infoTP = "Total TP : $" + DoubleToString(total_tp, 2);
    ObjectCreate(0,"infoTP", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"infoTP",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoTP",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoTP",OBJPROP_TEXT,infoTP);
    ObjectSetInteger(0,"infoTP", OBJPROP_XDISTANCE, LeftColumnX);
-   ObjectSetInteger(0,"infoTP",OBJPROP_YDISTANCE,(YRowWidth * 2));
+   ObjectSetInteger(0,"infoTP",OBJPROP_YDISTANCE,(YRowWidth * 3));
    ObjectSetInteger(0,"infoTP",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoTP",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   ObjectCreate(0,"infoTPRR", OBJ_LABEL,0,0,0);
-   ObjectSetString(0,"infoTPRR",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoTPRR",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetString(0,"infoTPRR",OBJPROP_TEXT,infoTPRR);
-   ObjectSetInteger(0,"infoTPRR", OBJPROP_XDISTANCE, RightColumnX);
-   ObjectSetInteger(0,"infoTPRR",OBJPROP_YDISTANCE,(YRowWidth * 2));
-   ObjectSetInteger(0,"infoTPRR",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoTPRR",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   ObjectCreate(0,"infoRR", OBJ_LABEL,0,0,0);
-   ObjectSetString(0,"infoRR",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoRR",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetString(0,"infoRR",OBJPROP_TEXT,infoRR);
-   ObjectSetInteger(0,"infoRR", OBJPROP_XDISTANCE, LeftColumnX);
-   ObjectSetInteger(0,"infoRR",OBJPROP_YDISTANCE,(YRowWidth * 3));
-   ObjectSetInteger(0,"infoRR",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoRR",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoMargin = "Margin: $" + DoubleToString(total_margin, 2);
    ObjectCreate(0,"infoMargin", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"infoMargin",OBJPROP_FONT,FontName);
@@ -359,14 +343,30 @@ void OnTick()
    ObjectSetInteger(0,"infoMargin", OBJPROP_XDISTANCE, RightColumnX);
    ObjectSetInteger(0,"infoMargin",OBJPROP_YDISTANCE,(YRowWidth * 3));
    ObjectSetInteger(0,"infoMargin",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoMargin",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   ObjectSetInteger(0,"infoMargin",OBJPROP_CORNER,CORNER_RIGHT_UPPER); 
+   ObjectCreate(0,"infoTPRR", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"infoTPRR",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoTPRR",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetString(0,"infoTPRR",OBJPROP_TEXT,infoTPRR);
+   ObjectSetInteger(0,"infoTPRR", OBJPROP_XDISTANCE, RightColumnX);
+   ObjectSetInteger(0,"infoTPRR",OBJPROP_YDISTANCE,(YRowWidth * 4));
+   ObjectSetInteger(0,"infoTPRR",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoTPRR",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   ObjectCreate(0,"infoRR", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"infoRR",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoRR",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetString(0,"infoRR",OBJPROP_TEXT,infoRR);
+   ObjectSetInteger(0,"infoRR", OBJPROP_XDISTANCE, LeftColumnX);
+   ObjectSetInteger(0,"infoRR",OBJPROP_YDISTANCE,(YRowWidth * 4));
+   ObjectSetInteger(0,"infoRR",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoRR",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoM15 = "M15: " + TimeTilNextBar(PERIOD_M15);
    ObjectCreate(0,"infoM15", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"infoM15",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoM15",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoM15",OBJPROP_TEXT,infoM15);
    ObjectSetInteger(0,"infoM15", OBJPROP_XDISTANCE, LeftColumnX);
-   ObjectSetInteger(0,"infoM15",OBJPROP_YDISTANCE,(YRowWidth * 4));
+   ObjectSetInteger(0,"infoM15",OBJPROP_YDISTANCE,(YRowWidth * 5));
    ObjectSetInteger(0,"infoM15",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoM15",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoH1 = "H1 : " + TimeTilNextBar(PERIOD_H1);
@@ -375,7 +375,7 @@ void OnTick()
    ObjectSetInteger(0,"infoH1",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoH1",OBJPROP_TEXT,infoH1);
    ObjectSetInteger(0,"infoH1", OBJPROP_XDISTANCE, LeftColumnX);
-   ObjectSetInteger(0,"infoH1",OBJPROP_YDISTANCE,(YRowWidth * 5));
+   ObjectSetInteger(0,"infoH1",OBJPROP_YDISTANCE,(YRowWidth * 6));
    ObjectSetInteger(0,"infoH1",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoH1",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoD1 = "D1 : " + TimeTilNextBar(PERIOD_D1);
@@ -384,7 +384,7 @@ void OnTick()
    ObjectSetInteger(0,"infoD1",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoD1",OBJPROP_TEXT,infoD1);
    ObjectSetInteger(0,"infoD1", OBJPROP_XDISTANCE, LeftColumnX);
-   ObjectSetInteger(0,"infoD1",OBJPROP_YDISTANCE,(YRowWidth * 6));
+   ObjectSetInteger(0,"infoD1",OBJPROP_YDISTANCE,(YRowWidth * 7));
    ObjectSetInteger(0,"infoD1",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoD1",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoM30 ="M30: " + TimeTilNextBar(PERIOD_M30);
@@ -393,7 +393,7 @@ void OnTick()
    ObjectSetInteger(0,"infoM30",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoM30",OBJPROP_TEXT,infoM30);
    ObjectSetInteger(0,"infoM30", OBJPROP_XDISTANCE, RightColumnX);
-   ObjectSetInteger(0,"infoM30",OBJPROP_YDISTANCE,(YRowWidth * 4));
+   ObjectSetInteger(0,"infoM30",OBJPROP_YDISTANCE,(YRowWidth * 5));
    ObjectSetInteger(0,"infoM30",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoM30",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoH4 = "H4 : " + TimeTilNextBar(PERIOD_H4);
@@ -402,7 +402,7 @@ void OnTick()
    ObjectSetInteger(0,"infoH4",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoH4",OBJPROP_TEXT,infoH4);
    ObjectSetInteger(0,"infoH4", OBJPROP_XDISTANCE, RightColumnX);
-   ObjectSetInteger(0,"infoH4",OBJPROP_YDISTANCE,(YRowWidth * 5));
+   ObjectSetInteger(0,"infoH4",OBJPROP_YDISTANCE,(YRowWidth * 6));
    ObjectSetInteger(0,"infoH4",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoH4",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoW1 = "W1 : " + TimeTilNextBar(PERIOD_W1);
@@ -411,7 +411,7 @@ void OnTick()
    ObjectSetInteger(0,"infoW1",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoW1",OBJPROP_TEXT,infoW1);
    ObjectSetInteger(0,"infoW1", OBJPROP_XDISTANCE, RightColumnX);
-   ObjectSetInteger(0,"infoW1",OBJPROP_YDISTANCE,(YRowWidth * 6));
+   ObjectSetInteger(0,"infoW1",OBJPROP_YDISTANCE,(YRowWidth * 7));
    ObjectSetInteger(0,"infoW1",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoW1",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
 }
@@ -1074,7 +1074,7 @@ bool TyWindow::OnDialogDragEnd(void)
                ChartRedraw();
             }
       }
-      ChartRedraw();
+         ChartRedraw();
       }
    }
    return(CDialog::OnDialogDragEnd());
