@@ -24,7 +24,7 @@
 #property indicator_chart_window
 #property indicator_buffers 6
 #property indicator_plots 0
-#property version "1.009"
+#property version "1.010"
 input int    ATR_Period                    = 14;
 input bool   H1_ATR_Projections            = true;
 input bool   H1_Historical_Projection      = true;
@@ -44,6 +44,7 @@ input color  FontColor                     = clrWhite;
 const ENUM_BASE_CORNER Corner              = CORNER_RIGHT_UPPER;
 input int    HorizPos                      = 290;
 input int    VertPos                       = 81;
+input int    ATRInfoDecimals               = 3;
 string objname = "ATR";
 int handle_iATR_D1, handle_iATR_W1, handle_iATR_MN1, handle_iATR_H4, handle_iATR_H1, handle_iATR_M30;
 double iATR_D1[], iATR_W1[], iATR_MN1[], iATR_H4[], iATR_H1[], iATR_M30[];
@@ -63,6 +64,7 @@ double prevCloseH1Historical1 = 0;
 double prevCloseH1Historical2 = 0;
 double currentOpenH1Historical1 = 0;
 double currentOpenH1Historical2 = 0;
+int lastCheckedCandle = -1;
 int OnInit()
 {
    ObjectCreate(0, objname + "Info1", OBJ_LABEL, 0, 0, 0);
@@ -129,6 +131,36 @@ void OnDeinit(const int pReason)
 {
    ObjectsDeleteAll(0, objname);
 }
+void UpdateCandlestickData()
+{
+   if (UsePrevClose) {
+      prevCloseD1 = iClose(_Symbol, PERIOD_D1, 1);
+      prevCloseW1 = iClose(_Symbol, PERIOD_W1, 1);
+      prevCloseMN1 = iClose(_Symbol, PERIOD_MN1, 1);
+      prevCloseH4 = iClose(_Symbol, PERIOD_H4, 1);
+      prevCloseH1 = iClose(_Symbol, PERIOD_H1, 1);
+      prevCloseH1Historical1 = iClose(_Symbol, PERIOD_H1, 2);
+      prevCloseH1Historical2 = iClose(_Symbol, PERIOD_H1, 3);
+   }
+   if (UseCurrentOpen) {
+      currentOpenD1 = iOpen(_Symbol, PERIOD_D1, 0);
+      currentOpenW1 = iOpen(_Symbol, PERIOD_W1, 0);
+      currentOpenMN1 = iOpen(_Symbol, PERIOD_MN1, 0);
+      currentOpenH4 = iOpen(_Symbol, PERIOD_H4, 0);
+      currentOpenH1 = iOpen(_Symbol, PERIOD_H1, 0);
+      currentOpenH1Historical1 = iOpen(_Symbol, PERIOD_H1, 1);
+      currentOpenH1Historical2 = iOpen(_Symbol, PERIOD_H1, 2);
+   }
+}
+void UpdateATRData()
+{
+   copiedD1 = CopyBuffer(handle_iATR_D1, 0, 0, ATR_Period, iATR_D1);
+   copiedW1 = CopyBuffer(handle_iATR_W1, 0, 0, ATR_Period, iATR_W1);
+   copiedMN1 = CopyBuffer(handle_iATR_MN1, 0, 0, ATR_Period, iATR_MN1);
+   copiedH4 = CopyBuffer(handle_iATR_H4, 0, 0, ATR_Period, iATR_H4);
+   copiedH1 = CopyBuffer(handle_iATR_H1, 0, 0, (ATR_Period + 2), iATR_H1);
+   copiedM30 = CopyBuffer(handle_iATR_M30, 0, 0, ATR_Period, iATR_M30);
+}
 int OnCalculate(const int        rates_total,
                const int        prev_calculated,
                const datetime& time[],
@@ -145,6 +177,14 @@ int OnCalculate(const int        rates_total,
    // If there are no new bars, return
    if (limit <= 0)
       return 0;
+   // Check if a new candlestick has formed
+   if (lastCheckedCandle != rates_total - 1) {
+      //Print("Updating candlestick data new candle has formed");
+      // Update the last checked candle index
+      lastCheckedCandle = rates_total - 1;
+      UpdateATRData();
+      UpdateCandlestickData();
+   }
    int currentbar = rates_total - 1;
    // Check if the current bar is within the valid range of the arrays
    if (currentbar >= ATR_Period && currentbar < rates_total)
@@ -189,20 +229,15 @@ int OnCalculate(const int        rates_total,
       H1info = avgH1;
    if (copiedM30 == ATR_Period)
       M30info = avgM30;
-   string infoText1 = "ATR| M30: " + DoubleToString(M30info, 3) + " H1: " + DoubleToString(H1info, 3) + " H4: " + DoubleToString(H4info, 3);
-   string infoText2 = "ATR| D1: " + DoubleToString(D1info, 3) + " W1: " + DoubleToString(W1info, 3) + " MN: " + DoubleToString(MN1info, 3);
+   string infoText1 = "ATR| M30: " + DoubleToString(M30info, ATRInfoDecimals) + " H1: " + DoubleToString(H1info, ATRInfoDecimals) + " H4: " + DoubleToString(H4info, ATRInfoDecimals);
+   string infoText2 = "ATR| D1: " + DoubleToString(D1info, ATRInfoDecimals) + " W1: " + DoubleToString(W1info, ATRInfoDecimals) + " MN: " + DoubleToString(MN1info, ATRInfoDecimals);
    ObjectSetString(0, objname + "Info1", OBJPROP_TEXT, infoText1);
    ObjectSetString(0, objname + "Info2", OBJPROP_TEXT, infoText2);
    static int waitCountATR = 2;
    if ( waitCountATR > 0 ) {
-      copiedD1 = CopyBuffer(handle_iATR_D1, 0, 0, ATR_Period, iATR_D1);
-      copiedW1 = CopyBuffer(handle_iATR_W1, 0, 0, ATR_Period, iATR_W1);
-      copiedMN1 = CopyBuffer(handle_iATR_MN1, 0, 0, ATR_Period, iATR_MN1);
-      copiedH4 = CopyBuffer(handle_iATR_H4, 0, 0, ATR_Period, iATR_H4);
-      copiedH1 = CopyBuffer(handle_iATR_H1, 0, 0, (ATR_Period+1), iATR_H1);
-      copiedM30 = CopyBuffer(handle_iATR_M30, 0, 0, ATR_Period, iATR_M30);
+      UpdateATRData();
       waitCountATR--;
-      PrintFormat( "Waiting for ATR data" );
+      //PrintFormat( "Waiting for ATR data" );
       return ( prev_calculated );
    }
    //    PrintFormat( "ATR Data is now available" );
@@ -236,38 +271,14 @@ int OnCalculate(const int        rates_total,
    double atrLevelAboveH1currentOpenHistorical2 = 0;
    double atrLevelBelowH1currentOpenHistorical2 = 0;
    datetime endTime = time[rates_total - 1];
-   if (UsePrevClose) {
-      static int waitCountPrevClose = 3;
-      if ( waitCountPrevClose > 0 ) {
-         prevCloseD1 = iClose(_Symbol, PERIOD_D1, 1);
-         prevCloseW1 = iClose(_Symbol, PERIOD_W1, 1);
-         prevCloseMN1 = iClose(_Symbol, PERIOD_MN1, 1);
-         prevCloseH4 = iClose(_Symbol, PERIOD_H4, 1);
-         prevCloseH1 = iClose(_Symbol, PERIOD_H1, 1);
-         prevCloseH1Historical1 = iClose(_Symbol, PERIOD_H1, 2);
-         prevCloseH1Historical1 = iClose(_Symbol, PERIOD_H1, 3);
-         waitCountPrevClose--;
-         PrintFormat( "Waiting for PrevClose Data" );
-         return ( prev_calculated );
-      }
-    //     PrintFormat( "PrevClose Data is now available" );
+   static int waitCountCandlestick = 2;
+   if ( waitCountCandlestick > 0 ) {
+      UpdateCandlestickData();
+      waitCountCandlestick--;
+      //PrintFormat( "Waiting for Candlestick Data" );
+      return ( prev_calculated );
    }
-   if (UseCurrentOpen) {
-      static int waitCountCurrentOpen = 3;
-      if ( waitCountCurrentOpen > 0 ) {
-         currentOpenD1 = iOpen(_Symbol, PERIOD_D1, 0);
-         currentOpenW1 = iOpen(_Symbol, PERIOD_W1, 0);
-         currentOpenMN1 = iOpen(_Symbol, PERIOD_MN1, 0);
-         currentOpenH4 = iOpen(_Symbol, PERIOD_H4, 0);
-         currentOpenH1 = iOpen(_Symbol, PERIOD_H1, 0);
-         currentOpenH1Historical1 = iOpen(_Symbol, PERIOD_H1, 1);
-         currentOpenH1Historical2 = iOpen(_Symbol, PERIOD_H1, 2);
-         waitCountCurrentOpen--;
-         PrintFormat( "Waiting for CurrentOpen Data" );
-         return ( prev_calculated );
-      }
-    //     PrintFormat( "CurrentOpen Data is now available" );
-    }
+    //     PrintFormat( "Candlestick Data is now available" );
    if (D1_ATR_Projections && _Period <= PERIOD_W1)
    {
       atrLevelAboveD1prevClose = prevCloseD1 + avgD1;
@@ -443,8 +454,6 @@ int OnCalculate(const int        rates_total,
             ObjectSetInteger(0, objname + "LineBottomH1Historical_PrevClose1", OBJPROP_WIDTH, ATR_Linethickness);
             ObjectSetInteger(0, objname + "LineBottomH1Historical_PrevClose1", OBJPROP_COLOR, ATR_Line_Color);
             ObjectSetInteger(0, objname + "LineBottomH1Historical_PrevClose1", OBJPROP_BACK, ATR_Line_Background);
-            atrLevelAboveH1prevCloseHistorical2 = prevCloseH1Historical2 + avgH1_Historical2;
-            atrLevelBelowH1prevCloseHistorical2 = prevCloseH1Historical2 - avgH1_Historical2;
             ObjectCreate(0, objname + "LineTopH1Historical_PrevClose2", OBJ_TREND, 0, startTimeH1Historical2, atrLevelAboveH1prevCloseHistorical2, endTime, atrLevelAboveH1prevCloseHistorical2);
             ObjectSetInteger(0, objname + "LineTopH1Historical_PrevClose2", OBJPROP_STYLE, ATR_linestyle);
             ObjectSetInteger(0, objname + "LineTopH1Historical_PrevClose2", OBJPROP_WIDTH, ATR_Linethickness);
@@ -457,8 +466,8 @@ int OnCalculate(const int        rates_total,
             ObjectSetInteger(0, objname + "LineBottomH1Historical_PrevClose2", OBJPROP_BACK, ATR_Line_Background);
          }
          if (UseCurrentOpen) {
-            atrLevelAboveH1currentOpenHistorical2 = currentOpenH1Historical2 + avgH1_Historical2;
-            atrLevelBelowH1currentOpenHistorical2 = currentOpenH1Historical2 - avgH1_Historical2;
+            atrLevelAboveH1currentOpenHistorical1 = currentOpenH1Historical1 + avgH1_Historical1;
+            atrLevelBelowH1currentOpenHistorical1 = currentOpenH1Historical1 - avgH1_Historical1;
             ObjectCreate(0, objname + "LineTopH1Historical_CurrentOpen1", OBJ_TREND, 0, startTimeH1Historical1, atrLevelAboveH1currentOpenHistorical1, endTime, atrLevelAboveH1currentOpenHistorical1);
             ObjectSetInteger(0, objname + "LineTopH1Historical_CurrentOpen1", OBJPROP_STYLE, ATR_linestyle);
             ObjectSetInteger(0, objname + "LineTopH1Historical_CurrentOpen1", OBJPROP_WIDTH, ATR_Linethickness);
