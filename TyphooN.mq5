@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.109"
+#property version   "1.110"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -277,7 +277,7 @@ void OnTick()
    int FontSize=8;
    int LeftColumnX=290;
    int RightColumnX=130;
-   int YRowWidth = 10;
+   int YRowWidth = 13;
    string infoPL;
    string infoRR;
    if (rr >= 0 )
@@ -360,39 +360,12 @@ void OnTick()
    ObjectSetInteger(0,"infoRR",OBJPROP_YDISTANCE,(YRowWidth * 4));
    ObjectSetInteger(0,"infoRR",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoRR",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   string infoM15 = "M15: " + TimeTilNextBar(PERIOD_M15);
-   ObjectCreate(0,"infoM15", OBJ_LABEL,0,0,0);
-   ObjectSetString(0,"infoM15",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoM15",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetString(0,"infoM15",OBJPROP_TEXT,infoM15);
-   ObjectSetInteger(0,"infoM15", OBJPROP_XDISTANCE, LeftColumnX);
-   ObjectSetInteger(0,"infoM15",OBJPROP_YDISTANCE,(YRowWidth * 5));
-   ObjectSetInteger(0,"infoM15",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoM15",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   string infoH1 = "H1 : " + TimeTilNextBar(PERIOD_H1);
-   ObjectCreate(0,"infoH1", OBJ_LABEL,0,0,0);
-   ObjectSetString(0,"infoH1",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoH1",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetString(0,"infoH1",OBJPROP_TEXT,infoH1);
-   ObjectSetInteger(0,"infoH1", OBJPROP_XDISTANCE, LeftColumnX);
-   ObjectSetInteger(0,"infoH1",OBJPROP_YDISTANCE,(YRowWidth * 6));
-   ObjectSetInteger(0,"infoH1",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoH1",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   string infoD1 = "D1 : " + TimeTilNextBar(PERIOD_D1);
-   ObjectCreate(0,"infoD1", OBJ_LABEL,0,0,0);
-   ObjectSetString(0,"infoD1",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoD1",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetString(0,"infoD1",OBJPROP_TEXT,infoD1);
-   ObjectSetInteger(0,"infoD1", OBJPROP_XDISTANCE, LeftColumnX);
-   ObjectSetInteger(0,"infoD1",OBJPROP_YDISTANCE,(YRowWidth * 7));
-   ObjectSetInteger(0,"infoD1",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoD1",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   string infoM30 ="M30: " + TimeTilNextBar(PERIOD_M30);
+   string infoM30 = "M30: " + TimeTilNextBar(PERIOD_M30);
    ObjectCreate(0,"infoM30", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"infoM30",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoM30",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoM30",OBJPROP_TEXT,infoM30);
-   ObjectSetInteger(0,"infoM30", OBJPROP_XDISTANCE, RightColumnX);
+   ObjectSetInteger(0,"infoM30", OBJPROP_XDISTANCE, LeftColumnX);
    ObjectSetInteger(0,"infoM30",OBJPROP_YDISTANCE,(YRowWidth * 5));
    ObjectSetInteger(0,"infoM30",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoM30",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
@@ -401,7 +374,7 @@ void OnTick()
    ObjectSetString(0,"infoH4",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoH4",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoH4",OBJPROP_TEXT,infoH4);
-   ObjectSetInteger(0,"infoH4", OBJPROP_XDISTANCE, RightColumnX);
+   ObjectSetInteger(0,"infoH4", OBJPROP_XDISTANCE, LeftColumnX);
    ObjectSetInteger(0,"infoH4",OBJPROP_YDISTANCE,(YRowWidth * 6));
    ObjectSetInteger(0,"infoH4",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoH4",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
@@ -410,10 +383,37 @@ void OnTick()
    ObjectSetString(0,"infoW1",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoW1",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoW1",OBJPROP_TEXT,infoW1);
-   ObjectSetInteger(0,"infoW1", OBJPROP_XDISTANCE, RightColumnX);
+   ObjectSetInteger(0,"infoW1", OBJPROP_XDISTANCE, LeftColumnX);
    ObjectSetInteger(0,"infoW1",OBJPROP_YDISTANCE,(YRowWidth * 7));
    ObjectSetInteger(0,"infoW1",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoW1",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string infoH1 ="H1 : " + TimeTilNextBar(PERIOD_H1);
+   ObjectCreate(0,"infoH1", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"infoH1",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoH1",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetString(0,"infoH1",OBJPROP_TEXT,infoH1);
+   ObjectSetInteger(0,"infoH1", OBJPROP_XDISTANCE, RightColumnX);
+   ObjectSetInteger(0,"infoH1",OBJPROP_YDISTANCE,(YRowWidth * 5));
+   ObjectSetInteger(0,"infoH1",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoH1",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string infoD1 = "D1 : " + TimeTilNextBar(PERIOD_D1);
+   ObjectCreate(0,"infoD1", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"infoD1",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoD1",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetString(0,"infoD1",OBJPROP_TEXT,infoD1);
+   ObjectSetInteger(0,"infoD1", OBJPROP_XDISTANCE, RightColumnX);
+   ObjectSetInteger(0,"infoD1",OBJPROP_YDISTANCE,(YRowWidth * 6));
+   ObjectSetInteger(0,"infoD1",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoD1",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string infoMN1 = "MN1: " + TimeTilNextBar(PERIOD_MN1);
+   ObjectCreate(0,"infoMN1", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"infoMN1",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoMN1",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetString(0,"infoMN1",OBJPROP_TEXT,infoMN1);
+   ObjectSetInteger(0,"infoMN1", OBJPROP_XDISTANCE, RightColumnX);
+   ObjectSetInteger(0,"infoMN1",OBJPROP_YDISTANCE,(YRowWidth * 7));
+   ObjectSetInteger(0,"infoMN1",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoMN1",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
 }
 // Expert chart event function
 void OnChartEvent(const int id,         // event ID  
