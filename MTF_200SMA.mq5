@@ -27,47 +27,47 @@
 #property indicator_chart_window
 #property indicator_buffers 9
 #property indicator_plots   9
-#property indicator_label1  "MA H1"
+#property indicator_label1  "H1"
 #property indicator_type1   DRAW_LINE
 #property indicator_color1  clrMagenta
 #property indicator_style1  STYLE_SOLID
 #property indicator_width1  2
-#property indicator_label2  "MA H4"
+#property indicator_label2  "H4"
 #property indicator_type2   DRAW_LINE
 #property indicator_color2  clrMagenta
 #property indicator_style2  STYLE_SOLID
 #property indicator_width2  2
-#property indicator_label3  "MA D1"
+#property indicator_label3  "D1"
 #property indicator_type3   DRAW_LINE
 #property indicator_color3  clrMagenta
 #property indicator_style3  STYLE_SOLID
 #property indicator_width3  2
-#property indicator_label4  "MA W1"
+#property indicator_label4  "W1"
 #property indicator_type4   DRAW_LINE
 #property indicator_color4  clrMagenta
 #property indicator_style4  STYLE_SOLID
 #property indicator_width4  2
-#property indicator_label5  "MA MN1"
+#property indicator_label5  "MN1"
 #property indicator_type5   DRAW_LINE
 #property indicator_color5  clrMagenta
 #property indicator_style5  STYLE_SOLID
 #property indicator_width5  2
-#property indicator_label6  "MA M1"
+#property indicator_label6  "M1"
 #property indicator_type6   DRAW_LINE
 #property indicator_color6  clrOrange
 #property indicator_style6  STYLE_SOLID
 #property indicator_width6  2
-#property indicator_label7  "MA M5"
+#property indicator_label7  "M5"
 #property indicator_type7   DRAW_LINE
 #property indicator_color7  clrOrange
 #property indicator_style7  STYLE_SOLID
 #property indicator_width7  2
-#property indicator_label8  "MA M15"
+#property indicator_label8  "M15"
 #property indicator_type8   DRAW_LINE
 #property indicator_color8  clrOrange
 #property indicator_style8  STYLE_SOLID
 #property indicator_width8  2
-#property indicator_label9  "MA M30"
+#property indicator_label9  "M30"
 #property indicator_type9   DRAW_LINE
 #property indicator_color9  clrOrange
 #property indicator_style9  STYLE_SOLID
@@ -171,7 +171,7 @@ int OnCalculate(const int rates_total,
    }
    if (lastCheckedCandle != rates_total - 1)
    {
-      Print("New candle has formed, updating MA Data");
+      //Print("New candle has formed, updating MA Data");
       // Update the last checked candle index
       lastCheckedCandle = rates_total - 1;
 
@@ -219,7 +219,6 @@ int OnCalculate(const int rates_total,
       //PrintFormat("Waiting for MA data");
       return (prev_calculated);
    }
-
    //PrintFormat("MA Data is now available");
    return rates_total;
 }
