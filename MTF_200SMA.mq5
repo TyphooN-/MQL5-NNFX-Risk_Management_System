@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.000"
+#property version   "1.001"
 #property indicator_chart_window
 #property indicator_buffers 9
 #property indicator_plots   9
@@ -185,19 +185,16 @@ int OnCalculate(const int rates_total,
          CopyBuffer(HandleW1, 0, 0, rates_total - start, MABufferW1);
       if (Enable_MN1_200SMA)
          CopyBuffer(HandleMN1, 0, 0, rates_total - start, MABufferMN1);
-      if (_Period <= PERIOD_H1)
-      {
-         if (Enable_M1_200SMA)
-            CopyBuffer(HandleM1, 0, 0, rates_total - start, MABufferM1);
-         if (Enable_M5_200SMA)
-            CopyBuffer(HandleM5, 0, 0, rates_total - start, MABufferM5);
-         if (Enable_M15_200SMA)
-            CopyBuffer(HandleM15, 0, 0, rates_total - start, MABufferM15);
-         if (Enable_M30_200SMA)
-            CopyBuffer(HandleM30, 0, 0, rates_total - start, MABufferM30);
-      }
+      if (Enable_M1_200SMA)
+         CopyBuffer(HandleM1, 0, 0, rates_total - start, MABufferM1);
+      if (Enable_M5_200SMA)
+         CopyBuffer(HandleM5, 0, 0, rates_total - start, MABufferM5);
+      if (Enable_M15_200SMA)
+         CopyBuffer(HandleM15, 0, 0, rates_total - start, MABufferM15);
+      if (Enable_M30_200SMA)
+         CopyBuffer(HandleM30, 0, 0, rates_total - start, MABufferM30);
    }
-   static int waitCount = 2;
+   static int waitCount = 3;
    if (waitCount > 0)
    {
       if (Enable_H1_200SMA)
@@ -210,21 +207,19 @@ int OnCalculate(const int rates_total,
          CopyBuffer(HandleW1, 0, 0, rates_total - start, MABufferW1);
       if (Enable_MN1_200SMA)
          CopyBuffer(HandleMN1, 0, 0, rates_total - start, MABufferMN1);
-      if (_Period <= PERIOD_H1)
-      {
-         if (Enable_M1_200SMA)
-            CopyBuffer(HandleM1, 0, 0, rates_total - start, MABufferM1);
-         if (Enable_M5_200SMA)
-            CopyBuffer(HandleM5, 0, 0, rates_total - start, MABufferM5);
-         if (Enable_M15_200SMA)
-            CopyBuffer(HandleM15, 0, 0, rates_total - start, MABufferM15);
-         if (Enable_M30_200SMA)
-            CopyBuffer(HandleM30, 0, 0, rates_total - start, MABufferM30);
-      }
+      if (Enable_M1_200SMA)
+         CopyBuffer(HandleM1, 0, 0, rates_total - start, MABufferM1);
+      if (Enable_M5_200SMA)
+         CopyBuffer(HandleM5, 0, 0, rates_total - start, MABufferM5);
+      if (Enable_M15_200SMA)
+         CopyBuffer(HandleM15, 0, 0, rates_total - start, MABufferM15);
+      if (Enable_M30_200SMA)
+         CopyBuffer(HandleM30, 0, 0, rates_total - start, MABufferM30);
       waitCount--;
       //PrintFormat("Waiting for MA data");
       return (prev_calculated);
    }
+
    //PrintFormat("MA Data is now available");
    return rates_total;
 }
