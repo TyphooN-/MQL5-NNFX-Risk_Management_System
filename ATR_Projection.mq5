@@ -1,4 +1,4 @@
-/**=        ATR_Projection.mqh  (TyphooN's ATR Projection Indicator)
+/**=        ATR_Projection.mq5  (TyphooN's ATR Projection Indicator)
  *               Copyright 2023, TyphooN (https://www.decapool.net/)
  *
  * Disclaimer and Licence
@@ -24,10 +24,10 @@
 #property indicator_chart_window
 #property indicator_buffers 6
 #property indicator_plots 0
-#property version "1.010"
+#property version "1.011"
 input int    ATR_Period                    = 14;
 input bool   H1_ATR_Projections            = true;
-input bool   H1_Historical_Projection      = true;
+input bool   H1_Historical_Projection      = false;
 input bool   H4_ATR_Projections            = true;
 input bool   D1_ATR_Projections            = true;
 input bool   W1_ATR_Projections            = true;
@@ -42,8 +42,8 @@ input string FontName                      = "Courier New";
 input int    FontSize                      = 8;
 input color  FontColor                     = clrWhite;
 const ENUM_BASE_CORNER Corner              = CORNER_RIGHT_UPPER;
-input int    HorizPos                      = 290;
-input int    VertPos                       = 81;
+input int    HorizPos                      = 310;
+input int    VertPos                       = 104;
 input int    ATRInfoDecimals               = 3;
 string objname = "ATR";
 int handle_iATR_D1, handle_iATR_W1, handle_iATR_MN1, handle_iATR_H4, handle_iATR_H1, handle_iATR_M30;
@@ -67,6 +67,13 @@ double currentOpenH1Historical2 = 0;
 int lastCheckedCandle = -1;
 int OnInit()
 {
+   //--- indicator buffers mapping
+   SetIndexBuffer(0, iATR_D1, INDICATOR_DATA);
+   SetIndexBuffer(1, iATR_W1, INDICATOR_DATA);
+   SetIndexBuffer(2, iATR_MN1, INDICATOR_DATA);
+   SetIndexBuffer(3, iATR_H4, INDICATOR_DATA);
+   SetIndexBuffer(4, iATR_H1, INDICATOR_DATA);
+   SetIndexBuffer(5, iATR_M30, INDICATOR_DATA);
    ObjectCreate(0, objname + "Info1", OBJ_LABEL, 0, 0, 0);
    ObjectSetInteger(0, objname + "Info1", OBJPROP_XDISTANCE, HorizPos);
    ObjectSetInteger(0, objname + "Info1", OBJPROP_YDISTANCE, VertPos);
@@ -76,7 +83,7 @@ int OnInit()
    ObjectSetInteger(0, objname + "Info1", OBJPROP_COLOR, FontColor);
    ObjectCreate(0, objname + "Info2", OBJ_LABEL, 0, 0, 0);
    ObjectSetInteger(0, objname + "Info2", OBJPROP_XDISTANCE, HorizPos);
-   ObjectSetInteger(0, objname + "Info2", OBJPROP_YDISTANCE, VertPos + 10);
+   ObjectSetInteger(0, objname + "Info2", OBJPROP_YDISTANCE, VertPos + 13);
    ObjectSetInteger(0, objname + "Info2", OBJPROP_CORNER, Corner);
    ObjectSetString(0, objname + "Info2", OBJPROP_FONT, FontName);
    ObjectSetInteger(0, objname + "Info2", OBJPROP_FONTSIZE, FontSize);
@@ -158,8 +165,15 @@ void UpdateATRData()
    copiedW1 = CopyBuffer(handle_iATR_W1, 0, 0, ATR_Period, iATR_W1);
    copiedMN1 = CopyBuffer(handle_iATR_MN1, 0, 0, ATR_Period, iATR_MN1);
    copiedH4 = CopyBuffer(handle_iATR_H4, 0, 0, ATR_Period, iATR_H4);
-   copiedH1 = CopyBuffer(handle_iATR_H1, 0, 0, (ATR_Period + 2), iATR_H1);
    copiedM30 = CopyBuffer(handle_iATR_M30, 0, 0, ATR_Period, iATR_M30);
+   if (H1_Historical_Projection == true)
+   {
+      copiedH1 = CopyBuffer(handle_iATR_H1, 0, 0, (ATR_Period + 2), iATR_H1);
+   }
+   if(H1_Historical_Projection == false)
+   {
+      copiedH1 = CopyBuffer(handle_iATR_H1, 0, 0, ATR_Period, iATR_H1);
+   }
 }
 int OnCalculate(const int        rates_total,
                const int        prev_calculated,
@@ -172,6 +186,16 @@ int OnCalculate(const int        rates_total,
                const long&     volume[],
                const int&      spread[])
 {
+    static datetime prevTradeServerTime = 0;  // Initialize with 0 on the first run
+    datetime currentTradeServerTime = TimeTradeServer();
+    // Check if a new 30-minute interval or 1-hour interval has started
+    if (IsNewM30Interval(currentTradeServerTime, prevTradeServerTime))
+    {
+      UpdateATRData();
+      UpdateCandlestickData();
+      prevTradeServerTime = currentTradeServerTime;
+      Print("Updating ATR Data and Candlestick data due to 30 min server time.");
+    }
    // Calculate the number of bars to be processed
    int limit = rates_total - prev_calculated;
    // If there are no new bars, return
@@ -179,7 +203,7 @@ int OnCalculate(const int        rates_total,
       return 0;
    // Check if a new candlestick has formed
    if (lastCheckedCandle != rates_total - 1) {
-      //Print("Updating candlestick data new candle has formed");
+      //Print("New candle has formed, updating ATR & Candlestick Data");
       // Update the last checked candle index
       lastCheckedCandle = rates_total - 1;
       UpdateATRData();
@@ -213,7 +237,9 @@ int OnCalculate(const int        rates_total,
       MN1info = copiedMN1;
    if (copiedH4 != ATR_Period)
       H4info = copiedH4;
-   if (copiedH1 != (ATR_Period + 2))
+   if (H1_Historical_Projection == true && copiedH1 != (ATR_Period + 2))
+      H1info = copiedH1;
+   if (H1_Historical_Projection == false && copiedH1 != ATR_Period)
       H1info = copiedH1;
    if (copiedM30 != ATR_Period)
       M30info = copiedM30;
@@ -225,12 +251,14 @@ int OnCalculate(const int        rates_total,
       MN1info = avgMN1;
    if (copiedH4 == ATR_Period)
       H4info = avgH4;
-   if (copiedH1 == (ATR_Period + 2))
+   if (H1_Historical_Projection == true && copiedH1 == (ATR_Period + 2))
+      H1info = avgH1;
+   if (H1_Historical_Projection == false && copiedH1 == ATR_Period)
       H1info = avgH1;
    if (copiedM30 == ATR_Period)
       M30info = avgM30;
    string infoText1 = "ATR| M30: " + DoubleToString(M30info, ATRInfoDecimals) + " H1: " + DoubleToString(H1info, ATRInfoDecimals) + " H4: " + DoubleToString(H4info, ATRInfoDecimals);
-   string infoText2 = "ATR| D1: " + DoubleToString(D1info, ATRInfoDecimals) + " W1: " + DoubleToString(W1info, ATRInfoDecimals) + " MN: " + DoubleToString(MN1info, ATRInfoDecimals);
+   string infoText2 = "ATR| D1: " + DoubleToString(D1info, ATRInfoDecimals) + " W1: " + DoubleToString(W1info, ATRInfoDecimals) + " MN1: " + DoubleToString(MN1info, ATRInfoDecimals);
    ObjectSetString(0, objname + "Info1", OBJPROP_TEXT, infoText1);
    ObjectSetString(0, objname + "Info2", OBJPROP_TEXT, infoText2);
    static int waitCountATR = 2;
@@ -417,12 +445,12 @@ int OnCalculate(const int        rates_total,
          ObjectSetInteger(0, objname + "LineTopH1_PrevClose", OBJPROP_STYLE, ATR_linestyle);
          ObjectSetInteger(0, objname + "LineTopH1_PrevClose", OBJPROP_WIDTH, ATR_Linethickness);
          ObjectSetInteger(0, objname + "LineTopH1_PrevClose", OBJPROP_COLOR, ATR_Line_Color);
-         ObjectSetInteger(0, objname + "LineTopH1_PrevClose", OBJPROP_BACK, ATR_Line_Background);
+         ObjectSetInteger(0, objname + "LineTopH1_PrevClose", OBJPROP_BACK, false);
          ObjectCreate(0, objname + "LineBottomH1_PrevClose", OBJ_TREND, 0, startTimeH1, atrLevelBelowH1prevClose, endTime, atrLevelBelowH1prevClose);
          ObjectSetInteger(0, objname + "LineBottomH1_PrevClose", OBJPROP_STYLE, ATR_linestyle);
          ObjectSetInteger(0, objname + "LineBottomH1_PrevClose", OBJPROP_WIDTH, ATR_Linethickness);
          ObjectSetInteger(0, objname + "LineBottomH1_PrevClose", OBJPROP_COLOR, ATR_Line_Color);
-         ObjectSetInteger(0, objname + "LineBottomH1_PrevClose", OBJPROP_BACK, ATR_Line_Background);
+         ObjectSetInteger(0, objname + "LineBottomH1_PrevClose", OBJPROP_BACK, false);
       }
       if (UseCurrentOpen) {
          atrLevelAboveH1currentOpen = currentOpenH1 + avgH1;
@@ -431,16 +459,16 @@ int OnCalculate(const int        rates_total,
          ObjectSetInteger(0, objname + "LineTopH1_CurrentOpen", OBJPROP_STYLE, ATR_linestyle);
          ObjectSetInteger(0, objname + "LineTopH1_CurrentOpen", OBJPROP_WIDTH, ATR_Linethickness);
          ObjectSetInteger(0, objname + "LineTopH1_CurrentOpen", OBJPROP_COLOR, ATR_Line_Color);
-         ObjectSetInteger(0, objname + "LineTopH1_CurrentOpen", OBJPROP_BACK, ATR_Line_Background);
+         ObjectSetInteger(0, objname + "LineTopH1_CurrentOpen", OBJPROP_BACK, false);
          ObjectCreate(0, objname + "LineBottomH1_CurrentOpen", OBJ_TREND, 0, startTimeH1, atrLevelBelowH1currentOpen, endTime, atrLevelBelowH1currentOpen);
          ObjectSetInteger(0, objname + "LineBottomH1_CurrentOpen", OBJPROP_STYLE, ATR_linestyle);
          ObjectSetInteger(0, objname + "LineBottomH1_CurrentOpen", OBJPROP_WIDTH, ATR_Linethickness);
          ObjectSetInteger(0, objname + "LineBottomH1_CurrentOpen", OBJPROP_COLOR, ATR_Line_Color);
-         ObjectSetInteger(0, objname + "LineBottomH1_CurrentOpen", OBJPROP_BACK, ATR_Line_Background);
+         ObjectSetInteger(0, objname + "LineBottomH1_CurrentOpen", OBJPROP_BACK, false);
       }
       if (H1_Historical_Projection) {
-         datetime startTimeH1Historical1 = iTime(_Symbol, PERIOD_H1, 13);
-         datetime startTimeH1Historical2 = iTime(_Symbol, PERIOD_H1, 14);
+         datetime startTimeH1Historical1 = iTime(_Symbol, PERIOD_H1, 14);
+         datetime startTimeH1Historical2 = iTime(_Symbol, PERIOD_H1, 17);
          if (UsePrevClose) {
             atrLevelAboveH1prevCloseHistorical1 = prevCloseH1Historical1 + avgH1_Historical1;
             atrLevelBelowH1prevCloseHistorical1 = prevCloseH1Historical1 - avgH1_Historical1;
@@ -448,22 +476,24 @@ int OnCalculate(const int        rates_total,
             ObjectSetInteger(0, objname + "LineTopH1Historical_PrevClose1", OBJPROP_STYLE, ATR_linestyle);
             ObjectSetInteger(0, objname + "LineTopH1Historical_PrevClose1", OBJPROP_WIDTH, ATR_Linethickness);
             ObjectSetInteger(0, objname + "LineTopH1Historical_PrevClose1", OBJPROP_COLOR, ATR_Line_Color);
-            ObjectSetInteger(0, objname + "LineTopH1Historical_PrevClose1", OBJPROP_BACK, ATR_Line_Background);
+            ObjectSetInteger(0, objname + "LineTopH1Historical_PrevClose1", OBJPROP_BACK, false);
             ObjectCreate(0, objname + "LineBottomH1Historical_PrevClose1", OBJ_TREND, 0, startTimeH1Historical1, atrLevelBelowH1prevCloseHistorical1, endTime, atrLevelBelowH1prevCloseHistorical1);
             ObjectSetInteger(0, objname + "LineBottomH1Historical_PrevClose1", OBJPROP_STYLE, ATR_linestyle);
             ObjectSetInteger(0, objname + "LineBottomH1Historical_PrevClose1", OBJPROP_WIDTH, ATR_Linethickness);
             ObjectSetInteger(0, objname + "LineBottomH1Historical_PrevClose1", OBJPROP_COLOR, ATR_Line_Color);
-            ObjectSetInteger(0, objname + "LineBottomH1Historical_PrevClose1", OBJPROP_BACK, ATR_Line_Background);
+            ObjectSetInteger(0, objname + "LineBottomH1Historical_PrevClose1", OBJPROP_BACK, false);
+            atrLevelAboveH1prevCloseHistorical2 = prevCloseH1Historical2 + avgH1_Historical2;
+            atrLevelBelowH1prevCloseHistorical2 = prevCloseH1Historical2 - avgH1_Historical2;
             ObjectCreate(0, objname + "LineTopH1Historical_PrevClose2", OBJ_TREND, 0, startTimeH1Historical2, atrLevelAboveH1prevCloseHistorical2, endTime, atrLevelAboveH1prevCloseHistorical2);
             ObjectSetInteger(0, objname + "LineTopH1Historical_PrevClose2", OBJPROP_STYLE, ATR_linestyle);
             ObjectSetInteger(0, objname + "LineTopH1Historical_PrevClose2", OBJPROP_WIDTH, ATR_Linethickness);
             ObjectSetInteger(0, objname + "LineTopH1Historical_PrevClose2", OBJPROP_COLOR, ATR_Line_Color);
-            ObjectSetInteger(0, objname + "LineTopH1Historical_PrevClose2", OBJPROP_BACK, ATR_Line_Background);
+            ObjectSetInteger(0, objname + "LineTopH1Historical_PrevClose2", OBJPROP_BACK, false);
             ObjectCreate(0, objname + "LineBottomH1Historical_PrevClose2", OBJ_TREND, 0, startTimeH1Historical2, atrLevelBelowH1prevCloseHistorical2, endTime, atrLevelBelowH1prevCloseHistorical2);
             ObjectSetInteger(0, objname + "LineBottomH1Historical_PrevClose2", OBJPROP_STYLE, ATR_linestyle);
             ObjectSetInteger(0, objname + "LineBottomH1Historical_PrevClose2", OBJPROP_WIDTH, ATR_Linethickness);
             ObjectSetInteger(0, objname + "LineBottomH1Historical_PrevClose2", OBJPROP_COLOR, ATR_Line_Color);
-            ObjectSetInteger(0, objname + "LineBottomH1Historical_PrevClose2", OBJPROP_BACK, ATR_Line_Background);
+            ObjectSetInteger(0, objname + "LineBottomH1Historical_PrevClose2", OBJPROP_BACK, false);
          }
          if (UseCurrentOpen) {
             atrLevelAboveH1currentOpenHistorical1 = currentOpenH1Historical1 + avgH1_Historical1;
@@ -472,26 +502,47 @@ int OnCalculate(const int        rates_total,
             ObjectSetInteger(0, objname + "LineTopH1Historical_CurrentOpen1", OBJPROP_STYLE, ATR_linestyle);
             ObjectSetInteger(0, objname + "LineTopH1Historical_CurrentOpen1", OBJPROP_WIDTH, ATR_Linethickness);
             ObjectSetInteger(0, objname + "LineTopH1Historical_CurrentOpen1", OBJPROP_COLOR, ATR_Line_Color);
-            ObjectSetInteger(0, objname + "LineTopH1Historical_CurrentOpen1", OBJPROP_BACK, ATR_Line_Background);
+            ObjectSetInteger(0, objname + "LineTopH1Historical_CurrentOpen1", OBJPROP_BACK, false);
             ObjectCreate(0, objname + "LineBottomH1Historical_CurrentOpen1", OBJ_TREND, 0, startTimeH1Historical1, atrLevelBelowH1currentOpenHistorical1, endTime, atrLevelBelowH1currentOpenHistorical1);
             ObjectSetInteger(0, objname + "LineBottomH1Historical_CurrentOpen1", OBJPROP_STYLE, ATR_linestyle);
             ObjectSetInteger(0, objname + "LineBottomH1Historical_CurrentOpen1", OBJPROP_WIDTH, ATR_Linethickness);
             ObjectSetInteger(0, objname + "LineBottomH1Historical_CurrentOpen1", OBJPROP_COLOR, ATR_Line_Color);
-            ObjectSetInteger(0, objname + "LineBottomH1Historical_CurrentOpen1", OBJPROP_BACK, ATR_Line_Background);
+            ObjectSetInteger(0, objname + "LineBottomH1Historical_CurrentOpen1", OBJPROP_BACK, false);
             atrLevelAboveH1currentOpenHistorical2 = currentOpenH1Historical2 + avgH1_Historical2;
             atrLevelBelowH1currentOpenHistorical2 = currentOpenH1Historical2 - avgH1_Historical2;
             ObjectCreate(0, objname + "LineTopH1Historical_CurrentOpen2", OBJ_TREND, 0, startTimeH1Historical2, atrLevelAboveH1currentOpenHistorical2, endTime, atrLevelAboveH1currentOpenHistorical2);
             ObjectSetInteger(0, objname + "LineTopH1Historical_CurrentOpen2", OBJPROP_STYLE, ATR_linestyle);
             ObjectSetInteger(0, objname + "LineTopH1Historical_CurrentOpen2", OBJPROP_WIDTH, ATR_Linethickness);
             ObjectSetInteger(0, objname + "LineTopH1Historical_CurrentOpen2", OBJPROP_COLOR, ATR_Line_Color);
-            ObjectSetInteger(0, objname + "LineTopH1Historical_CurrentOpen2", OBJPROP_BACK, ATR_Line_Background);
+            ObjectSetInteger(0, objname + "LineTopH1Historical_CurrentOpen2", OBJPROP_BACK, false);
             ObjectCreate(0, objname + "LineBottomH1Historical_CurrentOpen2", OBJ_TREND, 0, startTimeH1Historical2, atrLevelBelowH1currentOpenHistorical2, endTime, atrLevelBelowH1currentOpenHistorical2);
             ObjectSetInteger(0, objname + "LineBottomH1Historical_CurrentOpen2", OBJPROP_STYLE, ATR_linestyle);
             ObjectSetInteger(0, objname + "LineBottomH1Historical_CurrentOpen2", OBJPROP_WIDTH, ATR_Linethickness);
             ObjectSetInteger(0, objname + "LineBottomH1Historical_CurrentOpen2", OBJPROP_COLOR, ATR_Line_Color);
-            ObjectSetInteger(0, objname + "LineBottomH1Historical_CurrentOpen2", OBJPROP_BACK, ATR_Line_Background);
+            ObjectSetInteger(0, objname + "LineBottomH1Historical_CurrentOpen2", OBJPROP_BACK, false);
          }
    }
    }
    return rates_total;
+}
+bool IsNewM30Interval(const datetime& currentTime, const datetime& prevTime)
+{
+    MqlDateTime currentMqlTime, prevMqlTime;
+    TimeToStruct(currentTime, currentMqlTime);
+    TimeToStruct(prevTime, prevMqlTime);
+    //Print("IsNew30MinInterval() has run.");
+    // Check if the minutes have changed
+    if (currentMqlTime.min != prevMqlTime.min)
+    {
+        // Check if the current time is at a 30-minute mark
+        if (currentMqlTime.min == 0 || currentMqlTime.min == 30)
+        {
+            // Check if the hours have changed
+            if (currentMqlTime.hour != prevMqlTime.hour)
+            {
+                return true;
+            }
+        }
+    }
+    return false;
 }
