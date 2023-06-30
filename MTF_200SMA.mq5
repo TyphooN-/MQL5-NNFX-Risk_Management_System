@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.004"
+#property version   "1.005"
 #property indicator_chart_window
 #property indicator_buffers 8
 #property indicator_plots   8
@@ -76,6 +76,7 @@ input bool Enable_M1_200SMA = true;
 input bool Enable_M5_200SMA = true;
 input bool Enable_M15_200SMA = true;
 input bool Enable_M30_200SMA = true;
+input bool W1_Empty_Warning = false;
 int MAPeriod = 200;
 ENUM_APPLIED_PRICE MAPrice = PRICE_CLOSE;
 // Handles
@@ -125,7 +126,7 @@ int OnCalculate(const int rates_total,
    datetime currentTime = TimeTradeServer();
    if (lastCheckedCandle != rates_total - 1)
    {
-     Print("New candle has formed, updating MA Data");
+     //Print("New candle has formed, updating MA Data");
      // Update the last checked candle index
      lastCheckedCandle = rates_total - 1;
      UpdateBuffersOnCalculate(start, rates_total);
@@ -135,7 +136,7 @@ int OnCalculate(const int rates_total,
    if (!isTimerStarted && IsNewMinute(currentTime, prevTime))
    {
       isTimerStarted = true;
-      Print("Timer started or restarted");
+      //Print("Timer started or restarted");
       isTimerSet = EventSetTimer(60);
       if (!isTimerSet) {
       Print("Error setting timer");
@@ -144,7 +145,7 @@ int OnCalculate(const int rates_total,
    int elapsedSeconds = (int)(currentTime - prevTime);
    if (isTimerStarted && elapsedSeconds >= 60)
    {
-      Print("One minute has passed, updating MA Data");
+      //Print("One minute has passed, updating MA Data");
       prevTime = currentTime;
       UpdateBuffersOnCalculate(start, rates_total);
    }
@@ -225,11 +226,14 @@ void UpdateBuffers()
                   break;
                }
             }
-         if(isEmptyValueExist)
-         {
-            Print("Warning: W1 SMA data contains EMPTY_VALUE!");
-          }
-      }
+            if(isEmptyValueExist)
+            {
+               if(W1_Empty_Warning)
+               {
+                  //Print("Warning: W1 SMA data contains EMPTY_VALUE!");
+               }
+            }
+         }
       }
       else
       {
@@ -316,7 +320,10 @@ void UpdateBuffersOnCalculate(int start, int rates_total)
             }
             if(isEmptyValueExist)
             {
-               Print("Warning: W1 SMA data contains EMPTY_VALUE!");
+               if(W1_Empty_Warning)
+               {
+                  //Print("Warning: W1 SMA data contains EMPTY_VALUE!");
+               }
             }
          }
       }
