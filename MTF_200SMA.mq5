@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.006"
+#property version   "1.007"
 #property indicator_chart_window
 #property indicator_buffers 8
 #property indicator_plots   8
@@ -101,6 +101,7 @@ int OnInit()
    UpdateBuffers();
    return 0;
 }
+
 int OnCalculate(const int rates_total,
                 const int prev_calculated,
                 const datetime &time[],
@@ -126,12 +127,12 @@ int OnCalculate(const int rates_total,
    datetime currentTime = TimeTradeServer();
    if (lastCheckedCandle != rates_total - 1)
    {
-     //Print("New candle has formed, updating MA Data");
-     // Update the last checked candle index
-     lastCheckedCandle = rates_total - 1;
-     UpdateBuffersOnCalculate(start, rates_total);
-     // Restart the timer
-     isTimerStarted = false;
+      //Print("New candle has formed, updating MA Data");
+      // Update the last checked candle index
+      lastCheckedCandle = rates_total - 1;
+      UpdateBuffers();
+      // Restart the timer
+      isTimerStarted = false;
    }
    if (!isTimerStarted && IsNewMinute(currentTime, prevTime))
    {
@@ -139,20 +140,20 @@ int OnCalculate(const int rates_total,
       //Print("Timer started or restarted");
       isTimerSet = EventSetTimer(60);
       if (!isTimerSet) {
-      Print("Error setting timer");
-   }
+         Print("Error setting timer");
+      }
    }
    int elapsedSeconds = (int)(currentTime - prevTime);
    if (isTimerStarted && elapsedSeconds >= 60)
    {
       //Print("One minute has passed, updating MA Data");
       prevTime = currentTime;
-      UpdateBuffersOnCalculate(start, rates_total);
+      UpdateBuffers();
    }
    static int waitCount = 3;
    if (waitCount > 0)
    {
-      UpdateBuffersOnCalculate(0, rates_total);
+      UpdateBuffers();
       waitCount--;
       return prev_calculated;
    }
@@ -160,14 +161,14 @@ int OnCalculate(const int rates_total,
 }
 void UpdateBuffers()
 {
-   if(_Period < PERIOD_D1)
+   if (_Period < PERIOD_D1)
    {
       M1_Enable = Enable_M1_200SMA;
       M5_Enable = Enable_M5_200SMA;
       M15_Enable = Enable_M15_200SMA;
       M30_Enable = Enable_M30_200SMA;
    }
-   if(_Period >= PERIOD_D1)
+   if (_Period >= PERIOD_D1)
    {
       M1_Enable = false;
       M5_Enable = false;
@@ -212,94 +213,23 @@ void UpdateBuffers()
    if (Enable_W1_200SMA)
    {
       HandleW1 = iMA(NULL, PERIOD_W1, MAPeriod, 0, MODE_SMA, MAPrice);
-      if(HandleW1 != INVALID_HANDLE)
+      if (HandleW1 != INVALID_HANDLE)
       {
          int copySizeW1 = CopyBuffer(HandleW1, 0, 0, 0, MABufferW1);
-         if(copySizeW1 > 0)
+         if (copySizeW1 > 0)
          {
             bool isEmptyValueExist = false;
-            for(int i = 0; i < copySizeW1; i++)
+            for (int i = 0; i < copySizeW1; i++)
             {
-               if(MABufferW1[i] == EMPTY_VALUE)
+               if (MABufferW1[i] == EMPTY_VALUE)
                {
                   isEmptyValueExist = true;
                   break;
                }
             }
-            if(isEmptyValueExist)
+            if (isEmptyValueExist)
             {
-               if(W1_Empty_Warning)
-               {
-                  //Print("Warning: W1 SMA data contains EMPTY_VALUE!");
-               }
-            }
-         }
-      }
-      else
-      {
-         Print("Warning: Unable to calculate W1 SMA! Disabling!");
-         W1_Enable = false;
-      }
-   }
-}
-void UpdateBuffersOnCalculate(int start, int rates_total)
-{
-   if(_Period < PERIOD_D1)
-   {
-      if (M1_Enable)
-      {
-         HandleM1 = iMA(NULL, PERIOD_M1, MAPeriod, 0, MODE_SMA, MAPrice);
-         CopyBuffer(HandleM1, 0, 0, rates_total - start, MABufferM1);
-      }
-      if (M5_Enable)
-      {
-         HandleM5 = iMA(NULL, PERIOD_M5, MAPeriod, 0, MODE_SMA, MAPrice);
-         CopyBuffer(HandleM5, 0, 0, rates_total - start, MABufferM5);
-      }
-      if (M15_Enable)
-      {
-         HandleM15 = iMA(NULL, PERIOD_M15, MAPeriod, 0, MODE_SMA, MAPrice);
-         CopyBuffer(HandleM15, 0, 0, rates_total - start, MABufferM15);
-      }
-      if (M30_Enable)
-      {
-         HandleM30 = iMA(NULL, PERIOD_M30, MAPeriod, 0, MODE_SMA, MAPrice);
-         CopyBuffer(HandleM30, 0, 0, rates_total - start, MABufferM30);
-      }
-      }
-   if(_Period >= PERIOD_D1)
-   {
-      EraseBufferValues(MABufferM1);
-      EraseBufferValues(MABufferM5);
-      EraseBufferValues(MABufferM15);
-      EraseBufferValues(MABufferM30);
-   }
-   if (Enable_H1_200SMA)
-      CopyBuffer(HandleH1, 0, 0, rates_total - start, MABufferH1);
-   if (Enable_H4_200SMA)
-      CopyBuffer(HandleH4, 0, 0, rates_total - start, MABufferH4);
-   if (Enable_D1_200SMA)
-      CopyBuffer(HandleD1, 0, 0, rates_total - start, MABufferD1);
-   if (Enable_W1_200SMA)
-   {
-      HandleW1 = iMA(NULL, PERIOD_W1, MAPeriod, 0, MODE_SMA, MAPrice);
-      if(HandleW1 != INVALID_HANDLE)
-      {
-         int copySizeW1 = CopyBuffer(HandleW1, 0, 0, rates_total - start, MABufferW1);
-         if(copySizeW1 > 0)
-         {
-            bool isEmptyValueExist = false;
-            for(int i = 0; i < copySizeW1; i++)
-            {
-               if(MABufferW1[i] == EMPTY_VALUE)
-               {
-                  isEmptyValueExist = true;
-                  break;
-               }
-            }
-            if(isEmptyValueExist)
-            {
-               if(W1_Empty_Warning)
+               if (W1_Empty_Warning)
                {
                   //Print("Warning: W1 SMA data contains EMPTY_VALUE!");
                }
