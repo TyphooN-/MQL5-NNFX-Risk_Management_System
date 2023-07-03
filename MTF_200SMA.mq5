@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.005"
+#property version   "1.006"
 #property indicator_chart_window
 #property indicator_buffers 8
 #property indicator_plots   8
@@ -273,27 +273,6 @@ void UpdateBuffersOnCalculate(int start, int rates_total)
       EraseBufferValues(MABufferM5);
       EraseBufferValues(MABufferM15);
       EraseBufferValues(MABufferM30);
-   }
-   // Print("M1_Enable:" +M1_Enable);
-   if (M1_Enable)
-   {
-      HandleM1 = iMA(NULL, PERIOD_M1, MAPeriod, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleM1, 0, 0, rates_total - start, MABufferM1);
-   }
-   if (M5_Enable)
-   {
-      HandleM5 = iMA(NULL, PERIOD_M5, MAPeriod, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleM5, 0, 0, rates_total - start, MABufferM5);
-   }
-   if (M15_Enable)
-   {
-      HandleM15 = iMA(NULL, PERIOD_M15, MAPeriod, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleM15, 0, 0, rates_total - start, MABufferM15);
-   }
-   if (M30_Enable)
-   {
-      HandleM30 = iMA(NULL, PERIOD_M30, MAPeriod, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleM30, 0, 0, rates_total - start, MABufferM30);
    }
    if (Enable_H1_200SMA)
       CopyBuffer(HandleH1, 0, 0, rates_total - start, MABufferH1);
