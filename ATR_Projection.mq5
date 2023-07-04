@@ -24,8 +24,9 @@
 #property indicator_chart_window
 #property indicator_buffers 6
 #property indicator_plots 0
-#property version "1.011"
+#property version "1.012"
 input int    ATR_Period                    = 14;
+input bool   M15_ATR_Projections           = true;
 input bool   H1_ATR_Projections            = true;
 input bool   H1_Historical_Projection      = false;
 input bool   H4_ATR_Projections            = true;
@@ -46,10 +47,10 @@ input int    HorizPos                      = 310;
 input int    VertPos                       = 104;
 input int    ATRInfoDecimals               = 3;
 string objname = "ATR";
-int handle_iATR_D1, handle_iATR_W1, handle_iATR_MN1, handle_iATR_H4, handle_iATR_H1, handle_iATR_M30;
-double iATR_D1[], iATR_W1[], iATR_MN1[], iATR_H4[], iATR_H1[], iATR_M30[];
-int copiedD1, copiedW1, copiedMN1, copiedH4, copiedH1, copiedM30;
-double avgD1, avgD, avgW1, avgH4, avgH1, avgH1_Historical1, avgH1_Historical2, avgMN1, avgM30;
+int handle_iATR_D1, handle_iATR_W1, handle_iATR_MN1, handle_iATR_H4, handle_iATR_H1, handle_iATR_M15;
+double iATR_D1[], iATR_W1[], iATR_MN1[], iATR_H4[], iATR_H1[], iATR_M15[];
+int copiedD1, copiedW1, copiedMN1, copiedH4, copiedH1, copiedM15;
+double avgD1, avgD, avgW1, avgH4, avgH1, avgH1_Historical1, avgH1_Historical2, avgMN1, avgM15;
 double prevCloseD1 = 0;
 double currentOpenD1 = 0;
 double prevCloseW1 = 0;
@@ -60,6 +61,8 @@ double prevCloseH4 = 0;
 double currentOpenH4 = 0;
 double prevCloseH1 = 0;
 double currentOpenH1 = 0;
+double prevCloseM15 = 0;
+double currentOpenM15 = 0;
 double prevCloseH1Historical1 = 0;
 double prevCloseH1Historical2 = 0;
 double currentOpenH1Historical1 = 0;
@@ -73,7 +76,7 @@ int OnInit()
    SetIndexBuffer(2, iATR_MN1, INDICATOR_DATA);
    SetIndexBuffer(3, iATR_H4, INDICATOR_DATA);
    SetIndexBuffer(4, iATR_H1, INDICATOR_DATA);
-   SetIndexBuffer(5, iATR_M30, INDICATOR_DATA);
+   SetIndexBuffer(5, iATR_M15, INDICATOR_DATA);
    ObjectCreate(0, objname + "Info1", OBJ_LABEL, 0, 0, 0);
    ObjectSetInteger(0, objname + "Info1", OBJPROP_XDISTANCE, HorizPos);
    ObjectSetInteger(0, objname + "Info1", OBJPROP_YDISTANCE, VertPos);
@@ -105,16 +108,16 @@ int OnInit()
    ArraySetAsSeries(iATR_MN1, true);
    ArraySetAsSeries(iATR_H4, true);
    ArraySetAsSeries(iATR_H1, true);
-   ArraySetAsSeries(iATR_M30, true);
+   ArraySetAsSeries(iATR_M15, true);
    handle_iATR_D1 = iATR(_Symbol, PERIOD_D1, ATR_Period);
    handle_iATR_W1 = iATR(_Symbol, PERIOD_W1, ATR_Period);
    handle_iATR_MN1 = iATR(_Symbol, PERIOD_MN1, ATR_Period);
    handle_iATR_H4 = iATR(_Symbol, PERIOD_H4, ATR_Period);
    handle_iATR_H1 = iATR(_Symbol, PERIOD_H1, ATR_Period);
-   handle_iATR_M30 = iATR(_Symbol, PERIOD_M30, ATR_Period);
+   handle_iATR_M15 = iATR(_Symbol, PERIOD_M15, ATR_Period);
    // Check if the handles are created successfully
    if (handle_iATR_D1 == INVALID_HANDLE || handle_iATR_W1 == INVALID_HANDLE || handle_iATR_MN1 == INVALID_HANDLE ||
-      handle_iATR_H4 == INVALID_HANDLE || handle_iATR_H1 == INVALID_HANDLE || handle_iATR_M30 == INVALID_HANDLE)
+      handle_iATR_H4 == INVALID_HANDLE || handle_iATR_H1 == INVALID_HANDLE || handle_iATR_M15 == INVALID_HANDLE)
    {
       Print("Failed to create handles for iATR indicator");
       Print("handle_iATR_D1: ", handle_iATR_D1);
@@ -122,7 +125,7 @@ int OnInit()
       Print("handle_iATR_MN1: ", handle_iATR_MN1);
       Print("handle_iATR_H4: ", handle_iATR_H4);
       Print("handle_iATR_H1: ", handle_iATR_H1);
-      Print("handle_iATR_M30: ", handle_iATR_M30);
+      Print("handle_iATR_M15: ", handle_iATR_M15);
       return INIT_FAILED;
    }
    // Copy buffer values to arrays
@@ -131,7 +134,7 @@ int OnInit()
    copiedMN1 = CopyBuffer(handle_iATR_MN1, 0, 0, ATR_Period, iATR_MN1);
    copiedH4 = CopyBuffer(handle_iATR_H4, 0, 0, ATR_Period, iATR_H4);
    copiedH1 = CopyBuffer(handle_iATR_H1, 0, 0, (ATR_Period+2), iATR_H1);
-   copiedM30 = CopyBuffer(handle_iATR_M30, 0, 0, ATR_Period, iATR_M30);
+   copiedM15 = CopyBuffer(handle_iATR_M15, 0, 0, ATR_Period, iATR_M15);
    return INIT_SUCCEEDED;
 }
 void OnDeinit(const int pReason)
@@ -146,6 +149,7 @@ void UpdateCandlestickData()
       prevCloseMN1 = iClose(_Symbol, PERIOD_MN1, 1);
       prevCloseH4 = iClose(_Symbol, PERIOD_H4, 1);
       prevCloseH1 = iClose(_Symbol, PERIOD_H1, 1);
+      prevCloseM15 = iClose(_Symbol, PERIOD_M15, 1);
       prevCloseH1Historical1 = iClose(_Symbol, PERIOD_H1, 2);
       prevCloseH1Historical2 = iClose(_Symbol, PERIOD_H1, 3);
    }
@@ -155,6 +159,7 @@ void UpdateCandlestickData()
       currentOpenMN1 = iOpen(_Symbol, PERIOD_MN1, 0);
       currentOpenH4 = iOpen(_Symbol, PERIOD_H4, 0);
       currentOpenH1 = iOpen(_Symbol, PERIOD_H1, 0);
+      currentOpenM15 = iOpen(_Symbol, PERIOD_M15, 0);
       currentOpenH1Historical1 = iOpen(_Symbol, PERIOD_H1, 1);
       currentOpenH1Historical2 = iOpen(_Symbol, PERIOD_H1, 2);
    }
@@ -165,7 +170,7 @@ void UpdateATRData()
    copiedW1 = CopyBuffer(handle_iATR_W1, 0, 0, ATR_Period, iATR_W1);
    copiedMN1 = CopyBuffer(handle_iATR_MN1, 0, 0, ATR_Period, iATR_MN1);
    copiedH4 = CopyBuffer(handle_iATR_H4, 0, 0, ATR_Period, iATR_H4);
-   copiedM30 = CopyBuffer(handle_iATR_M30, 0, 0, ATR_Period, iATR_M30);
+   copiedM15 = CopyBuffer(handle_iATR_M15, 0, 0, ATR_Period, iATR_M15);
    if (H1_Historical_Projection == true)
    {
       copiedH1 = CopyBuffer(handle_iATR_H1, 0, 0, (ATR_Period + 2), iATR_H1);
@@ -189,12 +194,12 @@ int OnCalculate(const int        rates_total,
     static datetime prevTradeServerTime = 0;  // Initialize with 0 on the first run
     datetime currentTradeServerTime = TimeTradeServer();
     // Check if a new 30-minute interval or 1-hour interval has started
-    if (IsNewM30Interval(currentTradeServerTime, prevTradeServerTime))
+    if (IsNewM15Interval(currentTradeServerTime, prevTradeServerTime))
     {
       UpdateATRData();
       UpdateCandlestickData();
       prevTradeServerTime = currentTradeServerTime;
-      Print("Updating ATR Data and Candlestick data due to 30 min server time.");
+      Print("Updating ATR Data and Candlestick data due to 15 min server time.");
     }
    // Calculate the number of bars to be processed
    int limit = rates_total - prev_calculated;
@@ -221,9 +226,9 @@ int OnCalculate(const int        rates_total,
       avgH1 = iATR_H1[0];
       avgH1_Historical1 = iATR_H1[1];
       avgH1_Historical2 = iATR_H1[2];
-      avgM30 = iATR_M30[0];
+      avgM15 = iATR_M15[0];
    }
-   double M30info = 0;
+   double M15info = 0;
    double H1info = 0;
    double H4info = 0;
    double D1info = 0;
@@ -241,8 +246,8 @@ int OnCalculate(const int        rates_total,
       H1info = copiedH1;
    if (H1_Historical_Projection == false && copiedH1 != ATR_Period)
       H1info = copiedH1;
-   if (copiedM30 != ATR_Period)
-      M30info = copiedM30;
+   if (copiedM15 != ATR_Period)
+      M15info = copiedM15;
     if (copiedD1 == ATR_Period)
       D1info = avgD1;
    if (copiedW1 == ATR_Period)
@@ -255,9 +260,9 @@ int OnCalculate(const int        rates_total,
       H1info = avgH1;
    if (H1_Historical_Projection == false && copiedH1 == ATR_Period)
       H1info = avgH1;
-   if (copiedM30 == ATR_Period)
-      M30info = avgM30;
-   string infoText1 = "ATR| M30: " + DoubleToString(M30info, ATRInfoDecimals) + " H1: " + DoubleToString(H1info, ATRInfoDecimals) + " H4: " + DoubleToString(H4info, ATRInfoDecimals);
+   if (copiedM15 == ATR_Period)
+      M15info = avgM15;
+   string infoText1 = "ATR| M15: " + DoubleToString(M15info, ATRInfoDecimals) + " H1: " + DoubleToString(H1info, ATRInfoDecimals) + " H4: " + DoubleToString(H4info, ATRInfoDecimals);
    string infoText2 = "ATR| D1: " + DoubleToString(D1info, ATRInfoDecimals) + " W1: " + DoubleToString(W1info, ATRInfoDecimals) + " MN1: " + DoubleToString(MN1info, ATRInfoDecimals);
    ObjectSetString(0, objname + "Info1", OBJPROP_TEXT, infoText1);
    ObjectSetString(0, objname + "Info2", OBJPROP_TEXT, infoText2);
@@ -292,12 +297,16 @@ int OnCalculate(const int        rates_total,
    double atrLevelBelowH1prevCloseHistorical1 = 0;
    double atrLevelAboveH1prevCloseHistorical2 = 0;
    double atrLevelBelowH1prevCloseHistorical2 = 0;
+   double atrLevelAboveM15prevClose = 0;
+   double atrLevelBelowM15prevClose = 0;
    double atrLevelAboveH1currentOpen = 0;
    double atrLevelBelowH1currentOpen = 0;
    double atrLevelAboveH1currentOpenHistorical1 = 0;
    double atrLevelBelowH1currentOpenHistorical1 = 0;
    double atrLevelAboveH1currentOpenHistorical2 = 0;
    double atrLevelBelowH1currentOpenHistorical2 = 0;
+   double atrLevelAboveM15currentOpen = 0;
+   double atrLevelBelowM15currentOpen = 0;
    datetime endTime = time[rates_total - 1];
    static int waitCountCandlestick = 2;
    if ( waitCountCandlestick > 0 ) {
@@ -523,9 +532,41 @@ int OnCalculate(const int        rates_total,
          }
    }
    }
+   if (M15_ATR_Projections && _Period <= PERIOD_H1)
+   {
+      datetime startTimeM15 = iTime(_Symbol, PERIOD_M15, 7);
+      if (UsePrevClose) {
+         atrLevelAboveM15prevClose = prevCloseM15 + avgH4;
+         atrLevelBelowM15prevClose = prevCloseM15 - avgH4;
+         ObjectCreate(0, objname + "LineTopM15_PrevClose", OBJ_TREND, 0, startTimeM15, atrLevelAboveM15prevClose, endTime, atrLevelAboveM15prevClose);
+         ObjectSetInteger(0, objname + "LineTopM15_PrevClose", OBJPROP_STYLE, ATR_linestyle);
+         ObjectSetInteger(0, objname + "LineTopM15_PrevClose", OBJPROP_WIDTH, ATR_Linethickness);
+         ObjectSetInteger(0, objname + "LineTopM15_PrevClose", OBJPROP_COLOR, ATR_Line_Color);
+         ObjectSetInteger(0, objname + "LineTopM15_PrevClose", OBJPROP_BACK, ATR_Line_Background);
+         ObjectCreate(0, objname + "LineBottomM15_PrevClose", OBJ_TREND, 0, startTimeM15, atrLevelBelowM15prevClose, endTime, atrLevelBelowM15prevClose);
+         ObjectSetInteger(0, objname + "LineBottomM15_PrevClose", OBJPROP_STYLE, ATR_linestyle);
+         ObjectSetInteger(0, objname + "LineBottomM15_PrevClose", OBJPROP_WIDTH, ATR_Linethickness);
+         ObjectSetInteger(0, objname + "LineBottomM15_PrevClose", OBJPROP_COLOR, ATR_Line_Color);
+         ObjectSetInteger(0, objname + "LineBottomM15_PrevClose", OBJPROP_BACK, ATR_Line_Background);
+      }
+      if (UseCurrentOpen) {
+         atrLevelAboveM15currentOpen = currentOpenM15 + avgM15;
+         atrLevelBelowM15currentOpen = currentOpenM15 - avgM15;
+         ObjectCreate(0, objname + "LineTopM15_CurrentOpen", OBJ_TREND, 0, startTimeM15, atrLevelAboveM15currentOpen, endTime, atrLevelAboveM15currentOpen);
+         ObjectSetInteger(0, objname + "LineTopM15_CurrentOpen", OBJPROP_STYLE, ATR_linestyle);
+         ObjectSetInteger(0, objname + "LineTopM15_CurrentOpen", OBJPROP_WIDTH, ATR_Linethickness);
+         ObjectSetInteger(0, objname + "LineTopM15_CurrentOpen", OBJPROP_COLOR, ATR_Line_Color);
+         ObjectSetInteger(0, objname + "LineTopM15_CurrentOpen", OBJPROP_BACK, true);
+         ObjectCreate(0, objname + "LineBottomM15_CurrentOpen", OBJ_TREND, 0, startTimeM15, atrLevelBelowM15currentOpen, endTime, atrLevelBelowM15currentOpen);
+         ObjectSetInteger(0, objname + "LineBottomM15_CurrentOpen", OBJPROP_STYLE, ATR_linestyle);
+         ObjectSetInteger(0, objname + "LineBottomM15_CurrentOpen", OBJPROP_WIDTH, ATR_Linethickness);
+         ObjectSetInteger(0, objname + "LineBottomM15_CurrentOpen", OBJPROP_COLOR, ATR_Line_Color);
+         ObjectSetInteger(0, objname + "LineBottomM15_CurrentOpen", OBJPROP_BACK, ATR_Line_Background);
+      }
+   }
    return rates_total;
 }
-bool IsNewM30Interval(const datetime& currentTime, const datetime& prevTime)
+bool IsNewM15Interval(const datetime& currentTime, const datetime& prevTime)
 {
     MqlDateTime currentMqlTime, prevMqlTime;
     TimeToStruct(currentTime, currentMqlTime);
@@ -534,14 +575,14 @@ bool IsNewM30Interval(const datetime& currentTime, const datetime& prevTime)
     // Check if the minutes have changed
     if (currentMqlTime.min != prevMqlTime.min)
     {
-        // Check if the current time is at a 30-minute mark
-        if (currentMqlTime.min == 0 || currentMqlTime.min == 30)
+        // Check if the current time is at a a 15 minute interval
+        if (currentMqlTime.min == 0 || currentMqlTime.min == 15 || currentMqlTime.min == 30 || currentMqlTime.min == 45 )
         {
             // Check if the hours have changed
-            if (currentMqlTime.hour != prevMqlTime.hour)
-            {
+          //  if (currentMqlTime.hour != prevMqlTime.hour)
+          //  {
                 return true;
-            }
+          //  }
         }
     }
     return false;
