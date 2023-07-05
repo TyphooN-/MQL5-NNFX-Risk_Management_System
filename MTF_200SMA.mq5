@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.007"
+#property version   "1.008"
 #property indicator_chart_window
 #property indicator_buffers 8
 #property indicator_plots   8
@@ -98,10 +98,8 @@ int OnInit()
    SetIndexBuffer(5, MABufferM5, INDICATOR_DATA);
    SetIndexBuffer(6, MABufferM15, INDICATOR_DATA);
    SetIndexBuffer(7, MABufferM30, INDICATOR_DATA);
-   UpdateBuffers();
    return 0;
 }
-
 int OnCalculate(const int rates_total,
                 const int prev_calculated,
                 const datetime &time[],
@@ -139,7 +137,8 @@ int OnCalculate(const int rates_total,
       isTimerStarted = true;
       //Print("Timer started or restarted");
       isTimerSet = EventSetTimer(60);
-      if (!isTimerSet) {
+      if (!isTimerSet)
+      {
          Print("Error setting timer");
       }
    }
@@ -150,10 +149,10 @@ int OnCalculate(const int rates_total,
       prevTime = currentTime;
       UpdateBuffers();
    }
-   static int waitCount = 3;
+   static int waitCount = 2;
    if (waitCount > 0)
    {
-      UpdateBuffers();
+      UpdateBuffersOnCalculate(0, rates_total);
       waitCount--;
       return prev_calculated;
    }
@@ -161,6 +160,15 @@ int OnCalculate(const int rates_total,
 }
 void UpdateBuffers()
 {
+   // Clear buffer values before updating
+   EraseBufferValues(MABufferM1);
+   EraseBufferValues(MABufferM5);
+   EraseBufferValues(MABufferM15);
+   EraseBufferValues(MABufferM30);
+   EraseBufferValues(MABufferH1);
+   EraseBufferValues(MABufferH4);
+   EraseBufferValues(MABufferD1);
+   EraseBufferValues(MABufferW1);
    if (_Period < PERIOD_D1)
    {
       M1_Enable = Enable_M1_200SMA;
@@ -178,44 +186,115 @@ void UpdateBuffers()
    if (M1_Enable)
    {
       HandleM1 = iMA(NULL, PERIOD_M1, MAPeriod, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleM1, 0, 0, 0, MABufferM1);
+      CopyBuffer(HandleM1, 0, 0, BufferSize(MABufferM1), MABufferM1);
    }
    if (M5_Enable)
    {
       HandleM5 = iMA(NULL, PERIOD_M5, MAPeriod, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleM5, 0, 0, 0, MABufferM5);
+      CopyBuffer(HandleM5, 0, 0, BufferSize(MABufferM5), MABufferM5);
    }
    if (M15_Enable)
    {
       HandleM15 = iMA(NULL, PERIOD_M15, MAPeriod, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleM15, 0, 0, 0, MABufferM15);
+      CopyBuffer(HandleM15, 0, 0, BufferSize(MABufferM15), MABufferM15);
    }
    if (M30_Enable)
    {
       HandleM30 = iMA(NULL, PERIOD_M30, MAPeriod, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleM30, 0, 0, 0, MABufferM30);
+      CopyBuffer(HandleM30, 0, 0, BufferSize(MABufferM30), MABufferM30);
    }
    if (Enable_H1_200SMA)
    {
       HandleH1 = iMA(NULL, PERIOD_H1, MAPeriod, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleH1, 0, 0, 0, MABufferH1);
+      CopyBuffer(HandleH1, 0, 0, BufferSize(MABufferH1), MABufferH1);
    }
    if (Enable_H4_200SMA)
    {
       HandleH4 = iMA(NULL, PERIOD_H4, MAPeriod, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleH4, 0, 0, 0, MABufferH4);
+      CopyBuffer(HandleH4, 0, 0, BufferSize(MABufferH4), MABufferH4);
    }
    if (Enable_D1_200SMA)
    {
       HandleD1 = iMA(NULL, PERIOD_D1, MAPeriod, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleD1, 0, 0, 0, MABufferD1);
+      CopyBuffer(HandleD1, 0, 0, BufferSize(MABufferD1), MABufferD1);
    }
    if (Enable_W1_200SMA)
    {
       HandleW1 = iMA(NULL, PERIOD_W1, MAPeriod, 0, MODE_SMA, MAPrice);
       if (HandleW1 != INVALID_HANDLE)
       {
-         int copySizeW1 = CopyBuffer(HandleW1, 0, 0, 0, MABufferW1);
+         int copySizeW1 = CopyBuffer(HandleW1, 0, 0, BufferSize(MABufferW1), MABufferW1);
+         if (copySizeW1 > 0)
+         {
+            bool isEmptyValueExist = false;
+            for (int i = 0; i < copySizeW1; i++)
+            {
+               if (MABufferW1[i] == EMPTY_VALUE)
+               {
+                  isEmptyValueExist = true;
+                  break;
+               }
+            }
+            if (isEmptyValueExist)
+            {
+               if (W1_Empty_Warning)
+               {
+                  // Print("Warning: W1 SMA data contains EMPTY_VALUE!");
+               }
+            }
+         }
+      }
+      else
+      {
+         Print("Warning: Unable to calculate W1 SMA! Disabling!");
+         W1_Enable = false;
+      }
+   }
+}
+void UpdateBuffersOnCalculate(int start, int rates_total)
+{
+   if (_Period < PERIOD_D1)
+   {
+      if (M1_Enable)
+      {
+         HandleM1 = iMA(NULL, PERIOD_M1, MAPeriod, 0, MODE_SMA, MAPrice);
+         CopyBuffer(HandleM1, 0, 0, BufferSize(MABufferM1), MABufferM1);
+      }
+      if (M5_Enable)
+      {
+         HandleM5 = iMA(NULL, PERIOD_M5, MAPeriod, 0, MODE_SMA, MAPrice);
+         CopyBuffer(HandleM5, 0, 0, BufferSize(MABufferM5), MABufferM5);
+      }
+      if (M15_Enable)
+      {
+         HandleM15 = iMA(NULL, PERIOD_M15, MAPeriod, 0, MODE_SMA, MAPrice);
+         CopyBuffer(HandleM15, 0, 0, BufferSize(MABufferM15), MABufferM15);
+      }
+      if (M30_Enable)
+      {
+         HandleM30 = iMA(NULL, PERIOD_M30, MAPeriod, 0, MODE_SMA, MAPrice);
+         CopyBuffer(HandleM30, 0, 0, BufferSize(MABufferM30), MABufferM30);
+      }
+   }
+   if (_Period >= PERIOD_D1)
+   {
+      EraseBufferValues(MABufferM1);
+      EraseBufferValues(MABufferM5);
+      EraseBufferValues(MABufferM15);
+      EraseBufferValues(MABufferM30);
+   }
+   if (Enable_H1_200SMA)
+      CopyBuffer(HandleH1, 0, 0, BufferSize(MABufferH1), MABufferH1);
+   if (Enable_H4_200SMA)
+      CopyBuffer(HandleH4, 0, 0, BufferSize(MABufferH4), MABufferH4);
+   if (Enable_D1_200SMA)
+      CopyBuffer(HandleD1, 0, 0, BufferSize(MABufferD1), MABufferD1);
+   if (Enable_W1_200SMA)
+   {
+      HandleW1 = iMA(NULL, PERIOD_W1, MAPeriod, 0, MODE_SMA, MAPrice);
+      if (HandleW1 != INVALID_HANDLE)
+      {
+         int copySizeW1 = CopyBuffer(HandleW1, 0, 0, BufferSize(MABufferW1), MABufferW1);
          if (copySizeW1 > 0)
          {
             bool isEmptyValueExist = false;
@@ -243,14 +322,14 @@ void UpdateBuffers()
       }
    }
 }
-bool IsNewMinute(const datetime& currentTime, const datetime& prevTime)
+bool IsNewMinute(const datetime &currentTime, const datetime &prevTime)
 {
-    MqlDateTime currentMqlTime, prevMqlTime;
-    TimeToStruct(currentTime, currentMqlTime);
-    TimeToStruct(prevTime, prevMqlTime);
-    return currentMqlTime.min != prevMqlTime.min;
+   MqlDateTime currentMqlTime, prevMqlTime;
+   TimeToStruct(currentTime, currentMqlTime);
+   TimeToStruct(prevTime, prevMqlTime);
+   return currentMqlTime.min != prevMqlTime.min;
 }
-int BufferSize(const double& buffer[])
+int BufferSize(const double &buffer[])
 {
    return ArraySize(buffer);
 }
