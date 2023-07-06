@@ -1,4 +1,4 @@
-/**=             TyphooN.mqh  (TyphooN's MQL5 Risk Management System)
+/**=             TyphooN.mq5  (TyphooN's MQL5 Risk Management System)
  *               Copyright 2023, TyphooN (https://www.decapool.net/)
  *
  * Disclaimer and Licence
@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.110"
+#property version   "1.111"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -48,11 +48,10 @@ double TickSize( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRA
 double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_VALUE ) ); }
 // input vars
 input group    "User Vars";
-input double   Risk                    = 0.3;
+input double   Risk                    = 0.5;
 input int      MagicNumber             = 13;
-input double   ProtectionATRMulti      = 1.337;
-input double   SLATRMulti              = 4.0;
-input double   TPATRMulti              = 13.0;
+input double   SLPips                  = 4.0;
+input double   TPPips                  = 13.0;
 input int      HorizontalLineThickness = 3;
 // global vars
 double TP = 0;
@@ -61,7 +60,6 @@ double Bid = 0;
 double Ask = 0;
 double risk_money = 0;
 double lotsglobal = 0;
-double ATR = 0;
 bool LimitLineExists = false;
 // defines
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
@@ -218,7 +216,6 @@ void OnTick()
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (Risk / 100));
-   ATR = iATR(_Symbol, PERIOD_CURRENT, 14);
    double total_risk = 0;
    double total_tpprofit = 0;
    double total_pl = 0;
@@ -275,8 +272,8 @@ void OnTick()
    }
    string FontName="Courier New";
    int FontSize=8;
-   int LeftColumnX=290;
-   int RightColumnX=130;
+   int LeftColumnX=310;
+   int RightColumnX=150;
    int YRowWidth = 13;
    string infoPL;
    string infoRR;
@@ -701,7 +698,6 @@ void TyWindow::OnClickBuyLines(void)
    ObjectDelete(0, "SL_Line");
    ObjectDelete(0, "TP_Line");
    ObjectDelete(0, "Limit_Line");
-   ATR = iATR(_Symbol, PERIOD_CURRENT, 14);
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    double DigitMulti = 0;
@@ -709,15 +705,15 @@ void TyWindow::OnClickBuyLines(void)
    {
       if (_Symbol == "XAUUSD")
       {
-         DigitMulti = 0.1;
-         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * SLATRMulti * PointValue() * DigitMulti)));
-         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * TPATRMulti * PointValue() * DigitMulti)));
+         DigitMulti = 1;
+         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
+         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
       }
       else
       {
-         DigitMulti = 100;
-         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * SLATRMulti * PointValue() * DigitMulti)));
-         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * TPATRMulti * PointValue() * DigitMulti)));
+         DigitMulti = 1000;
+         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
+         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
       }
    }
    if(_Digits == 3)
@@ -725,33 +721,33 @@ void TyWindow::OnClickBuyLines(void)
       if (_Symbol == "XAGUSD")
       {
          DigitMulti = 0.0001;
-         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * SLATRMulti * PointValue() * DigitMulti)));
-         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * TPATRMulti * PointValue() * DigitMulti)));
+         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
+         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
       }
       if (_Symbol == "USOIL.cash" || _Symbol == "UKOIL.cash" || _Symbol == "USOUSD" || _Symbol == "UKOUSD")
       {
-         DigitMulti = 0.1;
-         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * SLATRMulti * PointValue() * DigitMulti)));
-         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * TPATRMulti * PointValue() * DigitMulti)));
+         DigitMulti = 1;
+         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
+         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
       }
       else
       {
-         DigitMulti = 0.01;
-         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * SLATRMulti * PointValue() * DigitMulti)));
-         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * TPATRMulti * PointValue() * DigitMulti)));
+         DigitMulti = 0.1;
+         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
+         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
       }
    }
    if(_Digits == 5)
    {
-      DigitMulti = 0.00002;
-      ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * SLATRMulti * PointValue() * DigitMulti)));
-      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * TPATRMulti * PointValue() * DigitMulti)));
+      DigitMulti = 0.0002;
+      ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
+      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
    }
    if(_Digits == 7)
    {
-      DigitMulti = 100;
-      ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * SLATRMulti * PointValue() * DigitMulti)));
-      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * TPATRMulti * PointValue() * DigitMulti)));
+      DigitMulti = 1000;
+      ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
+      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
    }
    ObjectSetInteger(0, "SL_Line", OBJPROP_COLOR, clrRed);
    ObjectSetInteger(0, "SL_Line", OBJPROP_WIDTH,HorizontalLineThickness);
@@ -767,7 +763,6 @@ void TyWindow::OnClickSellLines(void)
    ObjectDelete(0, "SL_Line");
    ObjectDelete(0, "TP_Line");
    ObjectDelete(0, "Limit_Line");
-   ATR = iATR(_Symbol, PERIOD_CURRENT, 14);
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    double DigitMulti = 0;
@@ -775,15 +770,15 @@ void TyWindow::OnClickSellLines(void)
    {
       if (_Symbol == "XAUUSD")
       {
-         DigitMulti = 0.1;
-         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * SLATRMulti * PointValue() * DigitMulti)));
-         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * TPATRMulti * PointValue() * DigitMulti)));
+         DigitMulti = 1;
+         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
+         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));
       }
       else
       {
-         DigitMulti = 100;
-         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * SLATRMulti * PointValue() * DigitMulti)));
-         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * TPATRMulti * PointValue() * DigitMulti)));
+         DigitMulti = 1000;
+         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
+         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));
       }
    }
    if (_Digits == 3)
@@ -791,33 +786,33 @@ void TyWindow::OnClickSellLines(void)
       if (_Symbol == "XAGUSD")
       {
          DigitMulti = 0.0001;
-         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * SLATRMulti * PointValue() * DigitMulti)));
-         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * TPATRMulti * PointValue() * DigitMulti)));
+         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
+         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));
       }
       if (_Symbol == "USOIL.cash" || _Symbol == "UKOIL.cash" || _Symbol == "USOUSD" || _Symbol == "UKOUSD")
       {
          DigitMulti = 0.1;
-         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * SLATRMulti * PointValue() * DigitMulti)));
-         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * TPATRMulti * PointValue() * DigitMulti)));
+         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
+         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));
       }
       else
       {
-         DigitMulti = 0.01;
-         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * SLATRMulti * PointValue() * DigitMulti)));
-         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * TPATRMulti * PointValue() * DigitMulti)));
+         DigitMulti = 1;
+         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
+         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));
       }
    }
    if(_Digits == 5)
    {
-      DigitMulti = 0.00002;
-      ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * SLATRMulti * PointValue() * DigitMulti)));
-      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * TPATRMulti * PointValue() * DigitMulti)));  
+      DigitMulti = 0.0002;
+      ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
+      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));  
    }
    if(_Digits == 7)
    {
-      DigitMulti = 100;
-      ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (ATR * SLATRMulti * PointValue() * DigitMulti)));
-      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (ATR * TPATRMulti * PointValue() * DigitMulti)));  
+      DigitMulti = 1000;
+      ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
+      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));  
    }
    ObjectSetInteger(0, "SL_Line", OBJPROP_COLOR, clrRed);
    ObjectSetInteger(0, "SL_Line", OBJPROP_WIDTH,HorizontalLineThickness);
@@ -837,37 +832,7 @@ void TyWindow::OnClickDestroyLines(void)
 }
 void TyWindow::OnClickProtect(void)
 {
-   double DigitMulti = 0;
-   if (_Digits == 2)
-   {
-      if (_Symbol == "XAUUSD")
-      {
-         DigitMulti = 0.1;
-      }
-      else
-      {
-         DigitMulti = 100;
-      }
-   }
-   if (_Digits == 3)
-   {
-      if (_Symbol == "XAGUSD")
-      {
-         DigitMulti = 0.0001;
-      }
-      else
-      {
-         DigitMulti = 0.01;
-      }
-   }
-   if (_Digits == 5)
-   {
-      DigitMulti = 0.00002;
-   }
-   if(_Digits == 7)
-   {
-      DigitMulti = 100;
-   }
+
    for(int i=0; i<PositionsTotal(); i++)
    {
       if(PositionSelectByTicket(PositionGetTicket(i))) {
@@ -875,11 +840,11 @@ void TyWindow::OnClickProtect(void)
       if(PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
       if(PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
       {
-         SL = PositionGetDouble(POSITION_PRICE_OPEN) + ( ATR * ProtectionATRMulti * PointValue() * DigitMulti );
+         SL = PositionGetDouble(POSITION_PRICE_OPEN);
       }
       else if(PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL)
       {
-         SL = PositionGetDouble(POSITION_PRICE_OPEN) - ( ATR * ProtectionATRMulti *  PointValue() * DigitMulti );
+         SL = PositionGetDouble(POSITION_PRICE_OPEN);
       }
       if(!Trade.PositionModify(PositionGetTicket(i), SL, PositionGetDouble(POSITION_TP)))
          Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
