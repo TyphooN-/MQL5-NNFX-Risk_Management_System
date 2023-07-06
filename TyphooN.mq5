@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.111"
+#property version   "1.112"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -838,14 +838,7 @@ void TyWindow::OnClickProtect(void)
       if(PositionSelectByTicket(PositionGetTicket(i))) {
       if (PositionGetSymbol(i) != _Symbol) continue;
       if(PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
-      if(PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
-      {
-         SL = PositionGetDouble(POSITION_PRICE_OPEN);
-      }
-      else if(PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL)
-      {
-         SL = PositionGetDouble(POSITION_PRICE_OPEN);
-      }
+      SL = PositionGetDouble(POSITION_PRICE_OPEN);
       if(!Trade.PositionModify(PositionGetTicket(i), SL, PositionGetDouble(POSITION_TP)))
          Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
       }
