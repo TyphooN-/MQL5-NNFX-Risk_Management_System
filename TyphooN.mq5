@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.112"
+#property version   "1.113"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -186,8 +186,8 @@ if(!ExtDialog.Create(0,"TyphooN Risk Management",0,40,40,272,200))
 // Expert deinitialization function
 void OnDeinit(const int reason)
 {
-   // destroy dialog
    ExtDialog.Destroy(reason);
+   ObjectsDeleteAll(0, "info");
 }
 string TimeTilNextBar(ENUM_TIMEFRAMES tf=PERIOD_CURRENT)
 {
@@ -357,15 +357,15 @@ void OnTick()
    ObjectSetInteger(0,"infoRR",OBJPROP_YDISTANCE,(YRowWidth * 4));
    ObjectSetInteger(0,"infoRR",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoRR",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   string infoM30 = "M30: " + TimeTilNextBar(PERIOD_M30);
-   ObjectCreate(0,"infoM30", OBJ_LABEL,0,0,0);
-   ObjectSetString(0,"infoM30",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoM30",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetString(0,"infoM30",OBJPROP_TEXT,infoM30);
-   ObjectSetInteger(0,"infoM30", OBJPROP_XDISTANCE, LeftColumnX);
-   ObjectSetInteger(0,"infoM30",OBJPROP_YDISTANCE,(YRowWidth * 5));
-   ObjectSetInteger(0,"infoM30",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoM30",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string infoM15 = "M15: " + TimeTilNextBar(PERIOD_M15);
+   ObjectCreate(0,"infoM15", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"infoM15",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoM15",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetString(0,"infoM15",OBJPROP_TEXT,infoM15);
+   ObjectSetInteger(0,"infoM15", OBJPROP_XDISTANCE, LeftColumnX);
+   ObjectSetInteger(0,"infoM15",OBJPROP_YDISTANCE,(YRowWidth * 5));
+   ObjectSetInteger(0,"infoM15",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoM15",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoH4 = "H4 : " + TimeTilNextBar(PERIOD_H4);
    ObjectCreate(0,"infoH4", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"infoH4",OBJPROP_FONT,FontName);
