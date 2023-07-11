@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.113"
+#property version   "1.114"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -52,6 +52,8 @@ input double   Risk                    = 0.5;
 input int      MagicNumber             = 13;
 input double   SLPips                  = 4.0;
 input double   TPPips                  = 13.0;
+input bool     EnableAutoProtect       = true;
+input double   AutoProtectRRLevel      = 1.0;
 input int      HorizontalLineThickness = 3;
 // global vars
 double TP = 0;
@@ -187,7 +189,7 @@ if(!ExtDialog.Create(0,"TyphooN Risk Management",0,40,40,272,200))
 void OnDeinit(const int reason)
 {
    ExtDialog.Destroy(reason);
-   ObjectsDeleteAll(0, "info");
+   //ObjectsDeleteAll(0, "info");
 }
 string TimeTilNextBar(ENUM_TIMEFRAMES tf=PERIOD_CURRENT)
 {
@@ -269,6 +271,14 @@ void OnTick()
          tprr = total_tp/MathAbs(total_risk);
          rr = total_pl/MathAbs(total_risk);
       }
+   }
+   if (EnableAutoProtect==true)
+   {
+         if (rr >= AutoProtectRRLevel && total_risk < 0)
+         {
+            Print ("Auto Protect has been engaged due to RR >= " + DoubleToString(AutoProtectRRLevel,8));
+            Protect();
+         }
    }
    string FontName="Courier New";
    int FontSize=8;
@@ -830,9 +840,8 @@ void TyWindow::OnClickDestroyLines(void)
    ObjectDelete(0, "Limit_Line");
    LimitLineExists = false;
 }
-void TyWindow::OnClickProtect(void)
+void Protect()
 {
-
    for(int i=0; i<PositionsTotal(); i++)
    {
       if(PositionSelectByTicket(PositionGetTicket(i))) {
@@ -843,6 +852,10 @@ void TyWindow::OnClickProtect(void)
          Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
       }
       }
+}
+void TyWindow::OnClickProtect(void)
+{
+   Protect();
 }
 void TyWindow::OnClickClosePositions(void)
 {
