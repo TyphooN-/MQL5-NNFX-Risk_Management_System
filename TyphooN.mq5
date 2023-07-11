@@ -53,7 +53,7 @@ input int      MagicNumber             = 13;
 input double   SLPips                  = 4.0;
 input double   TPPips                  = 13.0;
 input bool     EnableAutoProtect       = true;
-input double   AutoProtectRRLevel      = 1.0;
+input double   AutoProtectRRLevel      = 2.0;
 input int      HorizontalLineThickness = 3;
 // global vars
 double TP = 0;
@@ -276,7 +276,7 @@ void OnTick()
    {
          if (rr >= AutoProtectRRLevel && total_risk < 0)
          {
-            Print ("Auto Protect has been engaged due to RR >= " + DoubleToString(AutoProtectRRLevel,8));
+            Print ("Auto Protect has removed risk due to RR >= " + DoubleToString(AutoProtectRRLevel,8));
             Protect();
          }
    }
