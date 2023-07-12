@@ -14,7 +14,9 @@ TyphooN's MQL5-Risk_Management_System (Expert)
 
 -Destroy Lines removes all expert placed horizontal lines from the chart.
 
--Protect button sets a slightly in profit (above break even) stop loss level.
+-EnableAutoProtect will place stop loss at break even when RR passes AutoProtectRRLevel and risk > 0.
+
+-Protect button sets stop loss to break even.
 
 -Close Positions Button orders to close all orders on the active chart symbol.
 
@@ -31,9 +33,13 @@ TyphooN's MQL5-Risk_Management_System (Expert)
 ### User Vars
 -Risk (set to % risk per position or limit order).
 
+-EnableAutoProtect will place stop loss at break even when RR passes AutoProtectRRLevel and risk > 0.
+
+-AutoProtectRRLevel is the Reward:Risk level that will automatically move stop loss to break even using EnableAutoProtect.
+
 -MagicNumber (can be set to anything the user wants, but this expert will only modify trades/positions that match the MagicNumber on the chart).
 
--ProtectionATRMulti, TPATRMulti, and SLATRMulti (will change where the TP and SL line appear on the chart, and how far in profit "PROTECT" places stop loss).
+-TPPips and SLPips (will change where the TP and SL line appear on the chart).
 
 -HorizontalLineThickness - how thick SL, TP, and Limit lines are on the chart.
 
