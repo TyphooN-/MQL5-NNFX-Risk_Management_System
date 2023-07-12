@@ -24,7 +24,7 @@
 #property indicator_chart_window
 #property indicator_buffers 6
 #property indicator_plots 0
-#property version "1.013"
+#property version "1.014"
 input int    ATR_Period                    = 14;
 input bool   M15_ATR_Projections           = true;
 input bool   H1_ATR_Projections            = true;
@@ -38,7 +38,7 @@ input bool   UseCurrentOpen                = true;
 input ENUM_LINE_STYLE ATR_linestyle        = STYLE_DOT;
 input int    ATR_Linethickness             = 2;
 input color  ATR_Line_Color                = clrYellow;
-input bool   ATR_Line_Background           = true;
+input bool   ATR_Line_Background           = false;
 input string FontName                      = "Courier New";
 input int    FontSize                      = 8;
 input color  FontColor                     = clrWhite;
@@ -247,14 +247,14 @@ int OnCalculate(const int        rates_total,
    string infoText2 = "ATR| D1: " + DoubleToString(D1info, ATRInfoDecimals) + " W1: " + DoubleToString(W1info, ATRInfoDecimals) + " MN1: " + DoubleToString(MN1info, ATRInfoDecimals);
    ObjectSetString(0, objname + "Info1", OBJPROP_TEXT, infoText1);
    ObjectSetString(0, objname + "Info2", OBJPROP_TEXT, infoText2);
-   static int waitCountATR = 2;
-   if ( waitCountATR > 0 ) {
+   static int waitCount = 2;
+   if ( waitCount > 0 ) {
       UpdateATRData();
-      waitCountATR--;
-      //PrintFormat( "Waiting for ATR data" );
+      UpdateCandlestickData();
+      waitCount--;
+      //    PrintFormat( "ATR Data is now available" );
       return ( prev_calculated );
    }
-   //    PrintFormat( "ATR Data is now available" );
    // Initialize vars
    double atrLevelAboveD1prevClose = 0;
    double atrLevelBelowD1prevClose = 0;
@@ -289,14 +289,6 @@ int OnCalculate(const int        rates_total,
    double atrLevelAboveM15currentOpen = 0;
    double atrLevelBelowM15currentOpen = 0;
    datetime endTime = time[rates_total - 1];
-   static int waitCountCandlestick = 2;
-   if ( waitCountCandlestick > 0 ) {
-      UpdateCandlestickData();
-      waitCountCandlestick--;
-      //PrintFormat( "Waiting for Candlestick Data" );
-      return ( prev_calculated );
-   }
-    //     PrintFormat( "Candlestick Data is now available" );
    if (D1_ATR_Projections && _Period <= PERIOD_W1)
    {
       atrLevelAboveD1prevClose = prevCloseD1 + avgD1;
