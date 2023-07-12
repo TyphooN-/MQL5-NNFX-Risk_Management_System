@@ -13,7 +13,7 @@
 #property indicator_plots   8
 
 input ENUM_TIMEFRAMES Timeframe= PERIOD_CURRENT;   // Timeframe
-input int BackLimit=3000;                          // Back Limit
+input int BackLimit=5000;                          // Back Limit
 input bool HistoryMode=false;                      // History Mode (with double click)
 
 input string pus1="/////////////////////////////////////////////////";
