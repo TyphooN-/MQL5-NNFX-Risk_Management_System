@@ -193,13 +193,13 @@ int OnCalculate(const int        rates_total,
 {
     static datetime prevTradeServerTime = 0;  // Initialize with 0 on the first run
     datetime currentTradeServerTime = TimeTradeServer();
-    // Check if a new 30-minute interval or 1-hour interval has started
+    // Check if a new 15-minute interval
     if (IsNewM15Interval(currentTradeServerTime, prevTradeServerTime))
     {
       UpdateATRData();
       UpdateCandlestickData();
       prevTradeServerTime = currentTradeServerTime;
-      Print("Updating ATR Data and Candlestick data due to 15 min server time.");
+      //Print("Updating ATR Data and Candlestick data due to 15 min server time.");
     }
    // Calculate the number of bars to be processed
    int limit = rates_total - prev_calculated;
@@ -571,18 +571,14 @@ bool IsNewM15Interval(const datetime& currentTime, const datetime& prevTime)
     MqlDateTime currentMqlTime, prevMqlTime;
     TimeToStruct(currentTime, currentMqlTime);
     TimeToStruct(prevTime, prevMqlTime);
-    //Print("IsNew30MinInterval() has run.");
+    //Print("IsNewM15Interval() has run.");
     // Check if the minutes have changed
     if (currentMqlTime.min != prevMqlTime.min)
     {
         // Check if the current time is at a a 15 minute interval
         if (currentMqlTime.min == 0 || currentMqlTime.min == 15 || currentMqlTime.min == 30 || currentMqlTime.min == 45 )
         {
-            // Check if the hours have changed
-          //  if (currentMqlTime.hour != prevMqlTime.hour)
-          //  {
                 return true;
-          //  }
         }
     }
     return false;
