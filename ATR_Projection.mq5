@@ -252,9 +252,9 @@ int OnCalculate(const int        rates_total,
       UpdateATRData();
       UpdateCandlestickData();
       waitCount--;
-      //    PrintFormat( "ATR Data is now available" );
       return ( prev_calculated );
    }
+   //PrintFormat( "ATR and candlestick Data is now available" );
    // Initialize vars
    double atrLevelAboveD1prevClose = 0;
    double atrLevelBelowD1prevClose = 0;
