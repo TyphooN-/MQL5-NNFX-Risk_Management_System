@@ -879,14 +879,14 @@ void Protect() {
    }
    BubbleSort(positionsArray);
    // Adding print statements to debug
-   Print("ArraySize(positionsArray): ", ArraySize(positionsArray));
-   Print("ProtectOrdersToClose: ", ProtectOrdersToClose);
-   Print("OrdersToPlace: ", OrdersToPlace);
+   //Print("ArraySize(positionsArray): ", ArraySize(positionsArray));
+   //Print("ProtectOrdersToClose: ", ProtectOrdersToClose);
+   //Print("OrdersToPlace: ", OrdersToPlace);
    int OrdersToClose = (int)MathCeil(((double)ArraySize(positionsArray)) * ((double)ProtectOrdersToClose / OrdersToPlace));
-   Print("OrdersToClose: ", OrdersToClose);
    for (int i = 0; i < ArraySize(positionsArray); i++) {
       if (PositionSelectByTicket(positionsArray[i].ticket)) {
          if (ClosedOrders < OrdersToClose) {
+            Print("Closing " + IntegerToString(OrdersToClose) + "Orders: ");
             if (!Trade.PositionClose(positionsArray[i].ticket)) {
                Print("Failed to close the position. Error code: ", GetLastError());
             } else {
