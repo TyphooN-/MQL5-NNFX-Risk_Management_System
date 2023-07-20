@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.115"
+#property version   "1.116"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -50,11 +50,12 @@ double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TR
 input group    "User Vars";
 input int      OrdersToPlace           = 3;
 input double   Risk                    = 0.5;
-input int      MagicNumber             = 13;
-input double   SLPips                  = 4.0;
-input double   TPPips                  = 13.0;
+input int      ProtectOrdersToClose    = 1;
 input bool     EnableAutoProtect       = true;
 input double   AutoProtectRRLevel      = 2.69666420;
+input double   SLPips                  = 4.0;
+input double   TPPips                  = 13.0;
+input int      MagicNumber             = 13;
 input int      HorizontalLineThickness = 3;
 // global vars
 double TP = 0;
@@ -63,6 +64,7 @@ double Bid = 0;
 double Ask = 0;
 double risk_money = 0;
 double lotsglobal = 0;
+int ClosedOrders = 0;
 bool LimitLineExists = false;
 // defines
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
@@ -76,7 +78,6 @@ bool LimitLineExists = false;
 class TyWindow : public CAppDialog
 {
    protected:
-
    private:
       CButton           buttonTrade;
       CButton           buttonLimit;
@@ -624,7 +625,7 @@ void TyWindow::OnClickTrade(void)
    if (LimitLineExists == true) {
       double Limit_Price = ObjectGetDouble(0, "Limit_Line", OBJPROP_PRICE, 0);
       if(TP > SL){
-         lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, Ask - SL),OrderDigits) / OrdersToPlace;
+         lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, Ask - SL)/OrdersToPlace,OrderDigits);
          if(lotsglobal > max_volume)
          {
             lotsglobal = max_volume;
@@ -660,7 +661,7 @@ void TyWindow::OnClickTrade(void)
    }
    else if (LimitLineExists == false){
       if(TP > SL){
-         lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, Ask - SL),OrderDigits) / OrdersToPlace;
+         lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, Ask - SL)/OrdersToPlace,OrderDigits);
          if(lotsglobal > max_volume)
          {
               lotsglobal = max_volume;
@@ -848,18 +849,59 @@ void TyWindow::OnClickDestroyLines(void)
    ObjectDelete(0, "Limit_Line");
    LimitLineExists = false;
 }
-void Protect()
-{
-   for(int i=0; i<PositionsTotal(); i++)
-   {
-      if(PositionSelectByTicket(PositionGetTicket(i))) {
-      if (PositionGetSymbol(i) != _Symbol) continue;
-      if(PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
-      SL = PositionGetDouble(POSITION_PRICE_OPEN);
-      if(!Trade.PositionModify(PositionGetTicket(i), SL, PositionGetDouble(POSITION_TP)))
-         Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
+struct PositionInfo {
+   ulong ticket;
+   double diff;
+};
+void BubbleSort(PositionInfo &arr[]) {
+   for (int i = 0; i < ArraySize(arr); i++) {
+      for (int j = 0; j < ArraySize(arr) - i - 1; j++) {
+         if (arr[j].diff > arr[j+1].diff) {
+            PositionInfo temp = arr[j];
+            arr[j] = arr[j+1];
+            arr[j+1] = temp;
+         }
       }
+   }
+}
+void Protect() {
+   double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+   PositionInfo positionsArray[];
+   ArrayResize(positionsArray, PositionsTotal());
+   for (int i = 0; i < PositionsTotal(); i++) {
+      if (PositionSelectByTicket(PositionGetTicket(i))) {
+         if (PositionGetSymbol(i) != _Symbol) continue;
+         if (PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
+         double diff = MathAbs(PositionGetDouble(POSITION_PRICE_OPEN) - currentPrice);
+         positionsArray[i].diff = diff;
+         positionsArray[i].ticket = PositionGetTicket(i);
       }
+   }
+   BubbleSort(positionsArray);
+   // Adding print statements to debug
+   Print("ArraySize(positionsArray): ", ArraySize(positionsArray));
+   Print("ProtectOrdersToClose: ", ProtectOrdersToClose);
+   Print("OrdersToPlace: ", OrdersToPlace);
+   int OrdersToClose = (int)MathCeil(((double)ArraySize(positionsArray)) * ((double)ProtectOrdersToClose / OrdersToPlace));
+   Print("OrdersToClose: ", OrdersToClose);
+   for (int i = 0; i < ArraySize(positionsArray); i++) {
+      if (PositionSelectByTicket(positionsArray[i].ticket)) {
+         if (ClosedOrders < OrdersToClose) {
+            if (!Trade.PositionClose(positionsArray[i].ticket)) {
+               Print("Failed to close the position. Error code: ", GetLastError());
+            } else {
+                  Print("Position closed successfully");
+                  ClosedOrders++;
+            }
+          }
+          else {
+            SL = PositionGetDouble(POSITION_PRICE_OPEN);
+            if (!Trade.PositionModify(positionsArray[i].ticket, SL, PositionGetDouble(POSITION_TP))) {
+               Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
+             }
+         }
+      }
+   }
 }
 void TyWindow::OnClickProtect(void)
 {
