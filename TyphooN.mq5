@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.114"
+#property version   "1.115"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -48,12 +48,13 @@ double TickSize( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRA
 double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_VALUE ) ); }
 // input vars
 input group    "User Vars";
+input int      OrdersToPlace           = 3;
 input double   Risk                    = 0.5;
 input int      MagicNumber             = 13;
 input double   SLPips                  = 4.0;
 input double   TPPips                  = 13.0;
 input bool     EnableAutoProtect       = true;
-input double   AutoProtectRRLevel      = 2.0;
+input double   AutoProtectRRLevel      = 2.69666420;
 input int      HorizontalLineThickness = 3;
 // global vars
 double TP = 0;
@@ -621,71 +622,78 @@ void TyWindow::OnClickTrade(void)
       OrderDigits = 0;
    }
    if (LimitLineExists == true) {
-        double Limit_Price = ObjectGetDouble(0, "Limit_Line", OBJPROP_PRICE, 0);
-        if(TP > SL){
-        lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, Ask - SL),OrderDigits);
-            if(lotsglobal > max_volume)
-            {
-               lotsglobal = max_volume;
-            }
-            if (Trade.BuyLimit(lotsglobal, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
-            {
-               Print("Buy Limit opened successfully");
-            }
-            else
-            {
-               Print("Failed to open buy limit, error: " + IntegerToString(Trade.ResultRetcode()) + " | " + Trade.ResultRetcodeDescription());
-            }
-            }
-            else if (SL > TP){
-            lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, SL - Bid),OrderDigits);
-            if(lotsglobal > max_volume)
-            {
-               lotsglobal = max_volume;
-            }
-            if (Trade.SellLimit(lotsglobal, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
-            {
-               Print("Sell Limit opened successfully");
-            }
-            else
-            {
-               Print("Failed to open sell limit, error: " + IntegerToString(Trade.ResultRetcode()) + " | " + Trade.ResultRetcodeDescription());
-            }
-            }
+      double Limit_Price = ObjectGetDouble(0, "Limit_Line", OBJPROP_PRICE, 0);
+      if(TP > SL){
+         lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, Ask - SL),OrderDigits) / OrdersToPlace;
+         if(lotsglobal > max_volume)
+         {
+            lotsglobal = max_volume;
+         }
+         for(int i=0; i<OrdersToPlace; i++){
+             if (Trade.BuyLimit(lotsglobal, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
+             {
+                Print("Buy Limit opened successfully");
+             }
+             else
+             {
+                Print("Failed to open buy limit, error: " + IntegerToString(Trade.ResultRetcode()) + " | " + Trade.ResultRetcodeDescription());
+             }
+         }
+      }
+      else if (SL > TP){
+         lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, SL - Bid)/OrdersToPlace,OrderDigits);
+         if(lotsglobal > max_volume)
+         {
+            lotsglobal = max_volume;
+         }
+         for(int i=0; i<OrdersToPlace; i++){
+             if (Trade.SellLimit(lotsglobal, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
+             {
+                Print("Sell Limit opened successfully");
+             }
+             else
+             {
+                Print("Failed to open sell limit, error: " + IntegerToString(Trade.ResultRetcode()) + " | " + Trade.ResultRetcodeDescription());
+             }
+         }
+      }
    }
    else if (LimitLineExists == false){
       if(TP > SL){
-      lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, Ask - SL),OrderDigits);
+         lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, Ask - SL),OrderDigits) / OrdersToPlace;
          if(lotsglobal > max_volume)
          {
               lotsglobal = max_volume;
          }
-         if(Trade.Buy(lotsglobal, NULL, 0, SL, TP, NULL))
-         {
-            Print("Buy trade opened successfully");
-         }
-         else
-         {
-            Print("Failed to open buy trade, error: " + IntegerToString(Trade.ResultRetcode()) + " | " + Trade.ResultRetcodeDescription());
+         for(int i=0; i<OrdersToPlace; i++){
+            if(Trade.Buy(lotsglobal, NULL, 0, SL, TP, NULL))
+            {
+                Print("Buy trade opened successfully");
+            }
+            else
+            {
+                Print("Failed to open buy trade, error: " + IntegerToString(Trade.ResultRetcode()) + " | " + Trade.ResultRetcodeDescription());
+            }
          }
       }
       else if (SL > TP){
-      lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, SL - Bid),OrderDigits);
-
+      lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, SL - Bid)/OrdersToPlace,OrderDigits);
          if(lotsglobal > max_volume)
          {
              lotsglobal = max_volume;
          }
-         if(Trade.Sell(lotsglobal, NULL, 0, SL, TP, NULL))
-         {
-          Print("Sell trade opened successfully");
+         for(int i=0; i<OrdersToPlace; i++){
+             if(Trade.Sell(lotsglobal, NULL, 0, SL, TP, NULL))
+             {
+              Print("Sell trade opened successfully");
+             }
+             else
+             {
+                Print("Failed to open sell trade, error: " + IntegerToString(Trade.ResultRetcode()) + " | " + Trade.ResultRetcodeDescription());
+             }
          }
-         else
-         {
-            Print("Failed to open sell trade, error: " + IntegerToString(Trade.ResultRetcode()) + " | " + Trade.ResultRetcodeDescription());
-      }
          ObjectDelete(0, "Limit_Line");  
-    }
+   }
    }
 }
 void TyWindow::OnClickLimit(void)
