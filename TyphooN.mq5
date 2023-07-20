@@ -48,8 +48,8 @@ double TickSize( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRA
 double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_VALUE ) ); }
 // input vars
 input group    "User Vars";
-input int      OrdersToPlace           = 3;
 input double   Risk                    = 0.5;
+input int      OrdersToPlace           = 3;
 input int      ProtectOrdersToClose    = 1;
 input bool     EnableAutoProtect       = true;
 input double   AutoProtectRRLevel      = 2.69666420;
