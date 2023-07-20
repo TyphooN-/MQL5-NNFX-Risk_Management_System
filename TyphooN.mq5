@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.117"
+#property version   "1.118"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -892,6 +892,7 @@ void AutoProtect() {
             } else {
                   Print("Position closed successfully");
                   ClosedOrders++;
+                  OrdersToClose--;
             }
           }
           else {
