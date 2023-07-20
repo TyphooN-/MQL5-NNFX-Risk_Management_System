@@ -64,7 +64,6 @@ double Bid = 0;
 double Ask = 0;
 double risk_money = 0;
 double lotsglobal = 0;
-int ClosedOrders = 0;
 bool LimitLineExists = false;
 // defines
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
@@ -279,7 +278,7 @@ void OnTick()
          if (rr >= AutoProtectRRLevel && total_risk < 0)
          {
             Print ("Auto Protect has removed risk due to RR >= " + DoubleToString(AutoProtectRRLevel,8));
-            Protect();
+            AutoProtect();
          }
    }
    string FontName="Courier New";
@@ -864,7 +863,7 @@ void BubbleSort(PositionInfo &arr[]) {
       }
    }
 }
-void Protect() {
+void AutoProtect() {
    double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    PositionInfo positionsArray[];
    ArrayResize(positionsArray, PositionsTotal());
@@ -878,6 +877,7 @@ void Protect() {
       }
    }
    BubbleSort(positionsArray);
+   int ClosedOrders = 0 ;
    // Adding print statements to debug
    //Print("ArraySize(positionsArray): ", ArraySize(positionsArray));
    //Print("ProtectOrdersToClose: ", ProtectOrdersToClose);
@@ -886,7 +886,7 @@ void Protect() {
    for (int i = 0; i < ArraySize(positionsArray); i++) {
       if (PositionSelectByTicket(positionsArray[i].ticket)) {
          if (ClosedOrders < OrdersToClose) {
-            Print("Closing " + IntegerToString(OrdersToClose) + "Orders: ");
+            Print("Closing " + IntegerToString(OrdersToClose) + " orders.");
             if (!Trade.PositionClose(positionsArray[i].ticket)) {
                Print("Failed to close the position. Error code: ", GetLastError());
             } else {
@@ -902,6 +902,19 @@ void Protect() {
          }
       }
    }
+}
+void Protect()
+{
+   for(int i=0; i<PositionsTotal(); i++)
+   {
+      if(PositionSelectByTicket(PositionGetTicket(i))) {
+      if (PositionGetSymbol(i) != _Symbol) continue;
+      if(PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
+      SL = PositionGetDouble(POSITION_PRICE_OPEN);
+      if(!Trade.PositionModify(PositionGetTicket(i), SL, PositionGetDouble(POSITION_TP)))
+         Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
+      }
+      }
 }
 void TyWindow::OnClickProtect(void)
 {
