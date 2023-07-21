@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.121"
+#property version   "1.122"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -901,7 +901,7 @@ void AutoProtect() {
       }
    }
    BubbleSort(positionsArray);
-   int ClosedPositions = 0 ;
+   int ClosedPositions=0;
    // Adding print statements to debug
    //Print("ArraySize(positionsArray): ", ArraySize(positionsArray));
    //Print("ProtectOrdersToClose: ", ProtectOrdersToClose);
@@ -911,14 +911,13 @@ void AutoProtect() {
       if (PositionSelectByTicket(positionsArray[i].ticket)) {
          if (ClosedPositions < PositionsToClose) {
             Print("Closing Position " + IntegerToString(i+1) + "/" + IntegerToString(PositionsToClose) + ".");
-            if (!Trade.PositionClose(positionsArray[i].ticket)) {
-               Print("Failed to close position" + IntegerToString(i+1) + "/" + IntegerToString(PositionsToClose) + ". Error code: ", GetLastError());
-            } else {
-                  Print("Position " + IntegerToString(i+1) + "/" + IntegerToString(PositionsToClose) + "closed successfully.");
-                  ClosedPositions++;
-                  PositionsToClose--;
-            }
-          }
+         if (!Trade.PositionClose(positionsArray[i].ticket)) {
+            Print("Failed to close position " + IntegerToString(i+1) + "/" + IntegerToString(PositionsToClose) + ". Error code: ", GetLastError());
+         } else {
+         Print("Position " + IntegerToString(i+1) + "/" + IntegerToString(PositionsToClose) + " closed successfully.");
+         ClosedPositions++;
+      }
+       }
           else {
             SL = PositionGetDouble(POSITION_PRICE_OPEN);
             if (!Trade.PositionModify(positionsArray[i].ticket, SL, PositionGetDouble(POSITION_TP))) {
