@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.124"
+#property version   "1.125"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -727,7 +727,7 @@ void TyWindow::OnClickBuyLines(void)
          ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
          ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
       }
-      if (_Symbol == "LTCUSD")
+      else if (_Symbol == "LTCUSD")
       {
          DigitMulti = 10;
          ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
@@ -804,7 +804,7 @@ void TyWindow::OnClickSellLines(void)
          ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
          ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));
       }
-      if (_Symbol == "LTCUSD")
+      else if (_Symbol == "LTCUSD")
       {
          DigitMulti = 10;
          ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
@@ -911,7 +911,7 @@ void AutoProtect() {
    }
    BubbleSort(positionsArray);
    int ClosedPositions=0;
-   int PositionsToClose = (int)MathCeil(((double)ArraySize(positionsArray)) * ((double)ProtectPositionsToClose/OrdersToPlace));
+   int PositionsToClose = (int)MathFloor(((double)ArraySize(positionsArray)) * ((double)ProtectPositionsToClose/OrdersToPlace));
    if(totalPositions == 1) {
       SL = PositionGetDouble(POSITION_PRICE_OPEN);
       if (!Trade.PositionModify(positionsArray[0].ticket, SL, PositionGetDouble(POSITION_TP))) {
