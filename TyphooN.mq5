@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.118"
+#property version   "1.119"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -632,7 +632,7 @@ void TyWindow::OnClickTrade(void)
          for(int i=0; i<OrdersToPlace; i++){
              if (Trade.BuyLimit(lotsglobal, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
              {
-                Print("Buy Limit opened successfully");
+                Print("Buy Limit opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(OrdersToPlace));
              }
              else
              {
@@ -649,7 +649,7 @@ void TyWindow::OnClickTrade(void)
          for(int i=0; i<OrdersToPlace; i++){
              if (Trade.SellLimit(lotsglobal, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
              {
-                Print("Sell Limit opened successfully");
+                Print("Sell Limit opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(OrdersToPlace));
              }
              else
              {
@@ -668,7 +668,7 @@ void TyWindow::OnClickTrade(void)
          for(int i=0; i<OrdersToPlace; i++){
             if(Trade.Buy(lotsglobal, NULL, 0, SL, TP, NULL))
             {
-                Print("Buy trade opened successfully");
+                Print("Buy trade opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(OrdersToPlace));
             }
             else
             {
@@ -685,7 +685,7 @@ void TyWindow::OnClickTrade(void)
          for(int i=0; i<OrdersToPlace; i++){
              if(Trade.Sell(lotsglobal, NULL, 0, SL, TP, NULL))
              {
-              Print("Sell trade opened successfully");
+              Print("Sell trade opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(OrdersToPlace));
              }
              else
              {
@@ -750,10 +750,16 @@ void TyWindow::OnClickBuyLines(void)
       }
       else
       {
-         DigitMulti = 0.1;
+         DigitMulti = 0.001;
          ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
          ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
       }
+   }
+   if(_Digits == 4)
+   {
+      DigitMulti = 1;
+      ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
+      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
    }
    if(_Digits == 5)
    {
@@ -809,16 +815,22 @@ void TyWindow::OnClickSellLines(void)
       }
       if (_Symbol == "USOIL.cash" || _Symbol == "UKOIL.cash" || _Symbol == "USOUSD" || _Symbol == "UKOUSD")
       {
-         DigitMulti = 0.1;
+         DigitMulti = 1;
          ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
          ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));
       }
       else
       {
-         DigitMulti = 1;
+         DigitMulti = 0.001;
          ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
          ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));
       }
+   }
+   if(_Digits == 4)
+   {
+      DigitMulti = 1;
+      ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
+      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));  
    }
    if(_Digits == 5)
    {
