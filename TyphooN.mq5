@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.119"
+#property version   "1.121"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -50,7 +50,7 @@ double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TR
 input group    "User Vars";
 input double   Risk                    = 0.5;
 input int      OrdersToPlace           = 3;
-input int      ProtectOrdersToClose    = 1;
+input int      ProtectPositionsToClose = 1;
 input bool     EnableAutoProtect       = true;
 input double   AutoProtectRRLevel      = 2.69666420;
 input double   SLPips                  = 4.0;
@@ -727,6 +727,12 @@ void TyWindow::OnClickBuyLines(void)
          ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
          ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
       }
+      if (_Symbol == "LTCUSD")
+      {
+         DigitMulti = 10;
+         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
+         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
+      }
       else
       {
          DigitMulti = 1000;
@@ -795,6 +801,12 @@ void TyWindow::OnClickSellLines(void)
       if (_Symbol == "XAUUSD")
       {
          DigitMulti = 1;
+         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
+         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));
+      }
+      if (_Symbol == "LTCUSD")
+      {
+         DigitMulti = 10;
          ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
          ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));
       }
@@ -889,22 +901,22 @@ void AutoProtect() {
       }
    }
    BubbleSort(positionsArray);
-   int ClosedOrders = 0 ;
+   int ClosedPositions = 0 ;
    // Adding print statements to debug
    //Print("ArraySize(positionsArray): ", ArraySize(positionsArray));
    //Print("ProtectOrdersToClose: ", ProtectOrdersToClose);
    //Print("OrdersToPlace: ", OrdersToPlace);
-   int OrdersToClose = (int)MathCeil(((double)ArraySize(positionsArray)) * ((double)ProtectOrdersToClose / OrdersToPlace));
+   int PositionsToClose = (int)MathCeil(((double)ArraySize(positionsArray)) * ((double)ProtectPositionsToClose/OrdersToPlace));
    for (int i = 0; i < ArraySize(positionsArray); i++) {
       if (PositionSelectByTicket(positionsArray[i].ticket)) {
-         if (ClosedOrders < OrdersToClose) {
-            Print("Closing " + IntegerToString(OrdersToClose) + " orders.");
+         if (ClosedPositions < PositionsToClose) {
+            Print("Closing Position " + IntegerToString(i+1) + "/" + IntegerToString(PositionsToClose) + ".");
             if (!Trade.PositionClose(positionsArray[i].ticket)) {
-               Print("Failed to close the position. Error code: ", GetLastError());
+               Print("Failed to close position" + IntegerToString(i+1) + "/" + IntegerToString(PositionsToClose) + ". Error code: ", GetLastError());
             } else {
-                  Print("Position closed successfully");
-                  ClosedOrders++;
-                  OrdersToClose--;
+                  Print("Position " + IntegerToString(i+1) + "/" + IntegerToString(PositionsToClose) + "closed successfully.");
+                  ClosedPositions++;
+                  PositionsToClose--;
             }
           }
           else {
