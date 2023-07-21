@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.123"
+#property version   "1.124"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -887,29 +887,38 @@ void BubbleSort(PositionInfo &arr[]) {
       }
    }
 }
-void AutoProtect()
-{
+void AutoProtect() {
    double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    PositionInfo positionsArray[];
-   ArrayResize(positionsArray, PositionsTotal());
+   // Count positions for the current symbol only
+   int totalPositions = 0;
+   for(int i = 0; i < PositionsTotal(); i++) {
+      if(PositionSelectByTicket(PositionGetTicket(i)) && PositionGetSymbol(i) == _Symbol) {
+         totalPositions++;
+      }
+   }
+   ArrayResize(positionsArray, totalPositions);
+   int j = 0;  // Index for positionsArray
    for (int i = 0; i < PositionsTotal(); i++) {
       if (PositionSelectByTicket(PositionGetTicket(i))) {
          if (PositionGetSymbol(i) != _Symbol) continue;
          if (PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
          double diff = MathAbs(PositionGetDouble(POSITION_PRICE_OPEN) - currentPrice);
-         positionsArray[i].diff = diff;
-         positionsArray[i].ticket = PositionGetTicket(i);
+         positionsArray[j].diff = diff;
+         positionsArray[j].ticket = PositionGetTicket(i);
+         j++;
       }
    }
    BubbleSort(positionsArray);
    int ClosedPositions=0;
    int PositionsToClose = (int)MathCeil(((double)ArraySize(positionsArray)) * ((double)ProtectPositionsToClose/OrdersToPlace));
-   if(PositionsTotal() == 1) {
+   if(totalPositions == 1) {
       SL = PositionGetDouble(POSITION_PRICE_OPEN);
       if (!Trade.PositionModify(positionsArray[0].ticket, SL, PositionGetDouble(POSITION_TP))) {
          Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
       }
-   } else {
+   }
+   else { 
       for (int i = 0; i < ArraySize(positionsArray); i++) {
          if (PositionSelectByTicket(positionsArray[i].ticket)) {
             if (ClosedPositions < PositionsToClose) {
