@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.125"
+#property version   "1.130"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -63,7 +63,6 @@ double SL = 0;
 double Bid = 0;
 double Ask = 0;
 double risk_money = 0;
-double lotsglobal = 0;
 bool LimitLineExists = false;
 // defines
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
@@ -89,16 +88,20 @@ class TyWindow : public CAppDialog
       CButton           buttonSetTP;
       CButton           buttonSetSL;
    public:
-                              TyWindow(void);
-                              ~TyWindow(void);
+      TyWindow(void);
+      ~TyWindow(void);
+      void ExecuteBuyLimitOrders(double lots, double Limit_Price);
+      void ExecuteSellLimitOrders(double lots, double Limit_Price);
+      void ExecuteBuyOrders(double lots);
+      void ExecuteSellOrders(double lots);
       // create
-      virtual bool            Create(const long chart,const string name,const int subwin,const int x1,const int y1,const int x2,const int y2);
+      virtual bool      Create(const long chart,const string name,const int subwin,const int x1,const int y1,const int x2,const int y2);
       // handlers of drag
       virtual bool      OnDialogDragStart(void);
       virtual bool      OnDialogDragProcess(void);
       virtual bool      OnDialogDragEnd(void);
       // chart event handler
-      virtual bool            OnEvent(const int id,const long &lparam,const double &dparam,const string &sparam);
+      virtual bool      OnEvent(const int id,const long &lparam,const double &dparam,const string &sparam);
    protected:
       // create dependent controls
       bool              CreateButtonTrade(void);
@@ -144,7 +147,6 @@ TyWindow::TyWindow(void)
 TyWindow::~TyWindow(void)
 {
 }
-// Create
 bool TyWindow::Create(const long chart,const string name,const int subwin,const int x1,const int y1,const int x2,const int y2)
 {
    if(!CAppDialog::Create(chart,name,subwin,x1,y1,x2,y2))
@@ -178,14 +180,25 @@ TyWindow ExtDialog;
 // Expert initialization function
 int OnInit()
 {
-// create application dialog
-if(!ExtDialog.Create(0,"TyphooN Risk Management",0,40,40,272,200))
-   return(INIT_FAILED);
-   // run application
-   ExtDialog.Run();
-   // succeed
-   return(INIT_SUCCEEDED);
-  }
+   ObjectCreate(0,"infoRisk", OBJ_LABEL,0,0,0);
+   ObjectCreate(0,"infoTP", OBJ_LABEL,0,0,0);
+   ObjectCreate(0,"infoMargin", OBJ_LABEL,0,0,0);
+   ObjectCreate(0,"infoTPRR", OBJ_LABEL,0,0,0);
+   ObjectCreate(0,"infoRR", OBJ_LABEL,0,0,0);
+   ObjectCreate(0,"infoM15", OBJ_LABEL,0,0,0);
+   ObjectCreate(0,"infoH1", OBJ_LABEL,0,0,0);
+   ObjectCreate(0,"infoH4", OBJ_LABEL,0,0,0);
+   ObjectCreate(0,"infoD1", OBJ_LABEL,0,0,0);
+   ObjectCreate(0,"infoW1", OBJ_LABEL,0,0,0);
+   ObjectCreate(0,"infoMN1", OBJ_LABEL,0,0,0);
+   // create application dialog
+   if(!ExtDialog.Create(0,"TyphooN Risk Management",0,40,40,272,200))
+      return(INIT_FAILED);
+      // run application
+      ExtDialog.Run();
+      // succeed
+      return(INIT_SUCCEEDED);
+}
 // Expert deinitialization function
 void OnDeinit(const int reason)
 {
@@ -204,7 +217,8 @@ string TimeTilNextBar(ENUM_TIMEFRAMES tf=PERIOD_CURRENT)
    if(mdt.min>0) return StringFormat("%dM %ds",mdt.min,mdt.sec);
    return StringFormat("%ds",mdt.sec);
 }
-double PointValue() {
+double PointValue()
+{
    double tickSize      = TickSize( _Symbol );
    double tickValue     = TickValue( _Symbol );
    double point         = Point( _Symbol );
@@ -228,7 +242,8 @@ void OnTick()
    double tprr = 0;
    for(int i = 0; i < PositionsTotal(); i++)
    {
-      if(PositionSelectByTicket(PositionGetTicket(i)))
+      ulong ticket = PositionGetTicket(i);
+      if(PositionSelectByTicket(ticket))
       {
          if(PositionGetSymbol(i) != _Symbol) continue;
          double profit = PositionGetDouble(POSITION_PROFIT);
@@ -239,30 +254,42 @@ void OnTick()
          {
             if (!OrderCalcMargin(ORDER_TYPE_BUY, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), margin))
             {
-               Print(GetLastError());
+               Print("Error in OrderCalcMargin: ", GetLastError());
             }
-            if (!OrderCalcProfit(ORDER_TYPE_BUY, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), PositionGetDouble(POSITION_TP), tpprofit))
+            if (PositionGetDouble(POSITION_TP) != 0)
             {
-               Print(GetLastError());
+               if (!OrderCalcProfit(ORDER_TYPE_BUY, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), PositionGetDouble(POSITION_TP), tpprofit))
+               {
+                  Print("Error in OrderCalcProfit (TP): ", GetLastError());
+               }
             }
-            if (!OrderCalcProfit(ORDER_TYPE_BUY, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), PositionGetDouble(POSITION_SL), risk))
+            if (PositionGetDouble(POSITION_SL) != 0)
             {
-               Print(GetLastError());
+               if (!OrderCalcProfit(ORDER_TYPE_BUY, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), PositionGetDouble(POSITION_SL), risk))
+               {
+                  Print("Error in OrderCalcProfit (SL): ", GetLastError());
+               }
             }
          }
          if (PositionGetDouble(POSITION_SL) > PositionGetDouble(POSITION_TP))
          {
             if (!OrderCalcMargin(ORDER_TYPE_SELL, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), margin))
             {
-               Print(GetLastError());
+               Print("Error in OrderCalcMargin: ", GetLastError());
             }
-            if (!OrderCalcProfit(ORDER_TYPE_SELL, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), PositionGetDouble(POSITION_TP), tpprofit))
+            if (PositionGetDouble(POSITION_TP) != 0)
             {
-               Print(GetLastError());
+               if (!OrderCalcProfit(ORDER_TYPE_SELL, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), PositionGetDouble(POSITION_TP), tpprofit))
+               {
+                  Print("Error in OrderCalcProfit (TP): ", GetLastError());
+               }
             }
-            if (!OrderCalcProfit(ORDER_TYPE_SELL, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), PositionGetDouble(POSITION_SL), risk))
+            if (PositionGetDouble(POSITION_SL) != 0)
             {
-               Print(GetLastError());
+               if (!OrderCalcProfit(ORDER_TYPE_SELL, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), PositionGetDouble(POSITION_SL), risk))
+               {
+                  Print("Error in OrderCalcProfit (SL): ", GetLastError());
+               }
             }
          }
          total_pl += profit;
@@ -326,7 +353,6 @@ void OnTick()
    {
       infoRisk = "SL Profit: $" + DoubleToString(total_risk, 2);
    }
-   ObjectCreate(0,"infoRisk", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"infoRisk",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoRisk",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoRisk",OBJPROP_TEXT,infoRisk);
@@ -335,7 +361,6 @@ void OnTick()
    ObjectSetInteger(0,"infoRisk",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoRisk",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoTP = "Total TP : $" + DoubleToString(total_tp, 2);
-   ObjectCreate(0,"infoTP", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"infoTP",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoTP",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoTP",OBJPROP_TEXT,infoTP);
@@ -344,7 +369,6 @@ void OnTick()
    ObjectSetInteger(0,"infoTP",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoTP",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoMargin = "Margin: $" + DoubleToString(total_margin, 2);
-   ObjectCreate(0,"infoMargin", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"infoMargin",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoMargin",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoMargin",OBJPROP_TEXT,infoMargin);
@@ -352,7 +376,6 @@ void OnTick()
    ObjectSetInteger(0,"infoMargin",OBJPROP_YDISTANCE,(YRowWidth * 3));
    ObjectSetInteger(0,"infoMargin",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoMargin",OBJPROP_CORNER,CORNER_RIGHT_UPPER); 
-   ObjectCreate(0,"infoTPRR", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"infoTPRR",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoTPRR",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoTPRR",OBJPROP_TEXT,infoTPRR);
@@ -360,7 +383,6 @@ void OnTick()
    ObjectSetInteger(0,"infoTPRR",OBJPROP_YDISTANCE,(YRowWidth * 4));
    ObjectSetInteger(0,"infoTPRR",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoTPRR",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   ObjectCreate(0,"infoRR", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"infoRR",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoRR",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoRR",OBJPROP_TEXT,infoRR);
@@ -369,7 +391,6 @@ void OnTick()
    ObjectSetInteger(0,"infoRR",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoRR",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoM15 = "M15: " + TimeTilNextBar(PERIOD_M15);
-   ObjectCreate(0,"infoM15", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"infoM15",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoM15",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoM15",OBJPROP_TEXT,infoM15);
@@ -378,7 +399,6 @@ void OnTick()
    ObjectSetInteger(0,"infoM15",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoM15",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoH4 = "H4 : " + TimeTilNextBar(PERIOD_H4);
-   ObjectCreate(0,"infoH4", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"infoH4",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoH4",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoH4",OBJPROP_TEXT,infoH4);
@@ -387,7 +407,6 @@ void OnTick()
    ObjectSetInteger(0,"infoH4",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoH4",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoW1 = "W1 : " + TimeTilNextBar(PERIOD_W1);
-   ObjectCreate(0,"infoW1", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"infoW1",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoW1",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoW1",OBJPROP_TEXT,infoW1);
@@ -396,7 +415,6 @@ void OnTick()
    ObjectSetInteger(0,"infoW1",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoW1",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoH1 ="H1 : " + TimeTilNextBar(PERIOD_H1);
-   ObjectCreate(0,"infoH1", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"infoH1",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoH1",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoH1",OBJPROP_TEXT,infoH1);
@@ -405,7 +423,6 @@ void OnTick()
    ObjectSetInteger(0,"infoH1",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoH1",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoD1 = "D1 : " + TimeTilNextBar(PERIOD_D1);
-   ObjectCreate(0,"infoD1", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"infoD1",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoD1",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoD1",OBJPROP_TEXT,infoD1);
@@ -414,7 +431,6 @@ void OnTick()
    ObjectSetInteger(0,"infoD1",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoD1",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoMN1 = "MN1: " + TimeTilNextBar(PERIOD_MN1);
-   ObjectCreate(0,"infoMN1", OBJ_LABEL,0,0,0);
    ObjectSetString(0,"infoMN1",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoMN1",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoMN1",OBJPROP_TEXT,infoMN1);
@@ -601,12 +617,69 @@ bool TyWindow::CreateButtonSetSL(void)
    // succeed
    return(true);
 }
+void TyWindow::ExecuteBuyLimitOrders(double lots, double Limit_Price)
+{
+   for (int i = 0; i < OrdersToPlace; i++)
+   {
+      if (Trade.BuyLimit(lots, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
+      {
+         Print("Buy limit order opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(OrdersToPlace));
+      }
+      else
+      {
+         Print("Failed to open buy limit order, error: ", GetLastError());
+      }
+   }
+}
+void TyWindow::ExecuteSellLimitOrders(double lots, double Limit_Price)
+{
+   for (int i = 0; i < OrdersToPlace; i++)
+   {
+      if (Trade.SellLimit(lots, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
+      {
+         Print("Sell limit order opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(OrdersToPlace));
+      }
+      else
+      {
+         Print("Failed to open sell limit order, error: ", GetLastError());
+      }
+   }
+}
+void TyWindow::ExecuteBuyOrders(double lots)
+{
+   for (int i = 0; i < OrdersToPlace; i++)
+   {
+      if (Trade.Buy(lots, NULL, 0, SL, TP, NULL))
+      {
+         Print("Buy trade opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(OrdersToPlace));
+      }
+      else
+      {
+         Print("Failed to open buy trade, error: ", GetLastError());
+      }
+   }
+}
+void TyWindow::ExecuteSellOrders(double lots)
+{
+
+   for (int i = 0; i < OrdersToPlace; i++)
+   {
+      if (Trade.Sell(lots, NULL, 0, SL, TP, NULL))
+      {
+         Print("Sell position opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(OrdersToPlace));
+      }
+      else
+      {
+          Print("Failed to open sell position, error: ", GetLastError());
+      }
+   }
+}
 void TyWindow::OnClickTrade(void)
 {
    SL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
    TP = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
-   double max_volume = NormalizeDouble(SymbolInfoDouble(_Symbol,SYMBOL_VOLUME_MAX),_Digits);
-   double min_volume = SymbolInfoDouble(_Symbol,SYMBOL_VOLUME_MIN);
+   double max_volume = NormalizeDouble(SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX), _Digits);
+   double min_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
    Trade.SetExpertMagicNumber(MagicNumber);
    int OrderDigits = 0;
    if (min_volume == 0.01)
@@ -621,84 +694,99 @@ void TyWindow::OnClickTrade(void)
    {
       OrderDigits = 0;
    }
-   if (LimitLineExists == true) {
-      double Limit_Price = ObjectGetDouble(0, "Limit_Line", OBJPROP_PRICE, 0);
-      if(TP > SL){
-         lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, Ask - SL)/OrdersToPlace,OrderDigits);
-         if(lotsglobal > max_volume)
+   double Limit_Price = 0;
+   if (LimitLineExists == true)
+   {
+      Limit_Price = ObjectGetDouble(0, "Limit_Line", OBJPROP_PRICE, 0);
+   }
+   double totallots = TP > SL ? NormalizeDouble(RiskLots(_Symbol, risk_money, Ask - SL), OrderDigits)
+                              : NormalizeDouble(RiskLots(_Symbol, risk_money, SL - Bid), OrderDigits);
+   double orderlots = TP > SL ? NormalizeDouble(RiskLots(_Symbol, risk_money, Ask - SL) / OrdersToPlace, OrderDigits)
+                              : NormalizeDouble(RiskLots(_Symbol, risk_money, SL - Bid) / OrdersToPlace, OrderDigits);
+   if (totallots > max_volume)
+   {
+      totallots = max_volume;
+   }
+   if (orderlots > max_volume)
+   {
+      orderlots = max_volume;
+   }
+   MqlTradeRequest request;
+   ZeroMemory(request);
+   request.symbol = _Symbol; // Trading symbol
+   request.volume = totallots; // Requested volume for a deal in lots
+   request.deviation = 20; // Maximum possible deviation from the requested price
+   request.magic = MagicNumber; // Order magic number
+   request.sl = SL; // Stop Loss level
+   request.tp = TP; // Take Profit level
+   MqlTradeCheckResult check_result;
+   MqlTick latest_tick;
+   if (LimitLineExists == true)
+   {
+      if (TP > SL)
+      {
+         request.action = TRADE_ACTION_PENDING;
+         request.type = ORDER_TYPE_BUY_LIMIT;
+         request.price = Limit_Price;
+         if (!Trade.OrderCheck(request, check_result))
          {
-            lotsglobal = max_volume;
+            Print("Buy Limit OrderCheck failed, retcode=", check_result.retcode);
+            return;
          }
-         for(int i=0; i<OrdersToPlace; i++){
-             if (Trade.BuyLimit(lotsglobal, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
-             {
-                Print("Buy Limit opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(OrdersToPlace));
-             }
-             else
-             {
-                Print("Failed to open buy limit, error: " + IntegerToString(Trade.ResultRetcode()) + " | " + Trade.ResultRetcodeDescription());
-             }
-         }
+         ExecuteBuyLimitOrders(orderlots, Limit_Price);
       }
-      else if (SL > TP){
-         lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, SL - Bid)/OrdersToPlace,OrderDigits);
-         if(lotsglobal > max_volume)
+      else if (SL > TP)
+      {
+         request.action = TRADE_ACTION_PENDING;
+         request.type = ORDER_TYPE_SELL_LIMIT;
+         request.price = Limit_Price;
+         if (!Trade.OrderCheck(request, check_result))
          {
-            lotsglobal = max_volume;
+            Print("Sell Limit OrderCheck failed, retcode=", check_result.retcode);
+            return;
          }
-         for(int i=0; i<OrdersToPlace; i++){
-             if (Trade.SellLimit(lotsglobal, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
-             {
-                Print("Sell Limit opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(OrdersToPlace));
-             }
-             else
-             {
-                Print("Failed to open sell limit, error: " + IntegerToString(Trade.ResultRetcode()) + " | " + Trade.ResultRetcodeDescription());
-             }
-         }
+         ExecuteSellLimitOrders(orderlots, Limit_Price);
       }
    }
-   else if (LimitLineExists == false){
-      if(TP > SL){
-         lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, Ask - SL)/OrdersToPlace,OrderDigits);
-         if(lotsglobal > max_volume)
+   else {
+      if (TP > SL)
+      {
+         if (SymbolInfoTick(_Symbol, latest_tick)) // get the latest tick
          {
-              lotsglobal = max_volume;
+            request.action = TRADE_ACTION_DEAL;
+            request.type = ORDER_TYPE_BUY; // Order type
          }
-         for(int i=0; i<OrdersToPlace; i++){
-            if(Trade.Buy(lotsglobal, NULL, 0, SL, TP, NULL))
-            {
-                Print("Buy trade opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(OrdersToPlace));
-            }
-            else
-            {
-                Print("Failed to open buy trade, error: " + IntegerToString(Trade.ResultRetcode()) + " | " + Trade.ResultRetcodeDescription());
-            }
+
+         if (!Trade.OrderCheck(request, check_result))
+         {
+            Print("Buy OrderCheck failed, retcode=", check_result.retcode);
+            return;
          }
+         ExecuteBuyOrders(orderlots);
       }
-      else if (SL > TP){
-      lotsglobal = NormalizeDouble(RiskLots(_Symbol, risk_money, SL - Bid)/OrdersToPlace,OrderDigits);
-         if(lotsglobal > max_volume)
+      else if (SL > TP)
+      {
+         if (SymbolInfoTick(_Symbol, latest_tick)) // get the latest tick
          {
-             lotsglobal = max_volume;
+            request.action = TRADE_ACTION_DEAL;
+            request.type = ORDER_TYPE_SELL; // Order type
          }
-         for(int i=0; i<OrdersToPlace; i++){
-             if(Trade.Sell(lotsglobal, NULL, 0, SL, TP, NULL))
-             {
-              Print("Sell trade opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(OrdersToPlace));
-             }
-             else
-             {
-                Print("Failed to open sell trade, error: " + IntegerToString(Trade.ResultRetcode()) + " | " + Trade.ResultRetcodeDescription());
-             }
+
+         if (!Trade.OrderCheck(request, check_result))
+         {
+            Print("Sell OrderCheck failed, retcode=", check_result.retcode);
+
+            return;
          }
-         ObjectDelete(0, "Limit_Line");  
-   }
+         ExecuteSellOrders(orderlots);
+         ObjectDelete(0, "Limit_Line");
+      }
    }
 }
 void TyWindow::OnClickLimit(void)
 {
-   if (!LimitLineExists) {
+   if (!LimitLineExists)
+   {
       ObjectCreate(0, "Limit_Line", OBJ_HLINE, 0, TimeCurrent(), Ask);
       ObjectSetInteger(0, "Limit_Line", OBJPROP_COLOR, clrWhite);
       ObjectSetInteger(0, "Limit_Line", OBJPROP_WIDTH, HorizontalLineThickness);
@@ -876,10 +964,14 @@ struct PositionInfo {
    ulong ticket;
    double diff;
 };
-void BubbleSort(PositionInfo &arr[]) {
-   for (int i = 0; i < ArraySize(arr); i++) {
-      for (int j = 0; j < ArraySize(arr) - i - 1; j++) {
-         if (arr[j].diff > arr[j+1].diff) {
+void BubbleSort(PositionInfo &arr[])
+{
+   for (int i = 0; i < ArraySize(arr); i++)
+   {
+      for (int j = 0; j < ArraySize(arr) - i - 1; j++)
+      {
+         if (arr[j].diff > arr[j+1].diff)
+         {
             PositionInfo temp = arr[j];
             arr[j] = arr[j+1];
             arr[j+1] = temp;
@@ -887,45 +979,64 @@ void BubbleSort(PositionInfo &arr[]) {
       }
    }
 }
-void AutoProtect() {
+void AutoProtect()
+{
    double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    PositionInfo positionsArray[];
    // Count positions for the current symbol only
    int totalPositions = 0;
-   for(int i = 0; i < PositionsTotal(); i++) {
-      if(PositionSelectByTicket(PositionGetTicket(i)) && PositionGetSymbol(i) == _Symbol) {
+   for(int i = 0; i < PositionsTotal(); i++)
+   {
+    ulong ticket = PositionGetTicket(i);
+    if(PositionSelectByTicket(ticket))
+    {
+        string posSymbol = PositionGetString(POSITION_SYMBOL);
+        if(posSymbol != _Symbol) continue;
          totalPositions++;
       }
    }
    ArrayResize(positionsArray, totalPositions);
    int j = 0;  // Index for positionsArray
-   for (int i = 0; i < PositionsTotal(); i++) {
-      if (PositionSelectByTicket(PositionGetTicket(i))) {
-         if (PositionGetSymbol(i) != _Symbol) continue;
+   for (int i = 0; i < PositionsTotal(); i++)
+   {
+      ulong ticket = PositionGetTicket(i);
+      if (PositionSelectByTicket(ticket))
+      {
+         string posSymbol = PositionGetString(POSITION_SYMBOL);
+         if (posSymbol != _Symbol) continue;
          if (PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
          double diff = MathAbs(PositionGetDouble(POSITION_PRICE_OPEN) - currentPrice);
          positionsArray[j].diff = diff;
-         positionsArray[j].ticket = PositionGetTicket(i);
+         positionsArray[j].ticket = ticket;
          j++;
       }
    }
    BubbleSort(positionsArray);
    int ClosedPositions=0;
    int PositionsToClose = (int)MathFloor(((double)ArraySize(positionsArray)) * ((double)ProtectPositionsToClose/OrdersToPlace));
-   if(totalPositions == 1) {
+   if(totalPositions == 1)
+   {
       SL = PositionGetDouble(POSITION_PRICE_OPEN);
-      if (!Trade.PositionModify(positionsArray[0].ticket, SL, PositionGetDouble(POSITION_TP))) {
+      if (!Trade.PositionModify(positionsArray[0].ticket, SL, PositionGetDouble(POSITION_TP)))
+      {
          Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
       }
    }
-   else { 
-      for (int i = 0; i < ArraySize(positionsArray); i++) {
-         if (PositionSelectByTicket(positionsArray[i].ticket)) {
-            if (ClosedPositions < PositionsToClose) {
+   else
+   { 
+      for (int i = 0; i < ArraySize(positionsArray); i++)
+      {
+         if (PositionSelectByTicket(positionsArray[i].ticket))
+         {
+            if (ClosedPositions < PositionsToClose)
+            {
                Print("Closing Position " + IntegerToString(i+1) + "/" + IntegerToString(PositionsToClose) + ".");
-               if (!Trade.PositionClose(positionsArray[i].ticket)) {
+               if (!Trade.PositionClose(positionsArray[i].ticket))
+               {
                   Print("Failed to close position " + IntegerToString(i+1) + "/" + IntegerToString(PositionsToClose) + ". Error code: ", GetLastError());
-               } else {
+               }
+               else
+               {
                   Print("Position " + IntegerToString(i+1) + "/" + IntegerToString(PositionsToClose) + " closed successfully.");
                   ClosedPositions++;
                   PositionsToClose = PositionsToClose - 1;  // ensure we decrease the PositionsToClose after successful closure
@@ -933,7 +1044,8 @@ void AutoProtect() {
             }
             else {
                SL = PositionGetDouble(POSITION_PRICE_OPEN);
-               if (!Trade.PositionModify(positionsArray[i].ticket, SL, PositionGetDouble(POSITION_TP))) {
+               if (!Trade.PositionModify(positionsArray[i].ticket, SL, PositionGetDouble(POSITION_TP)))
+               {
                   Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
                }
             }
@@ -945,14 +1057,17 @@ void Protect()
 {
    for(int i=0; i<PositionsTotal(); i++)
    {
-      if(PositionSelectByTicket(PositionGetTicket(i))) {
-      if (PositionGetSymbol(i) != _Symbol) continue;
-      if(PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
-      SL = PositionGetDouble(POSITION_PRICE_OPEN);
-      if(!Trade.PositionModify(PositionGetTicket(i), SL, PositionGetDouble(POSITION_TP)))
-         Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
+      ulong ticket = PositionGetTicket(i);
+      if(PositionSelectByTicket(ticket))
+      {
+         string posSymbol = PositionGetString(POSITION_SYMBOL);
+         if (posSymbol != _Symbol) continue;
+         if(PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
+         SL = PositionGetDouble(POSITION_PRICE_OPEN);
+         if(!Trade.PositionModify(ticket, SL, PositionGetDouble(POSITION_TP)))
+            Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
       }
-      }
+   }
 }
 void TyWindow::OnClickProtect(void)
 {
@@ -967,10 +1082,10 @@ int result = MessageBox("Do you want to close all positions on " + _Symbol + "?"
    }
    if (result == IDYES)
    {
-   for(int i=PositionsTotal()-1;i>=0;i--)
+   for(int i=PositionsTotal()-1; i>=0 ;i--)
    {
-   if (PositionGetSymbol(i) != _Symbol) continue;
-   if(PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
+      if (PositionGetSymbol(i) != _Symbol) continue;
+      if(PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
    {
       if(Trade.PositionClose(Position.Ticket()))
       {
