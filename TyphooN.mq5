@@ -609,7 +609,7 @@ void TyWindow::ExecuteBuyOrders(double lots)
 {
    for (int i = 0; i < OrdersToPlace; i++)
    {
-      if (Trade.Buy(lots, NULL, 0, SL, TP, NULL))
+      if (Trade.Buy(lots, _Symbol, 0, SL, TP, NULL))
       {
          Print("Buy trade opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(OrdersToPlace));
       }
@@ -624,7 +624,7 @@ void TyWindow::ExecuteSellOrders(double lots)
 
    for (int i = 0; i < OrdersToPlace; i++)
    {
-      if (Trade.Sell(lots, NULL, 0, SL, TP, NULL))
+      if (Trade.Sell(lots, _Symbol, 0, SL, TP, NULL))
       {
          Print("Sell position opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(OrdersToPlace));
       }
