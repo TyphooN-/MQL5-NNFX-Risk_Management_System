@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.130"
+#property version   "1.131"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -88,10 +88,10 @@ class TyWindow : public CAppDialog
    public:
       TyWindow(void);
       ~TyWindow(void);
-      void ExecuteBuyLimitOrders(double lots, double Limit_Price);
-      void ExecuteSellLimitOrders(double lots, double Limit_Price);
-      void ExecuteBuyOrders(double lots);
-      void ExecuteSellOrders(double lots);
+      void ExecuteBuyLimitOrders(double lots, double Limit_Price, int Orders);
+      void ExecuteSellLimitOrders(double lots, double Limit_Price, int Orders);
+      void ExecuteBuyOrders(double lots, int Orders);
+      void ExecuteSellOrders(double lots, int Orders);
       virtual bool      Create(const long chart,const string name,const int subwin,const int x1,const int y1,const int x2,const int y2);
       // handlers of drag
       virtual bool      OnDialogDragStart(void);
@@ -577,13 +577,13 @@ bool TyWindow::CreateButtonSetSL(void)
       return(false);
    return(true);
 }
-void TyWindow::ExecuteBuyLimitOrders(double lots, double Limit_Price)
+void TyWindow::ExecuteBuyLimitOrders(double lots, double Limit_Price, int Orders)
 {
-   for (int i = 0; i < OrdersToPlace; i++)
+   for (int i = 0; i < Orders; i++)
    {
       if (Trade.BuyLimit(lots, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
       {
-         Print("Buy limit order opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(OrdersToPlace));
+         Print("Buy limit order opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(Orders));
       }
       else
       {
@@ -591,13 +591,13 @@ void TyWindow::ExecuteBuyLimitOrders(double lots, double Limit_Price)
       }
    }
 }
-void TyWindow::ExecuteSellLimitOrders(double lots, double Limit_Price)
+void TyWindow::ExecuteSellLimitOrders(double lots, double Limit_Price, int Orders)
 {
-   for (int i = 0; i < OrdersToPlace; i++)
+   for (int i = 0; i < Orders; i++)
    {
       if (Trade.SellLimit(lots, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
       {
-         Print("Sell limit order opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(OrdersToPlace));
+         Print("Sell limit order opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(Orders));
       }
       else
       {
@@ -605,13 +605,13 @@ void TyWindow::ExecuteSellLimitOrders(double lots, double Limit_Price)
       }
    }
 }
-void TyWindow::ExecuteBuyOrders(double lots)
+void TyWindow::ExecuteBuyOrders(double lots, int Orders)
 {
-   for (int i = 0; i < OrdersToPlace; i++)
+   for (int i = 0; i < Orders; i++)
    {
       if (Trade.Buy(lots, _Symbol, 0, SL, TP, NULL))
       {
-         Print("Buy trade opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(OrdersToPlace));
+         Print("Buy trade opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(Orders));
       }
       else
       {
@@ -619,20 +619,33 @@ void TyWindow::ExecuteBuyOrders(double lots)
       }
    }
 }
-void TyWindow::ExecuteSellOrders(double lots)
+void TyWindow::ExecuteSellOrders(double lots, int Orders)
 {
 
-   for (int i = 0; i < OrdersToPlace; i++)
+   for (int i = 0; i < Orders; i++)
    {
       if (Trade.Sell(lots, _Symbol, 0, SL, TP, NULL))
       {
-         Print("Sell position opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(OrdersToPlace));
+         Print("Sell position opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(Orders));
       }
       else
       {
           Print("Failed to open sell position, error: ", GetLastError());
       }
    }
+}
+int GetOrdersForSymbol(string symbol)
+{
+   int totalOrders = 0;
+   int total = PositionsTotal();
+   for(int i=0; i<total; i++)
+   {
+      if(PositionGetSymbol(i) == symbol) 
+      {
+         totalOrders++;
+      }
+   }
+   return totalOrders;
 }
 void TyWindow::OnClickTrade(void)
 {
@@ -659,22 +672,25 @@ void TyWindow::OnClickTrade(void)
    {
       Limit_Price = ObjectGetDouble(0, "Limit_Line", OBJPROP_PRICE, 0);
    }
-   double totallots = TP > SL ? NormalizeDouble(RiskLots(_Symbol, risk_money, Ask - SL), OrderDigits)
+   double TotalLots   = TP > SL ? NormalizeDouble(RiskLots(_Symbol, risk_money, Ask - SL), OrderDigits)
                               : NormalizeDouble(RiskLots(_Symbol, risk_money, SL - Bid), OrderDigits);
-   double orderlots = TP > SL ? NormalizeDouble(RiskLots(_Symbol, risk_money, Ask - SL) / OrdersToPlace, OrderDigits)
+   double PartialLots = TP > SL ? NormalizeDouble(RiskLots(_Symbol, risk_money, Ask - SL) / OrdersToPlace, OrderDigits)
                               : NormalizeDouble(RiskLots(_Symbol, risk_money, SL - Bid) / OrdersToPlace, OrderDigits);
-   if (totallots > max_volume)
+   if (TotalLots > max_volume)
    {
-      totallots = max_volume;
+      TotalLots = max_volume;
    }
-   if (orderlots > max_volume)
+   if (PartialLots > max_volume)
    {
-      orderlots = max_volume;
+      PartialLots = max_volume;
    }
+   int ExistingOrders = GetOrdersForSymbol(_Symbol);
+   int OrdersToPlaceNow = ExistingOrders > OrdersToPlace ? 1 : OrdersToPlace;
+   double OrderLots = ExistingOrders > 1 ? TotalLots : PartialLots;
    MqlTradeRequest request;
    ZeroMemory(request);
    request.symbol = _Symbol;
-   request.volume = totallots;
+   request.volume = TotalLots;
    request.deviation = 20;
    request.magic = MagicNumber;
    request.sl = SL;
@@ -693,7 +709,7 @@ void TyWindow::OnClickTrade(void)
             Print("Buy Limit OrderCheck failed, retcode=", check_result.retcode);
             return;
          }
-         ExecuteBuyLimitOrders(orderlots, Limit_Price);
+         ExecuteBuyLimitOrders(OrderLots, Limit_Price, OrdersToPlaceNow);
       }
       else if (SL > TP)
       {
@@ -705,7 +721,7 @@ void TyWindow::OnClickTrade(void)
             Print("Sell Limit OrderCheck failed, retcode=", check_result.retcode);
             return;
          }
-         ExecuteSellLimitOrders(orderlots, Limit_Price);
+         ExecuteSellLimitOrders(OrderLots, Limit_Price, OrdersToPlaceNow);
       }
    }
    else {
@@ -722,7 +738,7 @@ void TyWindow::OnClickTrade(void)
             Print("Buy OrderCheck failed, retcode=", check_result.retcode);
             return;
          }
-         ExecuteBuyOrders(orderlots);
+         ExecuteBuyOrders(OrderLots, OrdersToPlaceNow);
       }
       else if (SL > TP)
       {
@@ -738,7 +754,7 @@ void TyWindow::OnClickTrade(void)
 
             return;
          }
-         ExecuteSellOrders(orderlots);
+         ExecuteSellOrders(OrderLots, OrdersToPlaceNow);
          ObjectDelete(0, "Limit_Line");
       }
    }
@@ -990,14 +1006,14 @@ void AutoProtect()
          {
             if (ClosedPositions < PositionsToClose)
             {
-               Print("Closing Position " + IntegerToString(i+1) + "/" + IntegerToString(PositionsToClose) + ".");
+               Print("Closing Position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + ".");
                if (!Trade.PositionClose(positionsArray[i].ticket))
                {
-                  Print("Failed to close position " + IntegerToString(i+1) + "/" + IntegerToString(PositionsToClose) + ". Error code: ", GetLastError());
+                  Print("Failed to close position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + ". Error code: ", GetLastError());
                }
                else
                {
-                  Print("Position " + IntegerToString(i+1) + "/" + IntegerToString(PositionsToClose) + " closed successfully.");
+                  Print("Position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + " closed successfully.");
                   ClosedPositions++;
                   PositionsToClose = PositionsToClose - 1;  // ensure we decrease the PositionsToClose after successful closure
                }
