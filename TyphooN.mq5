@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.132"
+#property version   "1.133"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -685,7 +685,7 @@ void TyWindow::OnClickTrade(void)
       PartialLots = max_volume;
    }
    int ExistingOrders = GetOrdersForSymbol(_Symbol);
-   int OrdersToPlaceNow = ExistingOrders > OrdersToPlace ? 1 : OrdersToPlace;
+   int OrdersToPlaceNow = ExistingOrders >= OrdersToPlace ? 1 : OrdersToPlace;
    double OrderLots = ExistingOrders > 1 ? TotalLots : PartialLots;
    MqlTradeRequest request;
    ZeroMemory(request);
@@ -751,11 +751,9 @@ void TyWindow::OnClickTrade(void)
          if (!Trade.OrderCheck(request, check_result))
          {
             Print("Sell OrderCheck failed, retcode=", check_result.retcode);
-
             return;
          }
          ExecuteSellOrders(OrderLots, OrdersToPlaceNow);
-         ObjectDelete(0, "Limit_Line");
       }
    }
 }
