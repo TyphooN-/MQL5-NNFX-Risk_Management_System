@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.133"
+#property version   "1.134"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -64,6 +64,7 @@ double Bid = 0;
 double Ask = 0;
 double risk_money = 0;
 bool LimitLineExists = false;
+bool AutoProtectCalled = false;
 // defines
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
 #define INDENT_TOP        (10)      // indent from top (with allowance for border width)
@@ -291,12 +292,13 @@ void OnTick()
          rr = total_pl/MathAbs(total_risk);
       }
    }
-   if (EnableAutoProtect==true)
+   if (EnableAutoProtect==true && AutoProtectCalled==false)
    {
          if (rr >= AutoProtectRRLevel && total_risk < 0)
          {
             Print ("Auto Protect has removed risk due to RR >= " + DoubleToString(AutoProtectRRLevel,8));
             AutoProtect();
+            AutoProtectCalled = true;
          }
    }
    string FontName="Courier New";
