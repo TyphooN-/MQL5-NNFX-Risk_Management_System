@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.134"
+#property version   "1.135"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -642,9 +642,13 @@ int GetOrdersForSymbol(string symbol)
    int total = PositionsTotal();
    for(int i=0; i<total; i++)
    {
-      if(PositionGetSymbol(i) == symbol) 
+      ulong ticket = PositionGetTicket(i);
+      if(PositionSelectByTicket(ticket))
       {
-         totalOrders++;
+         if(PositionGetString(POSITION_SYMBOL) == symbol && PositionGetInteger(POSITION_MAGIC) == MagicNumber) 
+         {
+            totalOrders++;
+         }
       }
    }
    return totalOrders;
@@ -799,7 +803,7 @@ void TyWindow::OnClickBuyLines(void)
       }
       else
       {
-         DigitMulti = 1000;
+         DigitMulti = 100;
          ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
          ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
       }
@@ -876,7 +880,7 @@ void TyWindow::OnClickSellLines(void)
       }
       else
       {
-         DigitMulti = 1000;
+         DigitMulti = 100;
          ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
          ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));
       }
