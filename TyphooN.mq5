@@ -991,9 +991,9 @@ void AutoProtect()
          if (posSymbol != _Symbol) continue;
          if (PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
          double diff = MathAbs(PositionGetDouble(POSITION_PRICE_OPEN) - currentPrice);
-         double volume = PositionGetDouble(POSITION_VOLUME); // Get the volume
+         double volume = PositionGetDouble(POSITION_VOLUME);
          positionsArray[j].diff = diff;
-         positionsArray[j].volume = volume; // Store the volume
+         positionsArray[j].volume = volume;
          positionsArray[j].ticket = ticket;
          j++;
       }
