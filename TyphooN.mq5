@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.136"
+#property version   "1.137"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -181,8 +181,8 @@ int OnInit()
    ObjectCreate(0,"infoMargin", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoTPRR", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoRR", OBJ_LABEL,0,0,0);
-   ObjectCreate(0,"infoM15", OBJ_LABEL,0,0,0);
-   ObjectCreate(0,"infoH1", OBJ_LABEL,0,0,0);
+   ObjectCreate(0,"infoSLP", OBJ_LABEL,0,0,0);
+   ObjectCreate(0,"infoSLR", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoH4", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoD1", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoW1", OBJ_LABEL,0,0,0);
@@ -232,12 +232,14 @@ void OnTick()
    double total_margin = 0;
    double rr = 0;
    double tprr = 0;
+   double sl_profit = 0;
+   double sl_risk = 0;
    for(int i = 0; i < PositionsTotal(); i++)
    {
       ulong ticket = PositionGetTicket(i);
       if(PositionSelectByTicket(ticket))
       {
-         if(PositionGetSymbol(i) != _Symbol) continue;
+         if(PositionGetSymbol(i) != _Symbol && PositionGetInteger(POSITION_MAGIC) == MagicNumber) continue;
          double profit = PositionGetDouble(POSITION_PROFIT);
          double risk = 0;
          double tpprofit = 0;
@@ -284,6 +286,14 @@ void OnTick()
                }
             }
          }
+         if (risk < 0)
+         {
+            sl_risk += risk;
+         }
+         else if (risk > 0)
+         {
+            sl_profit += risk;
+         }
          total_pl += profit;
          total_risk += risk;
          total_tp += tpprofit;
@@ -308,7 +318,7 @@ void OnTick()
    int YRowWidth = 13;
    string infoPL;
    string infoRR;
-   if (rr >= 0 )
+   if (rr >= 0)
    {
       infoRR = "RR : " + DoubleToString(rr, 2);
    }
@@ -344,7 +354,7 @@ void OnTick()
    }
    else if (total_risk > 0)
    {
-      infoRisk = "SL Profit: $" + DoubleToString(total_risk, 2);
+      infoRisk = "SL P/R: $" + DoubleToString(total_risk, 2);
    }
    ObjectSetString(0,"infoRisk",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoRisk",OBJPROP_FONTSIZE,FontSize);
@@ -383,14 +393,22 @@ void OnTick()
    ObjectSetInteger(0,"infoRR",OBJPROP_YDISTANCE,(YRowWidth * 4));
    ObjectSetInteger(0,"infoRR",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoRR",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   string infoM15 = "M15: " + TimeTilNextBar(PERIOD_M15);
-   ObjectSetString(0,"infoM15",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoM15",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetString(0,"infoM15",OBJPROP_TEXT,infoM15);
-   ObjectSetInteger(0,"infoM15", OBJPROP_XDISTANCE, LeftColumnX);
-   ObjectSetInteger(0,"infoM15",OBJPROP_YDISTANCE,(YRowWidth * 5));
-   ObjectSetInteger(0,"infoM15",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoM15",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string infoSLP = "SL Profit: $" + DoubleToString(sl_profit, 2);
+   ObjectSetString(0,"infoSLP",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoSLP",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetString(0,"infoSLP",OBJPROP_TEXT,infoSLP);
+   ObjectSetInteger(0,"infoSLP", OBJPROP_XDISTANCE, LeftColumnX);
+   ObjectSetInteger(0,"infoSLP",OBJPROP_YDISTANCE,(YRowWidth * 5));
+   ObjectSetInteger(0,"infoSLP",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoSLP",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string infoSLR ="SL Risk: $" + MathAbs(DoubleToString(sl_risk, 2));
+   ObjectSetString(0,"infoSLR",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoSLR",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetString(0,"infoSLR",OBJPROP_TEXT,infoSLR);
+   ObjectSetInteger(0,"infoSLR", OBJPROP_XDISTANCE, RightColumnX);
+   ObjectSetInteger(0,"infoSLR",OBJPROP_YDISTANCE,(YRowWidth * 5));
+   ObjectSetInteger(0,"infoSLR",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoSLR",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoH4 = "H4 : " + TimeTilNextBar(PERIOD_H4);
    ObjectSetString(0,"infoH4",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoH4",OBJPROP_FONTSIZE,FontSize);
@@ -407,14 +425,6 @@ void OnTick()
    ObjectSetInteger(0,"infoW1",OBJPROP_YDISTANCE,(YRowWidth * 7));
    ObjectSetInteger(0,"infoW1",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoW1",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   string infoH1 ="H1 : " + TimeTilNextBar(PERIOD_H1);
-   ObjectSetString(0,"infoH1",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoH1",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetString(0,"infoH1",OBJPROP_TEXT,infoH1);
-   ObjectSetInteger(0,"infoH1", OBJPROP_XDISTANCE, RightColumnX);
-   ObjectSetInteger(0,"infoH1",OBJPROP_YDISTANCE,(YRowWidth * 5));
-   ObjectSetInteger(0,"infoH1",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoH1",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoD1 = "D1 : " + TimeTilNextBar(PERIOD_D1);
    ObjectSetString(0,"infoD1",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoD1",OBJPROP_FONTSIZE,FontSize);
@@ -942,27 +952,22 @@ void TyWindow::OnClickDestroyLines(void)
 }
 struct PositionInfo {
    ulong ticket;
-   double volume;
    double diff;
 };
 void BubbleSort(PositionInfo &arr[])
 {
-  int n = ArraySize(arr);
-  bool swapped;
-  do
-  {
-    swapped = false;
-    for (int i = 1; i < n; i++)
-    {
-      if (arr[i - 1].diff > arr[i].diff || (arr[i - 1].diff == arr[i].diff && arr[i - 1].volume > arr[i].volume))
+   for (int i = 0; i < ArraySize(arr); i++)
+   {
+      for (int j = 0; j < ArraySize(arr) - i - 1; j++)
       {
-        PositionInfo temp = arr[i - 1];
-        arr[i - 1] = arr[i];
-        arr[i] = temp;
-        swapped = true;
+         if (arr[j].diff > arr[j+1].diff)
+         {
+            PositionInfo temp = arr[j];
+            arr[j] = arr[j+1];
+            arr[j+1] = temp;
+         }
       }
-    }
-  } while (swapped);
+   }
 }
 void AutoProtect()
 {
@@ -991,9 +996,7 @@ void AutoProtect()
          if (posSymbol != _Symbol) continue;
          if (PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
          double diff = MathAbs(PositionGetDouble(POSITION_PRICE_OPEN) - currentPrice);
-         double volume = PositionGetDouble(POSITION_VOLUME);
          positionsArray[j].diff = diff;
-         positionsArray[j].volume = volume;
          positionsArray[j].ticket = ticket;
          j++;
       }
