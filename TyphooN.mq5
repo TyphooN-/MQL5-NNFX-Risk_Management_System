@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.135"
+#property version   "1.136"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -52,7 +52,7 @@ input double   Risk                    = 0.5;
 input int      OrdersToPlace           = 3;
 input int      ProtectPositionsToClose = 1;
 input bool     EnableAutoProtect       = true;
-input double   AutoProtectRRLevel      = 2.69666420;
+input double   AutoProtectRRLevel      = 3.1415926535897932384626433832795;
 input double   SLPips                  = 4.0;
 input double   TPPips                  = 13.0;
 input int      MagicNumber             = 13;
@@ -296,7 +296,7 @@ void OnTick()
    {
          if (rr >= AutoProtectRRLevel && total_risk < 0)
          {
-            Print ("Auto Protect has removed risk due to RR >= " + DoubleToString(AutoProtectRRLevel,8));
+            Print ("Auto Protect has removed risk and taken a piece of the Pi as RR >= " + DoubleToString(AutoProtectRRLevel,8));
             AutoProtect();
             AutoProtectCalled = true;
          }
@@ -942,22 +942,27 @@ void TyWindow::OnClickDestroyLines(void)
 }
 struct PositionInfo {
    ulong ticket;
+   double volume;
    double diff;
 };
 void BubbleSort(PositionInfo &arr[])
 {
-   for (int i = 0; i < ArraySize(arr); i++)
-   {
-      for (int j = 0; j < ArraySize(arr) - i - 1; j++)
+  int n = ArraySize(arr);
+  bool swapped;
+  do
+  {
+    swapped = false;
+    for (int i = 1; i < n; i++)
+    {
+      if (arr[i - 1].diff > arr[i].diff || (arr[i - 1].diff == arr[i].diff && arr[i - 1].volume > arr[i].volume))
       {
-         if (arr[j].diff > arr[j+1].diff)
-         {
-            PositionInfo temp = arr[j];
-            arr[j] = arr[j+1];
-            arr[j+1] = temp;
-         }
+        PositionInfo temp = arr[i - 1];
+        arr[i - 1] = arr[i];
+        arr[i] = temp;
+        swapped = true;
       }
-   }
+    }
+  } while (swapped);
 }
 void AutoProtect()
 {
@@ -986,7 +991,9 @@ void AutoProtect()
          if (posSymbol != _Symbol) continue;
          if (PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
          double diff = MathAbs(PositionGetDouble(POSITION_PRICE_OPEN) - currentPrice);
+         double volume = PositionGetDouble(POSITION_VOLUME); // Get the volume
          positionsArray[j].diff = diff;
+         positionsArray[j].volume = volume; // Store the volume
          positionsArray[j].ticket = ticket;
          j++;
       }
