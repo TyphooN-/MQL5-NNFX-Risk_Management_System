@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.138"
+#property version   "1.139"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -62,7 +62,7 @@ double TP = 0;
 double SL = 0;
 double Bid = 0;
 double Ask = 0;
-double risk_money = 0;
+double order_risk_money = 0;
 bool LimitLineExists = false;
 bool AutoProtectCalled = false;
 double DigitMulti = 0;
@@ -267,7 +267,7 @@ void OnTick()
 {
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
-   risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (Risk / 100));
+   order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (Risk / 100));
    double total_risk = 0;
    double total_tpprofit = 0;
    double total_pl = 0;
@@ -277,6 +277,8 @@ void OnTick()
    double tprr = 0;
    double sl_profit = 0;
    double sl_risk = 0;
+   double account_balance = AccountInfoDouble(ACCOUNT_BALANCE);
+   double percent_risk = 0;
    for(int i = 0; i < PositionsTotal(); i++)
    {
       ulong ticket = PositionGetTicket(i);
@@ -343,6 +345,7 @@ void OnTick()
          total_margin += margin;
          tprr = total_tp/MathAbs(total_risk);
          rr = total_pl/MathAbs(total_risk);
+         percent_risk = MathAbs((sl_risk / account_balance) * 100);
       }
    }
    if (EnableAutoProtect==true && AutoProtectCalled==false)
@@ -417,22 +420,22 @@ void OnTick()
    ObjectSetInteger(0,"infoMargin",OBJPROP_YDISTANCE,(YRowWidth * 3));
    ObjectSetInteger(0,"infoMargin",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoMargin",OBJPROP_CORNER,CORNER_RIGHT_UPPER); 
+   string infoRisk = "Risk: $" + DoubleToString(MathAbs(sl_risk), 2) + " ("+DoubleToString(percent_risk,2)+"%)";
+   ObjectSetString(0,"infoRisk",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoRisk",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetString(0,"infoRisk",OBJPROP_TEXT,infoRisk);
+   ObjectSetInteger(0,"infoRisk", OBJPROP_XDISTANCE, LeftColumnX);
+   ObjectSetInteger(0,"infoRisk",OBJPROP_YDISTANCE,(YRowWidth * 4));
+   ObjectSetInteger(0,"infoRisk",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoRisk",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoSLP = "SL Profit: $" + DoubleToString(sl_profit, 2);
    ObjectSetString(0,"infoSLP",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoSLP",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoSLP",OBJPROP_TEXT,infoSLP);
-   ObjectSetInteger(0,"infoSLP", OBJPROP_XDISTANCE, LeftColumnX);
+   ObjectSetInteger(0,"infoSLP", OBJPROP_XDISTANCE, RightColumnX);
    ObjectSetInteger(0,"infoSLP",OBJPROP_YDISTANCE,(YRowWidth * 4));
    ObjectSetInteger(0,"infoSLP",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoSLP",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   string infoRisk ="Risk: $" + DoubleToString(MathAbs(sl_risk), 2);
-   ObjectSetString(0,"infoRisk",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoRisk",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetString(0,"infoRisk",OBJPROP_TEXT,infoRisk);
-   ObjectSetInteger(0,"infoRisk", OBJPROP_XDISTANCE, RightColumnX);
-   ObjectSetInteger(0,"infoRisk",OBJPROP_YDISTANCE,(YRowWidth * 4));
-   ObjectSetInteger(0,"infoRisk",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoRisk",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoTPRR = "TP RR: " + DoubleToString(tprr, 2);
    ObjectSetString(0,"infoTPRR",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoTPRR",OBJPROP_FONTSIZE,FontSize);
@@ -727,10 +730,10 @@ void TyWindow::OnClickTrade(void)
    {
       Limit_Price = ObjectGetDouble(0, "Limit_Line", OBJPROP_PRICE, 0);
    }
-   double TotalLots   = TP > SL ? NormalizeDouble(RiskLots(_Symbol, risk_money, Ask - SL), OrderDigits)
-                              : NormalizeDouble(RiskLots(_Symbol, risk_money, SL - Bid), OrderDigits);
-   double PartialLots = TP > SL ? NormalizeDouble(RiskLots(_Symbol, risk_money, Ask - SL) / OrdersToPlace, OrderDigits)
-                              : NormalizeDouble(RiskLots(_Symbol, risk_money, SL - Bid) / OrdersToPlace, OrderDigits);
+   double TotalLots   = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, Ask - SL), OrderDigits)
+                              : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - Bid), OrderDigits);
+   double PartialLots = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, Ask - SL) / OrdersToPlace, OrderDigits)
+                              : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - Bid) / OrdersToPlace, OrderDigits);
    if (TotalLots > max_volume)
    {
       TotalLots = max_volume;
