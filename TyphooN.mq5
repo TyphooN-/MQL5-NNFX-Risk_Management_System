@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.139"
+#property version   "1.140"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -49,6 +49,7 @@ double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TR
 // input vars
 input group    "User Vars";
 input double   Risk                    = 0.5;
+input double   MaxRisk                 = 1.5;
 input int      OrdersToPlace           = 3;
 input int      ProtectPositionsToClose = 1;
 input bool     EnableAutoProtect       = true;
@@ -66,6 +67,7 @@ double order_risk_money = 0;
 bool LimitLineExists = false;
 bool AutoProtectCalled = false;
 double DigitMulti = 0;
+double percent_risk = 0;
 // defines
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
 #define INDENT_TOP        (10)      // indent from top (with allowance for border width)
@@ -278,7 +280,6 @@ void OnTick()
    double sl_profit = 0;
    double sl_risk = 0;
    double account_balance = AccountInfoDouble(ACCOUNT_BALANCE);
-   double percent_risk = 0;
    for(int i = 0; i < PositionsTotal(); i++)
    {
       ulong ticket = PositionGetTicket(i);
@@ -755,64 +756,70 @@ void TyWindow::OnClickTrade(void)
    request.tp = TP;
    MqlTradeCheckResult check_result;
    MqlTick latest_tick;
-   if (LimitLineExists == true)
+   if ((Risk + percent_risk) <= (MaxRisk + 0.01))
    {
-      if (TP > SL)
+      if (LimitLineExists == true)
       {
-         request.action = TRADE_ACTION_PENDING;
-         request.type = ORDER_TYPE_BUY_LIMIT;
-         request.price = Limit_Price;
-         if (!Trade.OrderCheck(request, check_result))
+         if (TP > SL)
          {
-            Print("Buy Limit OrderCheck failed, retcode=", check_result.retcode);
-            return;
+            request.action = TRADE_ACTION_PENDING;
+            request.type = ORDER_TYPE_BUY_LIMIT;
+            request.price = Limit_Price;
+            if (!Trade.OrderCheck(request, check_result))
+            {
+               Print("Buy Limit OrderCheck failed, retcode=", check_result.retcode);
+               return;
+            }
+            ExecuteBuyLimitOrders(OrderLots, Limit_Price, OrdersToPlaceNow);
          }
-         ExecuteBuyLimitOrders(OrderLots, Limit_Price, OrdersToPlaceNow);
-      }
-      else if (SL > TP)
-      {
-         request.action = TRADE_ACTION_PENDING;
-         request.type = ORDER_TYPE_SELL_LIMIT;
-         request.price = Limit_Price;
-         if (!Trade.OrderCheck(request, check_result))
+         else if (SL > TP)
          {
-            Print("Sell Limit OrderCheck failed, retcode=", check_result.retcode);
-            return;
+            request.action = TRADE_ACTION_PENDING;
+            request.type = ORDER_TYPE_SELL_LIMIT;
+            request.price = Limit_Price;
+            if (!Trade.OrderCheck(request, check_result))
+            {
+               Print("Sell Limit OrderCheck failed, retcode=", check_result.retcode);
+               return;
+            }
+            ExecuteSellLimitOrders(OrderLots, Limit_Price, OrdersToPlaceNow);
          }
-         ExecuteSellLimitOrders(OrderLots, Limit_Price, OrdersToPlaceNow);
       }
-   }
-   else {
-      if (TP > SL)
+      else
       {
-         if (SymbolInfoTick(_Symbol, latest_tick))
+         if (TP > SL)
          {
+            if (SymbolInfoTick(_Symbol, latest_tick))
+            {
             request.action = TRADE_ACTION_DEAL;
             request.type = ORDER_TYPE_BUY;
+            }
+            if (!Trade.OrderCheck(request, check_result))
+            {
+               Print("Buy OrderCheck failed, retcode=", check_result.retcode);
+               return;
+            }
+            ExecuteBuyOrders(OrderLots, OrdersToPlaceNow);
          }
-
-         if (!Trade.OrderCheck(request, check_result))
+         else if (SL > TP)
          {
-            Print("Buy OrderCheck failed, retcode=", check_result.retcode);
-            return;
+            if (SymbolInfoTick(_Symbol, latest_tick))
+            {
+               request.action = TRADE_ACTION_DEAL;
+               request.type = ORDER_TYPE_SELL;
+            }
+            if (!Trade.OrderCheck(request, check_result))
+            {
+               Print("Sell OrderCheck failed, retcode=", check_result.retcode);
+               return;
+            }
+            ExecuteSellOrders(OrderLots, OrdersToPlaceNow);
          }
-         ExecuteBuyOrders(OrderLots, OrdersToPlaceNow);
       }
-      else if (SL > TP)
-      {
-         if (SymbolInfoTick(_Symbol, latest_tick))
-         {
-            request.action = TRADE_ACTION_DEAL;
-            request.type = ORDER_TYPE_SELL;
-         }
-
-         if (!Trade.OrderCheck(request, check_result))
-         {
-            Print("Sell OrderCheck failed, retcode=", check_result.retcode);
-            return;
-         }
-         ExecuteSellOrders(OrderLots, OrdersToPlaceNow);
-      }
+   }
+   else
+   {
+      Print("Cannot open order, as risk would be beyond MaxRisk.");
    }
 }
 void TyWindow::OnClickLimit(void)
@@ -984,7 +991,7 @@ void TyWindow::OnClickProtect(void)
 }
 void TyWindow::OnClickClosePositions(void)
 {
-int result = MessageBox("Do you want to close all positions on " + _Symbol + "?", "Close Positions", MB_YESNO | MB_ICONQUESTION);
+   int result = MessageBox("Do you want to close all positions on " + _Symbol + "?", "Close Positions", MB_YESNO | MB_ICONQUESTION);
    if (result == IDNO)
    {
       Print("Positions not closed.");
@@ -1018,17 +1025,17 @@ void TyWindow::OnClickCloseLimits(void)
    if (result == IDYES)
    {
    for(int i = OrdersTotal() - 1; i >= 0; i--)
-         if(Order.SelectByIndex(i))
+      if(Order.SelectByIndex(i))
+      {
+         if(Order.Magic() != MagicNumber ) continue;
+         if (Trade.OrderDelete(Order.Ticket()))
          {
-           if(Order.Magic() != MagicNumber ) continue;
-           if (Trade.OrderDelete(Order.Ticket()))
-           {
-               Print("Order #", Order.Ticket(), " closed");
-           }
-           else
-           {
-               Print("Order #", Order.Ticket(), " close failed with error ", GetLastError());
-           }
+            Print("Order #", Order.Ticket(), " closed");
+         }
+         else
+         {
+            Print("Order #", Order.Ticket(), " close failed with error ", GetLastError());
+         }
        }
    }
 }
