@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.140"
+#property version   "1.141"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -50,7 +50,7 @@ double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TR
 input group    "User Vars";
 input double   Risk                    = 0.5;
 input double   MaxRisk                 = 1.5;
-input int      OrdersToPlace           = 3;
+input int      InitialOrdersToPlace    = 3;
 input int      ProtectPositionsToClose = 1;
 input bool     EnableAutoProtect       = true;
 input double   AutoProtectRRLevel      = 3.1415926535897932384626433832795;
@@ -733,8 +733,8 @@ void TyWindow::OnClickTrade(void)
    }
    double TotalLots   = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, Ask - SL), OrderDigits)
                               : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - Bid), OrderDigits);
-   double PartialLots = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, Ask - SL) / OrdersToPlace, OrderDigits)
-                              : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - Bid) / OrdersToPlace, OrderDigits);
+   double PartialLots = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, Ask - SL) / InitialOrdersToPlace, OrderDigits)
+                              : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - Bid) / InitialOrdersToPlace, OrderDigits);
    if (TotalLots > max_volume)
    {
       TotalLots = max_volume;
@@ -744,7 +744,7 @@ void TyWindow::OnClickTrade(void)
       PartialLots = max_volume;
    }
    int ExistingOrders = GetOrdersForSymbol(_Symbol);
-   int OrdersToPlaceNow = ExistingOrders >= OrdersToPlace ? 1 : OrdersToPlace;
+   int OrdersToPlaceNow = ExistingOrders >= InitialOrdersToPlace ? 1 : InitialOrdersToPlace;
    double OrderLots = ExistingOrders > 1 ? TotalLots : PartialLots;
    MqlTradeRequest request;
    ZeroMemory(request);
@@ -930,7 +930,7 @@ void AutoProtect()
    }
    BubbleSort(positionsArray);
    int ClosedPositions=0;
-   int PositionsToClose = (int)MathFloor(((double)ArraySize(positionsArray)) * ((double)ProtectPositionsToClose/OrdersToPlace));
+   int PositionsToClose = (int)MathFloor(((double)ArraySize(positionsArray)) * ((double)ProtectPositionsToClose/InitialOrdersToPlace));
    if(totalPositions == 1)
    {
       SL = PositionGetDouble(POSITION_PRICE_OPEN);
