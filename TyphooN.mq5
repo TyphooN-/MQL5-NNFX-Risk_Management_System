@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.137"
+#property version   "1.138"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -53,8 +53,8 @@ input int      OrdersToPlace           = 3;
 input int      ProtectPositionsToClose = 1;
 input bool     EnableAutoProtect       = true;
 input double   AutoProtectRRLevel      = 3.1415926535897932384626433832795;
-input double   SLPips                  = 4.0;
-input double   TPPips                  = 13.0;
+input int      SLPips                  = 4;
+input int      TPPips                  = 13;
 input int      MagicNumber             = 13;
 input int      HorizontalLineThickness = 3;
 // global vars
@@ -65,6 +65,7 @@ double Ask = 0;
 double risk_money = 0;
 bool LimitLineExists = false;
 bool AutoProtectCalled = false;
+double DigitMulti = 0;
 // defines
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
 #define INDENT_TOP        (10)      // indent from top (with allowance for border width)
@@ -176,13 +177,55 @@ bool TyWindow::Create(const long chart,const string name,const int subwin,const 
 TyWindow ExtDialog;
 int OnInit()
 {
-   ObjectCreate(0,"infoRisk", OBJ_LABEL,0,0,0);
+   if (_Digits == 2)
+   {
+      if (_Symbol == "XAUUSD")
+      {
+         DigitMulti = 0.1;
+      }
+      else if (_Symbol == "US30.cash" || _Symbol == "US500.cash" || _Symbol == "US100.cash" || _Symbol == "NDX100" || _Symbol == "SPX500" || _Symbol == "US30")
+      {
+         DigitMulti = 100;
+      }
+      else
+      {
+         DigitMulti = 10;
+      }
+   }
+   if(_Digits == 3)
+   {
+      if (_Symbol == "XAGUSD")
+      {
+         DigitMulti = 0.0001;
+      }
+      if (_Symbol == "USOIL.cash" || _Symbol == "UKOIL.cash" || _Symbol == "USOUSD" || _Symbol == "UKOUSD")
+      {
+         DigitMulti = 1;
+      }
+      else
+      {
+         DigitMulti = 0.001;
+      }
+   }
+   if(_Digits == 4)
+   {
+      DigitMulti = 1;
+   }
+   if(_Digits == 5)
+   {
+      DigitMulti = 0.0002;
+   }
+   if(_Digits == 7)
+   {
+      DigitMulti = 1000;
+   }
+   ObjectCreate(0,"infoSLPL", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoTP", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoMargin", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoTPRR", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoRR", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoSLP", OBJ_LABEL,0,0,0);
-   ObjectCreate(0,"infoSLR", OBJ_LABEL,0,0,0);
+   ObjectCreate(0,"infoRisk", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoH4", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoD1", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoW1", OBJ_LABEL,0,0,0);
@@ -346,23 +389,18 @@ void OnTick()
    ObjectSetInteger(0,"infoPL",OBJPROP_YDISTANCE,(YRowWidth * 2));
    ObjectSetInteger(0,"infoPL",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoPL",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   string infoRisk = "Risk: $" + DoubleToString(MathAbs(total_risk), 2);
-   string infoTPRR = "TP RR: " + DoubleToString(tprr, 2);
-   if (total_risk <= 0)
+   string infoSLPL = "SL P/L: $" + DoubleToString(total_risk, 2);
+   if (total_risk < 0)
    {
-      infoRisk = "Risk: $" + DoubleToString(MathAbs(total_risk), 2);
+      infoSLPL = "SL P/L: -$" + DoubleToString(MathAbs(total_risk), 2);
    }
-   else if (total_risk > 0)
-   {
-      infoRisk = "SL P/R: $" + DoubleToString(total_risk, 2);
-   }
-   ObjectSetString(0,"infoRisk",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoRisk",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetString(0,"infoRisk",OBJPROP_TEXT,infoRisk);
-   ObjectSetInteger(0,"infoRisk", OBJPROP_XDISTANCE, RightColumnX);
-   ObjectSetInteger(0,"infoRisk",OBJPROP_YDISTANCE,(YRowWidth * 2));
-   ObjectSetInteger(0,"infoRisk",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoRisk",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   ObjectSetString(0,"infoSLPL",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoSLPL",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetString(0,"infoSLPL",OBJPROP_TEXT,infoSLPL);
+   ObjectSetInteger(0,"infoSLPL", OBJPROP_XDISTANCE, RightColumnX);
+   ObjectSetInteger(0,"infoSLPL",OBJPROP_YDISTANCE,(YRowWidth * 2));
+   ObjectSetInteger(0,"infoSLPL",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoSLPL",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoTP = "Total TP : $" + DoubleToString(total_tp, 2);
    ObjectSetString(0,"infoTP",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoTP",OBJPROP_FONTSIZE,FontSize);
@@ -379,36 +417,37 @@ void OnTick()
    ObjectSetInteger(0,"infoMargin",OBJPROP_YDISTANCE,(YRowWidth * 3));
    ObjectSetInteger(0,"infoMargin",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoMargin",OBJPROP_CORNER,CORNER_RIGHT_UPPER); 
+   string infoSLP = "SL Profit: $" + DoubleToString(sl_profit, 2);
+   ObjectSetString(0,"infoSLP",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoSLP",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetString(0,"infoSLP",OBJPROP_TEXT,infoSLP);
+   ObjectSetInteger(0,"infoSLP", OBJPROP_XDISTANCE, LeftColumnX);
+   ObjectSetInteger(0,"infoSLP",OBJPROP_YDISTANCE,(YRowWidth * 4));
+   ObjectSetInteger(0,"infoSLP",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoSLP",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string infoRisk ="Risk: $" + DoubleToString(MathAbs(sl_risk), 2);
+   ObjectSetString(0,"infoRisk",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoRisk",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetString(0,"infoRisk",OBJPROP_TEXT,infoRisk);
+   ObjectSetInteger(0,"infoRisk", OBJPROP_XDISTANCE, RightColumnX);
+   ObjectSetInteger(0,"infoRisk",OBJPROP_YDISTANCE,(YRowWidth * 4));
+   ObjectSetInteger(0,"infoRisk",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoRisk",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   string infoTPRR = "TP RR: " + DoubleToString(tprr, 2);
    ObjectSetString(0,"infoTPRR",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoTPRR",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoTPRR",OBJPROP_TEXT,infoTPRR);
    ObjectSetInteger(0,"infoTPRR", OBJPROP_XDISTANCE, RightColumnX);
-   ObjectSetInteger(0,"infoTPRR",OBJPROP_YDISTANCE,(YRowWidth * 4));
+   ObjectSetInteger(0,"infoTPRR",OBJPROP_YDISTANCE,(YRowWidth * 5));
    ObjectSetInteger(0,"infoTPRR",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoTPRR",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    ObjectSetString(0,"infoRR",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoRR",OBJPROP_FONTSIZE,FontSize);
    ObjectSetString(0,"infoRR",OBJPROP_TEXT,infoRR);
    ObjectSetInteger(0,"infoRR", OBJPROP_XDISTANCE, LeftColumnX);
-   ObjectSetInteger(0,"infoRR",OBJPROP_YDISTANCE,(YRowWidth * 4));
+   ObjectSetInteger(0,"infoRR",OBJPROP_YDISTANCE,(YRowWidth * 5));
    ObjectSetInteger(0,"infoRR",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoRR",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   string infoSLP = "SL Profit: $" + DoubleToString(sl_profit, 2);
-   ObjectSetString(0,"infoSLP",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoSLP",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetString(0,"infoSLP",OBJPROP_TEXT,infoSLP);
-   ObjectSetInteger(0,"infoSLP", OBJPROP_XDISTANCE, LeftColumnX);
-   ObjectSetInteger(0,"infoSLP",OBJPROP_YDISTANCE,(YRowWidth * 5));
-   ObjectSetInteger(0,"infoSLP",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoSLP",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   string infoSLR ="SL Risk: $" + MathAbs(DoubleToString(sl_risk, 2));
-   ObjectSetString(0,"infoSLR",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoSLR",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetString(0,"infoSLR",OBJPROP_TEXT,infoSLR);
-   ObjectSetInteger(0,"infoSLR", OBJPROP_XDISTANCE, RightColumnX);
-   ObjectSetInteger(0,"infoSLR",OBJPROP_YDISTANCE,(YRowWidth * 5));
-   ObjectSetInteger(0,"infoSLR",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoSLR",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    string infoH4 = "H4 : " + TimeTilNextBar(PERIOD_H4);
    ObjectSetString(0,"infoH4",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoH4",OBJPROP_FONTSIZE,FontSize);
@@ -794,69 +833,8 @@ void TyWindow::OnClickBuyLines(void)
    ObjectDelete(0, "SL_Line");
    ObjectDelete(0, "TP_Line");
    ObjectDelete(0, "Limit_Line");
-   Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
-   Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
-   double DigitMulti = 0;
-   if (_Digits == 2)
-   {
-      if (_Symbol == "XAUUSD")
-      {
-         DigitMulti = 1;
-         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
-         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
-      }
-      else if (_Symbol == "LTCUSD")
-      {
-         DigitMulti = 10;
-         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
-         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
-      }
-      else
-      {
-         DigitMulti = 100;
-         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
-         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
-      }
-   }
-   if(_Digits == 3)
-   {
-      if (_Symbol == "XAGUSD")
-      {
-         DigitMulti = 0.0001;
-         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
-         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
-      }
-      if (_Symbol == "USOIL.cash" || _Symbol == "UKOIL.cash" || _Symbol == "USOUSD" || _Symbol == "UKOUSD")
-      {
-         DigitMulti = 1;
-         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
-         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
-      }
-      else
-      {
-         DigitMulti = 0.001;
-         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
-         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
-      }
-   }
-   if(_Digits == 4)
-   {
-      DigitMulti = 1;
-      ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
-      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
-   }
-   if(_Digits == 5)
-   {
-      DigitMulti = 0.0002;
-      ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
-      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
-   }
-   if(_Digits == 7)
-   {
-      DigitMulti = 1000;
-      ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
-      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
-   }
+   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
+   ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
    ObjectSetInteger(0, "SL_Line", OBJPROP_COLOR, clrRed);
    ObjectSetInteger(0, "SL_Line", OBJPROP_WIDTH,HorizontalLineThickness);
    ObjectSetInteger(0, "SL_Line", OBJPROP_SELECTABLE, 1);
@@ -871,69 +849,8 @@ void TyWindow::OnClickSellLines(void)
    ObjectDelete(0, "SL_Line");
    ObjectDelete(0, "TP_Line");
    ObjectDelete(0, "Limit_Line");
-   Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
-   Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
-   double DigitMulti = 0;
-   if (_Digits == 2)
-   {
-      if (_Symbol == "XAUUSD")
-      {
-         DigitMulti = 1;
-         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
-         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));
-      }
-      else if (_Symbol == "LTCUSD")
-      {
-         DigitMulti = 10;
-         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
-         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));
-      }
-      else
-      {
-         DigitMulti = 100;
-         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
-         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));
-      }
-   }
-   if (_Digits == 3)
-   {
-      if (_Symbol == "XAGUSD")
-      {
-         DigitMulti = 0.0001;
-         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
-         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));
-      }
-      if (_Symbol == "USOIL.cash" || _Symbol == "UKOIL.cash" || _Symbol == "USOUSD" || _Symbol == "UKOUSD")
-      {
-         DigitMulti = 1;
-         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
-         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));
-      }
-      else
-      {
-         DigitMulti = 0.001;
-         ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
-         ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));
-      }
-   }
-   if(_Digits == 4)
-   {
-      DigitMulti = 1;
-      ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
-      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));  
-   }
-   if(_Digits == 5)
-   {
-      DigitMulti = 0.0002;
-      ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
-      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));  
-   }
-   if(_Digits == 7)
-   {
-      DigitMulti = 1000;
-      ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
-      ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));  
-   }
+   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
+   ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));
    ObjectSetInteger(0, "SL_Line", OBJPROP_COLOR, clrRed);
    ObjectSetInteger(0, "SL_Line", OBJPROP_WIDTH,HorizontalLineThickness);
    ObjectSetInteger(0, "SL_Line", OBJPROP_SELECTABLE, 1);
