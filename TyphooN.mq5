@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.141"
+#property version   "1.142"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -50,7 +50,7 @@ double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TR
 input group    "User Vars";
 input double   Risk                    = 0.5;
 input double   MaxRisk                 = 1.5;
-input int      InitialOrdersToPlace    = 3;
+input int      InitialOrdersToPlace    = 2;
 input int      ProtectPositionsToClose = 1;
 input bool     EnableAutoProtect       = true;
 input double   AutoProtectRRLevel      = 3.1415926535897932384626433832795;
@@ -706,12 +706,29 @@ int GetOrdersForSymbol(string symbol)
    }
    return totalOrders;
 }
+double GetTotalVolumeForSymbol(string symbol)
+{
+   double totalVolume = 0;
+
+   for(int i=PositionsTotal()-1; i >= 0; i--)
+   {
+      string positionSymbol = PositionGetSymbol(i);
+      if(positionSymbol == symbol)
+      {
+         totalVolume += PositionGetDouble(POSITION_VOLUME);
+      }
+   }
+   
+   return totalVolume;
+}
 void TyWindow::OnClickTrade(void)
 {
    SL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
    TP = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
    double max_volume = NormalizeDouble(SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX), _Digits);
    double min_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
+   double existing_volume = GetTotalVolumeForSymbol(_Symbol);
+   max_volume = NormalizeDouble(max_volume - existing_volume, _Digits);
    Trade.SetExpertMagicNumber(MagicNumber);
    int OrderDigits = 0;
    if (min_volume == 0.01)
@@ -739,9 +756,9 @@ void TyWindow::OnClickTrade(void)
    {
       TotalLots = max_volume;
    }
-   if (PartialLots > max_volume)
+   if ((PartialLots * InitialOrdersToPlace) > max_volume)
    {
-      PartialLots = max_volume;
+      PartialLots = (max_volume / InitialOrdersToPlace);
    }
    int ExistingOrders = GetOrdersForSymbol(_Symbol);
    int OrdersToPlaceNow = ExistingOrders >= InitialOrdersToPlace ? 1 : InitialOrdersToPlace;
@@ -756,7 +773,7 @@ void TyWindow::OnClickTrade(void)
    request.tp = TP;
    MqlTradeCheckResult check_result;
    MqlTick latest_tick;
-   if ((Risk + percent_risk) <= (MaxRisk + 0.01))
+   if ((Risk + percent_risk) <= (MaxRisk + 0.03))
    {
       if (LimitLineExists == true)
       {
