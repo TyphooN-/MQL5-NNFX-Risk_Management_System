@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.142"
+#property version   "1.143"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -285,7 +285,7 @@ void OnTick()
       ulong ticket = PositionGetTicket(i);
       if(PositionSelectByTicket(ticket))
       {
-         if(PositionGetSymbol(i) != _Symbol && PositionGetInteger(POSITION_MAGIC) == MagicNumber) continue;
+         if(PositionGetSymbol(i) != _Symbol || PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
          double profit = PositionGetDouble(POSITION_PROFIT);
          double risk = 0;
          double tpprofit = 0;
