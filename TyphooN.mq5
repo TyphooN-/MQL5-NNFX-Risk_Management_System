@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.143"
+#property version   "1.144"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -48,8 +48,8 @@ double TickSize( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRA
 double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_VALUE ) ); }
 // input vars
 input group    "User Vars";
-input double   Risk                    = 0.5;
-input double   MaxRisk                 = 1.5;
+input double   Risk                    = 0.4;
+input double   MaxRisk                 = 1.0;
 input int      InitialOrdersToPlace    = 2;
 input int      ProtectPositionsToClose = 1;
 input bool     EnableAutoProtect       = true;
@@ -728,6 +728,7 @@ void TyWindow::OnClickTrade(void)
    double max_volume = NormalizeDouble(SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX), _Digits);
    double min_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
    double existing_volume = GetTotalVolumeForSymbol(_Symbol);
+   double potentialRisk = Risk + percent_risk;
    max_volume = NormalizeDouble(max_volume - existing_volume, _Digits);
    Trade.SetExpertMagicNumber(MagicNumber);
    int OrderDigits = 0;
@@ -748,6 +749,15 @@ void TyWindow::OnClickTrade(void)
    {
       Limit_Price = ObjectGetDouble(0, "Limit_Line", OBJPROP_PRICE, 0);
    }
+   if (potentialRisk > MaxRisk)
+   {
+      order_risk_money -= (potentialRisk - MaxRisk);
+      if (order_risk_money < 0)
+      {
+         Print("Adjusted risk is negative. Please review your risk settings.");
+         return; 
+      }
+   }
    double TotalLots   = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, Ask - SL), OrderDigits)
                               : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - Bid), OrderDigits);
    double PartialLots = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, Ask - SL) / InitialOrdersToPlace, OrderDigits)
@@ -758,7 +768,7 @@ void TyWindow::OnClickTrade(void)
    }
    if ((PartialLots * InitialOrdersToPlace) > max_volume)
    {
-      PartialLots = (max_volume / InitialOrdersToPlace);
+      PartialLots = NormalizeDouble((max_volume / InitialOrdersToPlace),OrderDigits);
    }
    int ExistingOrders = GetOrdersForSymbol(_Symbol);
    int OrdersToPlaceNow = ExistingOrders >= InitialOrdersToPlace ? 1 : InitialOrdersToPlace;
@@ -766,14 +776,15 @@ void TyWindow::OnClickTrade(void)
    MqlTradeRequest request;
    ZeroMemory(request);
    request.symbol = _Symbol;
-   request.volume = TotalLots;
+   request.volume = OrderLots;
    request.deviation = 20;
    request.magic = MagicNumber;
    request.sl = SL;
    request.tp = TP;
    MqlTradeCheckResult check_result;
    MqlTick latest_tick;
-   if ((Risk + percent_risk) <= (MaxRisk + 0.03))
+   //Print("Current Risk: ", Risk, ", percent_risk: ", percent_risk, ", Combined Risk: ", potentialRisk, ", MaxRisk: ", MaxRisk);
+   if (potentialRisk <= (MaxRisk + 0.5))
    {
       if (LimitLineExists == true)
       {
