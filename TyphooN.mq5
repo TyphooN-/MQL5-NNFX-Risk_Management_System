@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.144"
+#property version   "1.145"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -729,6 +729,7 @@ void TyWindow::OnClickTrade(void)
    double min_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
    double existing_volume = GetTotalVolumeForSymbol(_Symbol);
    double potentialRisk = Risk + percent_risk;
+   double OrderRisk = Risk;
    max_volume = NormalizeDouble(max_volume - existing_volume, _Digits);
    Trade.SetExpertMagicNumber(MagicNumber);
    int OrderDigits = 0;
@@ -751,12 +752,9 @@ void TyWindow::OnClickTrade(void)
    }
    if (potentialRisk > MaxRisk)
    {
-      order_risk_money -= (potentialRisk - MaxRisk);
-      if (order_risk_money < 0)
-      {
-         Print("Adjusted risk is negative. Please review your risk settings.");
-         return; 
-      }
+      OrderRisk = (MaxRisk - percent_risk);  // Adjust the risk for the next order
+      potentialRisk = OrderRisk + percent_risk;  // Recalculate potential risk after adjusting
+      order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (OrderRisk / 100));
    }
    double TotalLots   = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, Ask - SL), OrderDigits)
                               : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - Bid), OrderDigits);
@@ -784,7 +782,7 @@ void TyWindow::OnClickTrade(void)
    MqlTradeCheckResult check_result;
    MqlTick latest_tick;
    //Print("Current Risk: ", Risk, ", percent_risk: ", percent_risk, ", Combined Risk: ", potentialRisk, ", MaxRisk: ", MaxRisk);
-   if (potentialRisk <= (MaxRisk + 0.5))
+   if (potentialRisk <= (MaxRisk + 0.05))
    {
       if (LimitLineExists == true)
       {
