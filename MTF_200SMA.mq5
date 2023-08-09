@@ -228,7 +228,7 @@ void UpdateBuffers()
    }
    if (Enable_D1_13SMA)
    {
-      HandleD1_13SMA = iMA(NULL, PERIOD_D1, 13, 0, MODE_SMA, MAPrice);  // 13 period SMA
+      HandleD1_13SMA = iMA(NULL, PERIOD_D1, 13, 0, MODE_SMA, MAPrice);
       CopyBuffer(HandleD1_13SMA, 0, 0, BufferSize(MABufferD1_13SMA), MABufferD1_13SMA);
    }
    if (Enable_W1_200SMA)
