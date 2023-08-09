@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.146"
+#property version   "1.147"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -968,32 +968,36 @@ void AutoProtect()
    }
    else
    { 
-      for (int i = 0; i < ArraySize(positionsArray); i++)
+   for (int i = 0; i < ArraySize(positionsArray); i++)
+   {
+      if (PositionSelectByTicket(positionsArray[i].ticket))
       {
-         if (PositionSelectByTicket(positionsArray[i].ticket))
+         if (ClosedPositions < PositionsToClose)
          {
-            if (ClosedPositions < PositionsToClose)
+            Print("Closing Position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + ".");
+
+            double positionProfit = PositionGetDouble(POSITION_PROFIT);
+
+            if (!Trade.PositionClose(positionsArray[i].ticket))
             {
-               Print("Closing Position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + ".");
-               if (!Trade.PositionClose(positionsArray[i].ticket))
-               {
-                  Print("Failed to close position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + ". Error code: ", GetLastError());
-               }
-               else
-               {
-                  Print("Position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + " closed successfully.");
-                  ClosedPositions++;
-               }
+               Print("Failed to close position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + ". Error code: ", GetLastError());
             }
-            else {
-               SL = PositionGetDouble(POSITION_PRICE_OPEN);
-               if (!Trade.PositionModify(positionsArray[i].ticket, SL, PositionGetDouble(POSITION_TP)))
-               {
-                  Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
-               }
+            else
+            {
+               Print("Position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + " closed successfully.");
+               Print("Order #", positionsArray[i].ticket, " realized a profit of ", positionProfit);
+               ClosedPositions++;
+            }
+         }
+         else {
+            SL = PositionGetDouble(POSITION_PRICE_OPEN);
+            if (!Trade.PositionModify(positionsArray[i].ticket, SL, PositionGetDouble(POSITION_TP)))
+            {
+               Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
             }
          }
       }
+   }
    }
 }
 void Protect()
