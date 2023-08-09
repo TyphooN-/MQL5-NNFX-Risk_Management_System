@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.145"
+#property version   "1.146"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -906,6 +906,7 @@ void TyWindow::OnClickDestroyLines(void)
 struct PositionInfo {
    ulong ticket;
    double diff;
+   double lotSize;
 };
 void BubbleSort(PositionInfo &arr[])
 {
@@ -913,7 +914,7 @@ void BubbleSort(PositionInfo &arr[])
    {
       for (int j = 0; j < ArraySize(arr) - i - 1; j++)
       {
-         if (arr[j].diff > arr[j+1].diff)
+         if (arr[j].lotSize > arr[j+1].lotSize || (arr[j].lotSize == arr[j+1].lotSize && arr[j].diff > arr[j+1].diff))
          {
             PositionInfo temp = arr[j];
             arr[j] = arr[j+1];
