@@ -23,10 +23,10 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.008"
+#property version   "1.009"
 #property indicator_chart_window
-#property indicator_buffers 8
-#property indicator_plots   8
+#property indicator_buffers 9
+#property indicator_plots   9
 #property indicator_label1  "H1 200SMA"
 #property indicator_type1   DRAW_LINE
 #property indicator_color1  clrMagenta
@@ -67,6 +67,11 @@
 #property indicator_color8  clrOrange
 #property indicator_style8  STYLE_SOLID
 #property indicator_width8  2
+#property indicator_label9  "D1 13SMA"
+#property indicator_type9   DRAW_LINE
+#property indicator_color9  clrWhite
+#property indicator_style9  STYLE_SOLID
+#property indicator_width9  2
 // Input variables
 input bool Enable_H1_200SMA = true;
 input bool Enable_H4_200SMA = true;
@@ -76,13 +81,14 @@ input bool Enable_M1_200SMA = true;
 input bool Enable_M5_200SMA = true;
 input bool Enable_M15_200SMA = true;
 input bool Enable_M30_200SMA = true;
+input bool Enable_D1_13SMA = true;
 input bool W1_Empty_Warning = false;
 int MAPeriod = 200;
 ENUM_APPLIED_PRICE MAPrice = PRICE_CLOSE;
 // Handles
-int HandleH1, HandleH4, HandleD1, HandleW1, HandleM1, HandleM5, HandleM15, HandleM30;
+int HandleH1, HandleH4, HandleD1, HandleW1, HandleM1, HandleM5, HandleM15, HandleM30, HandleD1_13SMA;
 // Buffers
-double MABufferH1[], MABufferH4[], MABufferD1[], MABufferW1[], MABufferM1[], MABufferM5[], MABufferM15[], MABufferM30[];
+double MABufferH1[], MABufferH4[], MABufferD1[], MABufferW1[], MABufferM1[], MABufferM5[], MABufferM15[], MABufferM30[], MABufferD1_13SMA[];
 bool W1_Enable, M1_Enable, M5_Enable, M15_Enable, M30_Enable;
 bool isTimerSet = false;
 int lastCheckedCandle = -1;
@@ -98,6 +104,7 @@ int OnInit()
    SetIndexBuffer(5, MABufferM5, INDICATOR_DATA);
    SetIndexBuffer(6, MABufferM15, INDICATOR_DATA);
    SetIndexBuffer(7, MABufferM30, INDICATOR_DATA);
+   SetIndexBuffer(8, MABufferD1_13SMA, INDICATOR_DATA);
    return 0;
 }
 int OnCalculate(const int rates_total,
@@ -125,7 +132,7 @@ int OnCalculate(const int rates_total,
    datetime currentTime = TimeTradeServer();
    if (lastCheckedCandle != rates_total - 1)
    {
-      //Print("New candle has formed, updating MA Data");
+    //  Print("New candle has formed, updating MA Data");
       // Update the last checked candle index
       lastCheckedCandle = rates_total - 1;
       UpdateBuffers();
@@ -169,6 +176,7 @@ void UpdateBuffers()
    EraseBufferValues(MABufferH4);
    EraseBufferValues(MABufferD1);
    EraseBufferValues(MABufferW1);
+   EraseBufferValues(MABufferD1_13SMA);
    if (_Period < PERIOD_D1)
    {
       M1_Enable = Enable_M1_200SMA;
@@ -217,6 +225,11 @@ void UpdateBuffers()
    {
       HandleD1 = iMA(NULL, PERIOD_D1, MAPeriod, 0, MODE_SMA, MAPrice);
       CopyBuffer(HandleD1, 0, 0, BufferSize(MABufferD1), MABufferD1);
+   }
+   if (Enable_D1_13SMA)
+   {
+      HandleD1_13SMA = iMA(NULL, PERIOD_D1, 13, 0, MODE_SMA, MAPrice);  // 13 period SMA
+      CopyBuffer(HandleD1_13SMA, 0, 0, BufferSize(MABufferD1_13SMA), MABufferD1_13SMA);
    }
    if (Enable_W1_200SMA)
    {
@@ -310,7 +323,7 @@ void UpdateBuffersOnCalculate(int start, int rates_total)
             {
                if (W1_Empty_Warning)
                {
-                  //Print("Warning: W1 SMA data contains EMPTY_VALUE!");
+                  // Print("Warning: W1 SMA data contains EMPTY_VALUE!");
                }
             }
          }
