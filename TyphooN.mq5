@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.147"
+#property version   "1.148"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -782,6 +782,21 @@ void TyWindow::OnClickTrade(void)
    MqlTradeCheckResult check_result;
    MqlTick latest_tick;
    //Print("Current Risk: ", Risk, ", percent_risk: ", percent_risk, ", Combined Risk: ", potentialRisk, ", MaxRisk: ", MaxRisk);
+   double lotSize = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_CONTRACT_SIZE);
+   double marginRequirement = SymbolInfoDouble(_Symbol, SYMBOL_MARGIN_INITIAL);
+   double symbolPrice = (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? latest_tick.ask : latest_tick.bid;
+   double required_margin = OrderLots * lotSize * symbolPrice * marginRequirement;
+   double free_margin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
+   while (required_margin > free_margin && OrderLots > min_volume)
+   {
+      OrderLots -= min_volume;  // Decrease the order size by the minimum volume increment.
+      required_margin = OrderLots * lotSize * symbolPrice * marginRequirement;  // Recalculate the required margin.
+   }
+   if (OrderLots < min_volume)
+   {
+      Print("Order size adjusted to zero due to insufficient margin. Cannot place order.");
+      return;
+   }
    if (potentialRisk <= (MaxRisk + 0.05))
    {
       if (LimitLineExists == true)
