@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.148"
+#property version   "1.149"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -48,16 +48,17 @@ double TickSize( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRA
 double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_VALUE ) ); }
 // input vars
 input group    "User Vars";
-input double   Risk                    = 0.4;
-input double   MaxRisk                 = 1.0;
-input int      InitialOrdersToPlace    = 2;
-input int      ProtectPositionsToClose = 1;
-input bool     EnableAutoProtect       = true;
-input double   AutoProtectRRLevel      = 3.1415926535897932384626433832795;
-input int      SLPips                  = 4;
-input int      TPPips                  = 13;
-input int      MagicNumber             = 13;
-input int      HorizontalLineThickness = 3;
+input double   Risk                       = 0.5;
+input double   MaxRisk                    = 1.3;
+input int      InitialOrdersToPlace       = 2;
+input int      ProtectPositionsToClose    = 1;
+input int      AutoProtectCloseDivider    = 3;
+input bool     EnableAutoProtect          = true;
+input double   AutoProtectRRLevel         = 3.1415926535897932384626433832795;
+input int      SLPips                     = 4;
+input int      TPPips                     = 13;
+input int      MagicNumber                = 13;
+input int      HorizontalLineThickness    = 3;
 // global vars
 double TP = 0;
 double SL = 0;
@@ -972,7 +973,7 @@ void AutoProtect()
    }
    BubbleSort(positionsArray);
    int ClosedPositions=0;
-   int PositionsToClose = (int)MathFloor(((double)ArraySize(positionsArray)) * ((double)ProtectPositionsToClose/InitialOrdersToPlace));
+   int PositionsToClose = (int)MathFloor(((double)ArraySize(positionsArray)) * ((double)ProtectPositionsToClose/AutoProtectCloseDivider));
    if(totalPositions == 1)
    {
       SL = PositionGetDouble(POSITION_PRICE_OPEN);
