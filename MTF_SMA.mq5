@@ -1,4 +1,4 @@
-/**=                    MTF_SMA.mq5  (TyphooN's Multi Timeframe SMA)
+/**=                 MTF_SMA.mq5  (TyphooN's Multi Timeframe SMA)
  *               Copyright 2023, TyphooN (https://www.decapool.net/)
  *
  * Disclaimer and Licence
@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.011"
+#property version   "1.012"
 #property indicator_chart_window
 #property indicator_buffers 13
 #property indicator_plots   13
@@ -67,7 +67,7 @@
 #property indicator_color8  clrOrange
 #property indicator_style8  STYLE_SOLID
 #property indicator_width8  2
-#property indicator_label9  "D1 13SMA"
+#property indicator_label9  "M30 13SMA"
 #property indicator_type9   DRAW_LINE
 #property indicator_color9  clrWhite
 #property indicator_style9  STYLE_SOLID
@@ -82,7 +82,7 @@
 #property indicator_color11  clrWhite
 #property indicator_style11  STYLE_SOLID
 #property indicator_width11  2
-#property indicator_label12  "M30 13SMA"
+#property indicator_label12  "D1 13SMA"
 #property indicator_type12   DRAW_LINE
 #property indicator_color12  clrWhite
 #property indicator_style12  STYLE_SOLID
