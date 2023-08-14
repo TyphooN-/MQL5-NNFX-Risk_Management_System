@@ -1,4 +1,4 @@
-/**=              MTF_200SMA.mq5  (TyphooN's Multi Timeframe 200SMA)
+/**=                    MTF_SMA.mq5  (TyphooN's Multi Timeframe SMA)
  *               Copyright 2023, TyphooN (https://www.decapool.net/)
  *
  * Disclaimer and Licence
@@ -23,10 +23,10 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.010"
+#property version   "1.011"
 #property indicator_chart_window
-#property indicator_buffers 11
-#property indicator_plots   11
+#property indicator_buffers 13
+#property indicator_plots   13
 #property indicator_label1  "H1 200SMA"
 #property indicator_type1   DRAW_LINE
 #property indicator_color1  clrMagenta
@@ -82,6 +82,16 @@
 #property indicator_color11  clrWhite
 #property indicator_style11  STYLE_SOLID
 #property indicator_width11  2
+#property indicator_label12  "M30 13SMA"
+#property indicator_type12   DRAW_LINE
+#property indicator_color12  clrWhite
+#property indicator_style12  STYLE_SOLID
+#property indicator_width12  2
+#property indicator_label13  "W1 13SMA"
+#property indicator_type13   DRAW_LINE
+#property indicator_color13  clrWhite
+#property indicator_style13  STYLE_SOLID
+#property indicator_width13  2
 // Input variables
 input bool Enable_H1_200SMA = true;
 input bool Enable_H4_200SMA = true;
@@ -91,16 +101,18 @@ input bool Enable_M1_200SMA = true;
 input bool Enable_M5_200SMA = true;
 input bool Enable_M15_200SMA = true;
 input bool Enable_M30_200SMA = true;
-input bool Enable_D1_13SMA = true;
+input bool Enable_M30_13SMA = true;
 input bool Enable_H1_13SMA = true;
 input bool Enable_H4_13SMA = true;
+input bool Enable_D1_13SMA = true;
+input bool Enable_W1_13SMA = true;
 input bool W1_Empty_Warning = false;
 int MAPeriod = 200;
 ENUM_APPLIED_PRICE MAPrice = PRICE_CLOSE;
 // Handles
-int HandleH1, HandleH4, HandleD1, HandleW1, HandleM1, HandleM5, HandleM15, HandleM30, HandleD1_13SMA, HandleH1_13SMA, HandleH4_13SMA;;
+int HandleH1_200SMA, HandleH4_200SMA, HandleD1_200SMA, HandleW1_200SMA, HandleM1_200SMA, HandleM5_200SMA, HandleM15_200SMA, HandleM30_200SMA, HandleM30_13SMA, HandleH1_13SMA, HandleH4_13SMA, HandleD1_13SMA, HandleW1_13SMA;
 // Buffers
-double MABufferH1[], MABufferH4[], MABufferD1[], MABufferW1[], MABufferM1[], MABufferM5[], MABufferM15[], MABufferM30[], MABufferD1_13SMA[], MABufferH1_13SMA[], MABufferH4_13SMA[];
+double MABufferH1_200SMA[], MABufferH4_200SMA[], MABufferD1_200SMA[], MABufferW1_200SMA[], MABufferM1_200SMA[], MABufferM5_200SMA[], MABufferM15_200SMA[], MABufferM30_200SMA[], MABufferM30_13SMA[],  MABufferH1_13SMA[], MABufferH4_13SMA[], MABufferD1_13SMA[], MABufferW1_13SMA[];
 bool W1_Enable, M1_Enable, M5_Enable, M15_Enable, M30_Enable;
 bool isTimerSet = false;
 int lastCheckedCandle = -1;
@@ -108,17 +120,20 @@ int OnInit()
 {
    W1_Enable = Enable_W1_200SMA;
    //--- indicator buffers mapping
-   SetIndexBuffer(0, MABufferH1, INDICATOR_DATA);
-   SetIndexBuffer(1, MABufferH4, INDICATOR_DATA);
-   SetIndexBuffer(2, MABufferD1, INDICATOR_DATA);
-   SetIndexBuffer(3, MABufferW1, INDICATOR_DATA);
-   SetIndexBuffer(4, MABufferM1, INDICATOR_DATA);
-   SetIndexBuffer(5, MABufferM5, INDICATOR_DATA);
-   SetIndexBuffer(6, MABufferM15, INDICATOR_DATA);
-   SetIndexBuffer(7, MABufferM30, INDICATOR_DATA);
-   SetIndexBuffer(8, MABufferD1_13SMA, INDICATOR_DATA);
+   SetIndexBuffer(0, MABufferH1_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(1, MABufferH4_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(2, MABufferD1_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(3, MABufferW1_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(4, MABufferM1_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(5, MABufferM5_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(6, MABufferM15_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(7, MABufferM30_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(8, MABufferM30_13SMA, INDICATOR_DATA);
    SetIndexBuffer(9, MABufferH1_13SMA, INDICATOR_DATA);
    SetIndexBuffer(10, MABufferH4_13SMA, INDICATOR_DATA);
+   SetIndexBuffer(11, MABufferD1_13SMA, INDICATOR_DATA);
+   SetIndexBuffer(12, MABufferW1_13SMA, INDICATOR_DATA);
+   
    return 0;
 }
 int OnCalculate(const int rates_total,
@@ -182,17 +197,19 @@ int OnCalculate(const int rates_total,
 void UpdateBuffers()
 {
    // Clear buffer values before updating
-   EraseBufferValues(MABufferM1);
-   EraseBufferValues(MABufferM5);
-   EraseBufferValues(MABufferM15);
-   EraseBufferValues(MABufferM30);
-   EraseBufferValues(MABufferH1);
-   EraseBufferValues(MABufferH4);
-   EraseBufferValues(MABufferD1);
-   EraseBufferValues(MABufferW1);
-   EraseBufferValues(MABufferD1_13SMA);
+   EraseBufferValues(MABufferM1_200SMA);
+   EraseBufferValues(MABufferM5_200SMA);
+   EraseBufferValues(MABufferM15_200SMA);
+   EraseBufferValues(MABufferM30_200SMA);
+   EraseBufferValues(MABufferH1_200SMA);
+   EraseBufferValues(MABufferH4_200SMA);
+   EraseBufferValues(MABufferD1_200SMA);
+   EraseBufferValues(MABufferW1_200SMA);
+   EraseBufferValues(MABufferM30_13SMA);
    EraseBufferValues(MABufferH1_13SMA);
    EraseBufferValues(MABufferH4_13SMA);
+   EraseBufferValues(MABufferD1_13SMA);
+   EraseBufferValues(MABufferW1_13SMA);
    if (_Period < PERIOD_D1)
    {
       M1_Enable = Enable_M1_200SMA;
@@ -209,38 +226,38 @@ void UpdateBuffers()
    }
    if (M1_Enable)
    {
-      HandleM1 = iMA(NULL, PERIOD_M1, MAPeriod, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleM1, 0, 0, BufferSize(MABufferM1), MABufferM1);
+      HandleM1_200SMA = iMA(NULL, PERIOD_M1, MAPeriod, 0, MODE_SMA, MAPrice);
+      CopyBuffer(HandleM1_200SMA, 0, 0, BufferSize(MABufferM1_200SMA), MABufferM1_200SMA);
    }
    if (M5_Enable)
    {
-      HandleM5 = iMA(NULL, PERIOD_M5, MAPeriod, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleM5, 0, 0, BufferSize(MABufferM5), MABufferM5);
+      HandleM5_200SMA = iMA(NULL, PERIOD_M5, MAPeriod, 0, MODE_SMA, MAPrice);
+      CopyBuffer(HandleM5_200SMA, 0, 0, BufferSize(MABufferM5_200SMA), MABufferM5_200SMA);
    }
    if (M15_Enable)
    {
-      HandleM15 = iMA(NULL, PERIOD_M15, MAPeriod, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleM15, 0, 0, BufferSize(MABufferM15), MABufferM15);
+      HandleM15_200SMA = iMA(NULL, PERIOD_M15, MAPeriod, 0, MODE_SMA, MAPrice);
+      CopyBuffer(HandleM15_200SMA, 0, 0, BufferSize(MABufferM15_200SMA), MABufferM15_200SMA);
    }
    if (M30_Enable)
    {
-      HandleM30 = iMA(NULL, PERIOD_M30, MAPeriod, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleM30, 0, 0, BufferSize(MABufferM30), MABufferM30);
+      HandleM30_200SMA = iMA(NULL, PERIOD_M30, MAPeriod, 0, MODE_SMA, MAPrice);
+      CopyBuffer(HandleM30_200SMA, 0, 0, BufferSize(MABufferM30_200SMA), MABufferM30_200SMA);
    }
    if (Enable_H1_200SMA)
    {
-      HandleH1 = iMA(NULL, PERIOD_H1, MAPeriod, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleH1, 0, 0, BufferSize(MABufferH1), MABufferH1);
+      HandleH1_200SMA = iMA(NULL, PERIOD_H1, MAPeriod, 0, MODE_SMA, MAPrice);
+      CopyBuffer(HandleH1_200SMA, 0, 0, BufferSize(MABufferH1_200SMA), MABufferH1_200SMA);
    }
    if (Enable_H4_200SMA)
    {
-      HandleH4 = iMA(NULL, PERIOD_H4, MAPeriod, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleH4, 0, 0, BufferSize(MABufferH4), MABufferH4);
+      HandleH4_200SMA = iMA(NULL, PERIOD_H4, MAPeriod, 0, MODE_SMA, MAPrice);
+      CopyBuffer(HandleH4_200SMA, 0, 0, BufferSize(MABufferH4_200SMA), MABufferH4_200SMA);
    }
    if (Enable_D1_200SMA)
    {
-      HandleD1 = iMA(NULL, PERIOD_D1, MAPeriod, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleD1, 0, 0, BufferSize(MABufferD1), MABufferD1);
+      HandleD1_200SMA = iMA(NULL, PERIOD_D1, MAPeriod, 0, MODE_SMA, MAPrice);
+      CopyBuffer(HandleD1_200SMA, 0, 0, BufferSize(MABufferD1_200SMA), MABufferD1_200SMA);
    }
    if (Enable_D1_13SMA)
    {
@@ -257,18 +274,28 @@ void UpdateBuffers()
       HandleH4_13SMA = iMA(NULL, PERIOD_H4, 13, 0, MODE_SMA, MAPrice);
       CopyBuffer(HandleH4_13SMA, 0, 0, BufferSize(MABufferH4_13SMA), MABufferH4_13SMA);
    }
+   if (Enable_M30_13SMA)
+   {
+      HandleM30_13SMA = iMA(NULL, PERIOD_M30, 13, 0, MODE_SMA, MAPrice);
+      CopyBuffer(HandleM30_13SMA, 0, 0, BufferSize(MABufferM30_13SMA), MABufferM30_13SMA);
+   }
+   if (Enable_W1_13SMA)
+   {
+      HandleW1_13SMA = iMA(NULL, PERIOD_W1, 13, 0, MODE_SMA, MAPrice);
+      CopyBuffer(HandleW1_13SMA, 0, 0, BufferSize(MABufferW1_13SMA), MABufferW1_13SMA);
+   }
    if (Enable_W1_200SMA)
    {
-      HandleW1 = iMA(NULL, PERIOD_W1, MAPeriod, 0, MODE_SMA, MAPrice);
-      if (HandleW1 != INVALID_HANDLE)
+      HandleW1_200SMA = iMA(NULL, PERIOD_W1, MAPeriod, 0, MODE_SMA, MAPrice);
+      if (HandleW1_200SMA != INVALID_HANDLE)
       {
-         int copySizeW1 = CopyBuffer(HandleW1, 0, 0, BufferSize(MABufferW1), MABufferW1);
+         int copySizeW1 = CopyBuffer(HandleW1_200SMA, 0, 0, BufferSize(MABufferW1_200SMA), MABufferW1_200SMA);
          if (copySizeW1 > 0)
          {
             bool isEmptyValueExist = false;
             for (int i = 0; i < copySizeW1; i++)
             {
-               if (MABufferW1[i] == EMPTY_VALUE)
+               if (MABufferW1_200SMA[i] == EMPTY_VALUE)
                {
                   isEmptyValueExist = true;
                   break;
@@ -296,56 +323,60 @@ void UpdateBuffersOnCalculate(int start, int rates_total)
    {
       if (M1_Enable)
       {
-         HandleM1 = iMA(NULL, PERIOD_M1, MAPeriod, 0, MODE_SMA, MAPrice);
-         CopyBuffer(HandleM1, 0, 0, BufferSize(MABufferM1), MABufferM1);
+         HandleM1_200SMA = iMA(NULL, PERIOD_M1, MAPeriod, 0, MODE_SMA, MAPrice);
+         CopyBuffer(HandleM1_200SMA, 0, 0, BufferSize(MABufferM1_200SMA), MABufferM1_200SMA);
       }
       if (M5_Enable)
       {
-         HandleM5 = iMA(NULL, PERIOD_M5, MAPeriod, 0, MODE_SMA, MAPrice);
-         CopyBuffer(HandleM5, 0, 0, BufferSize(MABufferM5), MABufferM5);
+         HandleM5_200SMA = iMA(NULL, PERIOD_M5, MAPeriod, 0, MODE_SMA, MAPrice);
+         CopyBuffer(HandleM5_200SMA, 0, 0, BufferSize(MABufferM5_200SMA), MABufferM5_200SMA);
       }
       if (M15_Enable)
       {
-         HandleM15 = iMA(NULL, PERIOD_M15, MAPeriod, 0, MODE_SMA, MAPrice);
-         CopyBuffer(HandleM15, 0, 0, BufferSize(MABufferM15), MABufferM15);
+         HandleM15_200SMA = iMA(NULL, PERIOD_M15, MAPeriod, 0, MODE_SMA, MAPrice);
+         CopyBuffer(HandleM15_200SMA, 0, 0, BufferSize(MABufferM15_200SMA), MABufferM15_200SMA);
       }
       if (M30_Enable)
       {
-         HandleM30 = iMA(NULL, PERIOD_M30, MAPeriod, 0, MODE_SMA, MAPrice);
-         CopyBuffer(HandleM30, 0, 0, BufferSize(MABufferM30), MABufferM30);
+         HandleM30_200SMA = iMA(NULL, PERIOD_M30, MAPeriod, 0, MODE_SMA, MAPrice);
+         CopyBuffer(HandleM30_200SMA, 0, 0, BufferSize(MABufferM30_200SMA), MABufferM30_200SMA);
       }
    }
    if (_Period >= PERIOD_D1)
    {
-      EraseBufferValues(MABufferM1);
-      EraseBufferValues(MABufferM5);
-      EraseBufferValues(MABufferM15);
-      EraseBufferValues(MABufferM30);
+      EraseBufferValues(MABufferM1_200SMA);
+      EraseBufferValues(MABufferM5_200SMA);
+      EraseBufferValues(MABufferM15_200SMA);
+      EraseBufferValues(MABufferM30_200SMA);
    }
    if (Enable_H1_200SMA)
-      CopyBuffer(HandleH1, 0, 0, BufferSize(MABufferH1), MABufferH1);
+      CopyBuffer(HandleH1_200SMA, 0, 0, BufferSize(MABufferH1_200SMA), MABufferH1_200SMA);
    if (Enable_H4_200SMA)
-      CopyBuffer(HandleH4, 0, 0, BufferSize(MABufferH4), MABufferH4);
+      CopyBuffer(HandleH4_200SMA, 0, 0, BufferSize(MABufferH4_200SMA), MABufferH4_200SMA);
    if (Enable_D1_200SMA)
-      CopyBuffer(HandleD1, 0, 0, BufferSize(MABufferD1), MABufferD1);
+      CopyBuffer(HandleD1_200SMA, 0, 0, BufferSize(MABufferD1_200SMA), MABufferD1_200SMA);
    if (Enable_H1_13SMA)
       CopyBuffer(HandleH1_13SMA, 0, 0, BufferSize(MABufferH1_13SMA), MABufferH1_13SMA);
+   if (Enable_H1_13SMA)
+      CopyBuffer(HandleM30_13SMA, 0, 0, BufferSize(MABufferM30_13SMA), MABufferM30_13SMA);
    if (Enable_H4_13SMA)
       CopyBuffer(HandleH4_13SMA, 0, 0, BufferSize(MABufferH4_13SMA), MABufferH4_13SMA);
    if (Enable_D1_13SMA)
       CopyBuffer(HandleD1_13SMA, 0, 0, BufferSize(MABufferD1_13SMA), MABufferD1_13SMA);
+   if (Enable_W1_13SMA)
+      CopyBuffer(HandleW1_13SMA, 0, 0, BufferSize(MABufferW1_13SMA), MABufferW1_13SMA);
    if (Enable_W1_200SMA)
    {
-      HandleW1 = iMA(NULL, PERIOD_W1, MAPeriod, 0, MODE_SMA, MAPrice);
-      if (HandleW1 != INVALID_HANDLE)
+      HandleW1_200SMA = iMA(NULL, PERIOD_W1, MAPeriod, 0, MODE_SMA, MAPrice);
+      if (HandleW1_200SMA != INVALID_HANDLE)
       {
-         int copySizeW1 = CopyBuffer(HandleW1, 0, 0, BufferSize(MABufferW1), MABufferW1);
+         int copySizeW1 = CopyBuffer(HandleW1_200SMA, 0, 0, BufferSize(MABufferW1_200SMA), MABufferW1_200SMA);
          if (copySizeW1 > 0)
          {
             bool isEmptyValueExist = false;
             for (int i = 0; i < copySizeW1; i++)
             {
-               if (MABufferW1[i] == EMPTY_VALUE)
+               if (MABufferW1_200SMA[i] == EMPTY_VALUE)
                {
                   isEmptyValueExist = true;
                   break;
