@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.149"
+#property version   "1.150"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -281,6 +281,7 @@ void OnTick()
    double sl_profit = 0;
    double sl_risk = 0;
    double account_balance = AccountInfoDouble(ACCOUNT_BALANCE);
+   bool breakEvenFound = false;
    for(int i = 0; i < PositionsTotal(); i++)
    {
       ulong ticket = PositionGetTicket(i);
@@ -291,6 +292,10 @@ void OnTick()
          double risk = 0;
          double tpprofit = 0;
          double margin = 0;
+         if (PositionGetDouble(POSITION_SL) == PositionGetDouble(POSITION_PRICE_OPEN))
+         {
+            breakEvenFound = true;
+         }
          if (PositionGetDouble(POSITION_TP) > PositionGetDouble(POSITION_SL))
          {
             if (!OrderCalcMargin(ORDER_TYPE_BUY, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), margin))
@@ -350,7 +355,7 @@ void OnTick()
          percent_risk = MathAbs((sl_risk / account_balance) * 100);
       }
    }
-   if (EnableAutoProtect==true && AutoProtectCalled==false)
+   if (EnableAutoProtect == true && AutoProtectCalled == false && breakEvenFound == false)
    {
          if (rr >= AutoProtectRRLevel && total_risk < 0)
          {
