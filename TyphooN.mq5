@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.151"
+#property version   "1.152"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -793,7 +793,7 @@ void TyWindow::OnClickTrade(void)
    double symbolPrice = (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid;
    double required_margin = OrderLots * lotSize * symbolPrice * marginRequirement;
    double free_margin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
-   while (required_margin > free_margin && OrderLots > min_volume)
+   while (required_margin > (free_margin - 500) && OrderLots > min_volume)
    {
       OrderLots -= min_volume;  // Decrease the order size by the minimum volume increment.
       required_margin = OrderLots * lotSize * symbolPrice * marginRequirement;  // Recalculate the required margin.
