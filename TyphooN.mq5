@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.153"
+#property version   "1.154"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -47,16 +47,19 @@ double Point( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_POINT 
 double TickSize( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_SIZE ) ); }
 double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_VALUE ) ); }
 // input vars
-input group    "User Vars";
-input double   Risk                       = 0.8;
+input group    "[ORDER PLACEMENT SETTINGS]";
 input double   MaxRisk                    = 1.0;
+input double   Risk                       = 0.6;
 input int      InitialOrdersToPlace       = 3;
-input int      ProtectPositionsToClose    = 1;
-input int      AutoProtectCloseDivider    = 3;
+input group    "[ACCOUNT PROTECTION SETTINGS]";
 input bool     EnableAutoProtect          = true;
+input int      AutoProtectCloseDivider    = 3;
+input int      ProtectPositionsToClose    = 1;
 input double   AutoProtectRRLevel         = 3.1415926535897932384626433832795;
+input group    "[POSITION MANAGEMENT SETTINGS]";
 input int      SLPips                     = 4;
 input int      TPPips                     = 13;
+input group    "[EXPERT ADVISOR SETTINGS]";
 input int      MagicNumber                = 13;
 input int      HorizontalLineThickness    = 3;
 // global vars
