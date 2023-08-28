@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.154"
+#property version   "1.155"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -53,9 +53,11 @@ input double   Risk                       = 0.6;
 input int      InitialOrdersToPlace       = 3;
 input group    "[ACCOUNT PROTECTION SETTINGS]";
 input bool     EnableAutoProtect          = true;
-input int      AutoProtectCloseDivider    = 3;
-input int      ProtectPositionsToClose    = 1;
-input double   AutoProtectRRLevel         = 3.1415926535897932384626433832795;
+input int      APCloseDivider             = 3;
+input int      APPositionsToClose         = 1;
+input int      APStartHour                = 20;
+input int      APStopHour                 = 24;
+input double   APRRLevel                  = 3.1415926535897932384626433832795;
 input group    "[POSITION MANAGEMENT SETTINGS]";
 input int      SLPips                     = 4;
 input int      TPPips                     = 13;
@@ -271,6 +273,9 @@ double PointValue()
 }
 void OnTick()
 {
+   // Filter AutoProtect to only execute during user defined window
+   MqlDateTime time;TimeCurrent(time);
+   bool APFilter=(APStartHour<APStopHour&&(time.hour>=APStartHour&&time.hour<APStopHour))||(APStartHour>APStopHour&&(time.hour>=APStartHour||time.hour<APStopHour));
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (Risk / 100));
@@ -358,11 +363,11 @@ void OnTick()
          percent_risk = MathAbs((sl_risk / account_balance) * 100);
       }
    }
-   if (EnableAutoProtect == true && AutoProtectCalled == false && breakEvenFound == false)
+   if (EnableAutoProtect == true && AutoProtectCalled == false && breakEvenFound == false && APFilter == true)
    {
-         if (rr >= AutoProtectRRLevel && total_risk < 0)
+         if (rr >= APRRLevel && total_risk < 0)
          {
-            Print ("Auto Protect has removed risk and taken a piece of the Pi as RR >= " + DoubleToString(AutoProtectRRLevel,8));
+            Print ("Auto Protect has removed risk and taken a piece of the Pi as RR >= " + DoubleToString(APRRLevel,8));
             AutoProtect();
             AutoProtectCalled = true;
          }
@@ -981,7 +986,7 @@ void AutoProtect()
    }
    BubbleSort(positionsArray);
    int ClosedPositions=0;
-   int PositionsToClose = (int)MathFloor(((double)ArraySize(positionsArray)) * ((double)ProtectPositionsToClose/AutoProtectCloseDivider));
+   int PositionsToClose = (int)MathFloor(((double)ArraySize(positionsArray)) * ((double)APPositionsToClose/APCloseDivider));
    if(totalPositions == 1)
    {
       SL = PositionGetDouble(POSITION_PRICE_OPEN);
