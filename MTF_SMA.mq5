@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.013"
+#property version   "1.014"
 #property indicator_chart_window
 #property indicator_buffers 13
 #property indicator_plots   13
@@ -98,7 +98,7 @@
 #property indicator_style14  STYLE_SOLID
 #property indicator_width14  2
 // Input variables
-input group "Long Term Moving Averages"
+input group "Long Term MAs (Support and Resistance)"
 input bool Enable_H1_200SMA = true;
 input bool Enable_H4_200SMA = true;
 input bool Enable_D1_200SMA = true;
@@ -107,14 +107,14 @@ input bool Enable_M1_200SMA = true;
 input bool Enable_M5_200SMA = true;
 input bool Enable_M15_200SMA = true;
 input bool Enable_M30_200SMA = true;
-input group "Short Term Moving Averages"
+input group "Short Term MAs (Trend Confirmation)"
 input bool Enable_M15_13SMA = true;
 input bool Enable_M30_13SMA = true;
 input bool Enable_H1_13SMA = true;
 input bool Enable_H4_13SMA = true;
 input bool Enable_D1_13SMA = true;
 input bool Enable_W1_13SMA = true;
-input bool W1_Empty_Warning = false;
+bool W1_Empty_Warning = false;
 ENUM_APPLIED_PRICE MAPrice = PRICE_CLOSE;
 // Handles
 int HandleH1_200SMA, HandleH4_200SMA, HandleD1_200SMA, HandleW1_200SMA, HandleM1_200SMA, HandleM5_200SMA, HandleM15_200SMA, HandleM15_13SMA, HandleM30_200SMA, HandleM30_13SMA, HandleH1_13SMA, HandleH4_13SMA, HandleD1_13SMA, HandleW1_13SMA;
