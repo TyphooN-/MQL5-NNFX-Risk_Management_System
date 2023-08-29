@@ -24,7 +24,8 @@
 #property indicator_chart_window
 #property indicator_buffers 6
 #property indicator_plots 0
-#property version "1.016"
+#property version "1.017"
+input group  "[ATR/Period Settings]";
 input int    ATR_Period                    = 14;
 input bool   M15_ATR_Projections           = true;
 input bool   H1_ATR_Projections            = true;
@@ -33,10 +34,12 @@ input bool   H4_ATR_Projections            = true;
 input bool   D1_ATR_Projections            = true;
 input bool   W1_ATR_Projections            = true;
 input bool   MN1_ATR_Projections           = true;
+input group  "[Line Settings]";
 input ENUM_LINE_STYLE ATR_linestyle        = STYLE_DOT;
-input int    ATR_Linethickness             = 2;
+input int    ATR_Line_Thickness             = 2;
 input color  ATR_Line_Color                = clrYellow;
 input bool   ATR_Line_Background           = false;
+input group  "[Info Text Settings]";
 input string FontName                      = "Courier New";
 input int    FontSize                      = 8;
 input color  FontColor                     = clrWhite;
@@ -258,12 +261,12 @@ int OnCalculate(const int        rates_total,
       atrLevelBelowD1currentOpen = currentOpenD1 - avgD1;
       ObjectCreate(0, objname + "High D1", OBJ_TREND, 0, startTimeD1, currentOpenD1 + avgD1, endTime, currentOpenD1 + avgD1);
       ObjectSetInteger(0, objname + "High D1", OBJPROP_STYLE, ATR_linestyle);
-      ObjectSetInteger(0, objname + "High D1", OBJPROP_WIDTH, ATR_Linethickness);
+      ObjectSetInteger(0, objname + "High D1", OBJPROP_WIDTH, ATR_Line_Thickness);
       ObjectSetInteger(0, objname + "High D1", OBJPROP_COLOR, ATR_Line_Color);
       ObjectSetInteger(0, objname + "High D1", OBJPROP_BACK, ATR_Line_Background);
       ObjectCreate(0, objname + "Low D1", OBJ_TREND, 0, startTimeD1, currentOpenD1 - avgD1, endTime, currentOpenD1 - avgD1);
       ObjectSetInteger(0, objname + "Low D1", OBJPROP_STYLE, ATR_linestyle);
-      ObjectSetInteger(0, objname + "Low D1", OBJPROP_WIDTH, ATR_Linethickness);
+      ObjectSetInteger(0, objname + "Low D1", OBJPROP_WIDTH, ATR_Line_Thickness);
       ObjectSetInteger(0, objname + "Low D1", OBJPROP_COLOR, ATR_Line_Color);
       ObjectSetInteger(0, objname + "Low D1", OBJPROP_BACK, ATR_Line_Background);
    }
@@ -274,12 +277,12 @@ int OnCalculate(const int        rates_total,
       atrLevelBelowW1currentOpen = currentOpenW1 - avgW1;
       ObjectCreate(0, objname + "High W1", OBJ_TREND, 0, startTimeW1, atrLevelAboveW1currentOpen, endTime, atrLevelAboveW1currentOpen);
       ObjectSetInteger(0, objname + "High W1", OBJPROP_STYLE, ATR_linestyle);
-      ObjectSetInteger(0, objname + "High W1", OBJPROP_WIDTH, ATR_Linethickness);
+      ObjectSetInteger(0, objname + "High W1", OBJPROP_WIDTH, ATR_Line_Thickness);
       ObjectSetInteger(0, objname + "High W1", OBJPROP_COLOR, ATR_Line_Color);
       ObjectSetInteger(0, objname + "High W1", OBJPROP_BACK, ATR_Line_Background);
       ObjectCreate(0, objname + "Low W1", OBJ_TREND, 0, startTimeW1, atrLevelBelowW1currentOpen, endTime, atrLevelBelowW1currentOpen);
       ObjectSetInteger(0, objname + "Low W1", OBJPROP_STYLE, ATR_linestyle);
-      ObjectSetInteger(0, objname + "Low W1", OBJPROP_WIDTH, ATR_Linethickness);
+      ObjectSetInteger(0, objname + "Low W1", OBJPROP_WIDTH, ATR_Line_Thickness);
       ObjectSetInteger(0, objname + "Low W1", OBJPROP_COLOR, ATR_Line_Color);
       ObjectSetInteger(0, objname + "Low W1", OBJPROP_BACK, ATR_Line_Background);
    }
@@ -290,12 +293,12 @@ int OnCalculate(const int        rates_total,
       atrLevelBelowMN1currentOpen = currentOpenMN1 - avgMN1;
       ObjectCreate(0, objname + "High MN1", OBJ_TREND, 0, startTimeMN1, atrLevelAboveMN1currentOpen, endTime, atrLevelAboveMN1currentOpen);
       ObjectSetInteger(0, objname + "High MN1", OBJPROP_STYLE, ATR_linestyle);
-      ObjectSetInteger(0, objname + "High MN1", OBJPROP_WIDTH, ATR_Linethickness);
+      ObjectSetInteger(0, objname + "High MN1", OBJPROP_WIDTH, ATR_Line_Thickness);
       ObjectSetInteger(0, objname + "High MN1", OBJPROP_COLOR, ATR_Line_Color);
       ObjectSetInteger(0, objname + "High MN1", OBJPROP_BACK, ATR_Line_Background);
       ObjectCreate(0, objname + "Low MN1", OBJ_TREND, 0, startTimeMN1, atrLevelBelowMN1currentOpen, endTime, atrLevelBelowMN1currentOpen);
       ObjectSetInteger(0, objname + "Low MN1", OBJPROP_STYLE, ATR_linestyle);
-      ObjectSetInteger(0, objname + "Low MN1", OBJPROP_WIDTH, ATR_Linethickness);
+      ObjectSetInteger(0, objname + "Low MN1", OBJPROP_WIDTH, ATR_Line_Thickness);
       ObjectSetInteger(0, objname + "Low MN1", OBJPROP_COLOR, ATR_Line_Color);
       ObjectSetInteger(0, objname + "Low MN1", OBJPROP_BACK, ATR_Line_Background);
    }
@@ -307,12 +310,12 @@ int OnCalculate(const int        rates_total,
          atrLevelBelowH4currentOpen = currentOpenH4 - avgH4;
          ObjectCreate(0, objname + "High H4", OBJ_TREND, 0, startTimeH4, atrLevelAboveH4currentOpen, endTime, atrLevelAboveH4currentOpen);
          ObjectSetInteger(0, objname + "High H4", OBJPROP_STYLE, ATR_linestyle);
-         ObjectSetInteger(0, objname + "High H4", OBJPROP_WIDTH, ATR_Linethickness);
+         ObjectSetInteger(0, objname + "High H4", OBJPROP_WIDTH, ATR_Line_Thickness);
          ObjectSetInteger(0, objname + "High H4", OBJPROP_COLOR, ATR_Line_Color);
          ObjectSetInteger(0, objname + "High H4", OBJPROP_BACK, ATR_Line_Background);
          ObjectCreate(0, objname + "Low H4", OBJ_TREND, 0, startTimeH4, atrLevelBelowH4currentOpen, endTime, atrLevelBelowH4currentOpen);
          ObjectSetInteger(0, objname + "Low H4", OBJPROP_STYLE, ATR_linestyle);
-         ObjectSetInteger(0, objname + "Low H4", OBJPROP_WIDTH, ATR_Linethickness);
+         ObjectSetInteger(0, objname + "Low H4", OBJPROP_WIDTH, ATR_Line_Thickness);
          ObjectSetInteger(0, objname + "Low H4", OBJPROP_COLOR, ATR_Line_Color);
          ObjectSetInteger(0, objname + "Low H4", OBJPROP_BACK, ATR_Line_Background);
    }
@@ -323,12 +326,12 @@ int OnCalculate(const int        rates_total,
       atrLevelBelowH1currentOpen = currentOpenH1 - avgH1;
       ObjectCreate(0, objname + "High H1", OBJ_TREND, 0, startTimeH1, atrLevelAboveH1currentOpen, endTime, atrLevelAboveH1currentOpen);
       ObjectSetInteger(0, objname + "High H1", OBJPROP_STYLE, ATR_linestyle);
-      ObjectSetInteger(0, objname + "High H1", OBJPROP_WIDTH, ATR_Linethickness);
+      ObjectSetInteger(0, objname + "High H1", OBJPROP_WIDTH, ATR_Line_Thickness);
       ObjectSetInteger(0, objname + "High H1", OBJPROP_COLOR, ATR_Line_Color);
       ObjectSetInteger(0, objname + "High H1", OBJPROP_BACK, ATR_Line_Background);
       ObjectCreate(0, objname + "Low H1", OBJ_TREND, 0, startTimeH1, atrLevelBelowH1currentOpen, endTime, atrLevelBelowH1currentOpen);
       ObjectSetInteger(0, objname + "Low H1", OBJPROP_STYLE, ATR_linestyle);
-      ObjectSetInteger(0, objname + "Low H1", OBJPROP_WIDTH, ATR_Linethickness);
+      ObjectSetInteger(0, objname + "Low H1", OBJPROP_WIDTH, ATR_Line_Thickness);
       ObjectSetInteger(0, objname + "Low H1", OBJPROP_COLOR, ATR_Line_Color);
       ObjectSetInteger(0, objname + "Low H1", OBJPROP_BACK, ATR_Line_Background);
       if (H1_Historical_Projection)
@@ -339,24 +342,24 @@ int OnCalculate(const int        rates_total,
          atrLevelBelowH1currentOpenHistorical1 = currentOpenH1Historical1 - avgH1_Historical1;
          ObjectCreate(0, objname + "High H1 Historical 1", OBJ_TREND, 0, startTimeH1Historical1, atrLevelAboveH1currentOpenHistorical1, endTime, atrLevelAboveH1currentOpenHistorical1);
          ObjectSetInteger(0, objname + "High H1 Historical 1", OBJPROP_STYLE, ATR_linestyle);
-         ObjectSetInteger(0, objname + "High H1 Historical 1", OBJPROP_WIDTH, ATR_Linethickness);
+         ObjectSetInteger(0, objname + "High H1 Historical 1", OBJPROP_WIDTH, ATR_Line_Thickness);
          ObjectSetInteger(0, objname + "High H1 Historical 1", OBJPROP_COLOR, ATR_Line_Color);
          ObjectSetInteger(0, objname + "High H1_Historical 1", OBJPROP_BACK, ATR_Line_Background);
          ObjectCreate(0, objname + "Low H1 Historical 1", OBJ_TREND, 0, startTimeH1Historical1, atrLevelBelowH1currentOpenHistorical1, endTime, atrLevelBelowH1currentOpenHistorical1);
          ObjectSetInteger(0, objname + "Low H1 Historical 1", OBJPROP_STYLE, ATR_linestyle);
-         ObjectSetInteger(0, objname + "Low H1 Historical 1", OBJPROP_WIDTH, ATR_Linethickness);
+         ObjectSetInteger(0, objname + "Low H1 Historical 1", OBJPROP_WIDTH, ATR_Line_Thickness);
          ObjectSetInteger(0, objname + "Low H1 Historical 1", OBJPROP_COLOR, ATR_Line_Color);
          ObjectSetInteger(0, objname + "Low H1 Historical 1", OBJPROP_BACK, ATR_Line_Background);
          atrLevelAboveH1currentOpenHistorical2 = currentOpenH1Historical2 + avgH1_Historical2;
          atrLevelBelowH1currentOpenHistorical2 = currentOpenH1Historical2 - avgH1_Historical2;
          ObjectCreate(0, objname + "High H1 Historical 2", OBJ_TREND, 0, startTimeH1Historical2, atrLevelAboveH1currentOpenHistorical2, endTime, atrLevelAboveH1currentOpenHistorical2);
          ObjectSetInteger(0, objname + "High H1 Historical 2", OBJPROP_STYLE, ATR_linestyle);
-         ObjectSetInteger(0, objname + "High H1 Historical 2", OBJPROP_WIDTH, ATR_Linethickness);
+         ObjectSetInteger(0, objname + "High H1 Historical 2", OBJPROP_WIDTH, ATR_Line_Thickness);
          ObjectSetInteger(0, objname + "High H1 Historical 2", OBJPROP_COLOR, ATR_Line_Color);
          ObjectSetInteger(0, objname + "High H1 Historical 2", OBJPROP_BACK, ATR_Line_Background);
          ObjectCreate(0, objname + "Low H1 Historical 2", OBJ_TREND, 0, startTimeH1Historical2, atrLevelBelowH1currentOpenHistorical2, endTime, atrLevelBelowH1currentOpenHistorical2);
          ObjectSetInteger(0, objname + "Low H1 Historical 2", OBJPROP_STYLE, ATR_linestyle);
-         ObjectSetInteger(0, objname + "Low H1 Historical 2", OBJPROP_WIDTH, ATR_Linethickness);
+         ObjectSetInteger(0, objname + "Low H1 Historical 2", OBJPROP_WIDTH, ATR_Line_Thickness);
          ObjectSetInteger(0, objname + "Low H1 Historical 2", OBJPROP_COLOR, ATR_Line_Color);
          ObjectSetInteger(0, objname + "Low H1 Historical 2", OBJPROP_BACK, ATR_Line_Background);
    }
@@ -368,12 +371,12 @@ int OnCalculate(const int        rates_total,
       atrLevelBelowM15currentOpen = currentOpenM15 - avgM15;
       ObjectCreate(0, objname + "High M15", OBJ_TREND, 0, startTimeM15, atrLevelAboveM15currentOpen, endTime, atrLevelAboveM15currentOpen);
       ObjectSetInteger(0, objname + "High M15", OBJPROP_STYLE, ATR_linestyle);
-      ObjectSetInteger(0, objname + "High M15", OBJPROP_WIDTH, ATR_Linethickness);
+      ObjectSetInteger(0, objname + "High M15", OBJPROP_WIDTH, ATR_Line_Thickness);
       ObjectSetInteger(0, objname + "High M15", OBJPROP_COLOR, ATR_Line_Color);
       ObjectSetInteger(0, objname + "High M15", OBJPROP_BACK, ATR_Line_Background);
       ObjectCreate(0, objname + "Low M15", OBJ_TREND, 0, startTimeM15, atrLevelBelowM15currentOpen, endTime, atrLevelBelowM15currentOpen);
       ObjectSetInteger(0, objname + "Low M15", OBJPROP_STYLE, ATR_linestyle);
-      ObjectSetInteger(0, objname + "Low M15", OBJPROP_WIDTH, ATR_Linethickness);
+      ObjectSetInteger(0, objname + "Low M15", OBJPROP_WIDTH, ATR_Line_Thickness);
       ObjectSetInteger(0, objname + "Low M15", OBJPROP_COLOR, ATR_Line_Color);
       ObjectSetInteger(0, objname + "Low M15", OBJPROP_BACK, ATR_Line_Background);
    }
