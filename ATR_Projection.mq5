@@ -24,7 +24,7 @@
 #property indicator_chart_window
 #property indicator_buffers 6
 #property indicator_plots 0
-#property version "1.015"
+#property version "1.016"
 input int    ATR_Period                    = 14;
 input bool   M15_ATR_Projections           = true;
 input bool   H1_ATR_Projections            = true;
@@ -349,12 +349,12 @@ int OnCalculate(const int        rates_total,
          ObjectSetInteger(0, objname + "Low H1 Historical 1", OBJPROP_BACK, ATR_Line_Background);
          atrLevelAboveH1currentOpenHistorical2 = currentOpenH1Historical2 + avgH1_Historical2;
          atrLevelBelowH1currentOpenHistorical2 = currentOpenH1Historical2 - avgH1_Historical2;
-         ObjectCreate(0, objname + "High H1Historical 2", OBJ_TREND, 0, startTimeH1Historical2, atrLevelAboveH1currentOpenHistorical2, endTime, atrLevelAboveH1currentOpenHistorical2);
+         ObjectCreate(0, objname + "High H1 Historical 2", OBJ_TREND, 0, startTimeH1Historical2, atrLevelAboveH1currentOpenHistorical2, endTime, atrLevelAboveH1currentOpenHistorical2);
          ObjectSetInteger(0, objname + "High H1 Historical 2", OBJPROP_STYLE, ATR_linestyle);
          ObjectSetInteger(0, objname + "High H1 Historical 2", OBJPROP_WIDTH, ATR_Linethickness);
          ObjectSetInteger(0, objname + "High H1 Historical 2", OBJPROP_COLOR, ATR_Line_Color);
          ObjectSetInteger(0, objname + "High H1 Historical 2", OBJPROP_BACK, ATR_Line_Background);
-         ObjectCreate(0, objname + "LowH1Historical 2", OBJ_TREND, 0, startTimeH1Historical2, atrLevelBelowH1currentOpenHistorical2, endTime, atrLevelBelowH1currentOpenHistorical2);
+         ObjectCreate(0, objname + "Low H1 Historical 2", OBJ_TREND, 0, startTimeH1Historical2, atrLevelBelowH1currentOpenHistorical2, endTime, atrLevelBelowH1currentOpenHistorical2);
          ObjectSetInteger(0, objname + "Low H1 Historical 2", OBJPROP_STYLE, ATR_linestyle);
          ObjectSetInteger(0, objname + "Low H1 Historical 2", OBJPROP_WIDTH, ATR_Linethickness);
          ObjectSetInteger(0, objname + "Low H1 Historical 2", OBJPROP_COLOR, ATR_Line_Color);
