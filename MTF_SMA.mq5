@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.014"
+#property version   "1.015"
 #property indicator_chart_window
 #property indicator_buffers 13
 #property indicator_plots   13
@@ -98,7 +98,7 @@
 #property indicator_style14  STYLE_SOLID
 #property indicator_width14  2
 // Input variables
-input group "Long Term MAs (Support and Resistance)"
+input group "[LONG TERM (SUPPPORT/RESISTANCE)"
 input bool Enable_H1_200SMA = true;
 input bool Enable_H4_200SMA = true;
 input bool Enable_D1_200SMA = true;
@@ -107,7 +107,7 @@ input bool Enable_M1_200SMA = true;
 input bool Enable_M5_200SMA = true;
 input bool Enable_M15_200SMA = true;
 input bool Enable_M30_200SMA = true;
-input group "Short Term MAs (Trend Confirmation)"
+input group "SHORT TERM (TREND CONFIRMATION)"
 input bool Enable_M15_13SMA = true;
 input bool Enable_M30_13SMA = true;
 input bool Enable_H1_13SMA = true;
