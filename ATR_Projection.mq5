@@ -25,7 +25,7 @@
 #property indicator_buffers 6
 #property indicator_plots 0
 #property version "1.017"
-input group  "[ATR/Period Settings]";
+input group  "[ATR/PERIOD SETTINGS]";
 input int    ATR_Period                    = 14;
 input bool   M15_ATR_Projections           = true;
 input bool   H1_ATR_Projections            = true;
@@ -34,12 +34,12 @@ input bool   H4_ATR_Projections            = true;
 input bool   D1_ATR_Projections            = true;
 input bool   W1_ATR_Projections            = true;
 input bool   MN1_ATR_Projections           = true;
-input group  "[Line Settings]";
+input group  "[LINE SETTINGS]";
 input ENUM_LINE_STYLE ATR_linestyle        = STYLE_DOT;
 input int    ATR_Line_Thickness             = 2;
 input color  ATR_Line_Color                = clrYellow;
 input bool   ATR_Line_Background           = false;
-input group  "[Info Text Settings]";
+input group  "[INFO TEXT SETTINGS]";
 input string FontName                      = "Courier New";
 input int    FontSize                      = 8;
 input color  FontColor                     = clrWhite;
