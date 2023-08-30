@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.155"
+#property version   "1.160"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -64,6 +64,7 @@ input int      TPPips                     = 13;
 input group    "[EXPERT ADVISOR SETTINGS]";
 input int      MagicNumber                = 13;
 input int      HorizontalLineThickness    = 3;
+input bool     ManageAllPositions         = false;
 // global vars
 double TP = 0;
 double SL = 0;
@@ -275,7 +276,7 @@ void OnTick()
 {
    // Filter AutoProtect to only execute during user defined window
    MqlDateTime time;TimeCurrent(time);
-   bool APFilter=(APStartHour<APStopHour&&(time.hour>=APStartHour&&time.hour<APStopHour))||(APStartHour>APStopHour&&(time.hour>=APStartHour||time.hour<APStopHour));
+   bool APFilter=(APStartHour < APStopHour && (time.hour >= APStartHour && time.hour < APStopHour )) || (APStartHour > APStopHour && (time.hour >= APStartHour || time.hour < APStopHour));
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (Risk / 100));
@@ -290,12 +291,27 @@ void OnTick()
    double sl_risk = 0;
    double account_balance = AccountInfoDouble(ACCOUNT_BALANCE);
    bool breakEvenFound = false;
-   for(int i = 0; i < PositionsTotal(); i++)
+   for (int i = 0; i < PositionsTotal(); i++)
    {
       ulong ticket = PositionGetTicket(i);
       if(PositionSelectByTicket(ticket))
       {
-         if(PositionGetSymbol(i) != _Symbol || PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
+         bool ShouldProcessPosition = false;
+         if (ManageAllPositions)
+         {
+            if (PositionGetSymbol(i) == _Symbol)
+            {
+               ShouldProcessPosition = true;
+            }
+         }
+         else
+         {
+            if (PositionGetSymbol(i) == _Symbol && PositionGetInteger(POSITION_MAGIC) == MagicNumber)
+            {
+               ShouldProcessPosition = true;
+            }
+         }
+         if (!ShouldProcessPosition) continue;
          double profit = PositionGetDouble(POSITION_PROFIT);
          double risk = 0;
          double tpprofit = 0;
@@ -707,12 +723,13 @@ int GetOrdersForSymbol(string symbol)
 {
    int totalOrders = 0;
    int total = PositionsTotal();
-   for(int i=0; i<total; i++)
+   
+   for(int i = 0; i < total; i++)
    {
       ulong ticket = PositionGetTicket(i);
       if(PositionSelectByTicket(ticket))
       {
-         if(PositionGetString(POSITION_SYMBOL) == symbol && PositionGetInteger(POSITION_MAGIC) == MagicNumber) 
+         if (ManageAllPositions || (PositionGetString(POSITION_SYMBOL) == symbol && PositionGetInteger(POSITION_MAGIC) == MagicNumber))
          {
             totalOrders++;
          }
@@ -732,7 +749,6 @@ double GetTotalVolumeForSymbol(string symbol)
          totalVolume += PositionGetDouble(POSITION_VOLUME);
       }
    }
-   
    return totalVolume;
 }
 void TyWindow::OnClickTrade(void)
@@ -801,7 +817,7 @@ void TyWindow::OnClickTrade(void)
    double symbolPrice = (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid;
    double required_margin = OrderLots * lotSize * symbolPrice * marginRequirement;
    double free_margin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
-   while (required_margin > (free_margin - 500) && OrderLots > min_volume)
+   while (required_margin >= (free_margin - 500) && OrderLots > min_volume)
    {
       OrderLots -= min_volume;  // Decrease the order size by the minimum volume increment.
       required_margin = OrderLots * lotSize * symbolPrice * marginRequirement;  // Recalculate the required margin.
@@ -956,16 +972,15 @@ void AutoProtect()
 {
    double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    PositionInfo positionsArray[];
-   // Count positions for the current symbol only
    int totalPositions = 0;
-   for(int i = 0; i < PositionsTotal(); i++)
+   for (int i = 0; i < PositionsTotal(); i++)
    {
-    ulong ticket = PositionGetTicket(i);
-    if(PositionSelectByTicket(ticket))
-    {
-        string posSymbol = PositionGetString(POSITION_SYMBOL);
-        if(posSymbol != _Symbol) continue;
-         totalPositions++;
+      ulong ticket = PositionGetTicket(i);
+      if (PositionSelectByTicket(ticket))
+      {
+         if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
+         if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
+            totalPositions++;
       }
    }
    ArrayResize(positionsArray, totalPositions);
@@ -975,9 +990,8 @@ void AutoProtect()
       ulong ticket = PositionGetTicket(i);
       if (PositionSelectByTicket(ticket))
       {
-         string posSymbol = PositionGetString(POSITION_SYMBOL);
-         if (posSymbol != _Symbol) continue;
-         if (PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
+         if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
+         if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
          double diff = MathAbs(PositionGetDouble(POSITION_PRICE_OPEN) - currentPrice);
          positionsArray[j].diff = diff;
          positionsArray[j].ticket = ticket;
@@ -985,9 +999,9 @@ void AutoProtect()
       }
    }
    BubbleSort(positionsArray);
-   int ClosedPositions=0;
-   int PositionsToClose = (int)MathFloor(((double)ArraySize(positionsArray)) * ((double)APPositionsToClose/APCloseDivider));
-   if(totalPositions == 1)
+   int ClosedPositions = 0;
+   int PositionsToClose = (int)MathFloor(((double)ArraySize(positionsArray)) * ((double)APPositionsToClose / APCloseDivider));
+   if (totalPositions == 1)
    {
       SL = PositionGetDouble(POSITION_PRICE_OPEN);
       if (!Trade.PositionModify(positionsArray[0].ticket, SL, PositionGetDouble(POSITION_TP)))
@@ -996,37 +1010,36 @@ void AutoProtect()
       }
    }
    else
-   { 
-   for (int i = 0; i < ArraySize(positionsArray); i++)
    {
-      if (PositionSelectByTicket(positionsArray[i].ticket))
+      for (int i = 0; i < ArraySize(positionsArray); i++)
       {
-         if (ClosedPositions < PositionsToClose)
+         if (PositionSelectByTicket(positionsArray[i].ticket))
          {
-            Print("Closing Position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + ".");
-
-            double positionProfit = PositionGetDouble(POSITION_PROFIT);
-
-            if (!Trade.PositionClose(positionsArray[i].ticket))
+            if (ClosedPositions < PositionsToClose)
             {
-               Print("Failed to close position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + ". Error code: ", GetLastError());
+               Print("Closing Position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + ".");
+               double positionProfit = PositionGetDouble(POSITION_PROFIT);
+               if (!Trade.PositionClose(positionsArray[i].ticket))
+               {
+                  Print("Failed to close position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + ". Error code: ", GetLastError());
+               }
+               else
+               {
+                  Print("Position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + " closed successfully.");
+                  Print("Order #", positionsArray[i].ticket, " realized a profit of ", positionProfit, ". Open Price: ", PositionGetDouble(POSITION_PRICE_OPEN), ". Close Price: ", currentPrice);
+                  ClosedPositions++;
+               }
             }
             else
             {
-               Print("Position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + " closed successfully.");
-               Print("Order #", positionsArray[i].ticket, " realized a profit of ", positionProfit, ". Open Price: ", PositionGetDouble(POSITION_PRICE_OPEN), ". Close Price: ", currentPrice);
-               ClosedPositions++;
-            }
-         }
-         else {
-            SL = PositionGetDouble(POSITION_PRICE_OPEN);
-            if (!Trade.PositionModify(positionsArray[i].ticket, SL, PositionGetDouble(POSITION_TP)))
-            {
-               Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
+               SL = PositionGetDouble(POSITION_PRICE_OPEN);
+               if (!Trade.PositionModify(positionsArray[i].ticket, SL, PositionGetDouble(POSITION_TP)))
+               {
+                  Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
+               }
             }
          }
       }
-   }
    }
 }
 void Protect()
@@ -1036,9 +1049,22 @@ void Protect()
       ulong ticket = PositionGetTicket(i);
       if(PositionSelectByTicket(ticket))
       {
-         string posSymbol = PositionGetString(POSITION_SYMBOL);
-         if (posSymbol != _Symbol) continue;
-         if(PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
+         bool ShouldProcessPosition = false;
+         if (ManageAllPositions)
+         {
+            if (PositionGetSymbol(i) == _Symbol)
+            {
+               ShouldProcessPosition = true;
+            }
+         }
+         else
+         {
+            if (PositionGetSymbol(i) == _Symbol && PositionGetInteger(POSITION_MAGIC) == MagicNumber)
+            {
+               ShouldProcessPosition = true;
+            }
+         }
+         if (!ShouldProcessPosition) continue;
          SL = PositionGetDouble(POSITION_PRICE_OPEN);
          if(!Trade.PositionModify(ticket, SL, PositionGetDouble(POSITION_TP)))
             Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
@@ -1051,7 +1077,7 @@ void TyWindow::OnClickProtect(void)
 }
 void TyWindow::OnClickClosePositions(void)
 {
-   int result = MessageBox("Do you want to close all positions on " + _Symbol + "?", "Close Positions", MB_YESNO | MB_ICONQUESTION);
+   int result = MessageBox("Do you want to close positions on " + _Symbol + "?", "Close Positions", MB_YESNO | MB_ICONQUESTION);
    if (result == IDNO)
    {
       Print("Positions not closed.");
@@ -1060,24 +1086,23 @@ void TyWindow::OnClickClosePositions(void)
    {
    for(int i=PositionsTotal()-1; i>=0 ;i--)
    {
-      if (PositionGetSymbol(i) != _Symbol) continue;
-      if(PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
-   {
-      if(Trade.PositionClose(Position.Ticket()))
+      if (PositionGetSymbol(i) == _Symbol && (ManageAllPositions || PositionGetInteger(POSITION_MAGIC) == MagicNumber))
       {
-         Print("Position #", Position.Ticket(), " closed");
+         if(Trade.PositionClose(Position.Ticket()))
+         {
+            Print("Position #", Position.Ticket(), " closed");
+         }
+         else
+         {
+            Print("Position #", Position.Ticket(), " close failed with error ", GetLastError());
+         }
       }
-      else
-      {
-         Print("Position #", Position.Ticket(), " close failed with error ", GetLastError());
-      }
-    }
     }
     }
 }
 void TyWindow::OnClickCloseLimits(void)
 {
-   int result = MessageBox("Do you want to close all limit orders?", "Close Limit Orders", MB_YESNO | MB_ICONQUESTION);
+   int result = MessageBox("Do you want to close limit orders?", "Close Limit Orders", MB_YESNO | MB_ICONQUESTION);
    if (result == IDNO)
    {
       Print("Limit orders not closed.");
@@ -1108,11 +1133,31 @@ void TyWindow::OnClickSetTP(void)
       {
          if (PositionSelectByTicket(PositionGetTicket(i)))
          {
-            if (PositionGetSymbol(i) != _Symbol) continue;
-            if (PositionGetInteger(POSITION_MAGIC)!= MagicNumber) continue;
+            bool ShouldProcessPosition = false;
+            if (ManageAllPositions)
+            {
+               if (PositionGetSymbol(i) == _Symbol)
+               {
+                  ShouldProcessPosition = true;
+               }
+            }
+            else
+            {
+               if (PositionGetSymbol(i) == _Symbol && PositionGetInteger(POSITION_MAGIC) == MagicNumber)
+               {
+                  ShouldProcessPosition = true;
+               }
+            }
+            if (!ShouldProcessPosition) continue;
+            
+            double originalTP = PositionGetDouble(POSITION_TP);
             if (!Trade.PositionModify(PositionGetTicket(i), PositionGetDouble(POSITION_SL), TP))
             {
                Print("Failed to modify TP. Error code: ", GetLastError());
+            }
+            else
+            {
+               Print("TP modified for Position #", PositionGetTicket(i), ". Original TP: ", originalTP, " | New TP: ", TP);
             }
          }
       }
@@ -1127,11 +1172,31 @@ void TyWindow::OnClickSetSL(void)
       {
          if (PositionSelectByTicket(PositionGetTicket(i)))
          {
-            if (PositionGetSymbol(i) != _Symbol) continue;
-            if (PositionGetInteger(POSITION_MAGIC)!= MagicNumber) continue;
+            bool ShouldProcessPosition = false;
+            if (ManageAllPositions)
+            {
+               if (PositionGetSymbol(i) == _Symbol)
+               {
+                  ShouldProcessPosition = true;
+               }
+            }
+            else
+            {
+               if (PositionGetSymbol(i) == _Symbol && PositionGetInteger(POSITION_MAGIC) == MagicNumber)
+               {
+                  ShouldProcessPosition = true;
+               }
+            }
+            if (!ShouldProcessPosition) continue;
+            
+            double OriginalSL = PositionGetDouble(POSITION_SL);
             if (!Trade.PositionModify(PositionGetTicket(i), SL, PositionGetDouble(POSITION_TP)))
             {
                Print("Failed to modify SL. Error code: ", GetLastError());
+            }
+            else
+            {
+               Print("SL modified for Order #", PositionGetTicket(i), ". Original SL: ", OriginalSL, " | New SL: ", SL);
             }
          }
       }
