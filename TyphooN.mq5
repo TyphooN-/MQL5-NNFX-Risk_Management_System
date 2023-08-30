@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.160"
+#property version   "1.161"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -1008,6 +1008,10 @@ void AutoProtect()
       {
          Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
       }
+      else
+      {
+         Print("SL moved to break even for Position #", positionsArray[0].ticket);
+      }
    }
    else
    {
@@ -1036,6 +1040,10 @@ void AutoProtect()
                if (!Trade.PositionModify(positionsArray[i].ticket, SL, PositionGetDouble(POSITION_TP)))
                {
                   Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
+               }
+               else
+               {
+                  Print("SL moved to break even for Position #", positionsArray[i].ticket);
                }
             }
          }
@@ -1067,7 +1075,9 @@ void Protect()
          if (!ShouldProcessPosition) continue;
          SL = PositionGetDouble(POSITION_PRICE_OPEN);
          if(!Trade.PositionModify(ticket, SL, PositionGetDouble(POSITION_TP)))
+         {
             Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
+         }
       }
    }
 }
