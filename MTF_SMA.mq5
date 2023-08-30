@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.016"
+#property version   "1.017"
 #property indicator_chart_window
 #property indicator_buffers 13
 #property indicator_plots   13
@@ -147,36 +147,44 @@ int OnInit()
    SetIndexBuffer(11, MABufferH4_13SMA, INDICATOR_DATA);
    SetIndexBuffer(12, MABufferD1_13SMA, INDICATOR_DATA);
    SetIndexBuffer(13, MABufferW1_13SMA, INDICATOR_DATA);
-   // Info text
-   ObjectCreate(0, objname + "Info", OBJ_LABEL, 0, 0, 0);
-   ObjectSetInteger(0, objname +"Info", OBJPROP_XDISTANCE, HorizPos);
-   ObjectSetInteger(0, objname + "Info", OBJPROP_YDISTANCE, VertPos);
-   ObjectSetInteger(0, objname + "Info", OBJPROP_CORNER, Corner);
-   ObjectSetString(0, objname + "Info", OBJPROP_FONT, FontName);
-   ObjectSetInteger(0, objname + "Info", OBJPROP_FONTSIZE, FontSize);
-   ObjectSetInteger(0, objname + "Info", OBJPROP_COLOR, clrWhite);
-   ObjectSetString(0, objname + "Info", OBJPROP_TEXT, "SMA| ");
-   ObjectCreate(0, objname + "BearInfo", OBJ_LABEL, 0, 0, 0);
-   ObjectSetInteger(0, objname + "BearInfo", OBJPROP_XDISTANCE, HorizPos - 30);
-   ObjectSetInteger(0, objname + "BearInfo", OBJPROP_YDISTANCE, VertPos);
-   ObjectSetInteger(0, objname + "BearInfo", OBJPROP_CORNER, Corner);
-   ObjectSetString(0, objname + "BearInfo", OBJPROP_FONT, FontName);
-   ObjectSetInteger(0, objname + "BearInfo", OBJPROP_FONTSIZE, FontSize);
-   ObjectSetInteger(0, objname + "BearInfo", OBJPROP_COLOR, clrRed);
-   ObjectSetString(0, objname + "BearInfo", OBJPROP_TEXT, "[ Initializing ]");
-   ObjectCreate(0, objname + "BullInfo", OBJ_LABEL, 0, 0, 0);
-   ObjectSetInteger(0,objname + "BullInfo", OBJPROP_XDISTANCE, HorizPos - 160);
-   ObjectSetInteger(0, objname + "BullInfo", OBJPROP_YDISTANCE, VertPos);
-   ObjectSetInteger(0, objname + "BullInfo", OBJPROP_CORNER, Corner);
-   ObjectSetString(0, objname + "BullInfo", OBJPROP_FONT, FontName);
-   ObjectSetInteger(0, objname + "BullInfo", OBJPROP_FONTSIZE, FontSize);
-   ObjectSetInteger(0, objname + "BullInfo", OBJPROP_COLOR, clrLime);
-   ObjectSetString(0, objname + "BullInfo", OBJPROP_TEXT, "[ Initializing ]");
+   string timeFrames[] = {"M1", "M5", "M15", "M30", "H1", "H4", "D1", "W1"};
+   string objnameInfo200SMA = objname + "200SMAInfo";
+   ObjectCreate(0, objnameInfo200SMA, OBJ_LABEL, 0, 0, 0);
+   ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_XDISTANCE, HorizPos); // Adjust horizontal position
+   ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_YDISTANCE, VertPos);
+   ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_CORNER, Corner);
+   ObjectSetString(0, objnameInfo200SMA, OBJPROP_FONT, FontName);
+   ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_FONTSIZE, FontSize);
+   ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_COLOR, clrWhite);
+   ObjectSetString(0, objnameInfo200SMA, OBJPROP_TEXT, "200 SMA| ");
+   int additionalSpacing = 0; 
+   for (int i = 0; i < ArraySize(timeFrames); i++)
+   {
+      string objnameInfo = objname + timeFrames[i] + "Info";
+      ObjectCreate(0, objnameInfo, OBJ_LABEL, 0, 0, 0);
+      if ( timeFrames[i] == "M30" || timeFrames[i] == "H1")
+      {
+         additionalSpacing += 5;
+      }
+      ObjectSetInteger(0, objnameInfo, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 25 + additionalSpacing));
+      ObjectSetInteger(0, objnameInfo, OBJPROP_YDISTANCE, VertPos);
+      ObjectSetInteger(0, objnameInfo, OBJPROP_CORNER, Corner);
+      ObjectSetString(0, objnameInfo, OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, objnameInfo, OBJPROP_FONTSIZE, FontSize);
+      ObjectSetInteger(0, objnameInfo, OBJPROP_COLOR, clrWhite);
+      ObjectSetString(0, objnameInfo, OBJPROP_TEXT, timeFrames[i]);
+   }
    return 0;
 }
 void OnDeinit(const int pReason)
 {
    ObjectsDeleteAll(0, objname);
+}
+void UpdateInfoLabel(string timeframe, bool isAbove)
+{
+    string objnameInfo = objname + timeframe + "Info";
+    color textColor = isAbove ? clrLime : clrRed;
+    ObjectSetInteger(0, objnameInfo, OBJPROP_COLOR, textColor);
 }
 int OnCalculate(const int rates_total,
                 const int prev_calculated,
@@ -245,75 +253,14 @@ int OnCalculate(const int rates_total,
    bool isAbove_M5_200SMA = currentPrice > MABufferM5_200SMA[rates_total - 1];
    bool isAbove_M15_200SMA = currentPrice > MABufferM15_200SMA[rates_total - 1];
    bool isAbove_M30_200SMA = currentPrice > MABufferM30_200SMA[rates_total - 1];
-   string BearText = "[ ";
-   string BullText = "[ ";
-   if (isAbove_M1_200SMA)
-   {
-      BullText += "M1 ";
-   }
-   else
-   {
-      BearText += "M1 ";
-   }
-   if (isAbove_M5_200SMA)
-   {
-      BullText += "M5 ";
-   }
-   else
-   {
-      BearText += "M5 ";
-   }
-   if (isAbove_M15_200SMA) {
-      BullText += "M15 ";
-   }
-   else
-   {
-      BearText += "M15 ";
-   }
-   if (isAbove_M30_200SMA)
-   {
-      BullText += "M30 ";
-   }
-   else
-   {
-      BearText += "M30 ";
-   }
-   if (isAbove_H1_200SMA)
-   {
-      BullText += "H1 ";
-   }
-   else
-   {
-      BearText += "H1 ";
-   }
-   if (isAbove_H4_200SMA)
-   {
-      BullText += "H4 ";
-   }
-   else
-   {
-      BearText += "H4 ";
-   }
-   if (isAbove_D1_200SMA)
-   {
-      BullText += "D1 ";
-   }
-   else
-   {
-      BearText += "D1 ";
-   }
-   if (isAbove_W1_200SMA)
-   {
-      BullText += "W1 ";
-   }
-   else
-   {
-      BearText += "W1 ";
-   }
-   BearText += "]";
-   BullText += "]";
-   ObjectSetString(0, objname + "BearInfo", OBJPROP_TEXT, BearText);
-   ObjectSetString(0, objname + "BullInfo", OBJPROP_TEXT, BullText);
+   UpdateInfoLabel("M1", isAbove_M1_200SMA);
+   UpdateInfoLabel("M5", isAbove_M5_200SMA);
+   UpdateInfoLabel("M15", isAbove_M15_200SMA);
+   UpdateInfoLabel("M30", isAbove_M30_200SMA);
+   UpdateInfoLabel("H1", isAbove_H1_200SMA);
+   UpdateInfoLabel("H4", isAbove_H4_200SMA);
+   UpdateInfoLabel("D1", isAbove_D1_200SMA);
+   UpdateInfoLabel("W1", isAbove_W1_200SMA);
    return rates_total;
 }
 void UpdateBuffers()
