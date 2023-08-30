@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.161"
+#property version   "1.162"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -296,21 +296,7 @@ void OnTick()
       ulong ticket = PositionGetTicket(i);
       if(PositionSelectByTicket(ticket))
       {
-         bool ShouldProcessPosition = false;
-         if (ManageAllPositions)
-         {
-            if (PositionGetSymbol(i) == _Symbol)
-            {
-               ShouldProcessPosition = true;
-            }
-         }
-         else
-         {
-            if (PositionGetSymbol(i) == _Symbol && PositionGetInteger(POSITION_MAGIC) == MagicNumber)
-            {
-               ShouldProcessPosition = true;
-            }
-         }
+         bool ShouldProcessPosition = ProcessPositionCheck(ticket, _Symbol, MagicNumber, ManageAllPositions);
          if (!ShouldProcessPosition) continue;
          double profit = PositionGetDouble(POSITION_PROFIT);
          double risk = 0;
@@ -751,6 +737,25 @@ double GetTotalVolumeForSymbol(string symbol)
    }
    return totalVolume;
 }
+bool ProcessPositionCheck(ulong ticket, string symbol, int magicNumber, bool manageAllPositions)
+{
+    bool ShouldProcessPosition = false;
+    if (manageAllPositions)
+    {
+        if (PositionGetString(POSITION_SYMBOL) == symbol)
+        {
+            ShouldProcessPosition = true;
+        }
+    }
+    else
+    {
+        if (PositionGetString(POSITION_SYMBOL) == symbol && PositionGetInteger(POSITION_MAGIC) == magicNumber)
+        {
+            ShouldProcessPosition = true;
+        }
+    }
+    return ShouldProcessPosition;
+}
 void TyWindow::OnClickTrade(void)
 {
    SL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
@@ -978,8 +983,8 @@ void AutoProtect()
       ulong ticket = PositionGetTicket(i);
       if (PositionSelectByTicket(ticket))
       {
-         if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
-         if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
+         bool ShouldProcessPosition = ProcessPositionCheck(ticket, _Symbol, MagicNumber, ManageAllPositions);
+         if (!ShouldProcessPosition) continue;
             totalPositions++;
       }
    }
@@ -990,8 +995,8 @@ void AutoProtect()
       ulong ticket = PositionGetTicket(i);
       if (PositionSelectByTicket(ticket))
       {
-         if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
-         if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
+         bool ShouldProcessPosition = ProcessPositionCheck(ticket, _Symbol, MagicNumber, ManageAllPositions);
+         if (!ShouldProcessPosition) continue;
          double diff = MathAbs(PositionGetDouble(POSITION_PRICE_OPEN) - currentPrice);
          positionsArray[j].diff = diff;
          positionsArray[j].ticket = ticket;
@@ -1057,21 +1062,7 @@ void Protect()
       ulong ticket = PositionGetTicket(i);
       if(PositionSelectByTicket(ticket))
       {
-         bool ShouldProcessPosition = false;
-         if (ManageAllPositions)
-         {
-            if (PositionGetSymbol(i) == _Symbol)
-            {
-               ShouldProcessPosition = true;
-            }
-         }
-         else
-         {
-            if (PositionGetSymbol(i) == _Symbol && PositionGetInteger(POSITION_MAGIC) == MagicNumber)
-            {
-               ShouldProcessPosition = true;
-            }
-         }
+         bool ShouldProcessPosition = ProcessPositionCheck(ticket, _Symbol, MagicNumber, ManageAllPositions);
          if (!ShouldProcessPosition) continue;
          SL = PositionGetDouble(POSITION_PRICE_OPEN);
          if(!Trade.PositionModify(ticket, SL, PositionGetDouble(POSITION_TP)))
@@ -1141,34 +1132,20 @@ void TyWindow::OnClickSetTP(void)
    {
       for (int i = 0; i < PositionsTotal(); i++)
       {
-         if (PositionSelectByTicket(PositionGetTicket(i)))
+         ulong ticket = PositionGetTicket(i);
+         if(PositionSelectByTicket(ticket))
          {
-            bool ShouldProcessPosition = false;
-            if (ManageAllPositions)
-            {
-               if (PositionGetSymbol(i) == _Symbol)
-               {
-                  ShouldProcessPosition = true;
-               }
-            }
-            else
-            {
-               if (PositionGetSymbol(i) == _Symbol && PositionGetInteger(POSITION_MAGIC) == MagicNumber)
-               {
-                  ShouldProcessPosition = true;
-               }
-            }
+            bool ShouldProcessPosition = ProcessPositionCheck(ticket, _Symbol, MagicNumber, ManageAllPositions);
             if (!ShouldProcessPosition) continue;
-            
-            double originalTP = PositionGetDouble(POSITION_TP);
-            if (!Trade.PositionModify(PositionGetTicket(i), PositionGetDouble(POSITION_SL), TP))
-            {
-               Print("Failed to modify TP. Error code: ", GetLastError());
-            }
-            else
-            {
-               Print("TP modified for Position #", PositionGetTicket(i), ". Original TP: ", originalTP, " | New TP: ", TP);
-            }
+               double OriginalTP = PositionGetDouble(POSITION_TP);
+               if (!Trade.PositionModify(PositionGetTicket(i), PositionGetDouble(POSITION_SL), TP))
+               {
+                  Print("Failed to modify TP. Error code: ", GetLastError());
+               }
+               else
+               {
+                  Print("TP modified for Position #", PositionGetTicket(i), ". Original TP: ", OriginalTP, " | New TP: ", TP);
+               }
          }
       }
    }
@@ -1180,25 +1157,11 @@ void TyWindow::OnClickSetSL(void)
    {
       for (int i = 0; i < PositionsTotal(); i++)
       {
-         if (PositionSelectByTicket(PositionGetTicket(i)))
+         ulong ticket = PositionGetTicket(i);
+         if(PositionSelectByTicket(ticket))
          {
-            bool ShouldProcessPosition = false;
-            if (ManageAllPositions)
-            {
-               if (PositionGetSymbol(i) == _Symbol)
-               {
-                  ShouldProcessPosition = true;
-               }
-            }
-            else
-            {
-               if (PositionGetSymbol(i) == _Symbol && PositionGetInteger(POSITION_MAGIC) == MagicNumber)
-               {
-                  ShouldProcessPosition = true;
-               }
-            }
+            bool ShouldProcessPosition = ProcessPositionCheck(ticket, _Symbol, MagicNumber, ManageAllPositions);
             if (!ShouldProcessPosition) continue;
-            
             double OriginalSL = PositionGetDouble(POSITION_SL);
             if (!Trade.PositionModify(PositionGetTicket(i), SL, PositionGetDouble(POSITION_TP)))
             {
