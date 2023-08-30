@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.015"
+#property version   "1.016"
 #property indicator_chart_window
 #property indicator_buffers 13
 #property indicator_plots   13
@@ -98,7 +98,7 @@
 #property indicator_style14  STYLE_SOLID
 #property indicator_width14  2
 // Input variables
-input group "[LONG TERM (SUPPPORT/RESISTANCE)"
+input group "[LONG TERM (SUPPPORT/RESISTANCE)]"
 input bool Enable_H1_200SMA = true;
 input bool Enable_H4_200SMA = true;
 input bool Enable_D1_200SMA = true;
@@ -107,13 +107,19 @@ input bool Enable_M1_200SMA = true;
 input bool Enable_M5_200SMA = true;
 input bool Enable_M15_200SMA = true;
 input bool Enable_M30_200SMA = true;
-input group "SHORT TERM (TREND CONFIRMATION)"
+input group "[SHORT TERM (TREND CONFIRMATION)]"
 input bool Enable_M15_13SMA = true;
 input bool Enable_M30_13SMA = true;
 input bool Enable_H1_13SMA = true;
 input bool Enable_H4_13SMA = true;
 input bool Enable_D1_13SMA = true;
 input bool Enable_W1_13SMA = true;
+input group  "[INFO TEXT SETTINGS]";
+input string FontName                      = "Courier New";
+input int    FontSize                      = 8;
+const ENUM_BASE_CORNER Corner              = CORNER_RIGHT_UPPER;
+input int    HorizPos                      = 310;
+input int    VertPos                       = 130;
 bool W1_Empty_Warning = false;
 ENUM_APPLIED_PRICE MAPrice = PRICE_CLOSE;
 // Handles
@@ -123,10 +129,10 @@ double MABufferH1_200SMA[], MABufferH4_200SMA[], MABufferD1_200SMA[], MABufferW1
 bool W1_Enable, M1_Enable, M5_Enable, M15_Enable, M30_Enable;
 bool isTimerSet = false;
 int lastCheckedCandle = -1;
+string objname = "MTF_SMA";
 int OnInit()
 {
    W1_Enable = Enable_W1_200SMA;
-   //--- indicator buffers mapping
    SetIndexBuffer(0, MABufferH1_200SMA, INDICATOR_DATA);
    SetIndexBuffer(1, MABufferH4_200SMA, INDICATOR_DATA);
    SetIndexBuffer(2, MABufferD1_200SMA, INDICATOR_DATA);
@@ -141,8 +147,36 @@ int OnInit()
    SetIndexBuffer(11, MABufferH4_13SMA, INDICATOR_DATA);
    SetIndexBuffer(12, MABufferD1_13SMA, INDICATOR_DATA);
    SetIndexBuffer(13, MABufferW1_13SMA, INDICATOR_DATA);
-   
+   // Info text
+   ObjectCreate(0, objname + "Info", OBJ_LABEL, 0, 0, 0);
+   ObjectSetInteger(0, objname +"Info", OBJPROP_XDISTANCE, HorizPos);
+   ObjectSetInteger(0, objname + "Info", OBJPROP_YDISTANCE, VertPos);
+   ObjectSetInteger(0, objname + "Info", OBJPROP_CORNER, Corner);
+   ObjectSetString(0, objname + "Info", OBJPROP_FONT, FontName);
+   ObjectSetInteger(0, objname + "Info", OBJPROP_FONTSIZE, FontSize);
+   ObjectSetInteger(0, objname + "Info", OBJPROP_COLOR, clrWhite);
+   ObjectSetString(0, objname + "Info", OBJPROP_TEXT, "SMA| ");
+   ObjectCreate(0, objname + "BearInfo", OBJ_LABEL, 0, 0, 0);
+   ObjectSetInteger(0, objname + "BearInfo", OBJPROP_XDISTANCE, HorizPos - 30);
+   ObjectSetInteger(0, objname + "BearInfo", OBJPROP_YDISTANCE, VertPos);
+   ObjectSetInteger(0, objname + "BearInfo", OBJPROP_CORNER, Corner);
+   ObjectSetString(0, objname + "BearInfo", OBJPROP_FONT, FontName);
+   ObjectSetInteger(0, objname + "BearInfo", OBJPROP_FONTSIZE, FontSize);
+   ObjectSetInteger(0, objname + "BearInfo", OBJPROP_COLOR, clrRed);
+   ObjectSetString(0, objname + "BearInfo", OBJPROP_TEXT, "[ Initializing ]");
+   ObjectCreate(0, objname + "BullInfo", OBJ_LABEL, 0, 0, 0);
+   ObjectSetInteger(0,objname + "BullInfo", OBJPROP_XDISTANCE, HorizPos - 160);
+   ObjectSetInteger(0, objname + "BullInfo", OBJPROP_YDISTANCE, VertPos);
+   ObjectSetInteger(0, objname + "BullInfo", OBJPROP_CORNER, Corner);
+   ObjectSetString(0, objname + "BullInfo", OBJPROP_FONT, FontName);
+   ObjectSetInteger(0, objname + "BullInfo", OBJPROP_FONTSIZE, FontSize);
+   ObjectSetInteger(0, objname + "BullInfo", OBJPROP_COLOR, clrLime);
+   ObjectSetString(0, objname + "BullInfo", OBJPROP_TEXT, "[ Initializing ]");
    return 0;
+}
+void OnDeinit(const int pReason)
+{
+   ObjectsDeleteAll(0, objname);
 }
 int OnCalculate(const int rates_total,
                 const int prev_calculated,
@@ -200,6 +234,86 @@ int OnCalculate(const int rates_total,
       waitCount--;
       return prev_calculated;
    }
+   // Get the current price
+   double currentPrice = close[rates_total - 1];
+   // Check the relationship of the current price with the 200-period SMAs
+   bool isAbove_H1_200SMA = currentPrice > MABufferH1_200SMA[rates_total - 1];
+   bool isAbove_H4_200SMA = currentPrice > MABufferH4_200SMA[rates_total - 1];
+   bool isAbove_D1_200SMA = currentPrice > MABufferD1_200SMA[rates_total - 1];
+   bool isAbove_W1_200SMA = currentPrice > MABufferW1_200SMA[rates_total - 1];
+   bool isAbove_M1_200SMA = currentPrice > MABufferM1_200SMA[rates_total - 1];
+   bool isAbove_M5_200SMA = currentPrice > MABufferM5_200SMA[rates_total - 1];
+   bool isAbove_M15_200SMA = currentPrice > MABufferM15_200SMA[rates_total - 1];
+   bool isAbove_M30_200SMA = currentPrice > MABufferM30_200SMA[rates_total - 1];
+   string BearText = "[ ";
+   string BullText = "[ ";
+   if (isAbove_M1_200SMA)
+   {
+      BullText += "M1 ";
+   }
+   else
+   {
+      BearText += "M1 ";
+   }
+   if (isAbove_M5_200SMA)
+   {
+      BullText += "M5 ";
+   }
+   else
+   {
+      BearText += "M5 ";
+   }
+   if (isAbove_M15_200SMA) {
+      BullText += "M15 ";
+   }
+   else
+   {
+      BearText += "M15 ";
+   }
+   if (isAbove_M30_200SMA)
+   {
+      BullText += "M30 ";
+   }
+   else
+   {
+      BearText += "M30 ";
+   }
+   if (isAbove_H1_200SMA)
+   {
+      BullText += "H1 ";
+   }
+   else
+   {
+      BearText += "H1 ";
+   }
+   if (isAbove_H4_200SMA)
+   {
+      BullText += "H4 ";
+   }
+   else
+   {
+      BearText += "H4 ";
+   }
+   if (isAbove_D1_200SMA)
+   {
+      BullText += "D1 ";
+   }
+   else
+   {
+      BearText += "D1 ";
+   }
+   if (isAbove_W1_200SMA)
+   {
+      BullText += "W1 ";
+   }
+   else
+   {
+      BearText += "W1 ";
+   }
+   BearText += "]";
+   BullText += "]";
+   ObjectSetString(0, objname + "BearInfo", OBJPROP_TEXT, BearText);
+   ObjectSetString(0, objname + "BullInfo", OBJPROP_TEXT, BullText);
    return rates_total;
 }
 void UpdateBuffers()
