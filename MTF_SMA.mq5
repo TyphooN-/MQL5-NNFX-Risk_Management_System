@@ -1,4 +1,4 @@
-/**=                 MTF_SMA.mq5  (TyphooN's Multi Timeframe SMA)
+/**=                 MTF_SMA.mq5  (TyphooN's Multi Timeframe MA)
  *               Copyright 2023, TyphooN (https://www.decapool.net/)
  *
  * Disclaimer and Licence
@@ -23,97 +23,152 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.017"
+#property version   "1.020"
 #property indicator_chart_window
-#property indicator_buffers 13
-#property indicator_plots   13
-#property indicator_label1  "H1 200SMA"
+#property indicator_buffers 28
+#property indicator_plots   28
+#property indicator_label1  "M1 200SMA"
 #property indicator_type1   DRAW_LINE
 #property indicator_color1  clrMagenta
 #property indicator_style1  STYLE_SOLID
 #property indicator_width1  2
-#property indicator_label2  "H4 200SMA"
+#property indicator_label2  "M5 200SMA"
 #property indicator_type2   DRAW_LINE
 #property indicator_color2  clrMagenta
 #property indicator_style2  STYLE_SOLID
 #property indicator_width2  2
-#property indicator_label3  "D1 200SMA"
+#property indicator_label3  "M15 200SMA"
 #property indicator_type3   DRAW_LINE
 #property indicator_color3  clrMagenta
 #property indicator_style3  STYLE_SOLID
 #property indicator_width3  2
-#property indicator_label4  "W1 200SMA"
+#property indicator_label4  "M30 200SMA"
 #property indicator_type4   DRAW_LINE
 #property indicator_color4  clrMagenta
 #property indicator_style4  STYLE_SOLID
 #property indicator_width4  2
-#property indicator_label5  "M1 200SMA"
+#property indicator_label5  "H1 200SMA"
 #property indicator_type5   DRAW_LINE
 #property indicator_color5  clrOrange
 #property indicator_style5  STYLE_SOLID
 #property indicator_width5  2
-#property indicator_label6  "M5 200SMA"
+#property indicator_label6  "H4 200SMA"
 #property indicator_type6   DRAW_LINE
 #property indicator_color6  clrOrange
 #property indicator_style6  STYLE_SOLID
 #property indicator_width6  2
-#property indicator_label7  "M15 200SMA"
+#property indicator_label7  "D1 200SMA"
 #property indicator_type7   DRAW_LINE
 #property indicator_color7  clrOrange
 #property indicator_style7  STYLE_SOLID
 #property indicator_width7  2
-#property indicator_label8  "M30 200SMA"
+#property indicator_label8  "W1 200SMA"
 #property indicator_type8   DRAW_LINE
 #property indicator_color8  clrOrange
 #property indicator_style8  STYLE_SOLID
 #property indicator_width8  2
-#property indicator_label9  "M15 13SMA"
+#property indicator_label9  "M1 50SMA"
 #property indicator_type9   DRAW_LINE
 #property indicator_color9  clrWhite
 #property indicator_style9  STYLE_SOLID
 #property indicator_width9  2
-#property indicator_label10  "M30 13SMA"
+#property indicator_label10  "M5 50SMA"
 #property indicator_type10   DRAW_LINE
 #property indicator_color10  clrWhite
 #property indicator_style10  STYLE_SOLID
 #property indicator_width10  2
-#property indicator_label11  "H1 13SMA"
+#property indicator_label11  "M15 50SMA"
 #property indicator_type11   DRAW_LINE
 #property indicator_color11  clrWhite
 #property indicator_style11  STYLE_SOLID
 #property indicator_width11  2
-#property indicator_label12  "H4 13SMA"
+#property indicator_label12  "M30 50SMA"
 #property indicator_type12   DRAW_LINE
 #property indicator_color12  clrWhite
 #property indicator_style12  STYLE_SOLID
 #property indicator_width12  2
-#property indicator_label13  "D1 13SMA"
+#property indicator_label13  "H1 50SMA"
 #property indicator_type13   DRAW_LINE
 #property indicator_color13  clrWhite
 #property indicator_style13  STYLE_SOLID
 #property indicator_width13  2
-#property indicator_label14  "W1 13SMA"
+#property indicator_label14  "H4 50SMA"
 #property indicator_type14   DRAW_LINE
 #property indicator_color14  clrWhite
 #property indicator_style14  STYLE_SOLID
 #property indicator_width14  2
+#property indicator_label15  "D1 50SMA"
+#property indicator_type15   DRAW_LINE
+#property indicator_color15  clrWhite
+#property indicator_style15  STYLE_SOLID
+#property indicator_width15  2
+#property indicator_label16  "W1 50SMA"
+#property indicator_type16   DRAW_LINE
+#property indicator_color16  clrWhite
+#property indicator_style16  STYLE_SOLID
+#property indicator_width16  2
+#property indicator_label17  "M15 8EMA"
+#property indicator_type17   DRAW_LINE
+#property indicator_color17  clrWhite
+#property indicator_style17  STYLE_SOLID
+#property indicator_width17  2
+#property indicator_label18  "M30 8EMA"
+#property indicator_type18   DRAW_LINE
+#property indicator_color18  clrWhite
+#property indicator_style18  STYLE_SOLID
+#property indicator_width18  2
+#property indicator_label19  "H1 8EMA"
+#property indicator_type19   DRAW_LINE
+#property indicator_color19  clrWhite
+#property indicator_style19  STYLE_SOLID
+#property indicator_width19  2
+#property indicator_label20  "H4 8EMA"
+#property indicator_type20   DRAW_LINE
+#property indicator_color20  clrWhite
+#property indicator_style20  STYLE_SOLID
+#property indicator_width20  2
+#property indicator_label21  "D1 8EMA"
+#property indicator_type21   DRAW_LINE
+#property indicator_color21  clrWhite
+#property indicator_style21  STYLE_SOLID
+#property indicator_width21  2
+#property indicator_label22  "W1 8EMA"
+#property indicator_type22   DRAW_LINE
+#property indicator_color22  clrWhite
+#property indicator_style22  STYLE_SOLID
+#property indicator_width22  2
+#property indicator_label23  "M15 13EMA"
+#property indicator_type23   DRAW_LINE
+#property indicator_color23  clrWhite
+#property indicator_style23  STYLE_SOLID
+#property indicator_width23  2
+#property indicator_label24  "M30 13EMA"
+#property indicator_type24   DRAW_LINE
+#property indicator_color24  clrWhite
+#property indicator_style24  STYLE_SOLID
+#property indicator_width24  2
+#property indicator_label25  "H1 13EMA"
+#property indicator_type25   DRAW_LINE
+#property indicator_color25  clrWhite
+#property indicator_style25  STYLE_SOLID
+#property indicator_width25  2
+#property indicator_label26  "H4 13EMA"
+#property indicator_type26   DRAW_LINE
+#property indicator_color26  clrWhite
+#property indicator_style26  STYLE_SOLID
+#property indicator_width26  2
+#property indicator_label27  "D1 13EMA"
+#property indicator_type27   DRAW_LINE
+#property indicator_color27  clrWhite
+#property indicator_style27  STYLE_SOLID
+#property indicator_width27  2
+#property indicator_label28  "W1 13EMA"
+#property indicator_type28   DRAW_LINE
+#property indicator_color28  clrWhite
+#property indicator_style28  STYLE_SOLID
+#property indicator_width28  2
+
 // Input variables
-input group "[LONG TERM (SUPPPORT/RESISTANCE)]"
-input bool Enable_H1_200SMA = true;
-input bool Enable_H4_200SMA = true;
-input bool Enable_D1_200SMA = true;
-input bool Enable_W1_200SMA = true;
-input bool Enable_M1_200SMA = true;
-input bool Enable_M5_200SMA = true;
-input bool Enable_M15_200SMA = true;
-input bool Enable_M30_200SMA = true;
-input group "[SHORT TERM (TREND CONFIRMATION)]"
-input bool Enable_M15_13SMA = true;
-input bool Enable_M30_13SMA = true;
-input bool Enable_H1_13SMA = true;
-input bool Enable_H4_13SMA = true;
-input bool Enable_D1_13SMA = true;
-input bool Enable_W1_13SMA = true;
 input group  "[INFO TEXT SETTINGS]";
 input string FontName                      = "Courier New";
 input int    FontSize                      = 8;
@@ -123,30 +178,46 @@ input int    VertPos                       = 130;
 bool W1_Empty_Warning = false;
 ENUM_APPLIED_PRICE MAPrice = PRICE_CLOSE;
 // Handles
-int HandleH1_200SMA, HandleH4_200SMA, HandleD1_200SMA, HandleW1_200SMA, HandleM1_200SMA, HandleM5_200SMA, HandleM15_200SMA, HandleM15_13SMA, HandleM30_200SMA, HandleM30_13SMA, HandleH1_13SMA, HandleH4_13SMA, HandleD1_13SMA, HandleW1_13SMA;
+int HandleM1_200SMA, HandleM1_50SMA, HandleM5_200SMA, HandleM5_50SMA, HandleM15_200SMA, HandleM15_50SMA, HandleM15_13EMA, HandleM15_8EMA, HandleM30_200SMA;
+int HandleM30_50SMA, HandleM30_13EMA, HandleM30_8EMA, HandleH1_200SMA, HandleH1_50SMA, HandleH1_13EMA, HandleH1_8EMA, HandleH4_200SMA, HandleH4_50SMA, HandleH4_13EMA;
+int HandleH4_8EMA, HandleD1_200SMA, HandleD1_50SMA, HandleD1_13EMA, HandleD1_8EMA, HandleW1_200SMA, HandleW1_50SMA, HandleW1_13EMA, HandleW1_8EMA;
 // Buffers
-double MABufferH1_200SMA[], MABufferH4_200SMA[], MABufferD1_200SMA[], MABufferW1_200SMA[], MABufferM1_200SMA[], MABufferM5_200SMA[], MABufferM15_200SMA[], MABufferM15_13SMA[], MABufferM30_200SMA[], MABufferM30_13SMA[],  MABufferH1_13SMA[], MABufferH4_13SMA[], MABufferD1_13SMA[], MABufferW1_13SMA[];
-bool W1_Enable, M1_Enable, M5_Enable, M15_Enable, M30_Enable;
+double MABufferM1_200SMA[], MABufferM1_50SMA[], MABufferM5_200SMA[], MABufferM5_50SMA[], MABufferM15_200SMA[], MABufferM15_50SMA[], MABufferM15_13EMA[], MABufferM15_8EMA[], MABufferM30_200SMA[];
+double MABufferM30_50SMA[], MABufferM30_13EMA[], MABufferM30_8EMA[], MABufferH1_200SMA[], MABufferH1_50SMA[], MABufferH1_13EMA[], MABufferH1_8EMA[], MABufferH4_200SMA[], MABufferH4_50SMA[];
+double MABufferH4_13EMA[], MABufferH4_8EMA[], MABufferD1_200SMA[], MABufferD1_50SMA[], MABufferD1_13EMA[], MABufferD1_8EMA[], MABufferW1_200SMA[], MABufferW1_50SMA[], MABufferW1_13EMA[], MABufferW1_8EMA[];
 bool isTimerSet = false;
 int lastCheckedCandle = -1;
 string objname = "MTF_SMA";
 int OnInit()
 {
-   W1_Enable = Enable_W1_200SMA;
-   SetIndexBuffer(0, MABufferH1_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(1, MABufferH4_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(2, MABufferD1_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(3, MABufferW1_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(4, MABufferM1_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(5, MABufferM5_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(6, MABufferM15_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(7, MABufferM30_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(8, MABufferM15_13SMA, INDICATOR_DATA);
-   SetIndexBuffer(9, MABufferM30_13SMA, INDICATOR_DATA);
-   SetIndexBuffer(10, MABufferH1_13SMA, INDICATOR_DATA);
-   SetIndexBuffer(11, MABufferH4_13SMA, INDICATOR_DATA);
-   SetIndexBuffer(12, MABufferD1_13SMA, INDICATOR_DATA);
-   SetIndexBuffer(13, MABufferW1_13SMA, INDICATOR_DATA);
+   SetIndexBuffer(0, MABufferM1_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(1, MABufferM5_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(2, MABufferM15_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(3, MABufferM30_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(4, MABufferH1_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(5, MABufferH4_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(6, MABufferD1_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(7, MABufferW1_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(8, MABufferM1_50SMA, INDICATOR_DATA);
+   SetIndexBuffer(9, MABufferM5_50SMA, INDICATOR_DATA);
+   SetIndexBuffer(10, MABufferM15_50SMA, INDICATOR_DATA);
+   SetIndexBuffer(11, MABufferM30_50SMA, INDICATOR_DATA);
+   SetIndexBuffer(12, MABufferH1_50SMA, INDICATOR_DATA);
+   SetIndexBuffer(13, MABufferH4_50SMA, INDICATOR_DATA);
+   SetIndexBuffer(14, MABufferD1_50SMA, INDICATOR_DATA);
+   SetIndexBuffer(15, MABufferW1_50SMA, INDICATOR_DATA);
+   SetIndexBuffer(16, MABufferM15_8EMA, INDICATOR_DATA);
+   SetIndexBuffer(17, MABufferM30_8EMA, INDICATOR_DATA);
+   SetIndexBuffer(18, MABufferH1_8EMA, INDICATOR_DATA);
+   SetIndexBuffer(19, MABufferH4_8EMA, INDICATOR_DATA);
+   SetIndexBuffer(20, MABufferD1_8EMA, INDICATOR_DATA);
+   SetIndexBuffer(21, MABufferW1_8EMA, INDICATOR_DATA);
+   SetIndexBuffer(22, MABufferM15_13EMA, INDICATOR_DATA);
+   SetIndexBuffer(23, MABufferM30_13EMA, INDICATOR_DATA);
+   SetIndexBuffer(24, MABufferH1_13EMA, INDICATOR_DATA);
+   SetIndexBuffer(25, MABufferH4_13EMA, INDICATOR_DATA);
+   SetIndexBuffer(26, MABufferD1_13EMA, INDICATOR_DATA);
+   SetIndexBuffer(27, MABufferW1_13EMA, INDICATOR_DATA);
    string timeFrames[] = {"M1", "M5", "M15", "M30", "H1", "H4", "D1", "W1"};
    string objnameInfo200SMA = objname + "200SMAInfo";
    ObjectCreate(0, objnameInfo200SMA, OBJ_LABEL, 0, 0, 0);
@@ -274,206 +345,115 @@ void UpdateBuffers()
    EraseBufferValues(MABufferH4_200SMA);
    EraseBufferValues(MABufferD1_200SMA);
    EraseBufferValues(MABufferW1_200SMA);
-   EraseBufferValues(MABufferM15_13SMA);
-   EraseBufferValues(MABufferM30_13SMA);
-   EraseBufferValues(MABufferH1_13SMA);
-   EraseBufferValues(MABufferH4_13SMA);
-   EraseBufferValues(MABufferD1_13SMA);
-   EraseBufferValues(MABufferW1_13SMA);
-   if (_Period < PERIOD_D1)
-   {
-      M1_Enable = Enable_M1_200SMA;
-      M5_Enable = Enable_M5_200SMA;
-      M15_Enable = Enable_M15_200SMA;
-      M30_Enable = Enable_M30_200SMA;
-   }
-   if (_Period >= PERIOD_D1)
-   {
-      M1_Enable = false;
-      M5_Enable = false;
-      M15_Enable = false;
-      M30_Enable = false;
-   }
-   if (M1_Enable)
-   {
-      HandleM1_200SMA = iMA(NULL, PERIOD_M1, 200, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleM1_200SMA, 0, 0, BufferSize(MABufferM1_200SMA), MABufferM1_200SMA);
-   }
-   if (M5_Enable)
-   {
-      HandleM5_200SMA = iMA(NULL, PERIOD_M5, 200, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleM5_200SMA, 0, 0, BufferSize(MABufferM5_200SMA), MABufferM5_200SMA);
-   }
-   if (M15_Enable)
-   {
-      HandleM15_200SMA = iMA(NULL, PERIOD_M15, 200, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleM15_200SMA, 0, 0, BufferSize(MABufferM15_200SMA), MABufferM15_200SMA);
-   }
-   if (M30_Enable)
-   {
-      HandleM30_200SMA = iMA(NULL, PERIOD_M30, 200, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleM30_200SMA, 0, 0, BufferSize(MABufferM30_200SMA), MABufferM30_200SMA);
-   }
-   if (Enable_H1_200SMA)
-   {
-      HandleH1_200SMA = iMA(NULL, PERIOD_H1, 200, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleH1_200SMA, 0, 0, BufferSize(MABufferH1_200SMA), MABufferH1_200SMA);
-   }
-   if (Enable_H4_200SMA)
-   {
-      HandleH4_200SMA = iMA(NULL, PERIOD_H4, 200, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleH4_200SMA, 0, 0, BufferSize(MABufferH4_200SMA), MABufferH4_200SMA);
-   }
-   if (Enable_D1_200SMA)
-   {
-      HandleD1_200SMA = iMA(NULL, PERIOD_D1, 200, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleD1_200SMA, 0, 0, BufferSize(MABufferD1_200SMA), MABufferD1_200SMA);
-   }
-   if (Enable_D1_13SMA)
-   {
-      HandleD1_13SMA = iMA(NULL, PERIOD_D1, 13, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleD1_13SMA, 0, 0, BufferSize(MABufferD1_13SMA), MABufferD1_13SMA);
-   }
-   if (Enable_H1_13SMA)
-   {
-      HandleH1_13SMA = iMA(NULL, PERIOD_H1, 13, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleH1_13SMA, 0, 0, BufferSize(MABufferH1_13SMA), MABufferH1_13SMA);
-   }
-   if (Enable_H4_13SMA)
-   {
-      HandleH4_13SMA = iMA(NULL, PERIOD_H4, 13, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleH4_13SMA, 0, 0, BufferSize(MABufferH4_13SMA), MABufferH4_13SMA);
-   }
-   if (Enable_M15_13SMA)
-   {
-      HandleM15_13SMA = iMA(NULL, PERIOD_M15, 13, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleM15_13SMA, 0, 0, BufferSize(MABufferM15_13SMA), MABufferM15_13SMA);
-   }
-   if (Enable_M30_13SMA)
-   {
-      HandleM30_13SMA = iMA(NULL, PERIOD_M30, 13, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleM30_13SMA, 0, 0, BufferSize(MABufferM30_13SMA), MABufferM30_13SMA);
-   }
-   if (Enable_W1_13SMA)
-   {
-      HandleW1_13SMA = iMA(NULL, PERIOD_W1, 13, 0, MODE_SMA, MAPrice);
-      CopyBuffer(HandleW1_13SMA, 0, 0, BufferSize(MABufferW1_13SMA), MABufferW1_13SMA);
-   }
-   if (Enable_W1_200SMA)
-   {
-      HandleW1_200SMA = iMA(NULL, PERIOD_W1, 200, 0, MODE_SMA, MAPrice);
-      if (HandleW1_200SMA != INVALID_HANDLE)
-      {
-         int copySizeW1 = CopyBuffer(HandleW1_200SMA, 0, 0, BufferSize(MABufferW1_200SMA), MABufferW1_200SMA);
-         if (copySizeW1 > 0)
-         {
-            bool isEmptyValueExist = false;
-            for (int i = 0; i < copySizeW1; i++)
-            {
-               if (MABufferW1_200SMA[i] == EMPTY_VALUE)
-               {
-                  isEmptyValueExist = true;
-                  break;
-               }
-            }
-            if (isEmptyValueExist)
-            {
-               if (W1_Empty_Warning)
-               {
-                  // Print("Warning: W1 SMA data contains EMPTY_VALUE!");
-               }
-            }
-         }
-      }
-      else
-      {
-         Print("Warning: Unable to calculate W1 SMA! Disabling!");
-         W1_Enable = false;
-      }
-   }
+   EraseBufferValues(MABufferM1_50SMA);
+   EraseBufferValues(MABufferM5_50SMA);
+   EraseBufferValues(MABufferM15_50SMA);
+   EraseBufferValues(MABufferM30_50SMA);
+   EraseBufferValues(MABufferH1_50SMA);
+   EraseBufferValues(MABufferH4_50SMA);
+   EraseBufferValues(MABufferD1_50SMA);
+   EraseBufferValues(MABufferW1_50SMA);
+   EraseBufferValues(MABufferM15_13EMA);
+   EraseBufferValues(MABufferM30_13EMA);
+   EraseBufferValues(MABufferH1_13EMA);
+   EraseBufferValues(MABufferH4_13EMA);
+   EraseBufferValues(MABufferD1_13EMA);
+   EraseBufferValues(MABufferW1_13EMA);
+   EraseBufferValues(MABufferM15_8EMA);
+   EraseBufferValues(MABufferM30_8EMA);
+   EraseBufferValues(MABufferH1_8EMA);
+   EraseBufferValues(MABufferH4_8EMA);
+   EraseBufferValues(MABufferD1_8EMA);
+   EraseBufferValues(MABufferW1_8EMA);
+   HandleM1_200SMA = iMA(NULL, PERIOD_M1, 200, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM1_200SMA, 0, 0, BufferSize(MABufferM1_200SMA), MABufferM1_200SMA);
+   HandleM5_200SMA = iMA(NULL, PERIOD_M5, 200, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM5_200SMA, 0, 0, BufferSize(MABufferM5_200SMA), MABufferM5_200SMA);
+   HandleM15_200SMA = iMA(NULL, PERIOD_M15, 200, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM15_200SMA, 0, 0, BufferSize(MABufferM15_200SMA), MABufferM15_200SMA);
+   HandleM30_200SMA = iMA(NULL, PERIOD_M30, 200, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM30_200SMA, 0, 0, BufferSize(MABufferM30_200SMA), MABufferM30_200SMA);
+   HandleH1_200SMA = iMA(NULL, PERIOD_H1, 200, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleH1_200SMA, 0, 0, BufferSize(MABufferH1_200SMA), MABufferH1_200SMA);
+   HandleH4_200SMA = iMA(NULL, PERIOD_H4, 200, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleH4_200SMA, 0, 0, BufferSize(MABufferH4_200SMA), MABufferH4_200SMA);
+   HandleD1_200SMA = iMA(NULL, PERIOD_D1, 200, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleD1_200SMA, 0, 0, BufferSize(MABufferD1_200SMA), MABufferD1_200SMA);
+   HandleD1_13EMA = iMA(NULL, PERIOD_D1, 13, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleD1_13EMA, 0, 0, BufferSize(MABufferD1_13EMA), MABufferD1_13EMA);
+   HandleW1_200SMA = iMA(NULL, PERIOD_W1, 200, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleW1_200SMA, 0, 0, BufferSize(MABufferW1_200SMA), MABufferW1_200SMA);
+   HandleM1_50SMA = iMA(NULL, PERIOD_M1, 50, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM1_50SMA, 0, 0, BufferSize(MABufferM1_50SMA), MABufferM1_50SMA);
+   HandleM5_50SMA = iMA(NULL, PERIOD_M5, 50, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM5_50SMA, 0, 0, BufferSize(MABufferM5_50SMA), MABufferM5_50SMA);
+   HandleM15_50SMA = iMA(NULL, PERIOD_M15, 50, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM15_50SMA, 0, 0, BufferSize(MABufferM15_50SMA), MABufferM15_50SMA);
+   HandleM30_50SMA = iMA(NULL, PERIOD_M30, 50, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM30_50SMA, 0, 0, BufferSize(MABufferM30_50SMA), MABufferM30_50SMA);
+   HandleH1_50SMA = iMA(NULL, PERIOD_H1, 50, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleH1_50SMA, 0, 0, BufferSize(MABufferH1_50SMA), MABufferH1_50SMA);
+   HandleH4_50SMA = iMA(NULL, PERIOD_H4, 50, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleH4_50SMA, 0, 0, BufferSize(MABufferH4_50SMA), MABufferH4_50SMA);
+   HandleD1_50SMA = iMA(NULL, PERIOD_D1, 50, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleD1_50SMA, 0, 0, BufferSize(MABufferD1_50SMA), MABufferD1_50SMA);
+   HandleW1_50SMA = iMA(NULL, PERIOD_W1, 50, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleW1_50SMA, 0, 0, BufferSize(MABufferW1_50SMA), MABufferW1_50SMA);
+   HandleM15_13EMA = iMA(NULL, PERIOD_M15, 13, 0, MODE_EMA, MAPrice);
+   CopyBuffer(HandleM15_13EMA, 0, 0, BufferSize(MABufferM15_13EMA), MABufferM15_13EMA);
+   HandleM30_13EMA = iMA(NULL, PERIOD_M30, 13, 0, MODE_EMA, MAPrice);
+   CopyBuffer(HandleM30_13EMA, 0, 0, BufferSize(MABufferM30_13EMA), MABufferM30_13EMA);
+   HandleH1_13EMA = iMA(NULL, PERIOD_H1, 13, 0, MODE_EMA, MAPrice);
+   CopyBuffer(HandleH1_13EMA, 0, 0, BufferSize(MABufferH1_13EMA), MABufferH1_13EMA);
+   HandleH4_13EMA = iMA(NULL, PERIOD_H4, 13, 0, MODE_EMA, MAPrice);
+   CopyBuffer(HandleH4_13EMA, 0, 0, BufferSize(MABufferH4_13EMA), MABufferH4_13EMA);
+   HandleD1_13EMA = iMA(NULL, PERIOD_D1, 13, 0, MODE_EMA, MAPrice);
+   CopyBuffer(HandleD1_13EMA, 0, 0, BufferSize(MABufferD1_13EMA), MABufferD1_13EMA);
+   HandleW1_13EMA = iMA(NULL, PERIOD_W1, 13, 0, MODE_EMA, MAPrice);
+   CopyBuffer(HandleW1_13EMA, 0, 0, BufferSize(MABufferW1_13EMA), MABufferW1_13EMA);
+   HandleM15_8EMA = iMA(NULL, PERIOD_M15, 8, 0, MODE_EMA, MAPrice);
+   CopyBuffer(HandleM15_8EMA, 0, 0, BufferSize(MABufferM15_8EMA), MABufferM15_8EMA);
+   HandleM30_8EMA = iMA(NULL, PERIOD_M30, 8, 0, MODE_EMA, MAPrice);
+   CopyBuffer(HandleM30_8EMA, 0, 0, BufferSize(MABufferM30_8EMA), MABufferM30_8EMA);
+   HandleH1_8EMA = iMA(NULL, PERIOD_H1, 8, 0, MODE_EMA, MAPrice);
+   CopyBuffer(HandleH1_8EMA, 0, 0, BufferSize(MABufferH1_8EMA), MABufferH1_8EMA);
+   HandleH4_8EMA = iMA(NULL, PERIOD_H4, 8, 0, MODE_EMA, MAPrice);
+   CopyBuffer(HandleH4_8EMA, 0, 0, BufferSize(MABufferH4_8EMA), MABufferH4_8EMA);
+   HandleD1_8EMA = iMA(NULL, PERIOD_D1, 8, 0, MODE_EMA, MAPrice);
+   CopyBuffer(HandleD1_8EMA, 0, 0, BufferSize(MABufferD1_8EMA), MABufferD1_8EMA);
+   HandleW1_8EMA = iMA(NULL, PERIOD_W1, 8, 0, MODE_EMA, MAPrice);
+   CopyBuffer(HandleW1_8EMA, 0, 0, BufferSize(MABufferW1_8EMA), MABufferW1_8EMA);
 }
 void UpdateBuffersOnCalculate(int start, int rates_total)
 {
-   if (_Period < PERIOD_D1)
-   {
-      if (M1_Enable)
-      {
-         HandleM1_200SMA = iMA(NULL, PERIOD_M1, 200, 0, MODE_SMA, MAPrice);
-         CopyBuffer(HandleM1_200SMA, 0, 0, BufferSize(MABufferM1_200SMA), MABufferM1_200SMA);
-      }
-      if (M5_Enable)
-      {
-         HandleM5_200SMA = iMA(NULL, PERIOD_M5, 200, 0, MODE_SMA, MAPrice);
-         CopyBuffer(HandleM5_200SMA, 0, 0, BufferSize(MABufferM5_200SMA), MABufferM5_200SMA);
-      }
-      if (M15_Enable)
-      {
-         HandleM15_200SMA = iMA(NULL, PERIOD_M15, 200, 0, MODE_SMA, MAPrice);
-         CopyBuffer(HandleM15_200SMA, 0, 0, BufferSize(MABufferM15_200SMA), MABufferM15_200SMA);
-      }
-      if (M30_Enable)
-      {
-         HandleM30_200SMA = iMA(NULL, PERIOD_M30, 200, 0, MODE_SMA, MAPrice);
-         CopyBuffer(HandleM30_200SMA, 0, 0, BufferSize(MABufferM30_200SMA), MABufferM30_200SMA);
-      }
-   }
-   if (_Period >= PERIOD_D1)
-   {
-      EraseBufferValues(MABufferM1_200SMA);
-      EraseBufferValues(MABufferM5_200SMA);
-      EraseBufferValues(MABufferM15_200SMA);
-      EraseBufferValues(MABufferM30_200SMA);
-   }
-   if (Enable_H1_200SMA)
-      CopyBuffer(HandleH1_200SMA, 0, 0, BufferSize(MABufferH1_200SMA), MABufferH1_200SMA);
-   if (Enable_H4_200SMA)
-      CopyBuffer(HandleH4_200SMA, 0, 0, BufferSize(MABufferH4_200SMA), MABufferH4_200SMA);
-   if (Enable_D1_200SMA)
-      CopyBuffer(HandleD1_200SMA, 0, 0, BufferSize(MABufferD1_200SMA), MABufferD1_200SMA);
-   if (Enable_M15_13SMA)
-      CopyBuffer(HandleM15_13SMA, 0, 0, BufferSize(MABufferM15_13SMA), MABufferM15_13SMA);
-   if (Enable_M30_13SMA)
-      CopyBuffer(HandleM30_13SMA, 0, 0, BufferSize(MABufferM30_13SMA), MABufferM30_13SMA);
-   if (Enable_H1_13SMA)
-      CopyBuffer(HandleH1_13SMA, 0, 0, BufferSize(MABufferH1_13SMA), MABufferH1_13SMA);
-   if (Enable_H4_13SMA)
-      CopyBuffer(HandleH4_13SMA, 0, 0, BufferSize(MABufferH4_13SMA), MABufferH4_13SMA);
-   if (Enable_D1_13SMA)
-      CopyBuffer(HandleD1_13SMA, 0, 0, BufferSize(MABufferD1_13SMA), MABufferD1_13SMA);
-   if (Enable_W1_13SMA)
-      CopyBuffer(HandleW1_13SMA, 0, 0, BufferSize(MABufferW1_13SMA), MABufferW1_13SMA);
-   if (Enable_W1_200SMA)
-   {
-      HandleW1_200SMA = iMA(NULL, PERIOD_W1, 200, 0, MODE_SMA, MAPrice);
-      if (HandleW1_200SMA != INVALID_HANDLE)
-      {
-         int copySizeW1 = CopyBuffer(HandleW1_200SMA, 0, 0, BufferSize(MABufferW1_200SMA), MABufferW1_200SMA);
-         if (copySizeW1 > 0)
-         {
-            bool isEmptyValueExist = false;
-            for (int i = 0; i < copySizeW1; i++)
-            {
-               if (MABufferW1_200SMA[i] == EMPTY_VALUE)
-               {
-                  isEmptyValueExist = true;
-                  break;
-               }
-            }
-            if (isEmptyValueExist)
-            {
-               if (W1_Empty_Warning)
-               {
-                  // Print("Warning: W1 SMA data contains EMPTY_VALUE!");
-               }
-            }
-         }
-      }
-      else
-      {
-         Print("Warning: Unable to calculate W1 SMA! Disabling!");
-         W1_Enable = false;
-      }
-   }
+   CopyBuffer(HandleM1_200SMA, 0, 0, BufferSize(MABufferM1_200SMA), MABufferM1_200SMA);
+   CopyBuffer(HandleM5_200SMA, 0, 0, BufferSize(MABufferM5_200SMA), MABufferM5_200SMA);
+   CopyBuffer(HandleM15_200SMA, 0, 0, BufferSize(MABufferM15_200SMA), MABufferM15_200SMA);
+   CopyBuffer(HandleM30_200SMA, 0, 0, BufferSize(MABufferM30_200SMA), MABufferM30_200SMA);
+   CopyBuffer(HandleH1_200SMA, 0, 0, BufferSize(MABufferH1_200SMA), MABufferH1_200SMA);
+   CopyBuffer(HandleH4_200SMA, 0, 0, BufferSize(MABufferH4_200SMA), MABufferH4_200SMA);
+   CopyBuffer(HandleD1_200SMA, 0, 0, BufferSize(MABufferD1_200SMA), MABufferD1_200SMA);
+   CopyBuffer(HandleW1_200SMA, 0, 0, BufferSize(MABufferW1_200SMA), MABufferW1_200SMA);
+   CopyBuffer(HandleM1_50SMA, 0, 0, BufferSize(MABufferM1_50SMA), MABufferM1_50SMA);
+   CopyBuffer(HandleM5_50SMA, 0, 0, BufferSize(MABufferM5_50SMA), MABufferM5_50SMA);
+   CopyBuffer(HandleM15_50SMA, 0, 0, BufferSize(MABufferM15_50SMA), MABufferM15_50SMA);
+   CopyBuffer(HandleM30_50SMA, 0, 0, BufferSize(MABufferM30_50SMA), MABufferM30_50SMA);
+   CopyBuffer(HandleH1_50SMA, 0, 0, BufferSize(MABufferH1_50SMA), MABufferH1_50SMA);
+   CopyBuffer(HandleH4_50SMA, 0, 0, BufferSize(MABufferH4_50SMA), MABufferH4_50SMA);
+   CopyBuffer(HandleD1_50SMA, 0, 0, BufferSize(MABufferD1_50SMA), MABufferD1_50SMA);
+   CopyBuffer(HandleW1_50SMA, 0, 0, BufferSize(MABufferW1_50SMA), MABufferW1_50SMA);
+   CopyBuffer(HandleM15_13EMA, 0, 0, BufferSize(MABufferM15_13EMA), MABufferM15_13EMA);
+   CopyBuffer(HandleM30_13EMA, 0, 0, BufferSize(MABufferM30_13EMA), MABufferM30_13EMA);
+   CopyBuffer(HandleH1_13EMA, 0, 0, BufferSize(MABufferH1_13EMA), MABufferH1_13EMA);
+   CopyBuffer(HandleH4_13EMA, 0, 0, BufferSize(MABufferH4_13EMA), MABufferH4_13EMA);
+   CopyBuffer(HandleD1_13EMA, 0, 0, BufferSize(MABufferD1_13EMA), MABufferD1_13EMA);
+   CopyBuffer(HandleW1_13EMA, 0, 0, BufferSize(MABufferW1_13EMA), MABufferW1_13EMA);
+   CopyBuffer(HandleM15_8EMA, 0, 0, BufferSize(MABufferM15_8EMA), MABufferM15_8EMA);
+   CopyBuffer(HandleM30_8EMA, 0, 0, BufferSize(MABufferM30_8EMA), MABufferM30_8EMA);
+   CopyBuffer(HandleH1_8EMA, 0, 0, BufferSize(MABufferH1_8EMA), MABufferH1_8EMA);
+   CopyBuffer(HandleH4_8EMA, 0, 0, BufferSize(MABufferH4_8EMA), MABufferH4_8EMA);
+   CopyBuffer(HandleD1_8EMA, 0, 0, BufferSize(MABufferD1_8EMA), MABufferD1_8EMA);
+   CopyBuffer(HandleW1_8EMA, 0, 0, BufferSize(MABufferW1_8EMA), MABufferW1_8EMA);
 }
 bool IsNewMinute(const datetime &currentTime, const datetime &prevTime)
 {
