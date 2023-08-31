@@ -23,10 +23,10 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.018"
+#property version   "1.020"
 #property indicator_chart_window
 #property indicator_buffers 28
-#property indicator_plots   28
+#property indicator_plots   9
 #property indicator_label1  "M1 200SMA"
 #property indicator_type1   DRAW_LINE
 #property indicator_color1  clrMagenta
@@ -67,106 +67,6 @@
 #property indicator_color8  clrOrange
 #property indicator_style8  STYLE_SOLID
 #property indicator_width8  2
-#property indicator_label9  "M1 50SMA"
-#property indicator_type9   DRAW_LINE
-#property indicator_color9  clrWhite
-#property indicator_style9  STYLE_SOLID
-#property indicator_width9  2
-#property indicator_label10  "M5 50SMA"
-#property indicator_type10   DRAW_LINE
-#property indicator_color10  clrWhite
-#property indicator_style10  STYLE_SOLID
-#property indicator_width10  2
-#property indicator_label11  "M15 50SMA"
-#property indicator_type11   DRAW_LINE
-#property indicator_color11  clrWhite
-#property indicator_style11  STYLE_SOLID
-#property indicator_width11  2
-#property indicator_label12  "M30 50SMA"
-#property indicator_type12   DRAW_LINE
-#property indicator_color12  clrWhite
-#property indicator_style12  STYLE_SOLID
-#property indicator_width12  2
-#property indicator_label13  "H1 50SMA"
-#property indicator_type13   DRAW_LINE
-#property indicator_color13  clrWhite
-#property indicator_style13  STYLE_SOLID
-#property indicator_width13  2
-#property indicator_label14  "H4 50SMA"
-#property indicator_type14   DRAW_LINE
-#property indicator_color14  clrWhite
-#property indicator_style14  STYLE_SOLID
-#property indicator_width14  2
-#property indicator_label15  "D1 50SMA"
-#property indicator_type15   DRAW_LINE
-#property indicator_color15  clrWhite
-#property indicator_style15  STYLE_SOLID
-#property indicator_width15  2
-#property indicator_label16  "W1 50SMA"
-#property indicator_type16   DRAW_LINE
-#property indicator_color16  clrWhite
-#property indicator_style16  STYLE_SOLID
-#property indicator_width16  2
-#property indicator_label17  "M15 8EMA"
-#property indicator_type17   DRAW_LINE
-#property indicator_color17  clrWhite
-#property indicator_style17  STYLE_SOLID
-#property indicator_width17  2
-#property indicator_label18  "M30 8EMA"
-#property indicator_type18   DRAW_LINE
-#property indicator_color18  clrWhite
-#property indicator_style18  STYLE_SOLID
-#property indicator_width18  2
-#property indicator_label19  "H1 8EMA"
-#property indicator_type19   DRAW_LINE
-#property indicator_color19  clrWhite
-#property indicator_style19  STYLE_SOLID
-#property indicator_width19  2
-#property indicator_label20  "H4 8EMA"
-#property indicator_type20   DRAW_LINE
-#property indicator_color20  clrWhite
-#property indicator_style20  STYLE_SOLID
-#property indicator_width20  2
-#property indicator_label21  "D1 8EMA"
-#property indicator_type21   DRAW_LINE
-#property indicator_color21  clrWhite
-#property indicator_style21  STYLE_SOLID
-#property indicator_width21  2
-#property indicator_label22  "W1 8EMA"
-#property indicator_type22   DRAW_LINE
-#property indicator_color22  clrWhite
-#property indicator_style22  STYLE_SOLID
-#property indicator_width22  2
-#property indicator_label23  "M15 13EMA"
-#property indicator_type23   DRAW_LINE
-#property indicator_color23  clrWhite
-#property indicator_style23  STYLE_SOLID
-#property indicator_width23  2
-#property indicator_label24  "M30 13EMA"
-#property indicator_type24   DRAW_LINE
-#property indicator_color24  clrWhite
-#property indicator_style24  STYLE_SOLID
-#property indicator_width24  2
-#property indicator_label25  "H1 13EMA"
-#property indicator_type25   DRAW_LINE
-#property indicator_color25  clrWhite
-#property indicator_style25  STYLE_SOLID
-#property indicator_width25  2
-#property indicator_label26  "H4 13EMA"
-#property indicator_type26   DRAW_LINE
-#property indicator_color26  clrWhite
-#property indicator_style26  STYLE_SOLID
-#property indicator_width26  2
-#property indicator_label27  "D1 13EMA"
-#property indicator_type27   DRAW_LINE
-#property indicator_color27  clrWhite
-#property indicator_style27  STYLE_SOLID
-#property indicator_width27  2
-#property indicator_label28  "W1 13EMA"
-#property indicator_type28   DRAW_LINE
-#property indicator_color28  clrWhite
-#property indicator_style28  STYLE_SOLID
-#property indicator_width28  2
 
 // Input variables
 input group  "[INFO TEXT SETTINGS]";
@@ -221,7 +121,7 @@ int OnInit()
    string timeFrames[] = {"M1", "M5", "M15", "M30", "H1", "H4", "D1", "W1"};
    string objnameInfo200SMA = objname + "200SMAInfo";
    ObjectCreate(0, objnameInfo200SMA, OBJ_LABEL, 0, 0, 0);
-   ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_XDISTANCE, HorizPos); // Adjust horizontal position
+   ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_XDISTANCE, HorizPos);
    ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_YDISTANCE, VertPos);
    ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_CORNER, Corner);
    ObjectSetString(0, objnameInfo200SMA, OBJPROP_FONT, FontName);
