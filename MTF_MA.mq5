@@ -23,10 +23,10 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.020"
+#property version   "1.019"
 #property indicator_chart_window
 #property indicator_buffers 28
-#property indicator_plots   9
+#property indicator_plots   8
 #property indicator_label1  "M1 200SMA"
 #property indicator_type1   DRAW_LINE
 #property indicator_color1  clrMagenta
@@ -118,32 +118,68 @@ int OnInit()
    SetIndexBuffer(25, MABufferH4_13EMA, INDICATOR_DATA);
    SetIndexBuffer(26, MABufferD1_13EMA, INDICATOR_DATA);
    SetIndexBuffer(27, MABufferW1_13EMA, INDICATOR_DATA);
-   string timeFrames[] = {"M1", "M5", "M15", "M30", "H1", "H4", "D1", "W1"};
-   string objnameInfo200SMA = objname + "200SMAInfo";
-   ObjectCreate(0, objnameInfo200SMA, OBJ_LABEL, 0, 0, 0);
-   ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_XDISTANCE, HorizPos);
-   ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_YDISTANCE, VertPos);
-   ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_CORNER, Corner);
-   ObjectSetString(0, objnameInfo200SMA, OBJPROP_FONT, FontName);
-   ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_FONTSIZE, FontSize);
-   ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_COLOR, clrWhite);
-   ObjectSetString(0, objnameInfo200SMA, OBJPROP_TEXT, "200 SMA| ");
+   string objnameInfo1 = objname + "Info1";
+   ObjectCreate(0, objnameInfo1, OBJ_LABEL, 0, 0, 0);
+   ObjectSetInteger(0, objnameInfo1, OBJPROP_XDISTANCE, HorizPos);
+   ObjectSetInteger(0, objnameInfo1, OBJPROP_YDISTANCE, VertPos);
+   ObjectSetInteger(0, objnameInfo1, OBJPROP_CORNER, Corner);
+   ObjectSetString(0, objnameInfo1, OBJPROP_FONT, FontName);
+   ObjectSetInteger(0, objnameInfo1, OBJPROP_FONTSIZE, FontSize);
+   ObjectSetInteger(0, objnameInfo1, OBJPROP_COLOR, clrWhite);
+   ObjectSetString(0, objnameInfo1, OBJPROP_TEXT, "200 SMA| ");
+   string objnameInfo2 = objname + "Info2";
+   ObjectCreate(0, objnameInfo2, OBJ_LABEL, 0, 0, 0);
+   ObjectSetInteger(0, objnameInfo2, OBJPROP_XDISTANCE, HorizPos);
+   ObjectSetInteger(0, objnameInfo2, OBJPROP_YDISTANCE, VertPos + 13); // Adjust Y position for the new row
+   ObjectSetInteger(0, objnameInfo2, OBJPROP_CORNER, Corner);
+   ObjectSetString(0, objnameInfo2, OBJPROP_FONT, FontName);
+   ObjectSetInteger(0, objnameInfo2, OBJPROP_FONTSIZE, FontSize);
+   ObjectSetInteger(0, objnameInfo2, OBJPROP_COLOR, clrWhite);
+   ObjectSetString(0, objnameInfo2, OBJPROP_TEXT, "DEATH  |");
+   string objnameInfo3 = objname + "Info3";
+   ObjectCreate(0, objnameInfo3, OBJ_LABEL, 0, 0, 0);
+   ObjectSetInteger(0, objnameInfo3, OBJPROP_XDISTANCE, HorizPos);
+   ObjectSetInteger(0, objnameInfo3, OBJPROP_YDISTANCE, VertPos + 26); // Adjust Y position for the new row
+   ObjectSetInteger(0, objnameInfo3, OBJPROP_CORNER, Corner);
+   ObjectSetString(0, objnameInfo3, OBJPROP_FONT, FontName);
+   ObjectSetInteger(0, objnameInfo3, OBJPROP_FONTSIZE, FontSize);
+   ObjectSetInteger(0, objnameInfo3, OBJPROP_COLOR, clrWhite);
+   ObjectSetString(0, objnameInfo3, OBJPROP_TEXT, "8/13 X |");
    int additionalSpacing = 0; 
+   string timeFrames[] = {"M1", "M5", "M15", "M30", "H1", "H4", "D1", "W1"};
    for (int i = 0; i < ArraySize(timeFrames); i++)
    {
-      string objnameInfo = objname + timeFrames[i] + "Info";
-      ObjectCreate(0, objnameInfo, OBJ_LABEL, 0, 0, 0);
       if ( timeFrames[i] == "M30" || timeFrames[i] == "H1")
       {
          additionalSpacing += 5;
       }
-      ObjectSetInteger(0, objnameInfo, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 25 + additionalSpacing));
-      ObjectSetInteger(0, objnameInfo, OBJPROP_YDISTANCE, VertPos);
-      ObjectSetInteger(0, objnameInfo, OBJPROP_CORNER, Corner);
-      ObjectSetString(0, objnameInfo, OBJPROP_FONT, FontName);
-      ObjectSetInteger(0, objnameInfo, OBJPROP_FONTSIZE, FontSize);
-      ObjectSetInteger(0, objnameInfo, OBJPROP_COLOR, clrWhite);
-      ObjectSetString(0, objnameInfo, OBJPROP_TEXT, timeFrames[i]);
+      string objnameInfo200SMA = objname + timeFrames[i] + "Info200SMA";
+      ObjectCreate(0, objnameInfo200SMA, OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 25 + additionalSpacing));
+      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_YDISTANCE, VertPos);
+      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_CORNER, Corner);
+      ObjectSetString(0, objnameInfo200SMA, OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_FONTSIZE, FontSize);
+      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_COLOR, clrWhite);
+      ObjectSetString(0, objnameInfo200SMA, OBJPROP_TEXT, timeFrames[i]);
+      string objnameInfoDeath = objname + timeFrames[i] + "InfoDeath";
+      ObjectCreate(0, objnameInfoDeath, OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, objnameInfoDeath, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 25 + additionalSpacing));
+      ObjectSetInteger(0, objnameInfoDeath, OBJPROP_YDISTANCE, VertPos+13);
+      ObjectSetInteger(0, objnameInfoDeath, OBJPROP_CORNER, Corner);
+      ObjectSetString(0, objnameInfoDeath, OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, objnameInfoDeath, OBJPROP_FONTSIZE, FontSize);
+      ObjectSetInteger(0, objnameInfoDeath, OBJPROP_COLOR, clrWhite);
+      ObjectSetString(0, objnameInfoDeath, OBJPROP_TEXT, timeFrames[i]);
+      string objnameInfoX = objname + timeFrames[i] + "InfoX";
+      ObjectCreate(0, objnameInfoX, OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, objnameInfoX, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 25 + additionalSpacing));
+      ObjectSetInteger(0, objnameInfoX, OBJPROP_YDISTANCE, VertPos+26);
+      ObjectSetInteger(0, objnameInfoX, OBJPROP_CORNER, Corner);
+      ObjectSetString(0, objnameInfoX, OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, objnameInfoX, OBJPROP_FONTSIZE, FontSize);
+      ObjectSetInteger(0, objnameInfoX, OBJPROP_COLOR, clrWhite);
+      ObjectSetString(0, objnameInfoX, OBJPROP_TEXT, timeFrames[i]);
    }
    return 0;
 }
