@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.020"
+#property version   "1.018"
 #property indicator_chart_window
 #property indicator_buffers 28
 #property indicator_plots   28
