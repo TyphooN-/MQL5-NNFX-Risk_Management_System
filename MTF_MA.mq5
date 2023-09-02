@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.021"
+#property version   "1.022"
 #property indicator_chart_window
 #property indicator_buffers 32
 #property indicator_plots   8
@@ -158,7 +158,7 @@ int OnInit()
       }
       string objnameInfo200SMA = objname + timeFrames[i] + "200SMA";
       ObjectCreate(0, objnameInfo200SMA, OBJ_LABEL, 0, 0, 0);
-      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 25 + additionalSpacing));
+      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
       ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_YDISTANCE, VertPos);
       ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_CORNER, Corner);
       ObjectSetString(0, objnameInfo200SMA, OBJPROP_FONT, FontName);
@@ -167,7 +167,7 @@ int OnInit()
       ObjectSetString(0, objnameInfo200SMA, OBJPROP_TEXT, timeFrames[i]);
       string objnameInfoDEATH = objname + timeFrames[i] + "DEATH";
       ObjectCreate(0, objnameInfoDEATH, OBJ_LABEL, 0, 0, 0);
-      ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 25 + additionalSpacing));
+      ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
       ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_YDISTANCE, VertPos+13);
       ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_CORNER, Corner);
       ObjectSetString(0, objnameInfoDEATH, OBJPROP_FONT, FontName);
@@ -176,7 +176,7 @@ int OnInit()
       ObjectSetString(0, objnameInfoDEATH, OBJPROP_TEXT, timeFrames[i]);
       string objname8_13 = objname + timeFrames[i] + "8_13";
       ObjectCreate(0, objname8_13, OBJ_LABEL, 0, 0, 0);
-      ObjectSetInteger(0, objname8_13, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 25 + additionalSpacing));
+      ObjectSetInteger(0, objname8_13, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
       ObjectSetInteger(0, objname8_13, OBJPROP_YDISTANCE, VertPos+26);
       ObjectSetInteger(0, objname8_13, OBJPROP_CORNER, Corner);
       ObjectSetString(0, objname8_13, OBJPROP_FONT, FontName);
