@@ -23,9 +23,9 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.020"
+#property version   "1.021"
 #property indicator_chart_window
-#property indicator_buffers 30
+#property indicator_buffers 32
 #property indicator_plots   8
 #property indicator_label1  "M1 200SMA"
 #property indicator_type1   DRAW_LINE
@@ -113,12 +113,14 @@ int OnInit()
    SetIndexBuffer(21, MABufferH4_8EMA, INDICATOR_DATA);
    SetIndexBuffer(22, MABufferD1_8EMA, INDICATOR_DATA);
    SetIndexBuffer(23, MABufferW1_8EMA, INDICATOR_DATA);
-   SetIndexBuffer(24, MABufferM15_13EMA, INDICATOR_DATA);
-   SetIndexBuffer(25, MABufferM30_13EMA, INDICATOR_DATA);
-   SetIndexBuffer(26, MABufferH1_13EMA, INDICATOR_DATA);
-   SetIndexBuffer(27, MABufferH4_13EMA, INDICATOR_DATA);
-   SetIndexBuffer(28, MABufferD1_13EMA, INDICATOR_DATA);
-   SetIndexBuffer(29, MABufferW1_13EMA, INDICATOR_DATA);
+   SetIndexBuffer(24, MABufferM1_13EMA, INDICATOR_DATA);
+   SetIndexBuffer(25, MABufferM5_13EMA, INDICATOR_DATA);
+   SetIndexBuffer(26, MABufferM15_13EMA, INDICATOR_DATA);
+   SetIndexBuffer(27, MABufferM30_13EMA, INDICATOR_DATA);
+   SetIndexBuffer(28, MABufferH1_13EMA, INDICATOR_DATA);
+   SetIndexBuffer(29, MABufferH4_13EMA, INDICATOR_DATA);
+   SetIndexBuffer(30, MABufferD1_13EMA, INDICATOR_DATA);
+   SetIndexBuffer(31, MABufferW1_13EMA, INDICATOR_DATA);
    string objnameInfo1 = objname + "Info1";
    ObjectCreate(0, objnameInfo1, OBJ_LABEL, 0, 0, 0);
    ObjectSetInteger(0, objnameInfo1, OBJPROP_XDISTANCE, HorizPos);
@@ -131,7 +133,7 @@ int OnInit()
    string objnameInfo2 = objname + "Info2";
    ObjectCreate(0, objnameInfo2, OBJ_LABEL, 0, 0, 0);
    ObjectSetInteger(0, objnameInfo2, OBJPROP_XDISTANCE, HorizPos);
-   ObjectSetInteger(0, objnameInfo2, OBJPROP_YDISTANCE, VertPos + 13); // Adjust Y position for the new row
+   ObjectSetInteger(0, objnameInfo2, OBJPROP_YDISTANCE, VertPos + 13);
    ObjectSetInteger(0, objnameInfo2, OBJPROP_CORNER, Corner);
    ObjectSetString(0, objnameInfo2, OBJPROP_FONT, FontName);
    ObjectSetInteger(0, objnameInfo2, OBJPROP_FONTSIZE, FontSize);
@@ -140,7 +142,7 @@ int OnInit()
    string objnameInfo3 = objname + "Info3";
    ObjectCreate(0, objnameInfo3, OBJ_LABEL, 0, 0, 0);
    ObjectSetInteger(0, objnameInfo3, OBJPROP_XDISTANCE, HorizPos);
-   ObjectSetInteger(0, objnameInfo3, OBJPROP_YDISTANCE, VertPos + 26); // Adjust Y position for the new row
+   ObjectSetInteger(0, objnameInfo3, OBJPROP_YDISTANCE, VertPos + 26);
    ObjectSetInteger(0, objnameInfo3, OBJPROP_CORNER, Corner);
    ObjectSetString(0, objnameInfo3, OBJPROP_FONT, FontName);
    ObjectSetInteger(0, objnameInfo3, OBJPROP_FONTSIZE, FontSize);
@@ -287,16 +289,16 @@ int OnCalculate(const int rates_total,
    UpdateInfoLabel("D1", isOnDeathRow_D1, "DEATH");
    UpdateInfoLabel("W1", isOnDeathRow_W1, "DEATH");
    // Check for 8 EMA / 13 EMA crosses
-   //bool is8_13cross_M1 = MABufferM1_8EMA[rates_total - 1] > MABufferM1_13EMA[rates_total - 1];
-   //bool is8_13cross_M5 = MABufferM5_8EMA[rates_total - 1] > MABufferM5_13EMA[rates_total - 1];
+   bool is8_13cross_M1 = MABufferM1_8EMA[rates_total - 1] > MABufferM1_13EMA[rates_total - 1];
+   bool is8_13cross_M5 = MABufferM5_8EMA[rates_total - 1] > MABufferM5_13EMA[rates_total - 1];
    bool is8_13cross_M15 = MABufferM15_8EMA[rates_total - 1] > MABufferM15_13EMA[rates_total - 1];
    bool is8_13cross_M30 = MABufferM30_8EMA[rates_total - 1] > MABufferM30_13EMA[rates_total - 1];
    bool is8_13cross_H1 = MABufferH1_8EMA[rates_total - 1] > MABufferH1_13EMA[rates_total - 1];
    bool is8_13cross_H4 = MABufferH4_8EMA[rates_total - 1] > MABufferH4_13EMA[rates_total - 1];
    bool is8_13cross_D1 = MABufferD1_8EMA[rates_total - 1] > MABufferD1_13EMA[rates_total - 1];
    bool is8_13cross_W1 = MABufferW1_8EMA[rates_total - 1] > MABufferW1_13EMA[rates_total - 1];
-   //UpdateInfoLabel("M1", is8_13cross_M1, "8_13");
-   //UpdateInfoLabel("M5", is8_13cross_M5, "8_13");
+   UpdateInfoLabel("M1", is8_13cross_M1, "8_13");
+   UpdateInfoLabel("M5", is8_13cross_M5, "8_13");
    UpdateInfoLabel("M15", is8_13cross_M15, "8_13");
    UpdateInfoLabel("M30", is8_13cross_M30, "8_13");
    UpdateInfoLabel("H1", is8_13cross_H1, "8_13");
