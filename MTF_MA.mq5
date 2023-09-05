@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.023"
+#property version   "1.024"
 #property indicator_chart_window
 #property indicator_buffers 32
 #property indicator_plots   8
@@ -129,7 +129,7 @@ int OnInit()
    ObjectSetString(0, objnameInfo1, OBJPROP_FONT, FontName);
    ObjectSetInteger(0, objnameInfo1, OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, objnameInfo1, OBJPROP_COLOR, clrWhite);
-   ObjectSetString(0, objnameInfo1, OBJPROP_TEXT, "200 SMA| ");
+   ObjectSetString(0, objnameInfo1, OBJPROP_TEXT, "DEATH X|");
    string objnameInfo2 = objname + "Info2";
    ObjectCreate(0, objnameInfo2, OBJ_LABEL, 0, 0, 0);
    ObjectSetInteger(0, objnameInfo2, OBJPROP_XDISTANCE, HorizPos);
@@ -138,7 +138,7 @@ int OnInit()
    ObjectSetString(0, objnameInfo2, OBJPROP_FONT, FontName);
    ObjectSetInteger(0, objnameInfo2, OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, objnameInfo2, OBJPROP_COLOR, clrWhite);
-   ObjectSetString(0, objnameInfo2, OBJPROP_TEXT, "DEATH  |");
+   ObjectSetString(0, objnameInfo2, OBJPROP_TEXT, "200 SMA| ");
    string objnameInfo3 = objname + "Info3";
    ObjectCreate(0, objnameInfo3, OBJ_LABEL, 0, 0, 0);
    ObjectSetInteger(0, objnameInfo3, OBJPROP_XDISTANCE, HorizPos);
@@ -147,7 +147,7 @@ int OnInit()
    ObjectSetString(0, objnameInfo3, OBJPROP_FONT, FontName);
    ObjectSetInteger(0, objnameInfo3, OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, objnameInfo3, OBJPROP_COLOR, clrWhite);
-   ObjectSetString(0, objnameInfo3, OBJPROP_TEXT, "20/50  |");
+   ObjectSetString(0, objnameInfo3, OBJPROP_TEXT, "20/50 X|");
    string objnameInfo4 = objname + "Info4";
    ObjectCreate(0, objnameInfo4, OBJ_LABEL, 0, 0, 0);
    ObjectSetInteger(0, objnameInfo4, OBJPROP_XDISTANCE, HorizPos);
@@ -156,7 +156,7 @@ int OnInit()
    ObjectSetString(0, objnameInfo4, OBJPROP_FONT, FontName);
    ObjectSetInteger(0, objnameInfo4, OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, objnameInfo4, OBJPROP_COLOR, clrWhite);
-   ObjectSetString(0, objnameInfo4, OBJPROP_TEXT, "10/20  |");
+   ObjectSetString(0, objnameInfo4, OBJPROP_TEXT, "10/20 X|");
    int additionalSpacing = 0; 
    string timeFrames[] = {"M1", "M5", "M15", "M30", "H1", "H4", "D1", "W1"};
    for (int i = 0; i < ArraySize(timeFrames); i++)
@@ -165,24 +165,24 @@ int OnInit()
       {
          additionalSpacing += 5;
       }
-      string objnameInfo200SMA = objname + timeFrames[i] + "200SMA";
-      ObjectCreate(0, objnameInfo200SMA, OBJ_LABEL, 0, 0, 0);
-      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
-      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_YDISTANCE, VertPos);
-      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_CORNER, Corner);
-      ObjectSetString(0, objnameInfo200SMA, OBJPROP_FONT, FontName);
-      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_FONTSIZE, FontSize);
-      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_COLOR, clrWhite);
-      ObjectSetString(0, objnameInfo200SMA, OBJPROP_TEXT, timeFrames[i]);
       string objnameInfoDEATH = objname + timeFrames[i] + "DEATH";
       ObjectCreate(0, objnameInfoDEATH, OBJ_LABEL, 0, 0, 0);
       ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
-      ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_YDISTANCE, VertPos+13);
+      ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_YDISTANCE, VertPos);
       ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_CORNER, Corner);
       ObjectSetString(0, objnameInfoDEATH, OBJPROP_FONT, FontName);
       ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_FONTSIZE, FontSize);
       ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_COLOR, clrWhite);
       ObjectSetString(0, objnameInfoDEATH, OBJPROP_TEXT, timeFrames[i]);
+      string objnameInfo200SMA = objname + timeFrames[i] + "200SMA";
+      ObjectCreate(0, objnameInfo200SMA, OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
+      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_YDISTANCE, VertPos+13);
+      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_CORNER, Corner);
+      ObjectSetString(0, objnameInfo200SMA, OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_FONTSIZE, FontSize);
+      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_COLOR, clrWhite);
+      ObjectSetString(0, objnameInfo200SMA, OBJPROP_TEXT, timeFrames[i]);
       string objname20_50 = objname + timeFrames[i] + "20_50";
       ObjectCreate(0, objname20_50, OBJ_LABEL, 0, 0, 0);
       ObjectSetInteger(0, objname20_50, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
