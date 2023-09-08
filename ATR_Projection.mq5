@@ -24,7 +24,7 @@
 #property indicator_chart_window
 #property indicator_buffers 6
 #property indicator_plots 0
-#property version "1.017"
+#property version "1.018"
 input group  "[ATR/PERIOD SETTINGS]";
 input int    ATR_Period                    = 14;
 input bool   M15_ATR_Projections           = true;
@@ -77,6 +77,7 @@ int OnInit()
    ObjectSetString(0, objname + "Info1", OBJPROP_FONT, FontName);
    ObjectSetInteger(0, objname + "Info1", OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, objname + "Info1", OBJPROP_COLOR, FontColor);
+   ObjectSetInteger(0, objname + "Info1", OBJPROP_ZORDER, 1);
    ObjectCreate(0, objname + "Info2", OBJ_LABEL, 0, 0, 0);
    ObjectSetInteger(0, objname + "Info2", OBJPROP_XDISTANCE, HorizPos);
    ObjectSetInteger(0, objname + "Info2", OBJPROP_YDISTANCE, VertPos + 13);
@@ -84,6 +85,7 @@ int OnInit()
    ObjectSetString(0, objname + "Info2", OBJPROP_FONT, FontName);
    ObjectSetInteger(0, objname + "Info2", OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, objname + "Info2", OBJPROP_COLOR, FontColor);
+   ObjectSetInteger(0, objname + "Info2", OBJPROP_ZORDER, 1);
    ArraySetAsSeries(iATR_D1, true);
    ArraySetAsSeries(iATR_W1, true);
    ArraySetAsSeries(iATR_MN1, true);
