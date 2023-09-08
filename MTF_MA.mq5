@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.024"
+#property version   "1.025"
 #property indicator_chart_window
 #property indicator_buffers 32
 #property indicator_plots   8
@@ -130,6 +130,7 @@ int OnInit()
    ObjectSetInteger(0, objnameInfo1, OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, objnameInfo1, OBJPROP_COLOR, clrWhite);
    ObjectSetString(0, objnameInfo1, OBJPROP_TEXT, "DEATH X|");
+   ObjectSetInteger(0, objnameInfo1, OBJPROP_ZORDER, 1);
    string objnameInfo2 = objname + "Info2";
    ObjectCreate(0, objnameInfo2, OBJ_LABEL, 0, 0, 0);
    ObjectSetInteger(0, objnameInfo2, OBJPROP_XDISTANCE, HorizPos);
@@ -139,6 +140,7 @@ int OnInit()
    ObjectSetInteger(0, objnameInfo2, OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, objnameInfo2, OBJPROP_COLOR, clrWhite);
    ObjectSetString(0, objnameInfo2, OBJPROP_TEXT, "200 SMA| ");
+   ObjectSetInteger(0, objnameInfo2, OBJPROP_ZORDER, 1);
    string objnameInfo3 = objname + "Info3";
    ObjectCreate(0, objnameInfo3, OBJ_LABEL, 0, 0, 0);
    ObjectSetInteger(0, objnameInfo3, OBJPROP_XDISTANCE, HorizPos);
@@ -148,6 +150,7 @@ int OnInit()
    ObjectSetInteger(0, objnameInfo3, OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, objnameInfo3, OBJPROP_COLOR, clrWhite);
    ObjectSetString(0, objnameInfo3, OBJPROP_TEXT, "20/50 X|");
+   ObjectSetInteger(0, objnameInfo3, OBJPROP_ZORDER, 1);
    string objnameInfo4 = objname + "Info4";
    ObjectCreate(0, objnameInfo4, OBJ_LABEL, 0, 0, 0);
    ObjectSetInteger(0, objnameInfo4, OBJPROP_XDISTANCE, HorizPos);
@@ -157,6 +160,7 @@ int OnInit()
    ObjectSetInteger(0, objnameInfo4, OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, objnameInfo4, OBJPROP_COLOR, clrWhite);
    ObjectSetString(0, objnameInfo4, OBJPROP_TEXT, "10/20 X|");
+   ObjectSetInteger(0, objnameInfo4, OBJPROP_ZORDER, 1);
    int additionalSpacing = 0; 
    string timeFrames[] = {"M1", "M5", "M15", "M30", "H1", "H4", "D1", "W1"};
    for (int i = 0; i < ArraySize(timeFrames); i++)
@@ -174,6 +178,7 @@ int OnInit()
       ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_FONTSIZE, FontSize);
       ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_COLOR, clrWhite);
       ObjectSetString(0, objnameInfoDEATH, OBJPROP_TEXT, timeFrames[i]);
+      ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_ZORDER, 1);
       string objnameInfo200SMA = objname + timeFrames[i] + "200SMA";
       ObjectCreate(0, objnameInfo200SMA, OBJ_LABEL, 0, 0, 0);
       ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
@@ -183,6 +188,7 @@ int OnInit()
       ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_FONTSIZE, FontSize);
       ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_COLOR, clrWhite);
       ObjectSetString(0, objnameInfo200SMA, OBJPROP_TEXT, timeFrames[i]);
+      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_ZORDER, 1);
       string objname20_50 = objname + timeFrames[i] + "20_50";
       ObjectCreate(0, objname20_50, OBJ_LABEL, 0, 0, 0);
       ObjectSetInteger(0, objname20_50, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
@@ -192,6 +198,7 @@ int OnInit()
       ObjectSetInteger(0, objname20_50, OBJPROP_FONTSIZE, FontSize);
       ObjectSetInteger(0, objname20_50, OBJPROP_COLOR, clrWhite);
       ObjectSetString(0, objname20_50, OBJPROP_TEXT, timeFrames[i]);
+      ObjectSetInteger(0, objname20_50, OBJPROP_ZORDER, 1);
       string objname10_20 = objname + timeFrames[i] + "10_20";
       ObjectCreate(0, objname10_20, OBJ_LABEL, 0, 0, 0);
       ObjectSetInteger(0, objname10_20, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
@@ -201,6 +208,7 @@ int OnInit()
       ObjectSetInteger(0, objname10_20, OBJPROP_FONTSIZE, FontSize);
       ObjectSetInteger(0, objname10_20, OBJPROP_COLOR, clrWhite);
       ObjectSetString(0, objname10_20, OBJPROP_TEXT, timeFrames[i]);
+      ObjectSetInteger(0, objname10_20, OBJPROP_ZORDER, 1);
    }
    return 0;
 }
@@ -213,6 +221,7 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
     string objnameInfo = objname + timeframe + label;
     color textColor = condition ? clrLime : clrRed;
     ObjectSetInteger(0, objnameInfo, OBJPROP_COLOR, textColor);
+    ObjectSetInteger(0, objnameInfo, OBJPROP_ZORDER, 1);
 }
 int OnCalculate(const int rates_total,
                 const int prev_calculated,
