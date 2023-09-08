@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.163"
+#property version   "1.164"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -233,6 +233,8 @@ int OnInit()
    int LeftColumnX=310;
    int RightColumnX=150;
    int YRowWidth = 13;
+   // Create background rectangle
+   CreateLabelBackground("infoPL", 464, 100, 300, 160);
    ObjectCreate(0,"infoSLPL", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoTP", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoMargin", OBJ_LABEL,0,0,0);
@@ -251,72 +253,84 @@ int OnInit()
    ObjectSetInteger(0,"infoPL",OBJPROP_YDISTANCE,(YRowWidth * 2));
    ObjectSetInteger(0,"infoPL",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoPL",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   ObjectSetInteger(0,"infoPL",OBJPROP_ZORDER,1);
    ObjectSetString(0,"infoSLPL",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoSLPL",OBJPROP_FONTSIZE,FontSize);
    ObjectSetInteger(0,"infoSLPL", OBJPROP_XDISTANCE, RightColumnX);
    ObjectSetInteger(0,"infoSLPL",OBJPROP_YDISTANCE,(YRowWidth * 2));
    ObjectSetInteger(0,"infoSLPL",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoSLPL",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   ObjectSetInteger(0,"infoSLPL",OBJPROP_ZORDER,1);
    ObjectSetString(0,"infoTP",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoTP",OBJPROP_FONTSIZE,FontSize);
    ObjectSetInteger(0,"infoTP", OBJPROP_XDISTANCE, LeftColumnX);
    ObjectSetInteger(0,"infoTP",OBJPROP_YDISTANCE,(YRowWidth * 3));
    ObjectSetInteger(0,"infoTP",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoTP",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   ObjectSetInteger(0,"infoTP",OBJPROP_ZORDER,1);
    ObjectSetString(0,"infoMargin",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoMargin",OBJPROP_FONTSIZE,FontSize);
    ObjectSetInteger(0,"infoMargin", OBJPROP_XDISTANCE, RightColumnX);
    ObjectSetInteger(0,"infoMargin",OBJPROP_YDISTANCE,(YRowWidth * 3));
    ObjectSetInteger(0,"infoMargin",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoMargin",OBJPROP_CORNER,CORNER_RIGHT_UPPER); 
+   ObjectSetInteger(0,"infoMargin",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   ObjectSetInteger(0,"infoMargin",OBJPROP_ZORDER,1);
    ObjectSetString(0,"infoRisk",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoRisk",OBJPROP_FONTSIZE,FontSize);
    ObjectSetInteger(0,"infoRisk", OBJPROP_XDISTANCE, LeftColumnX);
    ObjectSetInteger(0,"infoRisk",OBJPROP_YDISTANCE,(YRowWidth * 4));
    ObjectSetInteger(0,"infoRisk",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoRisk",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   ObjectSetInteger(0,"infoRisk",OBJPROP_ZORDER,1);
    ObjectSetString(0,"infoSLP",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoSLP",OBJPROP_FONTSIZE,FontSize);
    ObjectSetInteger(0,"infoSLP", OBJPROP_XDISTANCE, RightColumnX);
    ObjectSetInteger(0,"infoSLP",OBJPROP_YDISTANCE,(YRowWidth * 4));
    ObjectSetInteger(0,"infoSLP",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoSLP",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   ObjectSetInteger(0,"infoSLP",OBJPROP_ZORDER,1);
    ObjectSetString(0,"infoTPRR",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoTPRR",OBJPROP_FONTSIZE,FontSize);
    ObjectSetInteger(0,"infoTPRR", OBJPROP_XDISTANCE, RightColumnX);
    ObjectSetInteger(0,"infoTPRR",OBJPROP_YDISTANCE,(YRowWidth * 5));
    ObjectSetInteger(0,"infoTPRR",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoTPRR",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   ObjectSetInteger(0,"infoTPRR",OBJPROP_ZORDER,1);
    ObjectSetString(0,"infoRR",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoRR",OBJPROP_FONTSIZE,FontSize);
    ObjectSetInteger(0,"infoRR", OBJPROP_XDISTANCE, LeftColumnX);
    ObjectSetInteger(0,"infoRR",OBJPROP_YDISTANCE,(YRowWidth * 5));
    ObjectSetInteger(0,"infoRR",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoRR",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   ObjectSetInteger(0,"infoRR",OBJPROP_ZORDER,1);
    ObjectSetString(0,"infoH4",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoH4",OBJPROP_FONTSIZE,FontSize);
    ObjectSetInteger(0,"infoH4", OBJPROP_XDISTANCE, LeftColumnX);
    ObjectSetInteger(0,"infoH4",OBJPROP_YDISTANCE,(YRowWidth * 6));
    ObjectSetInteger(0,"infoH4",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoH4",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   ObjectSetInteger(0,"infoH4",OBJPROP_ZORDER,1);
    ObjectSetString(0,"infoW1",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoW1",OBJPROP_FONTSIZE,FontSize);
    ObjectSetInteger(0,"infoW1", OBJPROP_XDISTANCE, LeftColumnX);
    ObjectSetInteger(0,"infoW1",OBJPROP_YDISTANCE,(YRowWidth * 7));
    ObjectSetInteger(0,"infoW1",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoW1",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   ObjectSetInteger(0,"infoW1",OBJPROP_ZORDER,1);
    ObjectSetString(0,"infoD1",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoD1",OBJPROP_FONTSIZE,FontSize);
    ObjectSetInteger(0,"infoD1", OBJPROP_XDISTANCE, RightColumnX);
    ObjectSetInteger(0,"infoD1",OBJPROP_YDISTANCE,(YRowWidth * 6));
    ObjectSetInteger(0,"infoD1",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoD1",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   ObjectSetInteger(0,"infoD1",OBJPROP_ZORDER,1);
    ObjectSetString(0,"infoMN1",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoMN1",OBJPROP_FONTSIZE,FontSize);
    ObjectSetInteger(0,"infoMN1", OBJPROP_XDISTANCE, RightColumnX);
    ObjectSetInteger(0,"infoMN1",OBJPROP_YDISTANCE,(YRowWidth * 7));
    ObjectSetInteger(0,"infoMN1",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoMN1",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   ObjectSetInteger(0,"infoMN1",OBJPROP_ZORDER,1);
    string infoPL = "Total P/L: $0.00";
    string infoRR = "RR : N/A";
    string infoSLPL = "SL P/L: $0.00";
@@ -350,6 +364,20 @@ void OnDeinit(const int reason)
 {
    ExtDialog.Destroy(reason);
    ObjectsDeleteAll(0, "info");
+}
+void CreateLabelBackground(string objName, int x, int y, int width, int height, color colour = clrBlack)
+{
+   ObjectCreate(0, objName + "_bg", OBJ_RECTANGLE_LABEL, 0, 0, 0);
+   ObjectSetInteger(0, objName + "_bg", OBJPROP_COLOR, colour);
+   ObjectSetInteger(0, objName + "_bg", OBJPROP_BGCOLOR, colour);
+   ObjectSetInteger(0, objName + "_bg", OBJPROP_BORDER_COLOR, colour);
+   ObjectSetInteger(0, objName + "_bg", OBJPROP_STYLE, STYLE_SOLID);
+   ObjectSetInteger(0, objName + "_bg", OBJPROP_XDISTANCE, x - width / 2);
+   ObjectSetInteger(0, objName + "_bg", OBJPROP_YDISTANCE, y - height / 2);
+   ObjectSetInteger(0, objName + "_bg", OBJPROP_XSIZE, width);
+   ObjectSetInteger(0, objName + "_bg", OBJPROP_YSIZE, height);
+   ObjectSetInteger(0, objName + "_bg", OBJPROP_CORNER, CORNER_RIGHT_UPPER);
+   ObjectSetInteger(0, objName + "_bg", OBJPROP_ZORDER, 0);
 }
 string TimeTilNextBar(ENUM_TIMEFRAMES tf=PERIOD_CURRENT)
 {
@@ -469,7 +497,7 @@ void OnTick()
    }
    if (EnableAutoProtect == true && AutoProtectCalled == false && breakEvenFound == false && APFilter == true)
    {
-         if (rr >= APRRLevel && total_risk < 0)
+         if (rr >= APRRLevel && sl_risk < 0)
          {
             Print ("Auto Protect has removed risk and taken a piece of the Pi as RR >= " + DoubleToString(APRRLevel,8));
             AutoProtect();
