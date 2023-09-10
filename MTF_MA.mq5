@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.025"
+#property version   "1.026"
 #property indicator_chart_window
 #property indicator_buffers 32
 #property indicator_plots   8
@@ -86,7 +86,7 @@ double MABufferM15_10SMA[], MABufferM30_200SMA[], MABufferM30_50SMA[], MABufferM
 double MABufferH4_20SMA[], MABufferH4_10SMA[], MABufferD1_200SMA[], MABufferD1_50SMA[], MABufferD1_20SMA[], MABufferD1_10SMA[], MABufferW1_200SMA[], MABufferW1_50SMA[], MABufferW1_20SMA[], MABufferW1_10SMA[];
 bool isTimerSet = false;
 int lastCheckedCandle = -1;
-string objname = "MTF_SMA";
+string objname = "MTF_MA_";
 int OnInit()
 {
    SetIndexBuffer(0, MABufferM1_200SMA, INDICATOR_DATA);
