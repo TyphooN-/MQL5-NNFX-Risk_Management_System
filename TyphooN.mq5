@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.165"
+#property version   "1.166"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -48,8 +48,8 @@ double TickSize( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRA
 double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_VALUE ) ); }
 // input vars
 input group    "[ORDER PLACEMENT SETTINGS]";
-input double   MaxRisk                    = 1.0;
-input double   Risk                       = 0.6;
+input double   MaxRisk                    = 1.5;
+input double   Risk                       = 1.0;
 input int      InitialOrdersToPlace       = 3;
 input group    "[ACCOUNT PROTECTION SETTINGS]";
 input bool     EnableAutoProtect          = true;
@@ -234,7 +234,7 @@ int OnInit()
    int RightColumnX=150;
    int YRowWidth = 13;
    // Create background rectangle
-   CreateLabelBackground("info", 469, 105, 312, 160);
+   //CreateLabelBackground("info", 469, 105, 312, 160);
    ObjectCreate(0,"infoSLPL", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoTP", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoMargin", OBJ_LABEL,0,0,0);
@@ -343,6 +343,10 @@ int OnInit()
    ObjectSetString(0,"infoD1",OBJPROP_TEXT,infoD1);
    string infoMN1 = "MN1: " + TimeTilNextBar(PERIOD_MN1);
    ObjectSetString(0,"infoMN1",OBJPROP_TEXT,infoMN1);
+   // set ZORDER for supporting indicators
+   //SetZOrder("MTF_MA_", 1);
+   //SetZOrder("Projected ATR", 1);
+   //SetZOrder("info", 1);
    if(!ExtDialog.Create(0,"TyphooN Risk Management",0,40,40,272,200))
       return(INIT_FAILED);
    ExtDialog.Run();
@@ -367,10 +371,9 @@ void CreateLabelBackground(string objName, int x, int y, int width, int height, 
    ObjectSetInteger(0, objName + "_bg", OBJPROP_CORNER, CORNER_RIGHT_UPPER);
    ObjectSetInteger(0, objName + "_bg", OBJPROP_ZORDER, 0);
    // set ZORDER for supporting indicators
-  SetZOrder("MTF_MA_", 1);
-  SetZOrder("Projected ATR", 1);
-  SetZOrder("info", 1);
-  SetZOrder("SSSR", 0);
+   //SetZOrder("MTF_MA_", 1);
+   //SetZOrder("Projected ATR", 1);
+   //SetZOrder("info", 1);
 }
 void SetZOrder(string prefix, int zorder)
 {
@@ -558,10 +561,9 @@ void OnTick()
    string infoMN1 = "MN1: " + TimeTilNextBar(PERIOD_MN1);
    ObjectSetString(0,"infoMN1",OBJPROP_TEXT,infoMN1);
    // set ZORDER for supporting indicators
-   SetZOrder("MTF_MA_", 1);
-   SetZOrder("Projected ATR", 1);
-   SetZOrder("info", 1);
-   SetZOrder("SSSR", 0);
+   //SetZOrder("MTF_MA_", 1);
+   //SetZOrder("Projected ATR", 1);
+   //SetZOrder("info", 1);
 }
 void OnChartEvent(const int id,         // event ID  
                   const long& lparam,   // event parameter of the long type
@@ -1015,7 +1017,8 @@ void TyWindow::OnClickDestroyLines(void)
    ObjectDelete(0, "Limit_Line");
    LimitLineExists = false;
 }
-struct PositionInfo {
+struct PositionInfo
+{
    ulong ticket;
    double diff;
    double lotSize;
