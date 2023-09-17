@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.026"
+#property version   "1.027"
 #property indicator_chart_window
 #property indicator_buffers 32
 #property indicator_plots   8
@@ -84,6 +84,12 @@ int HandleH4_50SMA, HandleH4_20SMA, HandleH4_10SMA, HandleD1_200SMA, HandleD1_50
 double MABufferM1_200SMA[], MABufferM1_50SMA[], MABufferM1_20SMA[], MABufferM1_10SMA[], MABufferM5_200SMA[], MABufferM5_50SMA[], MABufferM5_20SMA[], MABufferM5_10SMA[], MABufferM15_200SMA[], MABufferM15_50SMA[], MABufferM15_20SMA[];
 double MABufferM15_10SMA[], MABufferM30_200SMA[], MABufferM30_50SMA[], MABufferM30_20SMA[], MABufferM30_10SMA[], MABufferH1_200SMA[], MABufferH1_50SMA[], MABufferH1_20SMA[], MABufferH1_10SMA[], MABufferH4_200SMA[], MABufferH4_50SMA[];
 double MABufferH4_20SMA[], MABufferH4_10SMA[], MABufferD1_200SMA[], MABufferD1_50SMA[], MABufferD1_20SMA[], MABufferD1_10SMA[], MABufferW1_200SMA[], MABufferW1_50SMA[], MABufferW1_20SMA[], MABufferW1_10SMA[];
+int BullPowerLTF = 0;
+int BullPowerHTF = 0;
+int BearPowerLTF = 0;
+int BearPowerHTF = 0;
+int TotalBearPower;
+int TotalBullPower;
 bool isTimerSet = false;
 int lastCheckedCandle = -1;
 string objname = "MTF_MA_";
@@ -220,8 +226,45 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
 {
     string objnameInfo = objname + timeframe + label;
     color textColor = condition ? clrLime : clrRed;
-    ObjectSetInteger(0, objnameInfo, OBJPROP_COLOR, textColor);
-    ObjectSetInteger(0, objnameInfo, OBJPROP_ZORDER, 1);
+    // Check if the color has changed
+    if (ObjectGetInteger(0, objnameInfo, OBJPROP_COLOR) != textColor)
+    {
+        // Decrement the appropriate variable if it was previously clrLime
+        if (ObjectGetInteger(0, objnameInfo, OBJPROP_COLOR) == clrLime)
+        {
+            if (StringFind(timeframe, "M1", 0) != -1 || StringFind(timeframe, "M5", 0) != -1 || StringFind(timeframe, "M15", 0) != -1 || StringFind(timeframe, "M30", 0) != -1)
+                BullPowerLTF--;
+            else if (StringFind(timeframe, "H4", 0) != -1 || StringFind(timeframe, "D1", 0) != -1 || StringFind(timeframe, "W1", 0) != -1)
+                BullPowerHTF--;
+        }
+        // Decrement the appropriate variable if it was previously clrRed
+        else if (ObjectGetInteger(0, objnameInfo, OBJPROP_COLOR) == clrRed)
+        {
+            if (StringFind(timeframe, "M1", 0) != -1 || StringFind(timeframe, "M5", 0) != -1 || StringFind(timeframe, "M15", 0) != -1 || StringFind(timeframe, "M30", 0) != -1)
+                BearPowerLTF--;
+            else if (StringFind(timeframe, "H4", 0) != -1 || StringFind(timeframe, "D1", 0) != -1 || StringFind(timeframe, "W1", 0) != -1)
+                BearPowerHTF--;
+        }
+        // Update the color and count variables
+        ObjectSetInteger(0, objnameInfo, OBJPROP_COLOR, textColor);
+        if (condition)
+        {
+            if (StringFind(timeframe, "M1", 0) != -1 || StringFind(timeframe, "M5", 0) != -1 || StringFind(timeframe, "M15", 0) != -1 || StringFind(timeframe, "M30", 0) != -1)
+                BullPowerLTF++;
+            else if (StringFind(timeframe, "H4", 0) != -1 || StringFind(timeframe, "D1", 0) != -1 || StringFind(timeframe, "W1", 0) != -1)
+                BullPowerHTF++;
+        }
+        else
+        {
+            if (StringFind(timeframe, "M1", 0) != -1 || StringFind(timeframe, "M5", 0) != -1 || StringFind(timeframe, "M15", 0) != -1 || StringFind(timeframe, "M30", 0) != -1)
+                BearPowerLTF++;
+            else if (StringFind(timeframe, "H4", 0) != -1 || StringFind(timeframe, "D1", 0) != -1 || StringFind(timeframe, "W1", 0) != -1)
+                BearPowerHTF++;
+        }
+        // Update the total variables
+        TotalBearPower = BearPowerLTF + (BearPowerHTF * 2);
+        TotalBullPower = BullPowerLTF + (BullPowerHTF * 2);
+    }
 }
 int OnCalculate(const int rates_total,
                 const int prev_calculated,
