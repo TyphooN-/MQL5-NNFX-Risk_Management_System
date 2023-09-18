@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.032"
+#property version   "1.033"
 #property indicator_chart_window
 #property indicator_buffers 40
 #property indicator_plots   8
@@ -330,8 +330,8 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
       }
    }
    // Update the total variables
-   TotalBearPower = BearPowerLTF + (BearPowerHTF * 2);
-   TotalBullPower = BullPowerLTF + (BullPowerHTF * 2);
+   TotalBearPower = BearPowerLTF + (BearPowerHTF * 3);
+   TotalBullPower = BullPowerLTF + (BullPowerHTF * 3);
    string BullPowerText = "Bull Power: " + IntegerToString(TotalBullPower);
    string BearPowerText = "Bear Power: " + IntegerToString(TotalBearPower);
    ObjectSetString(0, "objnameInfoBullPower", OBJPROP_TEXT, BullPowerText);
