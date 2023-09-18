@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.029"
+#property version   "1.030"
 #property indicator_chart_window
 #property indicator_buffers 32
 #property indicator_plots   8
@@ -251,30 +251,6 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
    // Check if the color has changed
    if (ObjectGetInteger(0, objnameInfo, OBJPROP_COLOR) != textColor)
    {
-      // Decrement the appropriate variable if it was previously clrLime
-      if (ObjectGetInteger(0, objnameInfo, OBJPROP_COLOR) == clrLime)
-      {
-         if (StringFind(timeframe, "M1", 0) != -1 || StringFind(timeframe, "M5", 0) != -1 || StringFind(timeframe, "M15", 0) != -1 || StringFind(timeframe, "M30", 0) != -1)
-         {
-            BullPowerLTF--;
-         }
-            else if (StringFind(timeframe, "H4", 0) != -1 || StringFind(timeframe, "D1", 0) != -1 || StringFind(timeframe, "W1", 0) != -1)
-            {
-               BullPowerHTF--;
-            }
-      }
-      // Decrement the appropriate variable if it was previously clrRed
-      else if (ObjectGetInteger(0, objnameInfo, OBJPROP_COLOR) == clrRed)
-      {
-         if (StringFind(timeframe, "M1", 0) != -1 || StringFind(timeframe, "M5", 0) != -1 || StringFind(timeframe, "M15", 0) != -1 || StringFind(timeframe, "M30", 0) != -1 || StringFind(timeframe, "H1", 0) != -1)
-         {
-            BearPowerLTF--;
-         }
-         else if (StringFind(timeframe, "H4", 0) != -1 || StringFind(timeframe, "D1", 0) != -1 || StringFind(timeframe, "W1", 0) != -1)
-         {
-            BearPowerHTF--;
-         }
-      }
       // Update the color and count variables
       ObjectSetInteger(0, objnameInfo, OBJPROP_COLOR, textColor);
       if (condition)
@@ -375,6 +351,10 @@ int OnCalculate(const int rates_total,
    bool isAbove_H4_200SMA = currentPrice > MABufferH4_200SMA[rates_total - 1];
    bool isAbove_D1_200SMA = currentPrice > MABufferD1_200SMA[rates_total - 1];
    bool isAbove_W1_200SMA = currentPrice > MABufferW1_200SMA[rates_total - 1];
+   BullPowerLTF = 0;
+   BullPowerHTF = 0;
+   BearPowerLTF = 0;
+   BearPowerHTF = 0;
    UpdateInfoLabel("M1", isAbove_M1_200SMA, "200SMA");
    UpdateInfoLabel("M5", isAbove_M5_200SMA, "200SMA");
    UpdateInfoLabel("M15", isAbove_M15_200SMA, "200SMA");
