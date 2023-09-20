@@ -1,4 +1,4 @@
-/**=                 MTF_MA.mq5  (TyphooN's Multi Timeframe MA)
+/**=             MTF_MA.mq5  (TyphooN's Multi Timeframe MA Bull/Bear Power Indicator)
  *               Copyright 2023, TyphooN (https://www.decapool.net/)
  *
  * Disclaimer and Licence
@@ -333,8 +333,8 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
    TotalBearPower = BearPowerLTF + (BearPowerHTF * 3);
    TotalBullPower = BullPowerLTF + (BullPowerHTF * 3);
    double TotalScore = TotalBullPower + TotalBearPower;
-   double BullPowerPercent = TotalBullPower/TotalScore;
-   double BearPowerPercent = TotalBearPower/TotalScore;
+   double BullPowerPercent = TotalBullPower / TotalScore;
+   double BearPowerPercent = TotalBearPower / TotalScore;
    if (TotalBearPower > TotalBullPower)
    {
       ObjectSetInteger(0, "objnameInfoBullPower", OBJPROP_COLOR, clrWhite);
