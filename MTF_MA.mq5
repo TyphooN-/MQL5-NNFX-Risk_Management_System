@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.034"
+#property version   "1.035"
 #property indicator_chart_window
 #property indicator_buffers 40
 #property indicator_plots   8
@@ -355,6 +355,8 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
    ObjectSetString(0, "objnameInfoBullPower", OBJPROP_TEXT, BullPowerText);
    ObjectSetString(0, "objnameInfoBearPower", OBJPROP_TEXT, BearPowerText);
    }
+   GlobalVariableSet("GlobalBullPower", TotalBullPower);
+   GlobalVariableSet("GlobalBearPower", TotalBearPower);
 }
 int OnCalculate(const int rates_total,
                 const int prev_calculated,
