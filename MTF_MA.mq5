@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.033"
+#property version   "1.034"
 #property indicator_chart_window
 #property indicator_buffers 40
 #property indicator_plots   8
@@ -246,8 +246,8 @@ int OnInit()
       ObjectSetString(0, objname10_20, OBJPROP_TEXT, timeFrames[i]);
       ObjectSetInteger(0, objname10_20, OBJPROP_ZORDER, 1);
    }
-   string BullPowerText = "Bull Power: " + IntegerToString(TotalBullPower);
-   string BearPowerText = "Bear Power: " + IntegerToString(TotalBearPower);
+   string BullPowerText = "Bull Power INIT";
+   string BearPowerText = "Bear Power INIT";
    ObjectSetString(0, "objnameInfoBullPower", OBJPROP_TEXT, BullPowerText);
    ObjectSetString(0, "objnameInfoBearPower", OBJPROP_TEXT, BullPowerText);
    ObjectCreate(0, "objnameInfoBullPower", OBJ_LABEL, 0, 0, 0);
@@ -260,7 +260,7 @@ int OnInit()
    ObjectSetString(0, "objnameInfoBullPower", OBJPROP_TEXT, BullPowerText);
    ObjectSetInteger(0, "objnameInfoBullPower", OBJPROP_ZORDER, 1);
    ObjectCreate(0, "objnameInfoBearPower", OBJ_LABEL, 0, 0, 0);
-   ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_XDISTANCE, HorizPos - 120);
+   ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_XDISTANCE, HorizPos - 160);
    ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_YDISTANCE, VertPos + 65);
    ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_CORNER, Corner);
    ObjectSetString(0, "objnameInfoBearPower", OBJPROP_FONT, FontName);
@@ -332,8 +332,26 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
    // Update the total variables
    TotalBearPower = BearPowerLTF + (BearPowerHTF * 3);
    TotalBullPower = BullPowerLTF + (BullPowerHTF * 3);
-   string BullPowerText = "Bull Power: " + IntegerToString(TotalBullPower);
-   string BearPowerText = "Bear Power: " + IntegerToString(TotalBearPower);
+   double TotalScore = TotalBullPower + TotalBearPower;
+   double BullPowerPercent = TotalBullPower/TotalScore;
+   double BearPowerPercent = TotalBearPower/TotalScore;
+   if (TotalBearPower > TotalBullPower)
+   {
+      ObjectSetInteger(0, "objnameInfoBullPower", OBJPROP_COLOR, clrWhite);
+      ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_COLOR, clrRed);
+   }
+   if (TotalBullPower > TotalBearPower)
+   {
+      ObjectSetInteger(0, "objnameInfoBullPower", OBJPROP_COLOR, clrLime);
+      ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_COLOR, clrWhite);
+   }
+   if (TotalBullPower == TotalBearPower)
+   {
+      ObjectSetInteger(0, "objnameInfoBullPower", OBJPROP_COLOR, clrWhite);
+      ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_COLOR, clrWhite);
+   }
+   string BullPowerText = "Bull Power " + IntegerToString(TotalBullPower) + " (" + DoubleToString(BullPowerPercent * 100, 1) + "%)";
+   string BearPowerText = "Bear Power " + IntegerToString(TotalBearPower) + " (" + DoubleToString(BearPowerPercent * 100, 1) + "%)";
    ObjectSetString(0, "objnameInfoBullPower", OBJPROP_TEXT, BullPowerText);
    ObjectSetString(0, "objnameInfoBearPower", OBJPROP_TEXT, BearPowerText);
    }
