@@ -1,9 +1,13 @@
-## TyphooN's MQL5-Risk_Management_System (Expert)
+# TyphooN's MQL5-Risk_Management_System (Expert)
 ![Expert_Panel](Expert_Panel.png)
 ![Expert_InfoText](Expert_InfoText.png)
 
-## TyphooN's MQL5-Risk_Management_System (Expert) Settings
+## Settings
 ![Expert_Settings](Expert_Settings.png)
+
+### Common Tab
+- Allow Algo Trading must be checked for the expert to place trades.
+
 ### ORDER PLACEMENT SETTINGS
 -MaxRisk: Maximum percentage of risk across the symbol, once this level is hit no more orders will be placed.
 
@@ -39,19 +43,47 @@
 
 -ManageAllPositions - By default is set to false which will only manage positions that have been opened by the EA's MagicNumber.  If set to true, will manage all positions on a symbol.
 
-### Usage
+# TyphooN's Multi Timeframe MA Bull/Bear Power Indicator
+![MTF_MA_200SMA_Lines](MTF_MA_200SMA_Lines.png)
+
+![MTF_MA_Colours](MTF_MA_Colours.png)
+![MTF_MA_Inputs](MTF_MA_Inputs.png)
+
+![MTF_MA_InfoText_Bear](MTF_MA_InfoText_Bear.png)
+![MTF_MA_InfoText_Bull](MTF_MA_InfoText_Bull.png)
+
+### Info Text Settings
+
+- FontName: The Font to draw InfoText with.
+- FontSize: Font Size to use when drawing InfoText.
+- HorizPos: Horizontal position in pixels where the InfoText will appear.
+- VertPos : Vertical position in pixels where the InfoText will appear.
+
+# TyphooN's ATR Projection Indicator
+![ATR_Projection_Levels](ATR_Projection_Levels.png)
+
+![ATR_Projection_InfoText](ATR_Projection_InfoText.png)
+
+![ATR_Projection_Inputs](ATR_Projection_Inputs.png)
+
+
+##
+
+
+
+# Usage
 
 This project is intended and may be freely used for education and entertainment purposes.
 However, **this project is not suitable for live trading** without relevant knowledge.
 
-### License
+# License
 
 The project is released under [GNU GPLv3 licence](https://www.gnu.org/licenses/quick-guide-gplv3.html),
 so that means the software is copyrighted, however you have the freedom to use, change or share the software
 for any purpose as long as the modified version stays free. See: [GNU FAQ](https://www.gnu.org/licenses/gpl-faq.html).
 
 You should have received a copy of the GNU General Public License along with this program
-(check the [LICENSE] file).
+(check the [LICENSE](LICENSE) file).
 If not, please read <http://www.gnu.org/licenses/>.
 For simplified version, please read <https://tldrlegal.com/license/gnu-general-public-license-v3-(gpl-3)>.
 
@@ -71,11 +103,11 @@ You understand and agree that past results are not necessarily indicative of fut
 Use of this software serves as your acknowledgement and representation that you have read and understand
 these TERMS OF USE and that you agree to be bound by such Terms of Use ("License Agreement").
 
-### Copyright information
+# Copyright information
 
 Copyright © 2023 - Decapool.net - All Rights Reserved
 
-### Disclaimer and Risk Warnings
+# Disclaimer and Risk Warnings
 
 Trading any financial market involves risk.
 All forms of trading carry a high level of risk so you should only speculate with money you can afford to lose.
