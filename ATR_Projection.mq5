@@ -24,7 +24,7 @@
 #property indicator_chart_window
 #property indicator_buffers 6
 #property indicator_plots 0
-#property version "1.018"
+#property version "1.019"
 input group  "[ATR/PERIOD SETTINGS]";
 input int    ATR_Period                    = 14;
 input bool   M15_ATR_Projections           = true;
@@ -231,7 +231,8 @@ int OnCalculate(const int        rates_total,
    ObjectSetString(0, objname + "Info1", OBJPROP_TEXT, infoText1);
    ObjectSetString(0, objname + "Info2", OBJPROP_TEXT, infoText2);
    static int waitCount = 2;
-   if ( waitCount > 0 ) {
+   if ( waitCount > 0 )
+   {
       UpdateATRData();
       UpdateCandlestickData();
       waitCount--;
@@ -239,28 +240,30 @@ int OnCalculate(const int        rates_total,
    }
    //PrintFormat( "ATR and candlestick Data is now available" );
    // Initialize vars
-   double atrLevelAboveD1currentOpen = 0;
-   double atrLevelBelowD1currentOpen = 0;
-   double atrLevelAboveW1currentOpen = 0;
-   double atrLevelBelowW1currentOpen = 0;
-   double atrLevelAboveMN1currentOpen = 0;
-   double atrLevelBelowMN1currentOpen = 0;
-   double atrLevelAboveH4currentOpen = 0;
-   double atrLevelBelowH4currentOpen = 0;
-   double atrLevelAboveH1currentOpen = 0;
-   double atrLevelBelowH1currentOpen = 0;
-   double atrLevelAboveH1currentOpenHistorical1 = 0;
-   double atrLevelBelowH1currentOpenHistorical1 = 0;
-   double atrLevelAboveH1currentOpenHistorical2 = 0;
-   double atrLevelBelowH1currentOpenHistorical2 = 0;
-   double atrLevelAboveM15currentOpen = 0;
-   double atrLevelBelowM15currentOpen = 0;
+   double ATRLevelAboveD1 = 0;
+   double ATRLevelBelowD1 = 0;
+   double ATRLevelAboveW1 = 0;
+   double ATRLevelBelowW1 = 0;
+   double ATRLevelAboveMN1 = 0;
+   double ATRLevelBelowMN1 = 0;
+   double ATRLevelAboveH4 = 0;
+   double ATRLevelBelowH4 = 0;
+   double ATRLevelAboveH1 = 0;
+   double ATRLevelBelowH1 = 0;
+   double ATRLevelAboveH1Historical1 = 0;
+   double ATRLevelBelowH1Historical1 = 0;
+   double ATRLevelAboveH1Historical2 = 0;
+   double ATRLevelBelowH1Historical2 = 0;
+   double ATRLevelAboveM15 = 0;
+   double ATRLevelBelowM15 = 0;
    datetime endTime = time[rates_total - 1];
    if (D1_ATR_Projections && _Period <= PERIOD_W1)
    {
       datetime startTimeD1 = iTime(_Symbol, PERIOD_D1, 7);
-      atrLevelAboveD1currentOpen = currentOpenD1 + avgD1;
-      atrLevelBelowD1currentOpen = currentOpenD1 - avgD1;
+      ATRLevelAboveD1 = currentOpenD1 + avgD1;
+      ATRLevelBelowD1 = currentOpenD1 - avgD1;
+      GlobalVariableSet("GlobalATRLevelAboveD1", ATRLevelAboveD1);
+      GlobalVariableSet("GlobalATRLevelBelowD1", ATRLevelBelowD1);
       ObjectCreate(0, objname + "High D1", OBJ_TREND, 0, startTimeD1, currentOpenD1 + avgD1, endTime, currentOpenD1 + avgD1);
       ObjectSetInteger(0, objname + "High D1", OBJPROP_STYLE, ATR_linestyle);
       ObjectSetInteger(0, objname + "High D1", OBJPROP_WIDTH, ATR_Line_Thickness);
@@ -275,14 +278,16 @@ int OnCalculate(const int        rates_total,
    if (W1_ATR_Projections)
    {
       datetime startTimeW1 = iTime(_Symbol, PERIOD_W1, 4);
-      atrLevelAboveW1currentOpen = currentOpenW1 + avgW1;
-      atrLevelBelowW1currentOpen = currentOpenW1 - avgW1;
-      ObjectCreate(0, objname + "High W1", OBJ_TREND, 0, startTimeW1, atrLevelAboveW1currentOpen, endTime, atrLevelAboveW1currentOpen);
+      ATRLevelAboveW1 = currentOpenW1 + avgW1;
+      ATRLevelBelowW1 = currentOpenW1 - avgW1;
+      GlobalVariableSet("GlobalATRLevelAboveW1", ATRLevelAboveW1);
+      GlobalVariableSet("GlobalATRLevelBelowW1", ATRLevelBelowW1);
+      ObjectCreate(0, objname + "High W1", OBJ_TREND, 0, startTimeW1, ATRLevelAboveW1, endTime, ATRLevelAboveW1);
       ObjectSetInteger(0, objname + "High W1", OBJPROP_STYLE, ATR_linestyle);
       ObjectSetInteger(0, objname + "High W1", OBJPROP_WIDTH, ATR_Line_Thickness);
       ObjectSetInteger(0, objname + "High W1", OBJPROP_COLOR, ATR_Line_Color);
       ObjectSetInteger(0, objname + "High W1", OBJPROP_BACK, ATR_Line_Background);
-      ObjectCreate(0, objname + "Low W1", OBJ_TREND, 0, startTimeW1, atrLevelBelowW1currentOpen, endTime, atrLevelBelowW1currentOpen);
+      ObjectCreate(0, objname + "Low W1", OBJ_TREND, 0, startTimeW1, ATRLevelBelowW1, endTime, ATRLevelBelowW1);
       ObjectSetInteger(0, objname + "Low W1", OBJPROP_STYLE, ATR_linestyle);
       ObjectSetInteger(0, objname + "Low W1", OBJPROP_WIDTH, ATR_Line_Thickness);
       ObjectSetInteger(0, objname + "Low W1", OBJPROP_COLOR, ATR_Line_Color);
@@ -291,14 +296,16 @@ int OnCalculate(const int        rates_total,
    if (MN1_ATR_Projections)
    {
       datetime startTimeMN1 = iTime(_Symbol, PERIOD_MN1, 2);
-      atrLevelAboveMN1currentOpen = currentOpenMN1 + avgMN1;
-      atrLevelBelowMN1currentOpen = currentOpenMN1 - avgMN1;
-      ObjectCreate(0, objname + "High MN1", OBJ_TREND, 0, startTimeMN1, atrLevelAboveMN1currentOpen, endTime, atrLevelAboveMN1currentOpen);
+      ATRLevelAboveMN1 = currentOpenMN1 + avgMN1;
+      ATRLevelBelowMN1 = currentOpenMN1 - avgMN1;
+      GlobalVariableSet("GlobalATRLevelAboveMN1", ATRLevelAboveMN1);
+      GlobalVariableSet("GlobalATRLevelBelowMN1", ATRLevelBelowMN1);
+      ObjectCreate(0, objname + "High MN1", OBJ_TREND, 0, startTimeMN1, ATRLevelAboveMN1, endTime, ATRLevelAboveMN1);
       ObjectSetInteger(0, objname + "High MN1", OBJPROP_STYLE, ATR_linestyle);
       ObjectSetInteger(0, objname + "High MN1", OBJPROP_WIDTH, ATR_Line_Thickness);
       ObjectSetInteger(0, objname + "High MN1", OBJPROP_COLOR, ATR_Line_Color);
       ObjectSetInteger(0, objname + "High MN1", OBJPROP_BACK, ATR_Line_Background);
-      ObjectCreate(0, objname + "Low MN1", OBJ_TREND, 0, startTimeMN1, atrLevelBelowMN1currentOpen, endTime, atrLevelBelowMN1currentOpen);
+      ObjectCreate(0, objname + "Low MN1", OBJ_TREND, 0, startTimeMN1, ATRLevelBelowMN1, endTime, ATRLevelBelowMN1);
       ObjectSetInteger(0, objname + "Low MN1", OBJPROP_STYLE, ATR_linestyle);
       ObjectSetInteger(0, objname + "Low MN1", OBJPROP_WIDTH, ATR_Line_Thickness);
       ObjectSetInteger(0, objname + "Low MN1", OBJPROP_COLOR, ATR_Line_Color);
@@ -307,31 +314,34 @@ int OnCalculate(const int        rates_total,
    if (H4_ATR_Projections && _Period <= PERIOD_D1)
    {
       datetime startTimeH4 = iTime(_Symbol, PERIOD_H4, 11);
-
-         atrLevelAboveH4currentOpen = currentOpenH4 + avgH4;
-         atrLevelBelowH4currentOpen = currentOpenH4 - avgH4;
-         ObjectCreate(0, objname + "High H4", OBJ_TREND, 0, startTimeH4, atrLevelAboveH4currentOpen, endTime, atrLevelAboveH4currentOpen);
-         ObjectSetInteger(0, objname + "High H4", OBJPROP_STYLE, ATR_linestyle);
-         ObjectSetInteger(0, objname + "High H4", OBJPROP_WIDTH, ATR_Line_Thickness);
-         ObjectSetInteger(0, objname + "High H4", OBJPROP_COLOR, ATR_Line_Color);
-         ObjectSetInteger(0, objname + "High H4", OBJPROP_BACK, ATR_Line_Background);
-         ObjectCreate(0, objname + "Low H4", OBJ_TREND, 0, startTimeH4, atrLevelBelowH4currentOpen, endTime, atrLevelBelowH4currentOpen);
-         ObjectSetInteger(0, objname + "Low H4", OBJPROP_STYLE, ATR_linestyle);
-         ObjectSetInteger(0, objname + "Low H4", OBJPROP_WIDTH, ATR_Line_Thickness);
-         ObjectSetInteger(0, objname + "Low H4", OBJPROP_COLOR, ATR_Line_Color);
-         ObjectSetInteger(0, objname + "Low H4", OBJPROP_BACK, ATR_Line_Background);
+      ATRLevelAboveH4 = currentOpenH4 + avgH4;
+      ATRLevelBelowH4 = currentOpenH4 - avgH4;
+      GlobalVariableSet("GlobalATRLevelAboveH4", ATRLevelAboveH4);
+      GlobalVariableSet("GlobalATRLevelBelowH4", ATRLevelBelowH4);
+      ObjectCreate(0, objname + "High H4", OBJ_TREND, 0, startTimeH4, ATRLevelAboveH4, endTime, ATRLevelAboveH4);
+      ObjectSetInteger(0, objname + "High H4", OBJPROP_STYLE, ATR_linestyle);
+      ObjectSetInteger(0, objname + "High H4", OBJPROP_WIDTH, ATR_Line_Thickness);
+      ObjectSetInteger(0, objname + "High H4", OBJPROP_COLOR, ATR_Line_Color);
+      ObjectSetInteger(0, objname + "High H4", OBJPROP_BACK, ATR_Line_Background);
+      ObjectCreate(0, objname + "Low H4", OBJ_TREND, 0, startTimeH4, ATRLevelBelowH4, endTime, ATRLevelBelowH4);
+      ObjectSetInteger(0, objname + "Low H4", OBJPROP_STYLE, ATR_linestyle);
+      ObjectSetInteger(0, objname + "Low H4", OBJPROP_WIDTH, ATR_Line_Thickness);
+      ObjectSetInteger(0, objname + "Low H4", OBJPROP_COLOR, ATR_Line_Color);
+      ObjectSetInteger(0, objname + "Low H4", OBJPROP_BACK, ATR_Line_Background);
    }
    if (H1_ATR_Projections && _Period <= PERIOD_H4)
    {
       datetime startTimeH1 = iTime(_Symbol, PERIOD_H1, 12);
-      atrLevelAboveH1currentOpen = currentOpenH1 + avgH1;
-      atrLevelBelowH1currentOpen = currentOpenH1 - avgH1;
-      ObjectCreate(0, objname + "High H1", OBJ_TREND, 0, startTimeH1, atrLevelAboveH1currentOpen, endTime, atrLevelAboveH1currentOpen);
+      ATRLevelAboveH1 = currentOpenH1 + avgH1;
+      ATRLevelBelowH1 = currentOpenH1 - avgH1;
+      GlobalVariableSet("GlobalATRLevelAboveH1", ATRLevelAboveH1);
+      GlobalVariableSet("GlobalATRLevelBelowH1", ATRLevelBelowH1);
+      ObjectCreate(0, objname + "High H1", OBJ_TREND, 0, startTimeH1, ATRLevelAboveH1, endTime, ATRLevelAboveH1);
       ObjectSetInteger(0, objname + "High H1", OBJPROP_STYLE, ATR_linestyle);
       ObjectSetInteger(0, objname + "High H1", OBJPROP_WIDTH, ATR_Line_Thickness);
       ObjectSetInteger(0, objname + "High H1", OBJPROP_COLOR, ATR_Line_Color);
       ObjectSetInteger(0, objname + "High H1", OBJPROP_BACK, ATR_Line_Background);
-      ObjectCreate(0, objname + "Low H1", OBJ_TREND, 0, startTimeH1, atrLevelBelowH1currentOpen, endTime, atrLevelBelowH1currentOpen);
+      ObjectCreate(0, objname + "Low H1", OBJ_TREND, 0, startTimeH1, ATRLevelBelowH1, endTime, ATRLevelBelowH1);
       ObjectSetInteger(0, objname + "Low H1", OBJPROP_STYLE, ATR_linestyle);
       ObjectSetInteger(0, objname + "Low H1", OBJPROP_WIDTH, ATR_Line_Thickness);
       ObjectSetInteger(0, objname + "Low H1", OBJPROP_COLOR, ATR_Line_Color);
@@ -340,26 +350,26 @@ int OnCalculate(const int        rates_total,
       {
          datetime startTimeH1Historical1 = iTime(_Symbol, PERIOD_H1, 14);
          datetime startTimeH1Historical2 = iTime(_Symbol, PERIOD_H1, 17);
-         atrLevelAboveH1currentOpenHistorical1 = currentOpenH1Historical1 + avgH1_Historical1;
-         atrLevelBelowH1currentOpenHistorical1 = currentOpenH1Historical1 - avgH1_Historical1;
-         ObjectCreate(0, objname + "High H1 Historical 1", OBJ_TREND, 0, startTimeH1Historical1, atrLevelAboveH1currentOpenHistorical1, endTime, atrLevelAboveH1currentOpenHistorical1);
+         ATRLevelAboveH1Historical1 = currentOpenH1Historical1 + avgH1_Historical1;
+         ATRLevelBelowH1Historical1 = currentOpenH1Historical1 - avgH1_Historical1;
+         ObjectCreate(0, objname + "High H1 Historical 1", OBJ_TREND, 0, startTimeH1Historical1, ATRLevelAboveH1Historical1, endTime, ATRLevelAboveH1Historical1);
          ObjectSetInteger(0, objname + "High H1 Historical 1", OBJPROP_STYLE, ATR_linestyle);
          ObjectSetInteger(0, objname + "High H1 Historical 1", OBJPROP_WIDTH, ATR_Line_Thickness);
          ObjectSetInteger(0, objname + "High H1 Historical 1", OBJPROP_COLOR, ATR_Line_Color);
          ObjectSetInteger(0, objname + "High H1_Historical 1", OBJPROP_BACK, ATR_Line_Background);
-         ObjectCreate(0, objname + "Low H1 Historical 1", OBJ_TREND, 0, startTimeH1Historical1, atrLevelBelowH1currentOpenHistorical1, endTime, atrLevelBelowH1currentOpenHistorical1);
+         ObjectCreate(0, objname + "Low H1 Historical 1", OBJ_TREND, 0, startTimeH1Historical1, ATRLevelBelowH1Historical1, endTime, ATRLevelBelowH1Historical1);
          ObjectSetInteger(0, objname + "Low H1 Historical 1", OBJPROP_STYLE, ATR_linestyle);
          ObjectSetInteger(0, objname + "Low H1 Historical 1", OBJPROP_WIDTH, ATR_Line_Thickness);
          ObjectSetInteger(0, objname + "Low H1 Historical 1", OBJPROP_COLOR, ATR_Line_Color);
          ObjectSetInteger(0, objname + "Low H1 Historical 1", OBJPROP_BACK, ATR_Line_Background);
-         atrLevelAboveH1currentOpenHistorical2 = currentOpenH1Historical2 + avgH1_Historical2;
-         atrLevelBelowH1currentOpenHistorical2 = currentOpenH1Historical2 - avgH1_Historical2;
-         ObjectCreate(0, objname + "High H1 Historical 2", OBJ_TREND, 0, startTimeH1Historical2, atrLevelAboveH1currentOpenHistorical2, endTime, atrLevelAboveH1currentOpenHistorical2);
+         ATRLevelAboveH1Historical2 = currentOpenH1Historical2 + avgH1_Historical2;
+         ATRLevelBelowH1Historical2 = currentOpenH1Historical2 - avgH1_Historical2;
+         ObjectCreate(0, objname + "High H1 Historical 2", OBJ_TREND, 0, startTimeH1Historical2, ATRLevelAboveH1Historical2, endTime, ATRLevelAboveH1Historical2);
          ObjectSetInteger(0, objname + "High H1 Historical 2", OBJPROP_STYLE, ATR_linestyle);
          ObjectSetInteger(0, objname + "High H1 Historical 2", OBJPROP_WIDTH, ATR_Line_Thickness);
          ObjectSetInteger(0, objname + "High H1 Historical 2", OBJPROP_COLOR, ATR_Line_Color);
          ObjectSetInteger(0, objname + "High H1 Historical 2", OBJPROP_BACK, ATR_Line_Background);
-         ObjectCreate(0, objname + "Low H1 Historical 2", OBJ_TREND, 0, startTimeH1Historical2, atrLevelBelowH1currentOpenHistorical2, endTime, atrLevelBelowH1currentOpenHistorical2);
+         ObjectCreate(0, objname + "Low H1 Historical 2", OBJ_TREND, 0, startTimeH1Historical2, ATRLevelBelowH1Historical2, endTime, ATRLevelBelowH1Historical2);
          ObjectSetInteger(0, objname + "Low H1 Historical 2", OBJPROP_STYLE, ATR_linestyle);
          ObjectSetInteger(0, objname + "Low H1 Historical 2", OBJPROP_WIDTH, ATR_Line_Thickness);
          ObjectSetInteger(0, objname + "Low H1 Historical 2", OBJPROP_COLOR, ATR_Line_Color);
@@ -369,14 +379,16 @@ int OnCalculate(const int        rates_total,
    if (M15_ATR_Projections && _Period <= PERIOD_H1)
    {
       datetime startTimeM15 = iTime(_Symbol, PERIOD_M15, 7);
-      atrLevelAboveM15currentOpen = currentOpenM15 + avgM15;
-      atrLevelBelowM15currentOpen = currentOpenM15 - avgM15;
-      ObjectCreate(0, objname + "High M15", OBJ_TREND, 0, startTimeM15, atrLevelAboveM15currentOpen, endTime, atrLevelAboveM15currentOpen);
+      ATRLevelAboveM15 = currentOpenM15 + avgM15;
+      ATRLevelBelowM15 = currentOpenM15 - avgM15;
+      GlobalVariableSet("GlobalATRLevelAboveD1", ATRLevelAboveM15);
+      GlobalVariableSet("GlobalATRLevelBelowD1", ATRLevelAboveM15);
+      ObjectCreate(0, objname + "High M15", OBJ_TREND, 0, startTimeM15, ATRLevelAboveM15, endTime, ATRLevelAboveM15);
       ObjectSetInteger(0, objname + "High M15", OBJPROP_STYLE, ATR_linestyle);
       ObjectSetInteger(0, objname + "High M15", OBJPROP_WIDTH, ATR_Line_Thickness);
       ObjectSetInteger(0, objname + "High M15", OBJPROP_COLOR, ATR_Line_Color);
       ObjectSetInteger(0, objname + "High M15", OBJPROP_BACK, ATR_Line_Background);
-      ObjectCreate(0, objname + "Low M15", OBJ_TREND, 0, startTimeM15, atrLevelBelowM15currentOpen, endTime, atrLevelBelowM15currentOpen);
+      ObjectCreate(0, objname + "Low M15", OBJ_TREND, 0, startTimeM15, ATRLevelBelowM15, endTime, ATRLevelBelowM15);
       ObjectSetInteger(0, objname + "Low M15", OBJPROP_STYLE, ATR_linestyle);
       ObjectSetInteger(0, objname + "Low M15", OBJPROP_WIDTH, ATR_Line_Thickness);
       ObjectSetInteger(0, objname + "Low M15", OBJPROP_COLOR, ATR_Line_Color);
