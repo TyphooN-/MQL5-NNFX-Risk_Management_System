@@ -24,7 +24,7 @@
 #property indicator_chart_window
 #property indicator_buffers 6
 #property indicator_plots 0
-#property version "1.019"
+#property version "1.020"
 input group  "[ATR/PERIOD SETTINGS]";
 input int    ATR_Period                    = 14;
 input bool   M15_ATR_Projections           = true;
@@ -381,8 +381,8 @@ int OnCalculate(const int        rates_total,
       datetime startTimeM15 = iTime(_Symbol, PERIOD_M15, 7);
       ATRLevelAboveM15 = currentOpenM15 + avgM15;
       ATRLevelBelowM15 = currentOpenM15 - avgM15;
-      GlobalVariableSet("GlobalATRLevelAboveD1", ATRLevelAboveM15);
-      GlobalVariableSet("GlobalATRLevelBelowD1", ATRLevelAboveM15);
+      GlobalVariableSet("GlobalATRLevelAboveM15", ATRLevelAboveM15);
+      GlobalVariableSet("GlobalATRLevelBelowM15", ATRLevelAboveM15);
       ObjectCreate(0, objname + "High M15", OBJ_TREND, 0, startTimeM15, ATRLevelAboveM15, endTime, ATRLevelAboveM15);
       ObjectSetInteger(0, objname + "High M15", OBJPROP_STYLE, ATR_linestyle);
       ObjectSetInteger(0, objname + "High M15", OBJPROP_WIDTH, ATR_Line_Thickness);
