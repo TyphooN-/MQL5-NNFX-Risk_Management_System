@@ -1,41 +1,24 @@
 # MQL5-Risk_Management_System
 TyphooN's MQL5-Risk_Management_System (Expert)
 
-### Features
--Simple trade management via SL, TP, and Limit lines places on the chart.
+## Settings
+### ORDER PLACEMENT SETTINGS
+-MaxRisk: Maximum percentage of risk across the symbol, once this level is hit no more orders will be placed.
 
--Open trade button to execute a position or order.
+-Risk: The % of the account that is being risked every time "Open Trade" is clicked.
 
--Limit Line places a Limit line (White) on the chart, and will place a limit order when this line is present on the chart rather than market execution.
+-InitialOrdersToPlace: This is the number of orders placed when there are 0 orders on the current symbol.  Risk will be divided amongst the orders.  If another position is open on the symbol, then only 1 order will be placed.
 
--Buy Lines places TP (Green) and SL (Red) lines on the chart for a buy position.
-
--Sell Lines places TP (Green) and SL (Red) lines on the chart for a sell position.
-
--Destroy Lines removes all expert placed horizontal lines from the chart.
-
--EnableAutoProtect will place stop loss at break even when RR passes AutoProtectRRLevel and risk > 0.
-
--Protect button sets stop loss to break even.
-
--Close Positions Button orders to close all orders on the active chart symbol.
-
--Close Limits button to close all limit orders.
-
--Set TP modifies existing position TP level to the price that the TP (Green) line is currently at.
-
--Set SL modifies existing position SL level to the price that the SL (Red) line is currently at.
-
--Displays Total P/L, Risk, Total profit at TP, and RR of the positions on the chart.
-
--Has been tested extensively on FTMO and Eightcap brokers.  YMMV on other brokers.
-
-### User Vars
--Risk (set to % risk per position or limit order).
+### ACCOUNT PROTECTION SETTINGS
 
 -EnableAutoProtect will place stop loss at break even when RR passes AutoProtectRRLevel and risk > 0.
 
 -AutoProtectRRLevel is the Reward:Risk level that will automatically move stop loss to break even using EnableAutoProtect.
+
+### POSITION MANAGEMENT SETTINGS
+
+
+### EXPERT ADVISOR SETTINGS
 
 -MagicNumber (can be set to anything the user wants, but this expert will only modify trades/positions that match the MagicNumber on the chart).
 
