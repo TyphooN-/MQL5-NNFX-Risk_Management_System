@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.036"
+#property version   "1.037"
 #property indicator_chart_window
 #property indicator_buffers 40
 #property indicator_plots   8
@@ -366,8 +366,8 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
          ObjectSetInteger(0, "objnameInfoBullPower", OBJPROP_COLOR, clrWhite);
          ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_COLOR, clrWhite);
       }
-      string BullPowerText = "Bull Power " + DoubleToString(TotalBullPower,1);
-      string BearPowerText = "Bear Power " + DoubleToString(TotalBearPower,1);
+      string BullPowerText = "[ Bull Power: " + DoubleToString(TotalBullPower,2) + " ]";
+      string BearPowerText = "[ Bear Power: " + DoubleToString(TotalBearPower,2) + " ]";
       ObjectSetString(0, "objnameInfoBullPower", OBJPROP_TEXT, BullPowerText);
       ObjectSetString(0, "objnameInfoBearPower", OBJPROP_TEXT, BearPowerText);
    }
