@@ -44,8 +44,8 @@
 -ManageAllPositions: By default is set to false which will only manage positions that have been opened by the EA's MagicNumber.  If set to true, will manage all positions on a symbol.
 
 # TyphooN's Multi Timeframe MA Bull/Bear Power Indicator (MTF_MA)
-
-Bear Power and Bull Power are based on a scoring system which scores several SMA crossovers across all timeframes M1 -> W1 (Total Power is always 70).  M1 -> H1 signals are worth 1 point, while H4 -> W1 are worth 3 points.  The MA crossovers used are 200 SMA (price above or below the MA line), Death/Golden Cross (50/200 SMA), 100/200 SMA cross, 20/50 SMA cross, and 10/20 SMA cross.
+- Plots 200 SMA lines across all timeframes M1 -> W1 onto the chart.  M1 -> M5 are Orange coloured lines. M15 -> M30 are Tomato coloured lines.  H1 -> W1 timeframes are Magenta coloured lines.
+- Bear Power and Bull Power are based on a scoring system which scores several SMA crossovers across all timeframes M1 -> W1 (Total Power is always 70).  M1 -> H1 signals are worth 1 point, while H4 -> W1 are worth 3 points.  The MA crossovers used are 200 SMA (price above or below the MA line), Death/Golden Cross (50/200 SMA), 100/200 SMA cross, 20/50 SMA cross, and 10/20 SMA cross.
 
 ![MTF_MA_200SMA_Lines](MTF_MA_200SMA_Lines.png)
 
@@ -100,6 +100,10 @@ The ATR Projection Indicator plots a yellow line +/- the ATR value (Projection) 
 - HorizPos: Horizontal position in pixels where the InfoText will appear.
 - VertPos : Vertical position in pixels where the InfoText will appear.
 - ATRInfoDecimals: The number of decimals to display in the ATR InfoText.
+
+# Additional Indicators
+- [Minions.BetterVolume](https://www.mql5.com/en/code/23479) - improved volume indicator.
+- [shved_supply_and_demand_v1.5](https://www.mql5.com/en/code/29395) - automatic supply and demand zone plotting.
 
 # Usage
 
