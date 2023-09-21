@@ -1,7 +1,4 @@
-# MQL5-Risk_Management_System
-TyphooN's MQL5-Risk_Management_System (Expert)
-
-## Settings
+## TyphooN's MQL5-Risk_Management_System (Expert) Settings
 ### ORDER PLACEMENT SETTINGS
 -MaxRisk: Maximum percentage of risk across the symbol, once this level is hit no more orders will be placed.
 
@@ -11,20 +8,31 @@ TyphooN's MQL5-Risk_Management_System (Expert)
 
 ### ACCOUNT PROTECTION SETTINGS
 
--EnableAutoProtect will place stop loss at break even when RR passes AutoProtectRRLevel and risk > 0.
+-EnableAutoProtect will place stop loss(es) at break even when RR passes AutoProtectRRLevel and risk > 0.  This will only happen once per market, and will not happen again if SL is set to break even on any position for that symbol.
 
--AutoProtectRRLevel is the Reward:Risk level that will automatically move stop loss to break even using EnableAutoProtect.
+-APCloseDivider: The number of positions that have to be open in order for trades to automatically take profit on APPositionsToClose position(s), and set the rest to break even stop loss.
+
+-APPositionsToClose: The number of positions to close in profit when AutoProtect is triggered.
+
+-APStartHour: The server hour when AutoProtect can start to be active.  By default it is active from 20 -> 24 server time (last 4 hour candlestick of the day).  Can be set to 0 to start at the beginning of the day.
+
+-APStopHour: The server hour when AutoProtect can stops being active.  By default it is active from 20 -> 24 server time (last 4 hour candlestick of the day).  Can be set to 24 to be active until the end of the day.
+
+-AutoProtectRRLevel is the Reward:Risk level that will trigger AutoProtect.
 
 ### POSITION MANAGEMENT SETTINGS
 
+- SLPips - The Red Stop Loss Line will be placed SLPips distance away from the Bid price.
+  
+- TPPips - The Green Take Profit Line will be placed TPPips distance away from the Ask price.
 
 ### EXPERT ADVISOR SETTINGS
 
 -MagicNumber (can be set to anything the user wants, but this expert will only modify trades/positions that match the MagicNumber on the chart).
 
--TPPips and SLPips (will change where the TP and SL line appear on the chart).
+-HorizontalLineThickness - How thick in pixels SL, TP, and Limit lines are drawn with.
 
--HorizontalLineThickness - how thick SL, TP, and Limit lines are on the chart.
+-ManageAllPositions - By default is set to false which will only manage positions that have been opened by the EA's MagicNumber.  If set to true, will manage all positions on a symbol.
 
 ### Usage
 
