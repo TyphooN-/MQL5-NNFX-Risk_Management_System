@@ -1,4 +1,9 @@
+## TyphooN's MQL5-Risk_Management_System (Expert)
+![Expert_Panel](Expert_Panel.png)
+![Expert_InfoText](Expert_InfoText.png)
+
 ## TyphooN's MQL5-Risk_Management_System (Expert) Settings
+![Expert_Settings](Expert_Settings.png)
 ### ORDER PLACEMENT SETTINGS
 -MaxRisk: Maximum percentage of risk across the symbol, once this level is hit no more orders will be placed.
 
