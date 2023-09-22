@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.decapool.net/"
-#property version   "1.01"
+#property version   "1.02"
 double LastBullPower = -1;
 double LastBearPower = -1;
 datetime LastPowerNotification = 0;
@@ -47,7 +47,7 @@ void OnTick()
    {
       double CurrentBullPower = GlobalVariableGet("GlobalBullPower");
       double CurrentBearPower = GlobalVariableGet("GlobalBearPower");
-      if((CurrentBullPower != LastBullPower || CurrentBearPower != LastBearPower) && (TimeCurrent() - LastPowerNotification >= NotificationCoolDown) && (CurrentBullPower + CurrentBearPower == 70))
+      if((CurrentBullPower != LastBullPower || CurrentBearPower != LastBearPower) && (TimeCurrent() - LastPowerNotification >= NotificationCoolDown) && ((CurrentBullPower + CurrentBearPower == 99.999) || (CurrentBullPower + CurrentBearPower == 99.99900000000001)))
       {
          // Update the stored values
          LastBullPower = CurrentBullPower;
@@ -79,10 +79,7 @@ void OnTick()
          string headers = "Content-Type: application/json";
          uchar result[];
          string result_headers;
-         double TotalScore = CurrentBullPower + CurrentBearPower;
-         double BullPowerPercent = CurrentBullPower/TotalScore;
-         double BearPowerPercent = CurrentBearPower/TotalScore;
-         string PowerText = "[" + _Symbol + "] [Bull Power " + DoubleToString(CurrentBullPower, 0) + " (" + DoubleToString(BullPowerPercent * 100, 1) + "%)]" + " [Bear Power " + DoubleToString(CurrentBearPower, 0) + " (" + DoubleToString(BearPowerPercent * 100, 1) + "%)]";
+         string PowerText = "[" + _Symbol + "] [Bull Power " + DoubleToString(CurrentBullPower, 2) + "]" + " [Bear Power " + DoubleToString(CurrentBearPower, 2)+ "]";
          string json = "{\"content\":\""+PowerText+"\"}";
          char jsonArray[];
          StringToCharArray(json, jsonArray);
