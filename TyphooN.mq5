@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.166"
+#property version   "1.167"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -829,7 +829,6 @@ void TyWindow::OnClickTrade(void)
    double existing_volume = GetTotalVolumeForSymbol(_Symbol);
    double potentialRisk = Risk + percent_risk;
    double OrderRisk = Risk;
-   max_volume = NormalizeDouble(max_volume - existing_volume, _Digits);
    Trade.SetExpertMagicNumber(MagicNumber);
    int OrderDigits = 0;
    if (min_volume == 0.01)
@@ -862,6 +861,11 @@ void TyWindow::OnClickTrade(void)
    if (TotalLots > max_volume)
    {
       TotalLots = max_volume;
+   }
+   double total_volume = existing_volume + TotalLots;
+   if (total_volume > max_volume)
+   {
+      TotalLots = (max_volume - existing_volume);
    }
    if ((PartialLots * InitialOrdersToPlace) > max_volume)
    {
@@ -1143,6 +1147,7 @@ void TyWindow::OnClickProtect(void)
 }
 void TyWindow::OnClickClosePositions(void)
 {
+   double TotalPL = 0.0; // Track the total profit or loss of closed positions
    int result = MessageBox("Do you want to close positions on " + _Symbol + "?", "Close Positions", MB_YESNO | MB_ICONQUESTION);
    if (result == IDNO)
    {
@@ -1150,21 +1155,26 @@ void TyWindow::OnClickClosePositions(void)
    }
    if (result == IDYES)
    {
-   for(int i=PositionsTotal()-1; i>=0 ;i--)
-   {
-      if (PositionGetSymbol(i) == _Symbol && (ManageAllPositions || PositionGetInteger(POSITION_MAGIC) == MagicNumber))
+      for(int i=PositionsTotal()-1; i>=0 ;i--)
       {
-         if(Trade.PositionClose(Position.Ticket()))
+         if (PositionGetSymbol(i) == _Symbol && (ManageAllPositions || PositionGetInteger(POSITION_MAGIC) == MagicNumber))
          {
-            Print("Position #", Position.Ticket(), " closed");
-         }
-         else
-         {
-            Print("Position #", Position.Ticket(), " close failed with error ", GetLastError());
+            // Get profit of the position before closing
+            double positionProfit = PositionGetDouble(POSITION_PROFIT);
+            totalProfit += positionProfit;
+            if(Trade.PositionClose(PositionGetInteger(POSITION_TICKET)))
+            {
+               Print("Position #", PositionGetInteger(POSITION_TICKET), " closed with profit/loss of ", positionProfit);
+            }
+            else
+            {
+               Print("Position #", PositionGetInteger(POSITION_TICKET), " close failed with error ", GetLastError());
+            }
          }
       }
-    }
-    }
+      // Print the total profit or loss after closing all positions
+      Print("Total profit/loss of closed positions: ", TotalPL);
+   }
 }
 void TyWindow::OnClickCloseLimits(void)
 {
