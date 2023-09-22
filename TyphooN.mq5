@@ -1161,7 +1161,7 @@ void TyWindow::OnClickClosePositions(void)
          {
             // Get profit of the position before closing
             double positionProfit = PositionGetDouble(POSITION_PROFIT);
-            totalProfit += positionProfit;
+            TotalPL += positionProfit;
             if(Trade.PositionClose(PositionGetInteger(POSITION_TICKET)))
             {
                Print("Position #", PositionGetInteger(POSITION_TICKET), " closed with profit/loss of ", positionProfit);
