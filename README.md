@@ -79,7 +79,7 @@ The ATR Projection Indicator plots a yellow line +/- the ATR value (Projection) 
 
 - ATR_Period: How many bars are used to calculate the ATR.  14 is the standard ATR period and is the default.
 - M15_ATR_Projections: Enables M15 ATR Projections if true (default true).
-- H1_ATR_Projections: Enables G1 ATR Projections if true (default true).
+- H1_ATR_Projections: Enables H1 ATR Projections if true (default true).
 - H1_Historical_Projection: Enables H1 Historical (2 hours previous) ATR Projections if true (default false).
 - H4_ATR_Projections: Enables H4 ATR Projections if true (default true).
 - D1_ATR_Projections: Enables D1 ATR Projections if true (default true).
