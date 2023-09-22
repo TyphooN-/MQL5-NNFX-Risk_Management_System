@@ -43,6 +43,15 @@
 - Close Limit: Closes all open limit orders on the market.
 - Set SL: Modifies the take profit level of existing trades on the symbol to the price at the SL Line (Red Line).
 
+### Risk Management InfoText
+- Total P/L: Current running Profit/Loss on the current symbol.
+- Total TP: The amount of profit that will be realized if TP price is hit.
+- Risk: The amount of risk on the current symbol.
+- SL Profit: How much P/L will be taken at SL.
+- RR: Current trade Reward/Risk ratio.
+- TP RR: Reward/Risk ratio if price hits TP.
+- H4 - MN1: The amount of time until the next candlestick of that time period will print.
+
 # TyphooN's Multi Timeframe MA Bull/Bear Power Indicator (MTF_MA)
 - Plots 200 SMA lines across all timeframes M1 -> W1 onto the chart.  M1 -> M5 are Orange coloured lines. M15 -> M30 are Tomato coloured lines.  H1 -> W1 timeframes are Magenta coloured lines.  The colours used are easily visible in contrast to the colours used in the supporting indicators.
 - Bear Power and Bull Power are based on a scoring system which scores several SMA crossovers across all timeframes M1 -> W1 (Total Power is always 99.9999 which rounds up to 100).  M1 -> M15 signals are worth 0.6666 points,  M30-> H1 are worth 1.5 points, and H4 -> W1 are worth 5 points.  The MA crossovers used are 200 SMA (price above or below the MA line), Death/Golden Cross (50/200 SMA), 100/200 SMA cross, 20/50 SMA cross, and 10/20 SMA cross.
