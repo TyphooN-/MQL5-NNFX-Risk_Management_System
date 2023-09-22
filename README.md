@@ -9,39 +9,27 @@
 - Allow Algo Trading must be checked for the expert to place trades.
 
 ### ORDER PLACEMENT SETTINGS
--MaxRisk: Maximum percentage of risk across the symbol, once this level is hit no more orders will be placed.
-
--Risk: The % of the account that is being risked every time "Open Trade" is clicked.
-
--InitialOrdersToPlace: This is the number of orders placed when there are 0 orders on the current symbol.  Risk will be divided amongst the orders.  If another position is open on the symbol, then only 1 order will be placed.
+- MaxRisk: Maximum percentage of risk across the symbol, once this level is hit no more orders will be placed.
+- Risk: The % of the account that is being risked every time "Open Trade" is clicked.
+- InitialOrdersToPlace: This is the number of orders placed when there are 0 orders on the current symbol.  Risk will be divided amongst the orders.  If another position is open on the symbol, then only 1 order will be placed.
 
 ### ACCOUNT PROTECTION SETTINGS
 
--EnableAutoProtect will place stop loss(es) at break even when RR passes AutoProtectRRLevel and risk > 0.  This will only happen once per market, and will not happen again if SL is set to break even on any position for that symbol.
-
--APCloseDivider: The number of positions that have to be open in order for trades to automatically take profit on APPositionsToClose position(s), and set the rest to break even stop loss.
-
--APPositionsToClose: The number of positions to close in profit when AutoProtect is triggered.
-
--APStartHour: The server hour when AutoProtect can start to be active.  By default it is active from 20 -> 24 server time (last 4 hour candlestick of the day).  Can be set to 0 to start at the beginning of the day.
-
--APStopHour: The server hour when AutoProtect can stops being active.  By default it is active from 20 -> 24 server time (last 4 hour candlestick of the day).  Can be set to 24 to be active until the end of the day.
-
--AutoProtectRRLevel is the Reward:Risk level that will trigger AutoProtect.
+- EnableAutoProtect will place stop loss(es) at break even when RR passes AutoProtectRRLevel and risk > 0.  This will only happen once per market, and will not happen again if SL is set to break even on any position for that symbol.
+- APCloseDivider: The number of positions that have to be open in order for trades to automatically take profit on APPositionsToClose position(s), and set the rest to break even stop loss.
+- APPositionsToClose: The number of positions to close in profit when AutoProtect is triggered.
+- APStartHour: The server hour when AutoProtect can start to be active.  By default it is active from 20 -> 24 server time (last 4 hour candlestick of the day).  Can be set to 0 to start at the beginning of the day.
+- APStopHour: The server hour when AutoProtect can stops being active.  By default it is active from 20 -> 24 server time (last 4 hour candlestick of the day).  Can be set to 24 to be active until the end of the day.
+- AutoProtectRRLevel is the Reward:Risk level that will trigger AutoProtect.
 
 ### POSITION MANAGEMENT SETTINGS
-
 - SLPips: The Red Stop Loss Line will be placed SLPips distance away from the Bid price.
-  
 - TPPips: The Green Take Profit Line will be placed TPPips distance away from the Ask price.
 
 ### EXPERT ADVISOR SETTINGS
-
--MagicNumber: Can be set to anything the user wants, but this expert will only modify trades/positions that match the MagicNumber on the chart.
-
--HorizontalLineThickness: How thick in pixels SL, TP, and Limit lines are drawn with.
-
--ManageAllPositions: By default is set to false which will only manage positions that have been opened by the EA's MagicNumber.  If set to true, will manage all positions on a symbol.
+- MagicNumber: Can be set to anything the user wants, but this expert will only modify trades/positions that match the MagicNumber on the chart.
+- HorizontalLineThickness: How thick in pixels SL, TP, and Limit lines are drawn with.
+- ManageAllPositions: By default is set to false which will only manage positions that have been opened by the EA's MagicNumber.  If set to true, will manage all positions on a symbol.
 
 # TyphooN's Multi Timeframe MA Bull/Bear Power Indicator (MTF_MA)
 - Plots 200 SMA lines across all timeframes M1 -> W1 onto the chart.  M1 -> M5 are Orange coloured lines. M15 -> M30 are Tomato coloured lines.  H1 -> W1 timeframes are Magenta coloured lines.  The colours used are easily visible in contrast to the colours used in the supporting indicators.
