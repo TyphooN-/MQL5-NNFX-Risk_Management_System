@@ -31,6 +31,18 @@
 - HorizontalLineThickness: How thick in pixels SL, TP, and Limit lines are drawn with.
 - ManageAllPositions: By default is set to false which will only manage positions that have been opened by the EA's MagicNumber.  If set to true, will manage all positions on a symbol.
 
+### Risk Management Panel
+- Open Trade: Will default to market execution unless Limit Line is clicked first.  The order is placed with TP and SL parameters set to the levels of the TP Line (Green Line) and the SL Line (Red line).  Both of these lines can be double clicked and moved by the user to the desired price.
+- Buy Lines: Creates TP and SL Lines in the buy orientation based on TPPips and SLPips set by the user.
+- Destroy Lines: Removes TP and SL line from chart, so that the user may not accidentally place or modify an order.
+- Close Positions: Closes all open positions on the market.
+- Set TP: Modifies the take profit level of existing trades on the symbol to the price at the TP Line (Green Line).
+- Limit Line: Creates a white line which is where the limit order will be placed.
+- Sell Line: Creates TP and SL Lines in the sell orientation based on TPPips and SLPips set by the user.
+- Protect: Moves stop loss to break even on all positions of the current symbol.  This will disable AutoProtect.
+- Close Limit: Closes all open limit orders on the market.
+- Set SL: Modifies the take profit level of existing trades on the symbol to the price at the SL Line (Red Line).
+
 # TyphooN's Multi Timeframe MA Bull/Bear Power Indicator (MTF_MA)
 - Plots 200 SMA lines across all timeframes M1 -> W1 onto the chart.  M1 -> M5 are Orange coloured lines. M15 -> M30 are Tomato coloured lines.  H1 -> W1 timeframes are Magenta coloured lines.  The colours used are easily visible in contrast to the colours used in the supporting indicators.
 - Bear Power and Bull Power are based on a scoring system which scores several SMA crossovers across all timeframes M1 -> W1 (Total Power is always 99.9999 which rounds up to 100).  M1 -> M15 signals are worth 0.6666 points,  M30-> H1 are worth 1.5 points, and H4 -> W1 are worth 5 points.  The MA crossovers used are 200 SMA (price above or below the MA line), Death/Golden Cross (50/200 SMA), 100/200 SMA cross, 20/50 SMA cross, and 10/20 SMA cross.
