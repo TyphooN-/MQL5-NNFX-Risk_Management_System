@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.037"
+#property version   "1.038"
 #property indicator_chart_window
 #property indicator_buffers 40
 #property indicator_plots   8
@@ -304,7 +304,7 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
       {
          if(StringFind(timeframe, "M1", 0) != -1 || StringFind(timeframe, "M5", 0) != -1 || StringFind(timeframe, "M15", 0) != -1)
          {
-            BullPowerLTF--;
+            BearPowerLTF--;
          }
          if (StringFind(timeframe, "M30", 0) != -1 || StringFind(timeframe, "H1", 0) != -1)
          {
@@ -336,7 +336,7 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
       {
          if(StringFind(timeframe, "M1", 0) != -1 || StringFind(timeframe, "M5", 0) != -1|| StringFind(timeframe, "M15", 0) != -1)
          {
-            BullPowerLTF++;
+            BearPowerLTF++;
          }
          if (StringFind(timeframe, "M30", 0) != -1 || StringFind(timeframe, "H1", 0) != -1)
          {
@@ -348,8 +348,8 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
          }
       }
       // Update the total variables
-      TotalBearPower = (BearPowerLTF * 0.67) + (BearPowerMTF * 1.5) + (BearPowerHTF * 5);
-      TotalBullPower = (BullPowerLTF * 0.67) + (BullPowerMTF * 1.5) + (BullPowerHTF * 5);
+      TotalBearPower = (BearPowerLTF * 0.6666) + (BearPowerMTF * 1.5) + (BearPowerHTF * 5);
+      TotalBullPower = (BullPowerLTF * 0.6666) + (BullPowerMTF * 1.5) + (BullPowerHTF * 5);
       double TotalScore = TotalBullPower + TotalBearPower;
       if (TotalBearPower > TotalBullPower)
       {
