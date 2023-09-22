@@ -53,9 +53,10 @@
 - VertPos : Vertical position in pixels where the InfoText will appear.
 
 # TyphooN's ATR Projection Indicator
+- The ATR Projection Indicator plots a yellow line +/- the ATR value (Projection) whenever a new candlestick forms on the enabled timeframe(s).  The length of the line indicates a longer timeframe.  Some timeframes are disabled when viewing higher timeframes as they are barely visible.
+- The user can hover the mouse over the plotted lines to see what the timeframe is, and if it is the Projected ATR High or Low.
+- InfoText is displayed on the chart which contains the M15, H1, H4, D1, W1, and MN1 ATR values for easy evaluation.
 ![ATR_Projection_InfoText](ATR_Projection_InfoText.png)
-
-The ATR Projection Indicator plots a yellow line +/- the ATR value (Projection) whenever a new candlestick forms on the enabled timeframe(s).  The length of the line indicates a longer timeframe.  Some timeframes are disabled when viewing higher timeframes as they are barely visible.  The user can hover the mouse over the plotted lines to see what the timeframe is, and if it is the Projected ATR High or Low.
 
 ![ATR_Projection_Levels](ATR_Projection_Levels.png)
 
@@ -89,7 +90,7 @@ The ATR Projection Indicator plots a yellow line +/- the ATR value (Projection) 
 - VertPos : Vertical position in pixels where the InfoText will appear.
 - ATRInfoDecimals: The number of decimals to display in the ATR InfoText.
 
-# Additional Indicators
+# Third Party Open Source Supporting Indicators
 - [Minions.BetterVolume](https://www.mql5.com/en/code/23479) - improved volume indicator.
 - [shved_supply_and_demand_v1.5](https://www.mql5.com/en/code/29395) - automatic supply and demand zone plotting.
 
