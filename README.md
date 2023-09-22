@@ -54,6 +54,12 @@
 
 # TyphooN's Multi Timeframe MA Bull/Bear Power Indicator (MTF_MA)
 - Plots 200 SMA lines across all timeframes M1 -> W1 onto the chart.  M1 -> M5 are Orange coloured lines. M15 -> M30 are Tomato coloured lines.  H1 -> W1 timeframes are Magenta coloured lines.  The colours used are easily visible in contrast to the colours used in the supporting indicators.
+- The SMA crossovers and levels used are as follows (and displayed in the infotext):
+  - 200 SMA (whether price is above or below the level for the timeframe).
+  - DEATH X: 50/200 SMA aka Death Cross / Golden Cross.
+  - 100/200: 100/200 SMA cross.
+  - 20/50: 20/50 SMA cross.
+  - 10/20: 10/20 SMA cross.
 - Bear Power and Bull Power are based on a scoring system which scores several SMA crossovers across all timeframes M1 -> W1 (Total Power is always 99.9999 which rounds up to 100).  M1 -> M15 signals are worth 0.6666 points,  M30-> H1 are worth 1.5 points, and H4 -> W1 are worth 5 points.  The MA crossovers used are 200 SMA (price above or below the MA line), Death/Golden Cross (50/200 SMA), 100/200 SMA cross, 20/50 SMA cross, and 10/20 SMA cross.
 
 ![MTF_MA_200SMA_Lines](MTF_MA_200SMA_Lines.png)
