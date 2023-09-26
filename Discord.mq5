@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.decapool.net/"
-#property version   "1.02"
+#property version   "1.03"
 double LastBullPower = -1;
 double LastBearPower = -1;
 datetime LastPowerNotification = 0;
@@ -72,7 +72,7 @@ void OnTick()
             url = "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
          }
          if ( _Symbol == "NDX100" || _Symbol == "SPX500" || _Symbol == "US30" || _Symbol == "UK100" || _Symbol == "GER30" || _Symbol == "ASX200"
-              _Symbol == "EUSTX50" || _Symbol == "FRA40" || _Symbol == "JPN225")
+              _Symbol == "EUSTX50" || _Symbol == "FRA40" || _Symbol == "JPN225" || _Symbol == "HK50")
          {
             url = "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
          }
