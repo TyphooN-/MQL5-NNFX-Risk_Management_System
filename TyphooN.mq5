@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.168"
+#property version   "1.169"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -1181,10 +1181,6 @@ void TyWindow::OnClickClosePositions(void)
       }
       // Print the total profit or loss after closing all positions
       Print("Total profit/loss of closed positions: ", TotalPL);
-      if (TotalPL >= 0.001)  // set risk to 0 if orders were closed
-      {
-         percent_risk = 0;
-      }
    }
 }
 void TyWindow::OnClickCloseLimits(void)
