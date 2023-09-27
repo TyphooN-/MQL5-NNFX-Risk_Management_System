@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.038"
+#property version   "1.039"
 #property indicator_chart_window
 #property indicator_buffers 40
 #property indicator_plots   8
@@ -74,6 +74,10 @@ input int    FontSize                      = 8;
 const ENUM_BASE_CORNER Corner              = CORNER_RIGHT_UPPER;
 input int    HorizPos                      = 310;
 input int    VertPos                       = 130;
+input group "[POWER SETTINGS]"
+input double    PowerLTFMulti                = 0.6666;
+input double    PowerMTFMulti                = 1.5;
+input double    PowerHTFMulti                = 5;
 bool W1_Empty_Warning = false;
 ENUM_APPLIED_PRICE MAPrice = PRICE_CLOSE;
 // Handles
@@ -348,8 +352,8 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
          }
       }
       // Update the total variables
-      TotalBearPower = (BearPowerLTF * 0.6666) + (BearPowerMTF * 1.5) + (BearPowerHTF * 5);
-      TotalBullPower = (BullPowerLTF * 0.6666) + (BullPowerMTF * 1.5) + (BullPowerHTF * 5);
+      TotalBearPower = (BearPowerLTF * PowerLTFMulti) + (BearPowerMTF * PowerMTFMulti) + (BearPowerHTF * PowerHTFMulti);
+      TotalBullPower = (BullPowerLTF * PowerLTFMulti) + (BullPowerMTF * PowerMTFMulti) + (BullPowerHTF * PowerHTFMulti);
       double TotalScore = TotalBullPower + TotalBearPower;
       if (TotalBearPower > TotalBullPower)
       {
