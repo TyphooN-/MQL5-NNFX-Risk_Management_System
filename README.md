@@ -79,6 +79,16 @@
 - HorizPos: Horizontal position in pixels where the InfoText will appear.
 - VertPos : Vertical position in pixels where the InfoText will appear.
 
+### Power Settings
+- PowerLTFMulti: The number of points given to the Bull/Bear "Power" per M1 -> M15 signal. (Default 0.6666)
+- PowerMTFMulti: The number of points given to the Bull/Bear "Power" per M30 -> H1 signal. (Default 1.5)
+- PowerHTFMulti: The number of points given to the Bull/Bear "Power" per H4 -> W1 signal. (Default 5)
+input group "[POWER SETTINGS]"
+input double    PowerLTFMulti                = 0.6666;
+input double    PowerMTFMulti                = 1.5;
+input double    PowerHTFMulti                = 5;
+
+
 # TyphooN's ATR Projection Indicator
 - The ATR Projection Indicator plots a yellow line +/- the ATR value (Projection) whenever a new candlestick forms on the enabled timeframe(s).  The length of the line indicates a longer timeframe.  Some timeframes are disabled when viewing higher timeframes as they are barely visible.
 - The user can hover the mouse over the plotted lines to see what the timeframe is, and if it is the Projected ATR High or Low.
