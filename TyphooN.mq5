@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.167"
+#property version   "1.168"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -412,6 +412,7 @@ double PointValue()
 }
 void OnTick()
 {
+   bool hasOpenOrders = false;
    // Filter AutoProtect to only execute during user defined window
    MqlDateTime time;TimeCurrent(time);
    bool APFilter=(APStartHour < APStopHour && (time.hour >= APStartHour && time.hour < APStopHour )) || (APStartHour > APStopHour && (time.hour >= APStartHour || time.hour < APStopHour));
@@ -436,6 +437,7 @@ void OnTick()
       {
          bool ShouldProcessPosition = ProcessPositionCheck(ticket, _Symbol, MagicNumber, ManageAllPositions);
          if (!ShouldProcessPosition) continue;
+         hasOpenOrders = true;
          double profit = PositionGetDouble(POSITION_PROFIT);
          double risk = 0;
          double tpprofit = 0;
@@ -538,6 +540,12 @@ void OnTick()
    if (total_risk < 0)
    {
       infoSLPL = "SL P/L: -$" + DoubleToString(MathAbs(total_risk), 2);
+   }
+   // If no open orders are found, reset sl_risk and percent_risk
+   if (!hasOpenOrders)
+   {
+      sl_risk = 0;
+      percent_risk = 0;
    }
    ObjectSetString(0,"infoRR",OBJPROP_TEXT,infoRR);
    ObjectSetString(0,"infoPL",OBJPROP_TEXT,infoPL);
@@ -1147,7 +1155,7 @@ void TyWindow::OnClickProtect(void)
 }
 void TyWindow::OnClickClosePositions(void)
 {
-   double TotalPL = 0.0; // Track the total profit or loss of closed positions
+   double TotalPL = 0.00; // Track the total profit or loss of closed positions
    int result = MessageBox("Do you want to close positions on " + _Symbol + "?", "Close Positions", MB_YESNO | MB_ICONQUESTION);
    if (result == IDNO)
    {
@@ -1161,9 +1169,9 @@ void TyWindow::OnClickClosePositions(void)
          {
             // Get profit of the position before closing
             double positionProfit = PositionGetDouble(POSITION_PROFIT);
-            TotalPL += positionProfit;
             if(Trade.PositionClose(PositionGetInteger(POSITION_TICKET)))
             {
+               TotalPL += positionProfit;
                Print("Position #", PositionGetInteger(POSITION_TICKET), " closed with profit/loss of ", positionProfit);
             }
             else
@@ -1174,6 +1182,10 @@ void TyWindow::OnClickClosePositions(void)
       }
       // Print the total profit or loss after closing all positions
       Print("Total profit/loss of closed positions: ", TotalPL);
+      if (TotalPL >= 0.001)  // set risk to 0 if orders were closed
+      {
+         percent_risk = 0;
+      }
    }
 }
 void TyWindow::OnClickCloseLimits(void)
