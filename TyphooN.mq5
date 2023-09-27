@@ -412,7 +412,7 @@ double PointValue()
 }
 void OnTick()
 {
-   bool hasOpenOrders = false;
+   bool HasOpenPosition = false;
    // Filter AutoProtect to only execute during user defined window
    MqlDateTime time;TimeCurrent(time);
    bool APFilter=(APStartHour < APStopHour && (time.hour >= APStartHour && time.hour < APStopHour )) || (APStartHour > APStopHour && (time.hour >= APStartHour || time.hour < APStopHour));
@@ -437,7 +437,7 @@ void OnTick()
       {
          bool ShouldProcessPosition = ProcessPositionCheck(ticket, _Symbol, MagicNumber, ManageAllPositions);
          if (!ShouldProcessPosition) continue;
-         hasOpenOrders = true;
+         HasOpenPosition = true;
          double profit = PositionGetDouble(POSITION_PROFIT);
          double risk = 0;
          double tpprofit = 0;
@@ -541,8 +541,7 @@ void OnTick()
    {
       infoSLPL = "SL P/L: -$" + DoubleToString(MathAbs(total_risk), 2);
    }
-   // If no open orders are found, reset sl_risk and percent_risk
-   if (!hasOpenOrders)
+   if (!HasOpenPosition)
    {
       sl_risk = 0;
       percent_risk = 0;
