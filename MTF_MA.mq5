@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.039"
+#property version   "1.040"
 #property indicator_chart_window
 #property indicator_buffers 40
 #property indicator_plots   8
@@ -282,6 +282,7 @@ void OnDeinit(const int pReason)
 }
 void UpdateInfoLabel(string timeframe, bool condition, string label)
 {
+   GlobalVariableSet("PowerCalcComplete", false);
    string objnameInfo = objname + timeframe + label;
    color textColor = condition ? clrLime : clrRed;
    // Check if the color has changed
@@ -377,6 +378,7 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
    }
    GlobalVariableSet("GlobalBullPower", TotalBullPower);
    GlobalVariableSet("GlobalBearPower", TotalBearPower);
+   GlobalVariableSet("PowerCalcComplete", true);
 }
 int OnCalculate(const int rates_total,
                 const int prev_calculated,
