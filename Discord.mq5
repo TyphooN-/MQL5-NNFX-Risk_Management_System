@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.decapool.net/"
-#property version   "1.03"
+#property version   "1.04"
 double LastBullPower = -1;
 double LastBearPower = -1;
 datetime LastPowerNotification = 0;
@@ -47,7 +47,8 @@ void OnTick()
    {
       double CurrentBullPower = GlobalVariableGet("GlobalBullPower");
       double CurrentBearPower = GlobalVariableGet("GlobalBearPower");
-      if((CurrentBullPower != LastBullPower || CurrentBearPower != LastBearPower) && (TimeCurrent() - LastPowerNotification >= NotificationCoolDown) && ((CurrentBullPower + CurrentBearPower == 99.999) || (CurrentBullPower + CurrentBearPower == 99.99900000000001)))
+      double PowerCalculated = GlobalVariableGet("PowerCalcComplete");
+      if((CurrentBullPower != LastBullPower || CurrentBearPower != LastBearPower) && PowerCalculated == true && (TimeCurrent() - LastPowerNotification >= NotificationCoolDown) && ((CurrentBullPower + CurrentBearPower == 99.999) || (CurrentBullPower + CurrentBearPower == 99.99900000000001)))
       {
          // Update the stored values
          LastBullPower = CurrentBullPower;
