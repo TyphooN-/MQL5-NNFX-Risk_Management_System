@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.decapool.net/"
-#property version   "1.04"
+#property version   "1.05"
 double LastBullPower = -1;
 double LastBearPower = -1;
 datetime LastPowerNotification = 0;
@@ -47,6 +47,19 @@ void OnTick()
    {
       double CurrentBullPower = GlobalVariableGet("GlobalBullPower");
       double CurrentBearPower = GlobalVariableGet("GlobalBearPower");
+      Sleep(30000);  // Wait for 30 seconds
+      // Verify the values again after 30 seconds
+      double VerifiedBullPower = GlobalVariableGet("GlobalBullPower");
+      double VerifiedBearPower = GlobalVariableGet("GlobalBearPower");
+      // Keep fetching until the values match
+      while(CurrentBullPower != VerifiedBullPower || CurrentBearPower != VerifiedBearPower)
+      {
+         Sleep(30000);  // Wait for 30 seconds
+         CurrentBullPower = VerifiedBullPower;
+         CurrentBearPower = VerifiedBearPower;
+         VerifiedBullPower = GlobalVariableGet("GlobalBullPower");
+         VerifiedBearPower = GlobalVariableGet("GlobalBearPower");
+      }
       double PowerCalculated = GlobalVariableGet("PowerCalcComplete");
       if((CurrentBullPower != LastBullPower || CurrentBearPower != LastBearPower) && PowerCalculated == true && (TimeCurrent() - LastPowerNotification >= NotificationCoolDown) && ((CurrentBullPower + CurrentBearPower == 99.999) || (CurrentBullPower + CurrentBearPower == 99.99900000000001)))
       {
