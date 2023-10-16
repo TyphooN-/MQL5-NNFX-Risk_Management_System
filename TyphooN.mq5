@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.169"
+#property version   "1.170"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -49,7 +49,7 @@ double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TR
 // input vars
 input group    "[ORDER PLACEMENT SETTINGS]";
 input double   MaxRisk                    = 1.5;
-input double   Risk                       = 1.0;
+input double   Risk                       = 1.5;
 input int      InitialOrdersToPlace       = 3;
 input group    "[ACCOUNT PROTECTION SETTINGS]";
 input bool     EnableAutoProtect          = true;
@@ -833,7 +833,8 @@ void TyWindow::OnClickTrade(void)
    TP = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
    double max_volume = NormalizeDouble(SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX), _Digits);
    double min_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
-   double existing_volume = GetTotalVolumeForSymbol(_Symbol);
+   //double existing_volume = GetTotalVolumeForSymbol(_Symbol);
+   //double total_volume = existing_volume + TotalLots;
    double potentialRisk = Risk + percent_risk;
    double OrderRisk = Risk;
    Trade.SetExpertMagicNumber(MagicNumber);
@@ -869,11 +870,6 @@ void TyWindow::OnClickTrade(void)
    {
       TotalLots = max_volume;
    }
-   double total_volume = existing_volume + TotalLots;
-   if (total_volume > max_volume)
-   {
-      TotalLots = (max_volume - existing_volume);
-   }
    if ((PartialLots * InitialOrdersToPlace) > max_volume)
    {
       PartialLots = NormalizeDouble((max_volume / InitialOrdersToPlace),OrderDigits);
@@ -897,7 +893,7 @@ void TyWindow::OnClickTrade(void)
    double symbolPrice = (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid;
    double required_margin = OrderLots * lotSize * symbolPrice * marginRequirement;
    double free_margin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
-   while (required_margin >= (free_margin - 500) && OrderLots > min_volume)
+   while (required_margin >= (free_margin - 1000) && OrderLots > min_volume)
    {
       OrderLots -= min_volume;  // Decrease the order size by the minimum volume increment.
       required_margin = OrderLots * lotSize * symbolPrice * marginRequirement;  // Recalculate the required margin.
