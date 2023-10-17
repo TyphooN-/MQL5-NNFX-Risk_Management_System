@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.174"
+#property version   "1.175"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -827,6 +827,15 @@ bool ProcessPositionCheck(ulong ticket, string symbol, int magicNumber, bool man
     }
     return ShouldProcessPosition;
 }
+bool HasOpenPosition(string sym, int orderType) 
+{
+   for(int i = 0; i < PositionsTotal(); i++) 
+   {
+      if(PositionGetSymbol(i) == sym && PositionGetInteger(POSITION_TYPE) == orderType)
+         return true;
+   }
+   return false;
+}
 void TyWindow::OnClickTrade(void)
 {
    SL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
@@ -917,6 +926,11 @@ void TyWindow::OnClickTrade(void)
       {
          if (TP > SL)
          {
+            if (HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
+            {
+               Print("Sell position is already open. Cannot place Buy Limit order.");
+               return;
+            }
             request.action = TRADE_ACTION_PENDING;
             request.type = ORDER_TYPE_BUY_LIMIT;
             request.price = Limit_Price;
@@ -929,6 +943,11 @@ void TyWindow::OnClickTrade(void)
          }
          else if (SL > TP)
          {
+            if (HasOpenPosition(_Symbol, POSITION_TYPE_BUY))
+            {
+               Print("Buy position is already open. Cannot place Sell Limit order.");
+               return;
+            }
             request.action = TRADE_ACTION_PENDING;
             request.type = ORDER_TYPE_SELL_LIMIT;
             request.price = Limit_Price;
@@ -944,10 +963,15 @@ void TyWindow::OnClickTrade(void)
       {
          if (TP > SL)
          {
+            if (HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
+            {
+               Print("Sell position is already open. Cannot place Buy order.");
+               return;
+            }
             if (SymbolInfoTick(_Symbol, latest_tick))
             {
-            request.action = TRADE_ACTION_DEAL;
-            request.type = ORDER_TYPE_BUY;
+               request.action = TRADE_ACTION_DEAL;
+               request.type = ORDER_TYPE_BUY;
             }
             if (!Trade.OrderCheck(request, check_result))
             {
@@ -958,6 +982,11 @@ void TyWindow::OnClickTrade(void)
          }
          else if (SL > TP)
          {
+            if (HasOpenPosition(_Symbol, POSITION_TYPE_BUY))
+            {
+               Print("Buy position is already open. Cannot place Sell order.");
+               return;
+            }
             if (SymbolInfoTick(_Symbol, latest_tick))
             {
                request.action = TRADE_ACTION_DEAL;
