@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.176"
+#property version   "1.177"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -75,6 +75,7 @@ bool LimitLineExists = false;
 bool AutoProtectCalled = false;
 double DigitMulti = 0;
 double percent_risk = 0;
+bool HasOpenPosition = false;
 // defines
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
 #define INDENT_TOP        (10)      // indent from top (with allowance for border width)
@@ -412,7 +413,6 @@ double PointValue()
 }
 void OnTick()
 {
-   bool HasOpenPosition = false;
    // Filter AutoProtect to only execute during user defined window
    MqlDateTime time;TimeCurrent(time);
    bool APFilter=(APStartHour < APStopHour && (time.hour >= APStartHour && time.hour < APStopHour )) || (APStartHour > APStopHour && (time.hour >= APStartHour || time.hour < APStopHour));
@@ -1175,14 +1175,7 @@ void AutoProtect()
                else
                {
                   Print("Position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + " closed successfully.");
-                  if (positionProfit >= 0)
-                  {
-                     Print("Order #", positionsArray[i].ticket, " realized a profit of $", positionProfit, ". Open Price: ", PositionGetDouble(POSITION_PRICE_OPEN), ". Close Price: ", currentPrice);
-                  }
-                  if (positionProfit < 0)
-                  {
-                     Print("Order #", positionsArray[i].ticket, " realized a loss of -$", MathAbs(positionProfit), ". Open Price: ", PositionGetDouble(POSITION_PRICE_OPEN), ". Close Price: ", currentPrice);
-                  }
+                  Print("Order #", positionsArray[i].ticket, " realized a profit of ", positionProfit, ". Open Price: ", PositionGetDouble(POSITION_PRICE_OPEN), ". Close Price: ", currentPrice);
                   ClosedPositions++;
                }
             }
@@ -1225,6 +1218,11 @@ void TyWindow::OnClickProtect(void)
 }
 void TyWindow::OnClickClosePositions(void)
 {
+   if(!HasOpenPosition)
+   {
+      Print("There are no positions to close on ", _Symbol, ".");
+      return;
+   }
    double TotalPL = 0.00; // Track the total profit or loss of closed positions
    int result = MessageBox("Do you want to close positions on " + _Symbol + "?", "Close Positions", MB_YESNO | MB_ICONQUESTION);
    if (result == IDNO)
@@ -1269,6 +1267,20 @@ void TyWindow::OnClickClosePositions(void)
 }
 void TyWindow::OnClickCloseLimits(void)
 {
+   bool HasOpenLimitOrder = false;
+   for(int i=0; i<OrdersTotal(); i++)
+   {
+      if(Order.SelectByIndex(i) && Order.Magic() == MagicNumber)
+      {
+         HasOpenLimitOrder = true;
+         break;
+      }
+   }
+   if(!HasOpenLimitOrder)
+   {
+      Print("There are no limit orders to close on ", _Symbol, ".");
+      return;
+   }
    int result = MessageBox("Do you want to close limit orders?", "Close Limit Orders", MB_YESNO | MB_ICONQUESTION);
    if (result == IDNO)
    {
