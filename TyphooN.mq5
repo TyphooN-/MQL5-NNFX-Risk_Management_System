@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.170"
+#property version   "1.171"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -48,12 +48,12 @@ double TickSize( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRA
 double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_VALUE ) ); }
 // input vars
 input group    "[ORDER PLACEMENT SETTINGS]";
-input double   MaxRisk                    = 1.5;
-input double   Risk                       = 1.5;
-input int      InitialOrdersToPlace       = 3;
+input double   MaxRisk                    = 1.8;
+input double   Risk                       = 1.8;
+input int      InitialOrdersToPlace       = 2;
 input group    "[ACCOUNT PROTECTION SETTINGS]";
 input bool     EnableAutoProtect          = true;
-input int      APCloseDivider             = 3;
+input int      APCloseDivider             = 2;
 input int      APPositionsToClose         = 1;
 input int      APStartHour                = 20;
 input int      APStopHour                 = 24;
@@ -990,14 +990,27 @@ void TyWindow::OnClickBuyLines(void)
    ObjectDelete(0, "SL_Line");
    ObjectDelete(0, "TP_Line");
    ObjectDelete(0, "Limit_Line");
-   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Bid - (SLPips * PointValue() * DigitMulti)));
-   ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Ask + (TPPips * PointValue() * DigitMulti)));
+   double slPrice, tpPrice;
+   // Check if there's an active buy position on the symbol
+   if(PositionSelect(Symbol()))
+   {
+      // Get the SL and TP prices of the existing position
+      slPrice = PositionGetDouble(POSITION_SL);
+      tpPrice = PositionGetDouble(POSITION_TP);
+   }
+   else 
+   {
+       slPrice = Bid - (SLPips * PointValue() * DigitMulti);
+       tpPrice = Ask + (TPPips * PointValue() * DigitMulti);
+   }
+   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, slPrice);
+   ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, tpPrice);
    ObjectSetInteger(0, "SL_Line", OBJPROP_COLOR, clrRed);
-   ObjectSetInteger(0, "SL_Line", OBJPROP_WIDTH,HorizontalLineThickness);
+   ObjectSetInteger(0, "SL_Line", OBJPROP_WIDTH, HorizontalLineThickness);
    ObjectSetInteger(0, "SL_Line", OBJPROP_SELECTABLE, 1);
    ObjectSetInteger(0, "SL_Line", OBJPROP_BACK, true);
    ObjectSetInteger(0, "TP_Line", OBJPROP_COLOR, clrLime);
-   ObjectSetInteger(0, "TP_Line", OBJPROP_WIDTH,HorizontalLineThickness);
+   ObjectSetInteger(0, "TP_Line", OBJPROP_WIDTH, HorizontalLineThickness);
    ObjectSetInteger(0, "TP_Line", OBJPROP_SELECTABLE, 1);
    ObjectSetInteger(0, "TP_Line", OBJPROP_BACK, true);
 }
@@ -1006,14 +1019,28 @@ void TyWindow::OnClickSellLines(void)
    ObjectDelete(0, "SL_Line");
    ObjectDelete(0, "TP_Line");
    ObjectDelete(0, "Limit_Line");
-   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, (Ask + (SLPips * PointValue() * DigitMulti)));
-   ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, (Bid - (TPPips * PointValue() * DigitMulti)));
+   double slPrice, tpPrice;
+   // Check if there's an active sell position on the symbol
+   if(PositionSelect(Symbol()))
+   {
+      // Get the SL and TP prices of the existing position
+      slPrice = PositionGetDouble(POSITION_SL);
+      tpPrice = PositionGetDouble(POSITION_TP);
+   }
+   else
+   {
+      // Calculate SL and TP based on your original logic
+      slPrice = Ask + (SLPips * PointValue() * DigitMulti);
+      tpPrice = Bid - (TPPips * PointValue() * DigitMulti);
+   }
+   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, slPrice);
+   ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, tpPrice);
    ObjectSetInteger(0, "SL_Line", OBJPROP_COLOR, clrRed);
-   ObjectSetInteger(0, "SL_Line", OBJPROP_WIDTH,HorizontalLineThickness);
+   ObjectSetInteger(0, "SL_Line", OBJPROP_WIDTH, HorizontalLineThickness);
    ObjectSetInteger(0, "SL_Line", OBJPROP_SELECTABLE, 1);
    ObjectSetInteger(0, "SL_Line", OBJPROP_BACK, true);
    ObjectSetInteger(0, "TP_Line", OBJPROP_COLOR, clrLime);
-   ObjectSetInteger(0, "TP_Line", OBJPROP_WIDTH,HorizontalLineThickness);
+   ObjectSetInteger(0, "TP_Line", OBJPROP_WIDTH, HorizontalLineThickness);
    ObjectSetInteger(0, "TP_Line", OBJPROP_SELECTABLE, 1);
    ObjectSetInteger(0, "TP_Line", OBJPROP_BACK, true);
 }
