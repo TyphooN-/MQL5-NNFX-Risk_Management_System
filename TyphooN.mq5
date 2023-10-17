@@ -1064,8 +1064,7 @@ void BubbleSort(PositionInfo &arr[])
       for (int j = 0; j < ArraySize(arr) - i - 1; j++)
       {
          // Compare based on lot size first
-         if (arr[j].lotSize > arr[j+1].lotSize || 
-             (arr[j].lotSize == arr[j+1].lotSize && arr[j].diff > arr[j+1].diff))
+         if (arr[j].lotSize > arr[j+1].lotSize || (arr[j].lotSize == arr[j+1].lotSize && arr[j].diff > arr[j+1].diff))
          {
             PositionInfo temp = arr[j];
             arr[j] = arr[j+1];
