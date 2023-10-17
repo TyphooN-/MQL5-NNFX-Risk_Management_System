@@ -906,7 +906,8 @@ void TyWindow::OnClickTrade(void)
       required_margin = OrderLots * lotSize * symbolPrice * marginRequirement;
    }
    // Check if the adjusted order size is too small
-   if (OrderLots < min_volume) {
+   if (OrderLots < min_volume)
+   {
       Print("Order size adjusted to zero due to insufficient margin. Cannot place order.");
       return;
    }
