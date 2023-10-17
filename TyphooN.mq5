@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.175"
+#property version   "1.176"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -725,7 +725,8 @@ void TyWindow::ExecuteBuyLimitOrders(double lots, double Limit_Price, int Orders
    {
       if (Trade.BuyLimit(lots, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
       {
-         Print("Buy limit order opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(Orders));
+         Print("Buy limit order opened successfully, Order ", IntegerToString(i+1), "/", IntegerToString(Orders), ". Price: ", DoubleToString(Limit_Price, _Digits), 
+               ", Lots: ", DoubleToString(lots, 2), ", SL: ", DoubleToString(SL, _Digits), ", TP: ", DoubleToString(TP, _Digits));
       }
       else
       {
@@ -739,7 +740,8 @@ void TyWindow::ExecuteSellLimitOrders(double lots, double Limit_Price, int Order
    {
       if (Trade.SellLimit(lots, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
       {
-         Print("Sell limit order opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(Orders));
+         Print("Sell limit order opened successfully, Order ", IntegerToString(i+1), "/", IntegerToString(Orders), ". Price: ", DoubleToString(Limit_Price, _Digits), 
+               ", Lots: ", DoubleToString(lots, 2), ", SL: ", DoubleToString(SL, _Digits), ", TP: ", DoubleToString(TP, _Digits));
       }
       else
       {
@@ -753,7 +755,8 @@ void TyWindow::ExecuteBuyOrders(double lots, int Orders)
    {
       if (Trade.Buy(lots, _Symbol, 0, SL, TP, NULL))
       {
-         Print("Buy trade opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(Orders));
+         Print("Buy trade opened successfully, Order ", IntegerToString(i+1), "/", IntegerToString(Orders), ". Price: ", DoubleToString(SymbolInfoDouble(_Symbol, SYMBOL_ASK), _Digits), 
+               ", Lots: ", DoubleToString(lots, 2), ", SL: ", DoubleToString(SL, _Digits), ", TP: ", DoubleToString(TP, _Digits));
       }
       else
       {
@@ -763,12 +766,12 @@ void TyWindow::ExecuteBuyOrders(double lots, int Orders)
 }
 void TyWindow::ExecuteSellOrders(double lots, int Orders)
 {
-
    for (int i = 0; i < Orders; i++)
    {
       if (Trade.Sell(lots, _Symbol, 0, SL, TP, NULL))
       {
-         Print("Sell position opened successfully, Order " + IntegerToString(i+1) + "/" + IntegerToString(Orders));
+         Print("Sell position opened successfully, Order ", IntegerToString(i+1), "/", IntegerToString(Orders),". Price: ", DoubleToString(SymbolInfoDouble(_Symbol, SYMBOL_BID), _Digits), 
+               ", Lots: ", DoubleToString(lots, 2), ", SL: ", DoubleToString(SL, _Digits), ", TP: ", DoubleToString(TP, _Digits));
       }
       else
       {
@@ -1172,7 +1175,14 @@ void AutoProtect()
                else
                {
                   Print("Position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + " closed successfully.");
-                  Print("Order #", positionsArray[i].ticket, " realized a profit of ", positionProfit, ". Open Price: ", PositionGetDouble(POSITION_PRICE_OPEN), ". Close Price: ", currentPrice);
+                  if (positionProfit >= 0)
+                  {
+                     Print("Order #", positionsArray[i].ticket, " realized a profit of $", positionProfit, ". Open Price: ", PositionGetDouble(POSITION_PRICE_OPEN), ". Close Price: ", currentPrice);
+                  }
+                  if (positionProfit < 0)
+                  {
+                     Print("Order #", positionsArray[i].ticket, " realized a loss of -$", MathAbs(positionProfit), ". Open Price: ", PositionGetDouble(POSITION_PRICE_OPEN), ". Close Price: ", currentPrice);
+                  }
                   ClosedPositions++;
                }
             }
@@ -1232,7 +1242,14 @@ void TyWindow::OnClickClosePositions(void)
             if(Trade.PositionClose(PositionGetInteger(POSITION_TICKET)))
             {
                TotalPL += positionProfit;
-               Print("Position #", PositionGetInteger(POSITION_TICKET), " closed with profit/loss of ", positionProfit);
+               if (positionProfit >= 0)
+               {
+                  Print("Position #", PositionGetInteger(POSITION_TICKET), " closed with a profit of $", positionProfit);
+               }
+               if (positionProfit < 0)
+               {
+                  Print("Position #", PositionGetInteger(POSITION_TICKET), " closed with a loss of -$", MathAbs(positionProfit));
+               }
             }
             else
             {
@@ -1240,8 +1257,14 @@ void TyWindow::OnClickClosePositions(void)
             }
          }
       }
-      // Print the total profit or loss after closing all positions
-      Print("Total profit/loss of closed positions: ", TotalPL);
+      if (TotalPL >= 0)
+      {
+         Print("Total profit of closed positions: $", TotalPL);
+      }
+      if (TotalPL < 0)
+      {
+         Print("Total loss of closed positions: -$", MathAbs(TotalPL));
+      }
    }
 }
 void TyWindow::OnClickCloseLimits(void)
