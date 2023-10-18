@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.178"
+#property version   "1.179"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -55,7 +55,7 @@ input group    "[ACCOUNT PROTECTION SETTINGS]";
 input bool     EnableAutoProtect          = true;
 input int      APCloseDivider             = 2;
 input int      APPositionsToClose         = 1;
-input int      APStartHour                = 20;
+input int      APStartHour                = 0;
 input int      APStopHour                 = 24;
 input double   APRRLevel                  = 3.1415926535897932384626433832795;
 input group    "[POSITION MANAGEMENT SETTINGS]";
@@ -1169,16 +1169,17 @@ void AutoProtect()
             {
                Print("Closing Position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + ".");
                double positionProfit = PositionGetDouble(POSITION_PROFIT);
-               if (!Trade.PositionClose(positionsArray[i].ticket))
-               {
-                  Print("Failed to close position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + ". Error code: ", GetLastError());
-               }
-               else
-               {
-                  Print("Position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + " closed successfully.");
-                  Print("Order #", positionsArray[i].ticket, " realized a profit of ", positionProfit, ". Open Price: ", PositionGetDouble(POSITION_PRICE_OPEN), ". Close Price: ", currentPrice);
-                  ClosedPositions++;
-               }
+            if (!Trade.PositionClose(positionsArray[i].ticket))
+            {
+               Print("Failed to close position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + ". Error code: ", GetLastError());
+            }
+            else
+            {
+               double lotSize = PositionGetDouble(POSITION_VOLUME);  // Get the lot size for the closed position
+               Print("Position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + " closed successfully with lot size of ", lotSize, ".");
+               Print("Order #", positionsArray[i].ticket, " realized a profit of ", positionProfit, ". Open Price: ", PositionGetDouble(POSITION_PRICE_OPEN), ". Close Price: ", currentPrice);
+               ClosedPositions++;
+            }
             }
             else
             {
