@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.179"
+#property version   "1.180"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -1104,8 +1104,8 @@ void BubbleSort(PositionInfo &arr[])
    {
       for (int j = 0; j < ArraySize(arr) - i - 1; j++)
       {
-         // Compare based on lot size first
-         if (arr[j].lotSize > arr[j+1].lotSize || (arr[j].lotSize == arr[j+1].lotSize && arr[j].diff > arr[j+1].diff))
+         // Compare based on lot size first, and then prioritize distance to current price
+         if (arr[j].lotSize < arr[j+1].lotSize || (arr[j].lotSize == arr[j+1].lotSize && arr[j].diff > arr[j+1].diff))
          {
             PositionInfo temp = arr[j];
             arr[j] = arr[j+1];
@@ -1141,6 +1141,7 @@ void AutoProtect()
          double diff = MathAbs(PositionGetDouble(POSITION_PRICE_OPEN) - currentPrice);
          positionsArray[j].diff = diff;
          positionsArray[j].ticket = ticket;
+         positionsArray[j].lotSize = PositionGetDouble(POSITION_VOLUME);
          j++;
       }
    }
@@ -1175,8 +1176,7 @@ void AutoProtect()
             }
             else
             {
-               double lotSize = PositionGetDouble(POSITION_VOLUME);  // Get the lot size for the closed position
-               Print("Position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + " closed successfully with lot size of ", lotSize, ".");
+               Print("Position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + " closed successfully with lot size of ", positionsArray[i].lotSize, ".");
                Print("Order #", positionsArray[i].ticket, " realized a profit of ", positionProfit, ". Open Price: ", PositionGetDouble(POSITION_PRICE_OPEN), ". Close Price: ", currentPrice);
                ClosedPositions++;
             }
