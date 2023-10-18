@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.177"
+#property version   "1.178"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -93,8 +93,8 @@ class TyWindow : public CAppDialog
       CButton           buttonSellLines;
       CButton           buttonDestroyLines;
       CButton           buttonProtect;
-      CButton           buttonClosePositions;
-      CButton           buttonCloseLimits;
+      CButton           buttonCloseAll;
+      CButton           buttonClosePartial;
       CButton           buttonSetTP;
       CButton           buttonSetSL;
    public:
@@ -119,8 +119,8 @@ class TyWindow : public CAppDialog
       bool              CreateButtonSellLines(void);
       bool              CreateButtonDestroyLines(void);
       bool              CreateButtonProtect(void);
-      bool              CreateButtonClosePositions(void);
-      bool              CreateButtonCloseLimits(void);
+      bool              CreateButtonCloseAll(void);
+      bool              CreateButtonClosePartial(void);
       bool              CreateButtonSetTP(void);
       bool              CreateButtonSetSL(void);
       // handlers of the dependent controls events
@@ -130,8 +130,8 @@ class TyWindow : public CAppDialog
       void              OnClickSellLines(void);
       void              OnClickDestroyLines(void);
       void              OnClickProtect(void);
-      void              OnClickClosePositions(void);
-      void              OnClickCloseLimits(void);
+      void              OnClickCloseAll(void);
+      void              OnClickClosePartial(void);
       void              OnClickSetTP(void);
       void              OnClickSetSL(void);
 };
@@ -143,8 +143,8 @@ ON_EVENT(ON_CLICK, buttonBuyLines, OnClickBuyLines)
 ON_EVENT(ON_CLICK, buttonSellLines, OnClickSellLines)
 ON_EVENT(ON_CLICK, buttonDestroyLines, OnClickDestroyLines)
 ON_EVENT(ON_CLICK, buttonProtect, OnClickProtect)
-ON_EVENT(ON_CLICK, buttonClosePositions, OnClickClosePositions)
-ON_EVENT(ON_CLICK, buttonCloseLimits, OnClickCloseLimits)
+ON_EVENT(ON_CLICK, buttonCloseAll, OnClickCloseAll)
+ON_EVENT(ON_CLICK, buttonClosePartial, OnClickClosePartial)
 ON_EVENT(ON_CLICK, buttonSetTP, OnClickSetTP)
 ON_EVENT(ON_CLICK, buttonSetSL, OnClickSetSL)
 EVENT_MAP_END(CAppDialog)
@@ -173,9 +173,9 @@ bool TyWindow::Create(const long chart,const string name,const int subwin,const 
       return(false);
    if(!CreateButtonProtect())
       return(false);
-   if(!CreateButtonClosePositions())
+   if(!CreateButtonCloseAll())
       return(false);
-   if(!CreateButtonCloseLimits())
+   if(!CreateButtonClosePartial())
       return(false);
       if(!CreateButtonSetTP())
    return(false);
@@ -413,6 +413,7 @@ double PointValue()
 }
 void OnTick()
 {
+   HasOpenPosition = false;
    // Filter AutoProtect to only execute during user defined window
    MqlDateTime time;TimeCurrent(time);
    bool APFilter=(APStartHour < APStopHour && (time.hour >= APStartHour && time.hour < APStopHour )) || (APStartHour > APStopHour && (time.hour >= APStartHour || time.hour < APStopHour));
@@ -663,31 +664,31 @@ bool TyWindow::CreateButtonProtect(void)
       return(false);
    return(true);
 }
-bool TyWindow::CreateButtonClosePositions(void)
+bool TyWindow::CreateButtonCloseAll(void)
 {
    int x1 = INDENT_LEFT;
    int y1 = INDENT_TOP + 3 * CONTROLS_GAP_Y;
    int x2 = x1 + BUTTON_WIDTH;
    int y2 = y1 + BUTTON_HEIGHT;
-   if(!buttonClosePositions.Create(0,"Close Positions",0,x1,y1,x2,y2))
+   if(!buttonCloseAll.Create(0,"Close All",0,x1,y1,x2,y2))
       return(false);
-   if(!buttonClosePositions.Text("Close Positions"))
+   if(!buttonCloseAll.Text("Close All"))
       return(false);
-   if(!Add(buttonClosePositions))
+   if(!Add(buttonCloseAll))
       return(false);
    return(true);
 }
-bool TyWindow::CreateButtonCloseLimits(void)
+bool TyWindow::CreateButtonClosePartial(void)
 {
    int x1 = INDENT_LEFT + (BUTTON_WIDTH + CONTROLS_GAP_X);
    int y1 = INDENT_TOP + 3 * CONTROLS_GAP_Y;
    int x2 = x1 + BUTTON_WIDTH;
    int y2 = y1 + BUTTON_HEIGHT;
-   if(!buttonCloseLimits.Create(0,"Close Limits",0,x1,y1,x2,y2))
+   if(!buttonClosePartial.Create(0,"Close Partial",0,x1,y1,x2,y2))
       return(false);
-   if(!buttonCloseLimits.Text("Close Limits"))
+   if(!buttonClosePartial.Text("Close Partial"))
       return(false);
-   if(!Add(buttonCloseLimits))
+   if(!Add(buttonClosePartial))
       return(false);
    return(true);
 }
@@ -1216,92 +1217,154 @@ void TyWindow::OnClickProtect(void)
 {
    Protect();
 }
-void TyWindow::OnClickClosePositions(void)
+void TyWindow::OnClickCloseAll(void)
 {
-   if(!HasOpenPosition)
-   {
-      Print("There are no positions to close on ", _Symbol, ".");
-      return;
-   }
-   double TotalPL = 0.00; // Track the total profit or loss of closed positions
-   int result = MessageBox("Do you want to close positions on " + _Symbol + "?", "Close Positions", MB_YESNO | MB_ICONQUESTION);
-   if (result == IDNO)
-   {
-      Print("Positions not closed.");
-   }
-   if (result == IDYES)
-   {
-      for(int i=PositionsTotal()-1; i>=0 ;i--)
-      {
-         if (PositionGetSymbol(i) == _Symbol && (ManageAllPositions || PositionGetInteger(POSITION_MAGIC) == MagicNumber))
-         {
-            // Get profit of the position before closing
-            double positionProfit = PositionGetDouble(POSITION_PROFIT);
-            if(Trade.PositionClose(PositionGetInteger(POSITION_TICKET)))
+    bool HasOpenLimitOrder = false;
+    // Check for open limit orders
+    for(int i=0; i<OrdersTotal(); i++)
+    {
+        if(Order.SelectByIndex(i) && Order.Magic() == MagicNumber && Order.Symbol() == _Symbol)
+        {
+            HasOpenLimitOrder = true;
+            break;
+        }
+    }
+    // Check for open positions
+    for(int i=0; i<PositionsTotal(); i++)
+    {
+        if(PositionGetSymbol(i) == _Symbol && (ManageAllPositions || PositionGetInteger(POSITION_MAGIC) == MagicNumber))
+        {
+            HasOpenPosition = true;
+            break;
+        }
+    }
+    if(!HasOpenLimitOrder && !HasOpenPosition)
+    {
+        Print("There are no positions or limit orders to close on ", _Symbol, ".");
+        return;
+    }
+    // Close limit orders logic
+    if(HasOpenLimitOrder)
+    {
+        int result = MessageBox("Do you want to close all limit orders?", "Close Limit Orders", MB_YESNO | MB_ICONQUESTION);
+        if (result == IDYES)
+        {
+            for(int i = OrdersTotal() - 1; i >= 0; i--)
             {
-               TotalPL += positionProfit;
-               if (positionProfit >= 0)
+                if(Order.SelectByIndex(i) && Order.Magic() == MagicNumber && Order.Symbol() == _Symbol)
+                {
+                    if (Trade.OrderDelete(Order.Ticket()))
+                    {
+                        Print("Order #", Order.Ticket(), " closed");
+                    }
+                    else
+                    {
+                        Print("Order #", Order.Ticket(), " close failed with error ", GetLastError());
+                    }
+                }
+            }
+        }
+        else if(result == IDNO)
+        {
+            Print("Limit orders not closed.");
+        }
+    }
+   // Close open positions logic
+   if(HasOpenPosition)
+   {
+      double TotalPL = 0.00;
+      int result = MessageBox("Do you want to close all positions on " + _Symbol + "?", "Close Positions", MB_YESNO | MB_ICONQUESTION);
+      if (result == IDYES)
+      {
+         for(int i=PositionsTotal()-1; i>=0 ;i--)
+         {
+            if (PositionGetSymbol(i) == _Symbol && (ManageAllPositions || PositionGetInteger(POSITION_MAGIC) == MagicNumber))
+            {
+               double entryPrice = PositionGetDouble(POSITION_PRICE_OPEN);
+               double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+               double positionProfit = PositionGetDouble(POSITION_PROFIT);
+               double lotSize = PositionGetDouble(POSITION_VOLUME);
+               if(Trade.PositionClose(PositionGetInteger(POSITION_TICKET)))
                {
-                  Print("Position #", PositionGetInteger(POSITION_TICKET), " closed with a profit of $", positionProfit);
+                  TotalPL += positionProfit;
+                  if (positionProfit >= 0)
+                  {
+                     Print("Closed Position #", PositionGetInteger(POSITION_TICKET), " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a profit of $", positionProfit);
+                  }
+                  else
+                  {
+                     Print("Closed Position #", PositionGetInteger(POSITION_TICKET), " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a loss of -$", MathAbs(positionProfit));
+                  }
                }
-               if (positionProfit < 0)
+               else
                {
-                  Print("Position #", PositionGetInteger(POSITION_TICKET), " closed with a loss of -$", MathAbs(positionProfit));
+                  Print("Position #", PositionGetInteger(POSITION_TICKET), " close failed with error ", GetLastError());
                }
+            }
+            }
+            if (TotalPL >= 0)
+            {
+                Print("Total profit of closed positions: $", TotalPL);
+            }
+            if (TotalPL < 0)
+            {
+                Print("Total loss of closed positions: -$", MathAbs(TotalPL));
+            }
+        }
+        else if(result == IDNO)
+        {
+            Print("Positions not closed.");
+        }
+    }
+}
+void TyWindow::OnClickClosePartial(void)
+{
+    PositionInfo positions[];
+    for (int i = 0; i < PositionsTotal(); i++)
+    {
+        if (PositionGetSymbol(i) == _Symbol)
+        {
+            PositionInfo pos;
+            pos.ticket = PositionGetInteger(POSITION_TICKET);
+            pos.lotSize = PositionGetDouble(POSITION_VOLUME);
+            pos.diff = 0; // You can assign some other value here if needed
+            ArrayResize(positions, ArraySize(positions) + 1);
+            positions[ArraySize(positions) - 1] = pos;
+        }
+    }
+    if(ArraySize(positions) == 0)
+    {
+        Print("There are no positions to close on ", _Symbol + ".");
+        return;
+    }
+    // Sort the positions array by lot size
+    BubbleSort(positions);
+    int result = MessageBox("Do you want to close the smallest lot order on " + _Symbol + "?", "Close Smallest Lot Order", MB_YESNO | MB_ICONQUESTION);
+    if (result == IDYES)
+    {
+        double entryPrice = PositionGetDouble(POSITION_PRICE_OPEN);
+        double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+        double positionProfit = PositionGetDouble(POSITION_PROFIT);
+        if(Trade.PositionClose(positions[0].ticket))
+        {
+            if (positionProfit >= 0)
+            {
+                Print("Closed Position #", positions[0].ticket, " (lots: ", positions[0].lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a profit of $", positionProfit, ".");
             }
             else
             {
-               Print("Position #", PositionGetInteger(POSITION_TICKET), " close failed with error ", GetLastError());
+                Print("Position #", positions[0].ticket, " (lots: ", positions[0].lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a loss of -$", MathAbs(positionProfit), ".");
             }
-         }
-      }
-      if (TotalPL >= 0)
-      {
-         Print("Total profit of closed positions: $", TotalPL);
-      }
-      if (TotalPL < 0)
-      {
-         Print("Total loss of closed positions: -$", MathAbs(TotalPL));
-      }
-   }
-}
-void TyWindow::OnClickCloseLimits(void)
-{
-   bool HasOpenLimitOrder = false;
-   for(int i=0; i<OrdersTotal(); i++)
-   {
-      if(Order.SelectByIndex(i) && Order.Magic() == MagicNumber)
-      {
-         HasOpenLimitOrder = true;
-         break;
-      }
-   }
-   if(!HasOpenLimitOrder)
-   {
-      Print("There are no limit orders to close on ", _Symbol, ".");
-      return;
-   }
-   int result = MessageBox("Do you want to close limit orders?", "Close Limit Orders", MB_YESNO | MB_ICONQUESTION);
-   if (result == IDNO)
-   {
-      Print("Limit orders not closed.");
-   }
-   if (result == IDYES)
-   {
-   for(int i = OrdersTotal() - 1; i >= 0; i--)
-      if(Order.SelectByIndex(i))
-      {
-         if(Order.Magic() != MagicNumber ) continue;
-         if (Trade.OrderDelete(Order.Ticket()))
-         {
-            Print("Order #", Order.Ticket(), " closed");
-         }
-         else
-         {
-            Print("Order #", Order.Ticket(), " close failed with error ", GetLastError());
-         }
-       }
-   }
+        }
+        else
+        {
+            Print("Failed to close position with ticket #", positions[0].ticket, ". Error:", GetLastError());
+        }
+    }
+    else if(result == IDNO)
+    {
+        Print("User chose not to close the smallest lot order.");
+    }
 }
 void TyWindow::OnClickSetTP(void)
 {
