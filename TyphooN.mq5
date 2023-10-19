@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.180"
+#property version   "1.181"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -885,7 +885,7 @@ void TyWindow::OnClickTrade(void)
    }
    if ((PartialLots * InitialOrdersToPlace) > max_volume)
    {
-      PartialLots = NormalizeDouble((max_volume / InitialOrdersToPlace),OrderDigits);
+      PartialLots = NormalizeDouble((max_volume / InitialOrdersToPlace), OrderDigits);
    }
    int ExistingOrders = GetOrdersForSymbol(_Symbol);
    int OrdersToPlaceNow = ExistingOrders >= InitialOrdersToPlace ? 1 : InitialOrdersToPlace;
@@ -900,18 +900,24 @@ void TyWindow::OnClickTrade(void)
    request.tp = TP;
    MqlTradeCheckResult check_result;
    MqlTick latest_tick;
-   //Print("Current Risk: ", Risk, ", percent_risk: ", percent_risk, ", Combined Risk: ", potentialRisk, ", MaxRisk: ", MaxRisk);
-   double lotSize = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_CONTRACT_SIZE);
-   double marginRequirement = SymbolInfoDouble(_Symbol, SYMBOL_MARGIN_INITIAL);
-   double symbolPrice = (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid;
-   double required_margin = OrderLots * lotSize * symbolPrice * marginRequirement;
+   double required_margin = 0.0;
+   if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
+   {
+      Print("Failed to calculate required margin. Error:", GetLastError());
+      return;
+   }
    double free_margin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
    // Decrease the order size if necessary to fit within available margin
-   while (required_margin >= (free_margin - 1000) && OrderLots > min_volume)
+   while (required_margin >= free_margin && OrderLots > min_volume)
    {
       OrderLots -= min_volume;
-      required_margin = OrderLots * lotSize * symbolPrice * marginRequirement;
+      if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
+      {
+         Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
+         return;
+      }
    }
+      Print("OrderLots: ", OrderLots, " Required Margin: ", required_margin, " Free Margin: ", free_margin);
    // Check if there's enough free margin to place the order
    if (required_margin >= free_margin)
    {
