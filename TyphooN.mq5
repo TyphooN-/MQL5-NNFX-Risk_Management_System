@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.181"
+#property version   "1.182"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -798,20 +798,6 @@ int GetOrdersForSymbol(string symbol)
    }
    return totalOrders;
 }
-double GetTotalVolumeForSymbol(string symbol)
-{
-   double totalVolume = 0;
-
-   for(int i=PositionsTotal()-1; i >= 0; i--)
-   {
-      string positionSymbol = PositionGetSymbol(i);
-      if(positionSymbol == symbol)
-      {
-         totalVolume += PositionGetDouble(POSITION_VOLUME);
-      }
-   }
-   return totalVolume;
-}
 bool ProcessPositionCheck(ulong ticket, string symbol, int magicNumber, bool manageAllPositions)
 {
     bool ShouldProcessPosition = false;
@@ -846,8 +832,6 @@ void TyWindow::OnClickTrade(void)
    TP = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
    double max_volume = NormalizeDouble(SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX), _Digits);
    double min_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
-   //double existing_volume = GetTotalVolumeForSymbol(_Symbol);
-   //double total_volume = existing_volume + TotalLots;
    double potentialRisk = Risk + percent_risk;
    double OrderRisk = Risk;
    Trade.SetExpertMagicNumber(MagicNumber);
