@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.182"
+#property version   "1.190"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -65,6 +65,9 @@ input group    "[EXPERT ADVISOR SETTINGS]";
 input int      MagicNumber                = 13;
 input int      HorizontalLineThickness    = 3;
 input bool     ManageAllPositions         = false;
+input group    "[DISCORD ANNOUNCEMENT SETTINGS]"
+input string   DiscordAPIKey =  "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
+input bool     EnableBroadcast = false;
 // global vars
 double TP = 0;
 double SL = 0;
@@ -357,6 +360,15 @@ void OnDeinit(const int reason)
 {
    ExtDialog.Destroy(reason);
    ObjectsDeleteAll(0, "info");
+}
+string arrayToString(uchar &arr[])
+{
+   string result = "";
+   for(int i = 0; i < ArraySize(arr); i++)
+   {
+      result += IntegerToString(arr[i], 16) + " ";  // Using hex representation
+   }
+   return result;
 }
 void CreateLabelBackground(string objName, int x, int y, int width, int height, color colour = clrBlack)
 {
@@ -720,14 +732,51 @@ bool TyWindow::CreateButtonSetSL(void)
       return(false);
    return(true);
 }
+void BroadcastDiscordAnnouncement(string announcement)
+{
+   string headers = "Content-Type: application/json";
+   uchar result[];
+   string result_headers;
+   string json = "{\"content\":\""+ announcement +"\"}";
+   char jsonArray[];
+   StringToCharArray(json, jsonArray);
+   // Remove null-terminator if any
+   int arrSize = ArraySize(jsonArray);
+   if(jsonArray[arrSize - 1] == '\0')
+   {
+      ArrayResize(jsonArray, arrSize - 1);
+   }
+   int res = WebRequest("POST", DiscordAPIKey, headers, 10, jsonArray, result, result_headers);
+   // Get the error immediately after WebRequest
+   //int lastError = GetLastError();
+   string resultString = CharArrayToString(result);
+   //Print("Debug - HTTP response code: ", res);
+   //Print("Debug - Result: ", resultString);
+   //Print("Debug - JSON as uchar array: ", arrayToString(jsonArray));
+   //Print("Debug - Length of Result: ", StringLen(resultString));
+   //if(lastError != 0)
+   //{
+   //   Print("WebRequest Error Code: ", lastError);
+   //}
+   if (DiscordAPIKey == "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token")
+   {
+      Print("You cannot broadcast to Discord with the Default API key.  Create a webhook in your own Discord or contact TyphooN if you would like to broadcast in the Market Wizardry Discord.");
+      return;
+   }
+}
 void TyWindow::ExecuteBuyLimitOrders(double lots, double Limit_Price, int Orders)
 {
    for (int i = 0; i < Orders; i++)
    {
       if (Trade.BuyLimit(lots, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
       {
-         Print("Buy limit order opened successfully, Order ", IntegerToString(i+1), "/", IntegerToString(Orders), ". Price: ", DoubleToString(Limit_Price, _Digits), 
-               ", Lots: ", DoubleToString(lots, 2), ", SL: ", DoubleToString(SL, _Digits), ", TP: ", DoubleToString(TP, _Digits));
+         string BuyLimitText = "[" + _Symbol + "] Buy limit order opened, Order " + IntegerToString(i+1) + "/" + IntegerToString(Orders) + ". Price: " + DoubleToString(Limit_Price, _Digits) + 
+               ", Lots: " + DoubleToString(lots, 2) + ", SL: " + DoubleToString(SL, _Digits) + ", TP: " + DoubleToString(TP, _Digits);
+         Print(BuyLimitText);
+         if(EnableBroadcast == true)
+         {
+            BroadcastDiscordAnnouncement(BuyLimitText);
+         }
       }
       else
       {
@@ -741,8 +790,13 @@ void TyWindow::ExecuteSellLimitOrders(double lots, double Limit_Price, int Order
    {
       if (Trade.SellLimit(lots, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
       {
-         Print("Sell limit order opened successfully, Order ", IntegerToString(i+1), "/", IntegerToString(Orders), ". Price: ", DoubleToString(Limit_Price, _Digits), 
-               ", Lots: ", DoubleToString(lots, 2), ", SL: ", DoubleToString(SL, _Digits), ", TP: ", DoubleToString(TP, _Digits));
+         string SellLimitText = "[" + _Symbol + "] Sell limit order opened, Order " + IntegerToString(i+1) + "/" + IntegerToString(Orders) + ". Price: " + DoubleToString(Limit_Price, _Digits) + 
+               ", Lots: " + DoubleToString(lots, 2) + ", SL: " + DoubleToString(SL, _Digits) + ", TP: " + DoubleToString(TP, _Digits);
+         Print(SellLimitText);
+         if(EnableBroadcast == true)
+         {
+            BroadcastDiscordAnnouncement(SellLimitText);
+         }
       }
       else
       {
@@ -756,8 +810,13 @@ void TyWindow::ExecuteBuyOrders(double lots, int Orders)
    {
       if (Trade.Buy(lots, _Symbol, 0, SL, TP, NULL))
       {
-         Print("Buy trade opened successfully, Order ", IntegerToString(i+1), "/", IntegerToString(Orders), ". Price: ", DoubleToString(SymbolInfoDouble(_Symbol, SYMBOL_ASK), _Digits), 
-               ", Lots: ", DoubleToString(lots, 2), ", SL: ", DoubleToString(SL, _Digits), ", TP: ", DoubleToString(TP, _Digits));
+         string MarketBuyText = "[" + _Symbol + "] Market Buy position opened, Order " + IntegerToString(i+1) + "/" + IntegerToString(Orders) + ". Price: " + DoubleToString(SymbolInfoDouble(_Symbol, SYMBOL_ASK), _Digits) + 
+               ", Lots: " + DoubleToString(lots, 2) + ", SL: " +  DoubleToString(SL, _Digits) + ", TP: " + DoubleToString(TP, _Digits);
+         Print(MarketBuyText);
+         if(EnableBroadcast == true)
+         {
+            BroadcastDiscordAnnouncement(MarketBuyText);
+         }
       }
       else
       {
@@ -771,8 +830,13 @@ void TyWindow::ExecuteSellOrders(double lots, int Orders)
    {
       if (Trade.Sell(lots, _Symbol, 0, SL, TP, NULL))
       {
-         Print("Sell position opened successfully, Order ", IntegerToString(i+1), "/", IntegerToString(Orders),". Price: ", DoubleToString(SymbolInfoDouble(_Symbol, SYMBOL_BID), _Digits), 
-               ", Lots: ", DoubleToString(lots, 2), ", SL: ", DoubleToString(SL, _Digits), ", TP: ", DoubleToString(TP, _Digits));
+         string MarketSellText = "[" + _Symbol + "] Market Sell position opened, Order " + IntegerToString(i+1) + "/" + IntegerToString(Orders) + ". Price: " + DoubleToString(SymbolInfoDouble(_Symbol, SYMBOL_BID), _Digits) + 
+               ", Lots: " + DoubleToString(lots, 2) + ", SL: " + DoubleToString(SL, _Digits) + ", TP: " + DoubleToString(TP, _Digits);
+         Print(MarketSellText);
+         if(EnableBroadcast == true)
+         {
+            BroadcastDiscordAnnouncement(MarketSellText);
+         }
       }
       else
       {
@@ -901,7 +965,7 @@ void TyWindow::OnClickTrade(void)
          return;
       }
    }
-      Print("OrderLots: ", OrderLots, " Required Margin: ", required_margin, " Free Margin: ", free_margin);
+   //Print("OrderLots: ", OrderLots, " Required Margin: ", required_margin, " Free Margin: ", free_margin);
    // Check if there's enough free margin to place the order
    if (required_margin >= free_margin)
    {
