@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.decapool.net/"
-#property version   "1.06"
+#property version   "1.07"
 double LastBullPower = -1;
 double LastBearPower = -1;
 datetime LastPowerNotification = 0;
@@ -47,18 +47,26 @@ void OnTick()
    {
       double CurrentBullPower = GlobalVariableGet("GlobalBullPower");
       double CurrentBearPower = GlobalVariableGet("GlobalBearPower");
-      Sleep(5000);  // Wait for 5 seconds
-      // Verify the values again after 5 seconds
-      double VerifiedBullPower = GlobalVariableGet("GlobalBullPower");
-      double VerifiedBearPower = GlobalVariableGet("GlobalBearPower");
+      Sleep(9666);
+      // Verify the values again
+      double VerifiedBullPower1 = GlobalVariableGet("GlobalBullPower");
+      double VerifiedBearPower1 = GlobalVariableGet("GlobalBearPower");
+      Sleep(9666);
+      // Verify the values a third time
+      double VerifiedBullPower2 = GlobalVariableGet("GlobalBullPower");
+      double VerifiedBearPower2 = GlobalVariableGet("GlobalBearPower");
       // Keep fetching until the values match
-      while(CurrentBullPower != VerifiedBullPower || CurrentBearPower != VerifiedBearPower)
+      while(CurrentBullPower != VerifiedBullPower1 || CurrentBearPower != VerifiedBearPower1 || CurrentBullPower != VerifiedBullPower2 || CurrentBearPower != VerifiedBearPower2)
       {
          CurrentBullPower = GlobalVariableGet("GlobalBullPower");
          CurrentBearPower = GlobalVariableGet("GlobalBearPower");
-         Sleep(5000);  // Wait for 5 seconds
-         VerifiedBullPower = GlobalVariableGet("GlobalBullPower");
-         VerifiedBearPower = GlobalVariableGet("GlobalBearPower");
+         // Verify the values again
+         double VerifiedBullPower1 = GlobalVariableGet("GlobalBullPower");
+         double VerifiedBearPower1 = GlobalVariableGet("GlobalBearPower");
+         Sleep(9666);
+         // Verify the values a third time
+         double VerifiedBullPower2 = GlobalVariableGet("GlobalBullPower");
+         double VerifiedBearPower2 = GlobalVariableGet("GlobalBearPower");
       }
       double PowerCalculated = GlobalVariableGet("PowerCalcComplete");
       if((CurrentBullPower != LastBullPower || CurrentBearPower != LastBearPower) && PowerCalculated == true && (TimeCurrent() - LastPowerNotification >= NotificationCoolDown) && ((CurrentBullPower + CurrentBearPower == 99.999) || (CurrentBullPower + CurrentBearPower == 99.99900000000001)))
