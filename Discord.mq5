@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.decapool.net/"
-#property version   "1.08"
+#property version   "1.09"
 double LastBullPower = -1;
 double LastBearPower = -1;
 datetime LastPowerNotification = 0;
@@ -81,7 +81,7 @@ void OnTick()
          {
             url = "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
          }
-         if ( _Symbol == "BTCUSD" || _Symbol == "LINKUSD" || _Symbol == "BCHUSD" || _Symbol == "ETHUSD" )
+         if ( _Symbol == "BTCUSD" || _Symbol == "LINKUSD" || _Symbol == "BCHUSD" || _Symbol == "ETHUSD" || _Symbol == "AVAXUSD" )
          {
             url = "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
          }
