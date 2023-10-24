@@ -23,11 +23,12 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.decapool.net/"
-#property version   "1.10"
+#property version   "1.11"
 double LastBullPower = -1;
 double LastBearPower = -1;
 datetime LastPowerNotification = 0;
 const int NotificationCoolDown = 900;
+input string DisordAPIKey = "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
 int OnInit()
 {
    return(INIT_SUCCEEDED);
@@ -52,7 +53,7 @@ void OnTick()
       // Verify the values again
       double VerifiedBullPower1 = GlobalVariableGet("GlobalBullPower");
       double VerifiedBearPower1 = GlobalVariableGet("GlobalBearPower");
-      Sleep(randomSleepDuration);
+      Sleep(RandomSleepDuration);
       // Verify the values a third time
       double VerifiedBullPower2 = GlobalVariableGet("GlobalBullPower");
       double VerifiedBearPower2 = GlobalVariableGet("GlobalBearPower");
@@ -79,26 +80,26 @@ void OnTick()
          string url;
          if ( _Symbol == "USOUSD" || _Symbol == "UKOUSD" )
          {
-            url = "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
+            url = "DiscordAPIKey";
          }
          if ( _Symbol == "BTCUSD" || _Symbol == "LINKUSD" || _Symbol == "BCHUSD" || _Symbol == "ETHUSD" || _Symbol == "AVAXUSD" )
          {
-            url = "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
+            url = "DiscordAPIKey";
          }
          if ( _Symbol == "XAUUSD" || _Symbol == "XAGUSD" || _Symbol == "XPTUSD" || _Symbol == "XPDUSD" )
          {
-            url = "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
+            url = "DiscordAPIKey";
          }
          if ( _Symbol == "AUDCAD.i" || _Symbol == "AUDCHF.i" || _Symbol == "AUDJPY.i" || _Symbol == "AUDUSD.i" || _Symbol == "CADCHF.i" || _Symbol == "CADJPY.i" || _Symbol == "CHFJPY.i"
          || _Symbol == "EURAUD.i" || _Symbol == "EURCAD.i" || _Symbol == "EURCHF.i" || _Symbol == "EURGBP.i" || _Symbol == "EURJPY.i" || _Symbol == "EURUSD.i" || _Symbol == "GBPAUD.i"
          || _Symbol == "GBPCAD.i" || _Symbol == "GBPCHF.i" || _Symbol == "GBPJPY.i" || _Symbol == "GBPUSD.i" || _Symbol == "USDCAD.i" || _Symbol == "USDCHF.i" || _Symbol == "USDJPY.i" )
          {
-            url = "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
+            url = "DiscordAPIKey";
          }
-         if ( _Symbol == "NDX100" || _Symbol == "SPX500" || _Symbol == "US30" || _Symbol == "UK100" || _Symbol == "GER30" || _Symbol == "ASX200"
+         if ( _Symbol == "NDX100" || _Symbol == "SPX500" || _Symbol == "US30" || _Symbol == "UK100" || _Symbol == "GER30" || _Symbol == "ASX200" ||
               _Symbol == "EUSTX50" || _Symbol == "FRA40" || _Symbol == "JPN225" || _Symbol == "HK50")
          {
-            url = "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
+            url = "DiscordAPIKey";
          }
          string headers = "Content-Type: application/json";
          uchar result[];
