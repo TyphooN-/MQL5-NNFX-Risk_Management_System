@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.decapool.net/"
-#property version   "1.09"
+#property version   "1.10"
 double LastBullPower = -1;
 double LastBearPower = -1;
 datetime LastPowerNotification = 0;
@@ -47,12 +47,12 @@ void OnTick()
    {
       double CurrentBullPower = GlobalVariableGet("GlobalBullPower");
       double CurrentBearPower = GlobalVariableGet("GlobalBearPower");
-      int randomSleepDuration = 9000 + MathRand() % (20000 - 9000 + 1);
-      Sleep(randomSleepDuration * 1000);
+      int RandomSleepDuration = 9000 + MathRand() % (20000 - 9000 + 1);
+      Sleep(RandomSleepDuration);
       // Verify the values again
       double VerifiedBullPower1 = GlobalVariableGet("GlobalBullPower");
       double VerifiedBearPower1 = GlobalVariableGet("GlobalBearPower");
-      Sleep(randomSleepDuration * 1000);
+      Sleep(randomSleepDuration);
       // Verify the values a third time
       double VerifiedBullPower2 = GlobalVariableGet("GlobalBullPower");
       double VerifiedBearPower2 = GlobalVariableGet("GlobalBearPower");
@@ -61,11 +61,11 @@ void OnTick()
       {
          CurrentBullPower = GlobalVariableGet("GlobalBullPower");
          CurrentBearPower = GlobalVariableGet("GlobalBearPower");
-         Sleep(randomSleepDuration * 1000);
+         Sleep(RandomSleepDuration);
          // Verify the values again
          double VerifiedBullPower1 = GlobalVariableGet("GlobalBullPower");
          double VerifiedBearPower1 = GlobalVariableGet("GlobalBearPower");
-         Sleep(randomSleepDuration * 1000);
+         Sleep(RandomSleepDuration);
          // Verify the values a third time
          double VerifiedBullPower2 = GlobalVariableGet("GlobalBullPower");
          double VerifiedBearPower2 = GlobalVariableGet("GlobalBearPower");
