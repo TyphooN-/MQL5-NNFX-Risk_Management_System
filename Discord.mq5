@@ -23,10 +23,10 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.decapool.net/"
-#property version   "1.13"
+#property version   "1.14"
 double LastBullPower = -1;
 double LastBearPower = -1;
-int RandomSleepDuration = 9000 + MathRand() % (3000);
+int RandomSleepDuration = 4000 + MathRand() % (2000);
 bool IsFirstTick = true;
 datetime LastPowerNotification = 0;
 const int NotificationCoolDown = 900;
@@ -50,7 +50,7 @@ void StartupNotification()
    {
       double CurrentBullPower = GlobalVariableGet("GlobalBullPower");
       double CurrentBearPower = GlobalVariableGet("GlobalBearPower");
-      RandomSleepDuration = 9000 + MathRand() % (13000);
+      RandomSleepDuration = 4000 + MathRand() % (2000);
       Sleep(RandomSleepDuration);
       double VerifiedBullPower1 = GlobalVariableGet("GlobalBullPower");
       double VerifiedBearPower1 = GlobalVariableGet("GlobalBearPower");
@@ -136,7 +136,7 @@ void OnTick()
    {
       double CurrentBullPower = GlobalVariableGet("GlobalBullPower");
       double CurrentBearPower = GlobalVariableGet("GlobalBearPower");
-      RandomSleepDuration = 9000 + MathRand() % (3000);
+      RandomSleepDuration = 4000 + MathRand() % (2000);
       Sleep(RandomSleepDuration);
       double VerifiedBullPower1 = GlobalVariableGet("GlobalBullPower");
       double VerifiedBearPower1 = GlobalVariableGet("GlobalBearPower");
