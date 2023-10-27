@@ -36,7 +36,7 @@ double VerifiedBullPower2 = -1;
 double VerifiedBearPower2 = -1;
 double VerifiedBullPower3 = -1;
 double VerifiedBearPower3 = -1;
-input string DisordAPIKey = "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
+input string DiscordAPIKey = "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
 int OnInit()
 {
    return(INIT_SUCCEEDED);
@@ -89,26 +89,26 @@ void SendPowerNotification()
          string url;
          if ( _Symbol == "USOUSD" || _Symbol == "UKOUSD" )
          {
-            url = "DisordAPIKey";
+            url = "DiscordAPIKey";
          }
          if ( _Symbol == "BTCUSD" || _Symbol == "LINKUSD" || _Symbol == "BCHUSD" || _Symbol == "ETHUSD" || _Symbol == "AVAXUSD")
          {
-            url = "DisordAPIKey";
+            url = "DiscordAPIKey";
          }
          if ( _Symbol == "XAUUSD" || _Symbol == "XAGUSD" || _Symbol == "XPTUSD" || _Symbol == "XPDUSD" )
          {
-            url = "DisordAPIKey";
+            url = "DiscordAPIKey";
          }
          if ( _Symbol == "AUDCAD.i" || _Symbol == "AUDCHF.i" || _Symbol == "AUDJPY.i" || _Symbol == "AUDUSD.i" || _Symbol == "CADCHF.i" || _Symbol == "CADJPY.i" || _Symbol == "CHFJPY.i"
          || _Symbol == "EURAUD.i" || _Symbol == "EURCAD.i" || _Symbol == "EURCHF.i" || _Symbol == "EURGBP.i" || _Symbol == "EURJPY.i" || _Symbol == "EURUSD.i" || _Symbol == "GBPAUD.i"
          || _Symbol == "GBPCAD.i" || _Symbol == "GBPCHF.i" || _Symbol == "GBPJPY.i" || _Symbol == "GBPUSD.i" || _Symbol == "USDCAD.i" || _Symbol == "USDCHF.i" || _Symbol == "USDJPY.i" )
          {
-            url = "DisordAPIKey";
+            url = "DiscordAPIKey";
          }
          if ( _Symbol == "NDX100" || _Symbol == "SPX500" || _Symbol == "US30" || _Symbol == "UK100" || _Symbol == "GER30" || _Symbol == "ASX200"
          || _Symbol == "EUSTX50" || _Symbol == "FRA40" || _Symbol == "JPN225" || _Symbol == "HK50" || _Symbol == "USDX" )
          {
-            url = "DisordAPIKey";
+            url = "DiscordAPIKey";
          }
          string headers = "Content-Type: application/json";
          uchar result[];
