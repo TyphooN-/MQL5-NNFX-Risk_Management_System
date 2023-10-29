@@ -1,4 +1,4 @@
-/**=        ATR_Projection.mq5  (TyphooN's ATR Projection Indicator)
+/**=        ATR_Projection.mq4  (TyphooN's ATR Projection Indicator)
  *               Copyright 2023, TyphooN (https://www.decapool.net/)
  *
  * Disclaimer and Licence
@@ -25,5 +25,7 @@
 #property indicator_buffers 6
 #property indicator_plots 0
 #property version "1.030"
+#property strict
 
 #include "ATR_Projection.mqh"
+
