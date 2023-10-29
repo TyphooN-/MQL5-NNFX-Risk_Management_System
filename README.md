@@ -34,12 +34,12 @@
 
 ### Risk Management Panel
 - Open Trade: Will default to market execution unless Limit Line is clicked first.  The order is placed with TP and SL parameters set to the levels of the TP Line (Green Line) and the SL Line (Red line).  Both of these lines can be double clicked and moved by the user to the desired price.
-- Buy Lines: Creates TP and SL Lines in the buy orientation based on TPPips and SLPips set by the user.
+- Buy Lines: Creates TP and SL Lines in the buy orientation.
 - Destroy Lines: Removes TP and SL line from chart, so that the user may not accidentally place or modify an order.
 - Close All: Closes all open positions/limit orders on the market.
 - Set TP: Modifies the take profit level of existing trades on the symbol to the price at the TP Line (Green Line).
 - Limit Line: Creates a white line which is where the limit order will be placed.
-- Sell Line: Creates TP and SL Lines in the sell orientation based on TPPips and SLPips set by the user.
+- Sell Line: Creates TP and SL Lines in the sell orientation.
 - Protect: Moves stop loss to break even on all positions of the current symbol.  This will disable AutoProtect.
 - Close Partial: Closes the smallest lot order on the current symbol.
 - Set SL: Modifies the take profit level of existing trades on the symbol to the price at the SL Line (Red Line).
