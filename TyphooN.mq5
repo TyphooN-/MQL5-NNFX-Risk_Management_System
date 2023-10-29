@@ -1063,7 +1063,6 @@ void TyWindow::OnClickBuyLines(void)
       if (HighArray[i] > HighestPrice)
          HighestPrice = HighArray[i];
    }
-
    // Check if there's an active buy position on the symbol
    if(PositionSelect(Symbol()))
    {
@@ -1088,7 +1087,6 @@ void TyWindow::OnClickBuyLines(void)
    ObjectSetInteger(0, "TP_Line", OBJPROP_SELECTABLE, 1);
    ObjectSetInteger(0, "TP_Line", OBJPROP_BACK, true);
 }
-
 void TyWindow::OnClickSellLines(void)
 {
    ObjectDelete(0, "SL_Line");
