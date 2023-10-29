@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.201"
+#property version   "1.202"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -51,6 +51,7 @@ input group    "[ORDER PLACEMENT SETTINGS]";
 input double   MaxRisk                    = 1.3;
 input double   Risk                       = 1.3;
 input int      InitialOrdersToPlace       = 2;
+input int      MarginBuffer               = 1000;
 input group    "[ACCOUNT PROTECTION SETTINGS]";
 input bool     EnableAutoProtect          = true;
 input int      APCloseDivider             = 2;
@@ -912,7 +913,7 @@ void TyWindow::OnClickTrade(void)
    }
    double free_margin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
    // Decrease the order size if necessary to fit within available margin
-   while ((required_margin + 500) >= free_margin && OrderLots > min_volume)
+   while ((required_margin + MarginBuffer) >= free_margin && OrderLots > min_volume)
    {
       OrderLots -= min_volume / OrdersToPlaceNow; // divide the reduction by OrdersToPlaceNow
       if (!OrderCalcMargin(request.type, _Symbol, OrderLots * OrdersToPlaceNow, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
