@@ -93,6 +93,7 @@ input double    PowerHTFMulti                = 5;
 - The ATR Projection Indicator plots a yellow line +/- the ATR value (Projection) whenever a new candlestick forms on the enabled timeframe(s).  The length of the line indicates a longer timeframe.  Some timeframes are disabled when viewing higher timeframes as they are barely visible.
 - The user can hover the mouse over the plotted lines to see what the timeframe is, and if it is the Projected ATR High or Low.
 - InfoText is displayed on the chart which contains the M15, H1, H4, D1, W1, and MN1 ATR values for easy evaluation.
+- InfoText will turn Magenta if a lower timeframe ATR > a higher timeframe ATR.
 ![ATR_Projection_InfoText](ATR_Projection_InfoText.png)
 
 ![ATR_Projection_Levels](ATR_Projection_Levels.png)
