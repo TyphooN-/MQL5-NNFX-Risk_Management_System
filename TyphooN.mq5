@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.193"
+#property version   "1.200"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -58,9 +58,6 @@ input int      APPositionsToClose         = 1;
 input int      APStartHour                = 23;
 input int      APStopHour                 = 24;
 input double   APRRLevel                  = 3.1415926535897932384626433832795;
-input group    "[POSITION MANAGEMENT SETTINGS]";
-input int      SLPips                     = 4;
-input int      TPPips                     = 13;
 input group    "[EXPERT ADVISOR SETTINGS]";
 input int      MagicNumber                = 13;
 input int      HorizontalLineThickness    = 3;
@@ -76,7 +73,6 @@ double Ask = 0;
 double order_risk_money = 0;
 bool LimitLineExists = false;
 bool AutoProtectCalled = false;
-double DigitMulti = 0;
 double percent_risk = 0;
 bool HasOpenPosition = false;
 // defines
@@ -190,48 +186,6 @@ bool TyWindow::Create(const long chart,const string name,const int subwin,const 
 TyWindow ExtDialog;
 int OnInit()
 {
-   if (_Digits == 2)
-   {
-      if (_Symbol == "XAUUSD")
-      {
-         DigitMulti = 0.1;
-      }
-      else if (_Symbol == "US30.cash" || _Symbol == "US500.cash" || _Symbol == "US100.cash" || _Symbol == "NDX100" || _Symbol == "SPX500" || _Symbol == "US30")
-      {
-         DigitMulti = 100;
-      }
-      else
-      {
-         DigitMulti = 10;
-      }
-   }
-   if (_Digits == 3)
-   {
-      if (_Symbol == "XAGUSD")
-      {
-         DigitMulti = 0.0001;
-      }
-      if (_Symbol == "USOIL.cash" || _Symbol == "UKOIL.cash" || _Symbol == "USOUSD" || _Symbol == "UKOUSD")
-      {
-         DigitMulti = 1;
-      }
-      else
-      {
-         DigitMulti = 0.001;
-      }
-   }
-   if (_Digits == 4)
-   {
-      DigitMulti = 1;
-   }
-   if (_Digits == 5)
-   {
-      DigitMulti = 0.0002;
-   }
-   if (_Digits == 7)
-   {
-      DigitMulti = 1000;
-   }
    string FontName="Courier New";
    int FontSize=8;
    int LeftColumnX=310;
@@ -329,7 +283,7 @@ int OnInit()
    ObjectSetString(0,"infoRR",OBJPROP_TEXT,infoRR);
    ObjectSetString(0,"infoPL",OBJPROP_TEXT,infoPL);
    ObjectSetString(0,"infoSLPL",OBJPROP_TEXT,infoSLPL);
-   string infoTP = "Total TP : $0.00";
+   string infoTP = "TP P/L : $0.00";
    ObjectSetString(0,"infoTP",OBJPROP_TEXT,infoTP);
    string infoMargin = "Margin: $0.00";
    ObjectSetString(0,"infoMargin",OBJPROP_TEXT,infoMargin);
@@ -562,7 +516,7 @@ void OnTick()
    ObjectSetString(0,"infoRR",OBJPROP_TEXT,infoRR);
    ObjectSetString(0,"infoPL",OBJPROP_TEXT,infoPL);
    ObjectSetString(0,"infoSLPL",OBJPROP_TEXT,infoSLPL);
-   string infoTP = "Total TP : $" + DoubleToString(total_tp, 2);
+   string infoTP = "TP P/L : $" + DoubleToString(total_tp, 2);
    ObjectSetString(0,"infoTP",OBJPROP_TEXT,infoTP);
    string infoMargin = "Margin: $" + DoubleToString(total_margin, 2);
    ObjectSetString(0,"infoMargin",OBJPROP_TEXT,infoMargin);
@@ -1086,6 +1040,28 @@ void TyWindow::OnClickBuyLines(void)
    ObjectDelete(0, "TP_Line");
    ObjectDelete(0, "Limit_Line");
    double slPrice, tpPrice;
+   // Calculate the number of visible candles
+   int VisibleCandles = (int) ChartGetInteger(0, CHART_VISIBLE_BARS);
+   // Create arrays to store historical low and high prices
+   double LowArray[];
+   double HighArray[];
+   // Copy historical low and high prices into the arrays
+   ArraySetAsSeries(LowArray, true);
+   ArraySetAsSeries(HighArray, true);
+   CopyLow(Symbol(), Period(), 0, VisibleCandles, LowArray);
+   CopyHigh(Symbol(), Period(), 0, VisibleCandles, HighArray);
+   // Calculate the lowest and highest prices within the visible range
+   double LowestPrice = LowArray[0];
+   double HighestPrice = HighArray[0];
+   for (int i = 1; i < VisibleCandles; i++)
+   {
+      if (LowArray[i] < LowestPrice)
+         LowestPrice = LowArray[i];
+
+      if (HighArray[i] > HighestPrice)
+         HighestPrice = HighArray[i];
+   }
+
    // Check if there's an active buy position on the symbol
    if(PositionSelect(Symbol()))
    {
@@ -1095,8 +1071,9 @@ void TyWindow::OnClickBuyLines(void)
    }
    else 
    {
-       slPrice = Bid - (SLPips * PointValue() * DigitMulti);
-       tpPrice = Ask + (TPPips * PointValue() * DigitMulti);
+       // Use the lowest and highest prices within the visible range
+       slPrice = LowestPrice;
+       tpPrice = HighestPrice;
    }
    ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, slPrice);
    ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, tpPrice);
@@ -1109,12 +1086,34 @@ void TyWindow::OnClickBuyLines(void)
    ObjectSetInteger(0, "TP_Line", OBJPROP_SELECTABLE, 1);
    ObjectSetInteger(0, "TP_Line", OBJPROP_BACK, true);
 }
+
 void TyWindow::OnClickSellLines(void)
 {
    ObjectDelete(0, "SL_Line");
    ObjectDelete(0, "TP_Line");
    ObjectDelete(0, "Limit_Line");
    double slPrice, tpPrice;
+   // Calculate the number of visible candles
+   int VisibleCandles = (int) ChartGetInteger(0, CHART_VISIBLE_BARS);
+   // Create arrays to store historical low and high prices
+   double LowArray[];
+   double HighArray[];
+   // Copy historical low and high prices into the arrays
+   ArraySetAsSeries(LowArray, true);
+   ArraySetAsSeries(HighArray, true);
+   CopyLow(Symbol(), Period(), 0, VisibleCandles, LowArray);
+   CopyHigh(Symbol(), Period(), 0, VisibleCandles, HighArray);
+   // Calculate the lowest and highest prices within the visible range
+   double LowestPrice = LowArray[0];
+   double HighestPrice = HighArray[0];
+   for (int i = 1; i < VisibleCandles; i++)
+   {
+      if (LowArray[i] < LowestPrice)
+         LowestPrice = LowArray[i];
+
+      if (HighArray[i] > HighestPrice)
+         HighestPrice = HighArray[i];
+   }
    // Check if there's an active sell position on the symbol
    if(PositionSelect(Symbol()))
    {
@@ -1124,9 +1123,9 @@ void TyWindow::OnClickSellLines(void)
    }
    else
    {
-      // Calculate SL and TP based on your original logic
-      slPrice = Ask + (SLPips * PointValue() * DigitMulti);
-      tpPrice = Bid - (TPPips * PointValue() * DigitMulti);
+      // Use the lowest and highest prices within the visible range
+      slPrice = HighestPrice;
+      tpPrice = LowestPrice;
    }
    ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, slPrice);
    ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, tpPrice);
