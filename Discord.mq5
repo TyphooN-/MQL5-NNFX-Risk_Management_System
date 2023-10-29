@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.decapool.net/"
-#property version   "1.19"
+#property version   "1.20"
 double LastBullPower = -1;
 double LastBearPower = -1;
 datetime LastPowerNotification = 0;
@@ -93,7 +93,10 @@ void SendPowerNotification()
          {
             url = "DiscordAPIKey";
          }
-         if ( _Symbol == "BTCUSD" || _Symbol == "LINKUSD" || _Symbol == "BCHUSD" || _Symbol == "ETHUSD" || _Symbol == "AVAXUSD")
+         if ( _Symbol == "BTCUSD" || _Symbol == "LINKUSD" || _Symbol == "BCHUSD" || _Symbol == "ETHUSD" || _Symbol == "AVAXUSD" || _Symbol == "LTCUSD"
+         || _Symbol == "XRPUSD" || _Symbol == "MATICUSD" || _Symbol == "SOLUSD" || _Symbol == "UNIUSD" || _Symbol == "ICPUSD" || _Symbol == "FILUSD"
+         || _Symbol == "DOTUSD" || _Symbol == "DOGEUSD" || _Symbol == "VETUSD" || _Symbol == "BNBUSD" || _Symbol == "TRXUSD" || _Symbol == "ADAUSD"
+         || _Symbol == "XLMUSD" || _Symbol == "DASHUSD" || _Symbol == "XMRUSD" )
          {
             url = "DiscordAPIKey";
          }
