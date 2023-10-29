@@ -22,10 +22,6 @@
 - APStopHour: The server hour when AutoProtect can stops being active.  By default it is active from 20 -> 24 server time (last 4 hour candlestick of the day).  Can be set to 24 to be active until the end of the day.
 - AutoProtectRRLevel is the Reward:Risk level that will trigger AutoProtect.
 
-### POSITION MANAGEMENT SETTINGS
-- SLPips: The Red Stop Loss Line will be placed SLPips distance away from the Bid price.
-- TPPips: The Green Take Profit Line will be placed TPPips distance away from the Ask price.
-
 ### EXPERT ADVISOR SETTINGS
 - MagicNumber: Can be set to anything the user wants, but this expert will only modify trades/positions that match the MagicNumber on the chart.
 - HorizontalLineThickness: How thick in pixels SL, TP, and Limit lines are drawn with.
