@@ -313,6 +313,33 @@ int OnCalculate(const int        rates_total,
       H1info = avgH1;
    if (copiedM15 == ATR_Period)
       M15info = avgM15;
+   bool IsM15AboveH1 = (copiedM15 > copiedH1);
+   bool IsM15AboveH4 = (copiedM15 > copiedH4);
+   bool IsH1AboveH4 = (copiedH1 > copiedH4);
+   bool IsH4AboveD1 = (copiedH4 > copiedD1);
+   // Change InfoText1 font color if any lower timeframe ATR values are higher than higher timeframe ATR values
+   color FontColor1 = FontColor;
+   if (IsM15AboveH1 && IsM15AboveH4 && IsH1AboveH4 && IsH4AboveD1)
+   {
+       FontColor1 = clrMagenta;
+   }
+   else
+   {
+       FontColor1 = FontColor;
+   }
+   bool IsD1AboveW1 = (copiedD1 > copiedW1);
+   bool IsD1AboveMN1 = (copiedD1 > copiedMN1);
+   bool IsW1AboveMN1 = (copiedW1 > copiedMN1);
+   // Change InfoText2 font color if any lower timeframe ATR values are higher than higher timeframe ATR values
+   color FontColor2 = FontColor;
+   if (IsD1AboveW1 && IsD1AboveMN1 && IsW1AboveMN1)
+   {
+       FontColor2 = clrMagenta;
+   }
+   else
+   {
+       FontColor2 = FontColor;
+   }
    string infoText1 = "ATR| M15: " + DoubleToString(M15info, ATRInfoDecimals) + " H1: " + DoubleToString(H1info, ATRInfoDecimals) + " H4: " + DoubleToString(H4info, ATRInfoDecimals);
    string infoText2 = "ATR| D1: " + DoubleToString(D1info, ATRInfoDecimals) + " W1: " + DoubleToString(W1info, ATRInfoDecimals) + " MN1: " + DoubleToString(MN1info, ATRInfoDecimals);
    ObjectSetString(0, objname + "Info1", OBJPROP_TEXT, infoText1);
