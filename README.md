@@ -27,6 +27,10 @@
 - HorizontalLineThickness: How thick in pixels SL, TP, and Limit lines are drawn with.
 - ManageAllPositions: By default is set to false which will only manage positions that have been opened by the EA's MagicNumber.  If set to true, will manage all positions on a symbol.
 
+### DISCORD ANNOUNCEMENT SETTINGS
+- DiscordAPIKey: Must be set to a user's discord API key (webhook) prior to use.
+- EnableBroadcast: Enable the Discord Opened Position / Limit Order Announcement (default false).
+
 ### Risk Management Panel
 - Open Trade: Will default to market execution unless Limit Line is clicked first.  The order is placed with TP and SL parameters set to the levels of the TP Line (Green Line) and the SL Line (Red line).  Both of these lines can be double clicked and moved by the user to the desired price.
 - Buy Lines: Creates TP and SL Lines in the buy orientation based on TPPips and SLPips set by the user.
