@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.200"
+#property version   "1.201"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -186,6 +186,8 @@ bool TyWindow::Create(const long chart,const string name,const int subwin,const 
 TyWindow ExtDialog;
 int OnInit()
 {
+   Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+   Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    string FontName="Courier New";
    int FontSize=8;
    int LeftColumnX=310;
