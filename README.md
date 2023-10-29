@@ -9,17 +9,17 @@
 - Allow Algo Trading must be checked for the expert to place trades.
 
 ### ORDER PLACEMENT SETTINGS
-- MaxRisk: Maximum percentage of risk across the symbol, once this level is hit no more orders will be placed.
-- Risk: The % of the account that is being risked every time "Open Trade" is clicked.
-- InitialOrdersToPlace: This is the number of orders placed when there are 0 orders on the current symbol.  Risk will be divided amongst the orders.  If another position is open on the symbol, then only 1 order will be placed.
-- MarginBuffer: This is the buffer of margin used when placing orders.  If this value is too low, retcode = 10019 might be returned when placing orders with low free margin.
+- MaxRisk: Maximum percentage of risk across the symbol, once this level is hit no more orders will be placed. (Default 1.3)
+- Risk: The % of the account that is being risked every time "Open Trade" is clicked. (Default 1.3)
+- InitialOrdersToPlace: This is the number of orders placed when there are 0 orders on the current symbol.  Risk will be divided amongst the orders.  If another position is open on the symbol, then only 1 order will be placed. (Default 2)
+- MarginBuffer: This is the buffer of margin used when placing orders.  If this value is too low, retcode = 10019 might be returned when placing orders with low free margin. (Default 1000)
 
 ### ACCOUNT PROTECTION SETTINGS
 
 - EnableAutoProtect will place stop loss(es) at break even when RR passes AutoProtectRRLevel and risk > 0.  This will only happen once per market, and will not happen again if SL is set to break even on any position for that symbol.
 - APCloseDivider: The number of positions that have to be open in order for trades to automatically take profit on APPositionsToClose position(s), and set the rest to break even stop loss.
 - APPositionsToClose: The number of positions to close in profit when AutoProtect is triggered.
-- APStartHour: The server hour when AutoProtect can start to be active.  By default it is active from 20 -> 24 server time (last 4 hour candlestick of the day).  Can be set to 0 to start at the beginning of the day.
+- APStartHour: The server hour when AutoProtect can start to be active.  By default it is active from 23 -> 24 server time (last 4 hour candlestick of the day).  Can be set to 0 to start at the beginning of the day.
 - APStopHour: The server hour when AutoProtect can stops being active.  By default it is active from 20 -> 24 server time (last 4 hour candlestick of the day).  Can be set to 24 to be active until the end of the day.
 - AutoProtectRRLevel is the Reward:Risk level that will trigger AutoProtect.
 
