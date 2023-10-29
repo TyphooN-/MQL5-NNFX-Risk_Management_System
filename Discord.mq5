@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.decapool.net/"
-#property version   "1.18"
+#property version   "1.19"
 double LastBullPower = -1;
 double LastBearPower = -1;
 datetime LastPowerNotification = 0;
@@ -66,7 +66,8 @@ void SendPowerNotification()
       Sleep(RandomSleepDuration);
       VerifiedBullPower3 = GlobalVariableGet("GlobalBullPower");
       VerifiedBearPower3 = GlobalVariableGet("GlobalBearPower");
-      while(CurrentBullPower != VerifiedBullPower1 ||  CurrentBullPower != VerifiedBullPower2  || CurrentBullPower != VerifiedBullPower3)
+      double PowerCalculated = GlobalVariableGet("PowerCalcComplete");
+      while((CurrentBullPower != VerifiedBullPower1 ||  CurrentBullPower != VerifiedBullPower2  || CurrentBullPower != VerifiedBullPower3) && PowerCalculated == true)
       {
          CurrentBullPower = GlobalVariableGet("GlobalBullPower");
          CurrentBearPower = GlobalVariableGet("GlobalBearPower");
@@ -79,15 +80,16 @@ void SendPowerNotification()
          Sleep(RandomSleepDuration);
          VerifiedBullPower3 = GlobalVariableGet("GlobalBullPower");
          VerifiedBearPower3 = GlobalVariableGet("GlobalBearPower");
+         PowerCalculated = GlobalVariableGet("PowerCalcComplete");
       }
-      double PowerCalculated = GlobalVariableGet("PowerCalcComplete");
+      PowerCalculated = GlobalVariableGet("PowerCalcComplete");
       if((CurrentBullPower != LastBullPower || CurrentBearPower != LastBearPower) && PowerCalculated == true && ((CurrentBullPower + CurrentBearPower == 99.999) || (CurrentBullPower + CurrentBearPower == 99.99900000000001)))
       {
          // Update the stored values
          LastBullPower = CurrentBullPower;
          LastBearPower = CurrentBearPower;
          string url;
-         if ( _Symbol == "USOUSD" || _Symbol == "UKOUSD" )
+         if ( _Symbol == "USOUSD" || _Symbol == "UKOUSD" || _Symbol == "NATGAS.f" )
          {
             url = "DiscordAPIKey";
          }
@@ -105,8 +107,8 @@ void SendPowerNotification()
          {
             url = "DiscordAPIKey";
          }
-         if ( _Symbol == "NDX100" || _Symbol == "SPX500" || _Symbol == "US30" || _Symbol == "UK100" || _Symbol == "GER30" || _Symbol == "ASX200"
-         || _Symbol == "EUSTX50" || _Symbol == "FRA40" || _Symbol == "JPN225" || _Symbol == "HK50" || _Symbol == "USDX" )
+         if ( _Symbol == "NDX100" || _Symbol == "SPX500" || _Symbol == "US30" || _Symbol == "UK100" || _Symbol == "GER30" || _Symbol == "ASX200" || _Symbol == "SPN35"
+         || _Symbol == "EUSTX50" || _Symbol == "FRA40" || _Symbol == "JPN225" || _Symbol == "HK50" || _Symbol == "USDX" || _Symbol == "US2000.cash" || _Symbol == "USTN10.f" )
          {
             url = "DiscordAPIKey";
          }
