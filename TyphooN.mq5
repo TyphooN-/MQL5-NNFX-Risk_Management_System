@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.202"
+#property version   "1.203"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -888,9 +888,9 @@ void TyWindow::OnClickTrade(void)
    {
       TotalLots = max_volume;
    }
-   if ((PartialLots * InitialOrdersToPlace) > max_volume)
+   if (PartialLots > max_volume)
    {
-      PartialLots = NormalizeDouble((max_volume / InitialOrdersToPlace), OrderDigits);
+      PartialLots = max_volume;
    }
    int ExistingOrders = GetOrdersForSymbol(_Symbol);
    int OrdersToPlaceNow = ExistingOrders >= InitialOrdersToPlace ? 1 : InitialOrdersToPlace;
