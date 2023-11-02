@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.204"
+#property version   "1.205"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -1160,8 +1160,8 @@ void BubbleSort(PositionInfo &arr[])
    {
       for (int j = 0; j < ArraySize(arr) - i - 1; j++)
       {
-         // Compare based on lot size first, and then prioritize distance to current price
-         if (arr[j].lotSize < arr[j+1].lotSize || (arr[j].lotSize == arr[j+1].lotSize && arr[j].diff > arr[j+1].diff))
+         // Compare based on price difference first and then lot size
+         if (arr[j].diff > arr[j+1].diff || (arr[j].diff == arr[j+1].diff && arr[j].lotSize > arr[j+1].lotSize))
          {
             PositionInfo temp = arr[j];
             arr[j] = arr[j+1];
