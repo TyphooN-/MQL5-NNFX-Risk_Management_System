@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.203"
+#property version   "1.204"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -51,7 +51,7 @@ input group    "[ORDER PLACEMENT SETTINGS]";
 input double   MaxRisk                    = 1.3;
 input double   Risk                       = 1.3;
 input int      InitialOrdersToPlace       = 2;
-input int      MarginBuffer               = 1000;
+input double   MarginBufferPercent        = 1.0;
 input group    "[ACCOUNT PROTECTION SETTINGS]";
 input bool     EnableAutoProtect          = true;
 input int      APCloseDivider             = 2;
@@ -855,6 +855,7 @@ void TyWindow::OnClickTrade(void)
    double min_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
    double potentialRisk = Risk + percent_risk;
    double OrderRisk = Risk;
+   double AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
    Trade.SetExpertMagicNumber(MagicNumber);
    int OrderDigits = 0;
    if (min_volume == 0.01)
@@ -878,7 +879,7 @@ void TyWindow::OnClickTrade(void)
    {
       OrderRisk = (MaxRisk - percent_risk);  // Adjust the risk for the next order
       potentialRisk = OrderRisk + percent_risk;  // Recalculate potential risk after adjusting
-      order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (OrderRisk / 100));
+      order_risk_money = (AccountBalance * (OrderRisk / 100));
    }
    double TotalLots   = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, Ask - SL), OrderDigits)
                               : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - Bid), OrderDigits);
@@ -906,6 +907,7 @@ void TyWindow::OnClickTrade(void)
    MqlTradeCheckResult check_result;
    MqlTick latest_tick;
    double required_margin = 0.0;
+   double MarginBuffer = (AccountBalance * MarginBufferPercent) / 100.0;
    if (!OrderCalcMargin(request.type, _Symbol, OrderLots * OrdersToPlaceNow, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
    {
       Print("Failed to calculate required margin. Error:", GetLastError());
