@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.205"
+#property version   "1.206"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -847,12 +847,29 @@ bool HasOpenPosition(string sym, int orderType)
    }
    return false;
 }
+double GetTotalVolumeForSymbol(string symbol)
+{
+   double totalVolume = 0;
+
+   for(int i=PositionsTotal()-1; i >= 0; i--)
+   {
+      string positionSymbol = PositionGetSymbol(i);
+      if(positionSymbol == symbol)
+      {
+         totalVolume += PositionGetDouble(POSITION_VOLUME);
+      }
+   }
+   return totalVolume;
+}
 void TyWindow::OnClickTrade(void)
 {
    SL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
    TP = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
    double max_volume = NormalizeDouble(SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX), _Digits);
    double min_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
+   double limit_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_LIMIT);
+   double existing_volume = GetTotalVolumeForSymbol(_Symbol);
+   double available_volume = limit_volume - existing_volume;
    double potentialRisk = Risk + percent_risk;
    double OrderRisk = Risk;
    double AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
@@ -885,16 +902,24 @@ void TyWindow::OnClickTrade(void)
                               : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - Bid), OrderDigits);
    double PartialLots = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, Ask - SL) / InitialOrdersToPlace, OrderDigits)
                               : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - Bid) / InitialOrdersToPlace, OrderDigits);
-   if (TotalLots > max_volume)
-   {
-      TotalLots = max_volume;
-   }
-   if (PartialLots > max_volume)
-   {
-      PartialLots = max_volume;
-   }
    int ExistingOrders = GetOrdersForSymbol(_Symbol);
    int OrdersToPlaceNow = ExistingOrders >= InitialOrdersToPlace ? 1 : InitialOrdersToPlace;
+   // Ensure that the calculated volumes do not exceed the available volume
+   if (TotalLots > available_volume)
+   {
+      TotalLots = available_volume;
+   }
+   if (PartialLots > available_volume)
+   {
+      PartialLots = available_volume;
+   }
+   // Ensure that each order is max_volume if available_volume > max_volume
+   if (available_volume > max_volume)
+   {
+      TotalLots = max_volume;
+      PartialLots = max_volume;
+      OrdersToPlaceNow = 1;
+   }
    double OrderLots = ExistingOrders > 1 ? TotalLots : PartialLots;
    MqlTradeRequest request;
    ZeroMemory(request);
