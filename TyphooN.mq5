@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.209"
+#property version   "1.210"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -1306,10 +1306,19 @@ void Protect()
       {
          bool ShouldProcessPosition = ProcessPositionCheck(ticket, _Symbol, MagicNumber, ManageAllPositions);
          if (!ShouldProcessPosition) continue;
-         SL = PositionGetDouble(POSITION_PRICE_OPEN);
+         double originalSL = PositionGetDouble(POSITION_PRICE_OPEN);
+         SL = PositionGetDouble(POSITION_TP);
          if(!Trade.PositionModify(ticket, SL, PositionGetDouble(POSITION_TP)))
          {
-            Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
+            Print("Failed to modify SL via PROTECT for Position #", ticket, ". Error code: ", GetLastError());
+         }
+         else if (SL == originalSL)
+         {
+            Print("SL for Position #", ticket, " is already at breakeven.");
+         }
+         else
+         {
+            Print("SL for Position #", ticket, " moved to breakeven.");
          }
       }
    }
