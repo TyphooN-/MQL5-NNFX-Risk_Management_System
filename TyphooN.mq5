@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.207"
+#property version   "1.208"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -952,6 +952,16 @@ void TyWindow::OnClickTrade(void)
       }
    }
    //Print("OrderLots: ", OrderLots, " Required Margin: ", required_margin, " Free Margin: ", free_margin);
+   // Decrease the order size if necessary to fit within available margin
+   while ((required_margin + MarginBuffer * OrdersToPlaceNow) >= free_margin && OrderLots > min_volume)
+   {
+      OrderLots -= min_volume / OrdersToPlaceNow;
+      if (!OrderCalcMargin(request.type, _Symbol, OrderLots * OrdersToPlaceNow, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
+      {
+         Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
+         return;
+      }
+   }
    // Check if there's enough free margin to place the order
    if (required_margin >= free_margin)
    {
