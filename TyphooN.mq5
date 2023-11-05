@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.210"
+#property version   "1.211"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -904,7 +904,6 @@ void TyWindow::OnClickTrade(void)
                               : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - Bid) / InitialOrdersToPlace, OrderDigits);
    int ExistingOrders = GetOrdersForSymbol(_Symbol);
    int OrdersToPlaceNow = ExistingOrders >= InitialOrdersToPlace ? 1 : InitialOrdersToPlace;
-   bool retry = true; // Flag to indicate whether to retry the order placement
    // Ensure that the calculated volumes do not exceed the available volume
    if (TotalLots > available_volume)
    {
@@ -940,7 +939,6 @@ void TyWindow::OnClickTrade(void)
       return;
    }
    double free_margin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
-   
    // Decrease the order size if necessary to fit within available margin
    while ((required_margin + MarginBuffer) >= free_margin && OrderLots > min_volume)
    {
@@ -952,16 +950,6 @@ void TyWindow::OnClickTrade(void)
       }
    }
    //Print("OrderLots: ", OrderLots, " Required Margin: ", required_margin, " Free Margin: ", free_margin);
-   // Decrease the order size if necessary to fit within available margin
-   while ((required_margin + MarginBuffer * OrdersToPlaceNow) >= free_margin && OrderLots > min_volume)
-   {
-      OrderLots -= min_volume * OrdersToPlaceNow;
-      if (!OrderCalcMargin(request.type, _Symbol, OrderLots * OrdersToPlaceNow, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
-      {
-         Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
-         return;
-      }
-   }
    // Check if there's enough free margin to place the order
    if (required_margin >= free_margin)
    {
@@ -976,89 +964,82 @@ void TyWindow::OnClickTrade(void)
    }
    if (potentialRisk <= (MaxRisk + 0.05))
    {
-      while (retry)
+      if (LimitLineExists == true)
       {
-         if (LimitLineExists == true)
+         if (TP > SL)
          {
-            if (TP > SL)
+            if (HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
             {
-               if (HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
-               {
-                  Print("Sell position is already open. Cannot place Buy Limit order.");
-                  return;
-               }
-               request.action = TRADE_ACTION_PENDING;
-               request.type = ORDER_TYPE_BUY_LIMIT;
-               request.price = Limit_Price;
-               if (!Trade.OrderCheck(request, check_result))
-               {
-                  Print("Buy Limit OrderCheck failed, retcode=", check_result.retcode);
-                  retry = false;
-                  continue; // Retry the order placement
-               }
-               ExecuteBuyLimitOrders(OrderLots, Limit_Price, OrdersToPlaceNow);
+               Print("Sell position is already open. Cannot place Buy Limit order.");
+               return;
             }
-            else if (SL > TP)
+            request.action = TRADE_ACTION_PENDING;
+            request.type = ORDER_TYPE_BUY_LIMIT;
+            request.price = Limit_Price;
+            if (!Trade.OrderCheck(request, check_result))
             {
-               if (HasOpenPosition(_Symbol, POSITION_TYPE_BUY))
-               {
-                  Print("Buy position is already open. Cannot place Sell Limit order.");
-                  return;
-               }
-               request.action = TRADE_ACTION_PENDING;
-               request.type = ORDER_TYPE_SELL_LIMIT;
-               request.price = Limit_Price;
-               if (!Trade.OrderCheck(request, check_result))
-               {
-                  Print("Sell Limit OrderCheck failed, retcode=", check_result.retcode);
-                  retry = false;
-                  continue; // Retry the order placement
-               }
-               ExecuteSellLimitOrders(OrderLots, Limit_Price, OrdersToPlaceNow);
+               Print("Buy Limit OrderCheck failed, retcode=", check_result.retcode);
+               return;
             }
+            ExecuteBuyLimitOrders(OrderLots, Limit_Price, OrdersToPlaceNow);
          }
-         else
+         else if (SL > TP)
          {
-            if (TP > SL)
+            if (HasOpenPosition(_Symbol, POSITION_TYPE_BUY))
             {
-               if (HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
-               {
-                  Print("Sell position is already open. Cannot place Buy order.");
-                  return;
-               }
-               if (SymbolInfoTick(_Symbol, latest_tick))
-               {
-                  request.action = TRADE_ACTION_DEAL;
-                  request.type = ORDER_TYPE_BUY;
-               }
-               if (!Trade.OrderCheck(request, check_result))
-               {
-                  Print("Buy OrderCheck failed, retcode=", check_result.retcode);
-                  retry = false;
-                  continue; // Retry the order placement
-               }
-               ExecuteBuyOrders(OrderLots, OrdersToPlaceNow);
+               Print("Buy position is already open. Cannot place Sell Limit order.");
+               return;
             }
-            else if (SL > TP)
+            request.action = TRADE_ACTION_PENDING;
+            request.type = ORDER_TYPE_SELL_LIMIT;
+            request.price = Limit_Price;
+            if (!Trade.OrderCheck(request, check_result))
             {
-               if (HasOpenPosition(_Symbol, POSITION_TYPE_BUY))
-               {
-                  Print("Buy position is already open. Cannot place Sell order.");
-                  return;
-               }
-               if (SymbolInfoTick(_Symbol, latest_tick))
-               {
-                  request.action = TRADE_ACTION_DEAL;
-                  request.type = ORDER_TYPE_SELL;
-               }
-               if (!Trade.OrderCheck(request, check_result))
-               {
-                  Print("Sell OrderCheck failed, retcode=", check_result.retcode);
-                  retry = false;
-                  continue; // Retry the order placement
-               }
-               ExecuteSellOrders(OrderLots, OrdersToPlaceNow);
+               Print("Sell Limit OrderCheck failed, retcode=", check_result.retcode);
+               return;
             }
+            ExecuteSellLimitOrders(OrderLots, Limit_Price, OrdersToPlaceNow);
+         }
+      }
+      else
+      {
+         if (TP > SL)
+         {
+            if (HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
+            {
+               Print("Sell position is already open. Cannot place Buy order.");
+               return;
+            }
+            if (SymbolInfoTick(_Symbol, latest_tick))
+            {
+               request.action = TRADE_ACTION_DEAL;
+               request.type = ORDER_TYPE_BUY;
+            }
+            if (!Trade.OrderCheck(request, check_result))
+            {
+               Print("Buy OrderCheck failed, retcode=", check_result.retcode);
+               return;
+            }
+            ExecuteBuyOrders(OrderLots, OrdersToPlaceNow);
+         }
+         else if (SL > TP)
+         {
+            if (HasOpenPosition(_Symbol, POSITION_TYPE_BUY))
+            {
+               Print("Buy position is already open. Cannot place Sell order.");
+               return;
+            }
+            if (SymbolInfoTick(_Symbol, latest_tick))
+            {
+               request.action = TRADE_ACTION_DEAL;
+               request.type = ORDER_TYPE_SELL;
+            }
+            if (!Trade.OrderCheck(request, check_result))
+            {
+               Print("Sell OrderCheck failed, retcode=", check_result.retcode);
+               return;
+            }
+            ExecuteSellOrders(OrderLots, OrdersToPlaceNow);
          }
       }
    }
