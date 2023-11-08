@@ -924,7 +924,6 @@ void TyWindow::OnClickTrade(void)
       PartialLots = max_volume;
       OrdersToPlaceNow = 1;
    }
-   Print (limit_volume);
    double OrderLots = ExistingOrders > 1 ? TotalLots : PartialLots;
    MqlTradeRequest request;
    ZeroMemory(request);
