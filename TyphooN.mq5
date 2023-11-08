@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.216"
+#property version   "1.217"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -873,6 +873,10 @@ void TyWindow::OnClickTrade(void)
    double potentialRisk = Risk + percent_risk;
    double OrderRisk = Risk;
    double AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
+   if (limit_volume == 0)
+   {
+      limit_volume = max_volume;
+   }
    Trade.SetExpertMagicNumber(MagicNumber);
    int OrderDigits = 0;
    if (min_volume == 0.01)
@@ -920,6 +924,7 @@ void TyWindow::OnClickTrade(void)
       PartialLots = max_volume;
       OrdersToPlaceNow = 1;
    }
+   Print (limit_volume);
    double OrderLots = ExistingOrders > 1 ? TotalLots : PartialLots;
    MqlTradeRequest request;
    ZeroMemory(request);
