@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.040"
+#property version   "1.041"
 #property indicator_chart_window
 #property indicator_buffers 40
 #property indicator_plots   8
@@ -350,6 +350,38 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
          else if (StringFind(timeframe, "H4", 0) != -1 || StringFind(timeframe, "D1", 0) != -1 || StringFind(timeframe, "W1", 0) != -1)
          {
             BearPowerHTF++;
+         }
+      }
+      // Check if the W1 200SMA exists
+      bool W1SMA200Exists = ObjectCreate(0, "W1_200SMA", OBJ_TREND, 0, 0, 0);
+      // Update the color and count variables
+      ObjectSetInteger(0, objnameInfo, OBJPROP_COLOR, textColor);
+      if (!W1SMA200Exists)
+      {
+         // If W1 200SMA does not exist, increment BullPowerHTF and BearPowerHTF
+         BullPowerHTF ++;
+         BearPowerHTF ++;
+         // Set the color to clrWhite
+         ObjectSetInteger(0, "objnameInfoBullPower", OBJPROP_COLOR, clrWhite);
+         ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_COLOR, clrWhite);
+      }
+      else
+      {
+         // Update the colors based on the TotalBullPower and TotalBearPower
+         if (TotalBearPower > TotalBullPower)
+         {
+            ObjectSetInteger(0, "objnameInfoBullPower", OBJPROP_COLOR, clrWhite);
+            ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_COLOR, clrRed);
+         }
+         if (TotalBullPower > TotalBearPower)
+         {
+            ObjectSetInteger(0, "objnameInfoBullPower", OBJPROP_COLOR, clrLime);
+            ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_COLOR, clrWhite);
+         }
+         if (TotalBullPower == TotalBearPower)
+         {
+            ObjectSetInteger(0, "objnameInfoBullPower", OBJPROP_COLOR, clrWhite);
+            ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_COLOR, clrWhite);
          }
       }
       // Update the total variables
