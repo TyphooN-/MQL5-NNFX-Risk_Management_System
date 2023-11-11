@@ -1,3 +1,6 @@
+# Discord Market Wizardry Community
+- Join my Discord community for support with my EA and indicators, and also share trading ideas at https://discord.gg/T5KV7R8NU
+
 # TyphooN's MQL5-Risk_Management_System (Expert)
 ![Expert_Panel](Expert_Panel.png)
 ![Expert_InfoText](Expert_InfoText.png)
