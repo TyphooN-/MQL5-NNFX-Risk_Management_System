@@ -346,7 +346,7 @@ int OnCalculate(const int        rates_total,
    ObjectSetInteger(0, objname + "Info1", OBJPROP_COLOR, FontColor1);
    ObjectSetString(0, objname + "Info2", OBJPROP_TEXT, infoText2);
    ObjectSetInteger(0, objname + "Info2", OBJPROP_COLOR, FontColor2);
-   static int waitCount = 2;
+   static int waitCount = 3;
    if ( waitCount > 0 )
    {
       UpdateATRData();
