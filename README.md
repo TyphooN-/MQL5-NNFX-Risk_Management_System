@@ -2,11 +2,11 @@
 - Join my Discord community for support with my EA and indicators, and also share trading ideas at https://discord.gg/T5KV7R8NU
 
 # TyphooN's MQL5-Risk_Management_System (Expert)
-![Expert_Panel](Expert_Panel.png)
-![Expert_InfoText](Expert_InfoText.png)
+![Expert_Panel](Images/Expert_Panel.png)
+![Expert_InfoText](Images/Expert_InfoText.png)
 
 ## Risk Management System Settings
-![Expert_Settings](Expert_Settings.png)
+![Expert_Settings](Images/Expert_Settings.png)
 
 ### Common Tab
 - Allow Algo Trading must be checked for the expert to place trades.
@@ -66,15 +66,15 @@
   - 10/20: 10/20 SMA cross.
 - Bear Power and Bull Power are based on a scoring system which scores several SMA crossovers across all timeframes M1 -> W1 (Total Power is always 99.9999 which rounds up to 100).  M1 -> M15 signals are worth 0.6666 points,  M30-> H1 are worth 1.5 points, and H4 -> W1 are worth 5 points.  The MA crossovers used are 200 SMA (price above or below the MA line), Death/Golden Cross (50/200 SMA), 100/200 SMA cross, 20/50 SMA cross, and 10/20 SMA cross.
 
-![MTF_MA_200SMA_Lines](MTF_MA_200SMA_Lines.png)
+![MTF_MA_200SMA_Lines](Images/MTF_MA_200SMA_Lines.png)
 
 ## MTF_MA Indicator Settings
 
-![MTF_MA_Colours](MTF_MA_Colours.png)
-![MTF_MA_Inputs](MTF_MA_Inputs.png)
+![MTF_MA_Colours](Images/MTF_MA_Colours.png)
+![MTF_MA_Inputs](Images/MTF_MA_Inputs.png)
 
-![MTF_MA_InfoText_Bear](MTF_MA_InfoText_Bear.png)
-![MTF_MA_InfoText_Bull](MTF_MA_InfoText_Bull.png)
+![MTF_MA_InfoText_Bear](Images/MTF_MA_InfoText_Bear.png)
+![MTF_MA_InfoText_Bull](Images/MTF_MA_InfoText_Bull.png)
 
 ### Info Text Settings
 
@@ -98,11 +98,11 @@ input double    PowerHTFMulti                = 5;
 - The user can hover the mouse over the plotted lines to see what the timeframe is, and if it is the Projected ATR High or Low.
 - InfoText is displayed on the chart which contains the M15, H1, H4, D1, W1, and MN1 ATR values for easy evaluation.
 - InfoText will turn Magenta if a lower timeframe ATR > a higher timeframe ATR.
-![ATR_Projection_InfoText](ATR_Projection_InfoText.png)
+![ATR_Projection_InfoText](Images/ATR_Projection_InfoText.png)
 
-![ATR_Projection_Levels](ATR_Projection_Levels.png)
+![ATR_Projection_Levels](Images/ATR_Projection_Levels.png)
 
-![ATR_Projection_Inputs](ATR_Projection_Inputs.png)
+![ATR_Projection_Inputs](Images/ATR_Projection_Inputs.png)
 
 ## ATR Projection Indicator Settings
 
@@ -135,6 +135,9 @@ input double    PowerHTFMulti                = 5;
 # Third Party Open Source Supporting Indicators
 - [Minions.BetterVolume](https://www.mql5.com/en/code/23479) - improved volume indicator.
 - [shved_supply_and_demand_v1.5](https://www.mql5.com/en/code/29395) - automatic supply and demand zone plotting.
+- SqKAMA
+- [Heiken Ashi Smoothed](https://www.forexfactory.com/thread/post/14170997#post14170997)
+
 
 # Usage
 
