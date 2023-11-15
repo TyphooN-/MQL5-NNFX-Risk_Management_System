@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.041"
+#property version   "1.042"
 #property indicator_chart_window
 #property indicator_buffers 40
 #property indicator_plots   8
@@ -461,7 +461,7 @@ int OnCalculate(const int rates_total,
       prevTime = currentTime;
       UpdateBuffers();
    }
-   static int waitCount = 2;
+   static int waitCount = 3;
    if (waitCount > 0)
    {
       UpdateBuffersOnCalculate(0, rates_total);
