@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.219"
+#property version   "1.220"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -866,13 +866,16 @@ void TyWindow::OnClickTrade(void)
    SL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
    TP = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
    double max_volume = NormalizeDouble(SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX), _Digits);
-   double min_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
    double limit_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_LIMIT);
    double existing_volume = GetTotalVolumeForSymbol(_Symbol);
    double potentialRisk = Risk + percent_risk;
    double OrderRisk = Risk;
    double AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
    double available_volume;
+   double lotSize = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
+   double tickSize = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
+   double min_volume = tickSize * SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
+   int OrderDigits = (int) MathLog10(1 / tickSize);
    if (limit_volume == 0)
    {
       available_volume = max_volume;
@@ -882,19 +885,6 @@ void TyWindow::OnClickTrade(void)
       available_volume = limit_volume - existing_volume;
    }
    Trade.SetExpertMagicNumber(MagicNumber);
-   int OrderDigits = 0;
-   if (min_volume == 0.01)
-   {
-      OrderDigits = 2;
-   }
-   if (min_volume == 0.1)
-   {
-      OrderDigits = 1;
-   }
-   if (min_volume == 1 || min_volume == 1000)
-   {
-      OrderDigits = 0;
-   }
    double Limit_Price = 0;
    if (LimitLineExists == true)
    {
