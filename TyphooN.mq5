@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.220"
+#property version   "1.221"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -872,10 +872,24 @@ void TyWindow::OnClickTrade(void)
    double OrderRisk = Risk;
    double AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
    double available_volume;
-   double lotSize = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
-   double tickSize = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
-   double min_volume = tickSize * SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
-   int OrderDigits = (int) MathLog10(1 / tickSize);
+   double min_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
+   int OrderDigits = 0;
+   if (min_volume == 0.001)
+   {
+      OrderDigits = 3;
+   }
+   if (min_volume == 0.01)
+   {
+      OrderDigits = 2;
+   }
+   if (min_volume == 0.1)
+   {
+      OrderDigits = 1;
+   }
+   if (min_volume == 1 || min_volume == 1000)
+   {
+      OrderDigits = 0;
+   }
    if (limit_volume == 0)
    {
       available_volume = max_volume;
@@ -919,6 +933,21 @@ void TyWindow::OnClickTrade(void)
       OrdersToPlaceNow = 1;
    }
    double OrderLots = ExistingOrders > 1 ? TotalLots : PartialLots;
+   if (OrderLots < min_volume)
+   {
+      //Print("Order size adjusted to minimum volume.");
+      OrderLots = min_volume;
+   }
+   else if (OrderLots > max_volume)
+   {
+      //Print("Order size adjusted to maximum volume.");
+      OrderLots = max_volume;
+   }
+   OrderLots = NormalizeDouble(OrderLots, OrderDigits);
+   //Print("OrderLots: ", OrderLots, " Min Volume: ", min_volume, " Max Volume: ", max_volume);
+   //Print("Ask: ", Ask, " Bid: ", Bid, " Spread: ", Ask - Bid);
+   //Print("Free Margin: ", AccountInfoDouble(ACCOUNT_FREEMARGIN));
+   //Print("Account Balance: ", AccountInfoDouble(ACCOUNT_BALANCE));
    MqlTradeRequest request;
    ZeroMemory(request);
    request.symbol = _Symbol;
