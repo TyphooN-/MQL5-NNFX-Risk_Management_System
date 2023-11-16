@@ -870,7 +870,8 @@ double PerformOrderCheckWithRetries(const MqlTradeRequest &request, MqlTradeChec
          int retcode = (int)check_result.retcode;
          if (retcode == 10019)
          {
-            OrderLots *= 0.6;
+            OrderLots *= 0.5;
+            OrderLots = NormalizeDouble(OrderLots, OrderDigits);
             retryCount++;
             Print("OrderCheck failed with retcode 10019. Retrying attempt ", retryCount, ". Adjusted OrderLots: ", OrderLots);
             Sleep(1000); // You can adjust the sleep duration as needed
