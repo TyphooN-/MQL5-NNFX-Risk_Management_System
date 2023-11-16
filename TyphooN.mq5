@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.221"
+#property version   "1.230"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -861,6 +861,44 @@ double GetTotalVolumeForSymbol(string symbol)
    }
    return totalVolume;
 }
+double PerformOrderCheckWithRetries(const MqlTradeRequest &request, MqlTradeCheckResult &check_result, double &OrderLots, int &retryCount, const int maxRetries, int OrderDigits)
+{
+   while (retryCount < maxRetries)
+   {
+      if (!Trade.OrderCheck(request, check_result))
+      {
+         int retcode = (int)check_result.retcode;
+         if (retcode == 10019)
+         {
+            OrderLots *= 0.6;
+            retryCount++;
+            Print("OrderCheck failed with retcode 10019. Retrying attempt ", retryCount, ". Adjusted OrderLots: ", OrderLots);
+            Sleep(1000); // You can adjust the sleep duration as needed
+         }
+         else
+         {
+            // Handle other retcode values or exit the loop for other errors
+            Print("OrderCheck failed with retcode ", retcode);
+            return -1.0; // Return -1.0 to indicate failure
+         }
+      }
+      else
+      {
+         // OrderCheck successful, calculate and return the required margin
+         double required_margin = 0.0;
+         if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
+         {
+            Print("Failed to calculate required margin after successful OrderCheck. Error:", GetLastError());
+            return -1.0; // Return -1.0 to indicate failure
+         }
+         OrderLots = NormalizeDouble(OrderLots, OrderDigits);
+         return required_margin;
+      }
+   }
+   // Maximum retries reached, return -1.0 to indicate failure
+   Print("Maximum retries reached. OrderCheck failed.");
+   return -1.0;
+}
 void TyWindow::OnClickTrade(void)
 {
    SL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
@@ -960,7 +998,11 @@ void TyWindow::OnClickTrade(void)
    MqlTick latest_tick;
    double required_margin = 0.0;
    double MarginBuffer = (AccountBalance * MarginBufferPercent) / 100.0;
-   if (!OrderCalcMargin(request.type, _Symbol, OrderLots * OrdersToPlaceNow, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
+   int retryCount = 0;
+   const int maxRetries = 5;
+   int retcode = 0;
+
+   if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, retryCount, maxRetries, OrderDigits))
    {
       Print("Failed to calculate required margin. Error:", GetLastError());
       return;
@@ -970,7 +1012,7 @@ void TyWindow::OnClickTrade(void)
    while ((required_margin + MarginBuffer) >= free_margin && OrderLots > min_volume)
    {
       OrderLots -= min_volume;
-      if (!OrderCalcMargin(request.type, _Symbol, OrderLots * OrdersToPlaceNow, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
+      if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, retryCount, maxRetries, OrderDigits))
       {
          Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
          return;
@@ -1003,7 +1045,7 @@ void TyWindow::OnClickTrade(void)
             request.action = TRADE_ACTION_PENDING;
             request.type = ORDER_TYPE_BUY_LIMIT;
             request.price = Limit_Price;
-            if (!Trade.OrderCheck(request, check_result))
+            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, retryCount, maxRetries, OrderDigits))
             {
                Print("Buy Limit OrderCheck failed, retcode=", check_result.retcode);
                return;
@@ -1020,7 +1062,7 @@ void TyWindow::OnClickTrade(void)
             request.action = TRADE_ACTION_PENDING;
             request.type = ORDER_TYPE_SELL_LIMIT;
             request.price = Limit_Price;
-            if (!Trade.OrderCheck(request, check_result))
+            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, retryCount, maxRetries, OrderDigits))
             {
                Print("Sell Limit OrderCheck failed, retcode=", check_result.retcode);
                return;
@@ -1042,7 +1084,7 @@ void TyWindow::OnClickTrade(void)
                request.action = TRADE_ACTION_DEAL;
                request.type = ORDER_TYPE_BUY;
             }
-            if (!Trade.OrderCheck(request, check_result))
+            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, retryCount, maxRetries, OrderDigits))
             {
                Print("Buy OrderCheck failed, retcode=", check_result.retcode);
                return;
@@ -1061,7 +1103,7 @@ void TyWindow::OnClickTrade(void)
                request.action = TRADE_ACTION_DEAL;
                request.type = ORDER_TYPE_SELL;
             }
-            if (!Trade.OrderCheck(request, check_result))
+            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, retryCount, maxRetries, OrderDigits))
             {
                Print("Sell OrderCheck failed, retcode=", check_result.retcode);
                return;
