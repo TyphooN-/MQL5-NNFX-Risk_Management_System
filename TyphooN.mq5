@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.230"
+#property version   "1.231"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -870,16 +870,18 @@ double PerformOrderCheckWithRetries(const MqlTradeRequest &request, MqlTradeChec
          int retcode = (int)check_result.retcode;
          if (retcode == 10019)
          {
-            OrderLots *= 0.5;
+            OrderLots *= 0.4;
             OrderLots = NormalizeDouble(OrderLots, OrderDigits);
             retryCount++;
             Print("OrderCheck failed with retcode 10019. Retrying attempt ", retryCount, ". Adjusted OrderLots: ", OrderLots);
-            Sleep(1000); // You can adjust the sleep duration as needed
+            Sleep(1000);
          }
          else
          {
-            // Handle other retcode values or exit the loop for other errors
             Print("OrderCheck failed with retcode ", retcode);
+            Print("Request details: Symbol=", request.symbol, " Type=", request.type, " Action=", request.action, " Lots=", request.volume,
+                  " Price=", request.price, " SL=", request.sl, " TP=", request.tp, " Deviation=", request.deviation, " Magic=", request.magic);
+            Print("Check result: ", check_result.comment);
             return -1.0; // Return -1.0 to indicate failure
          }
       }
@@ -896,6 +898,7 @@ double PerformOrderCheckWithRetries(const MqlTradeRequest &request, MqlTradeChec
          return required_margin;
       }
    }
+
    // Maximum retries reached, return -1.0 to indicate failure
    Print("Maximum retries reached. OrderCheck failed.");
    return -1.0;
