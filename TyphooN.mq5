@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.232"
+#property version   "1.233"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -874,7 +874,6 @@ double PerformOrderCheckWithRetries(const MqlTradeRequest &request, MqlTradeChec
             OrderLots = NormalizeDouble(OrderLots, OrderDigits);
             retryCount++;
             Print("OrderCheck failed with retcode 10019. Retrying attempt ", retryCount, ". Adjusted OrderLots: ", OrderLots);
-            Sleep(1000);
          }
          else
          {
@@ -898,7 +897,6 @@ double PerformOrderCheckWithRetries(const MqlTradeRequest &request, MqlTradeChec
          return required_margin;
       }
    }
-
    // Maximum retries reached, return -1.0 to indicate failure
    Print("Maximum retries reached. OrderCheck failed.");
    return -1.0;
@@ -1003,7 +1001,7 @@ void TyWindow::OnClickTrade(void)
    double required_margin = 0.0;
    double MarginBuffer = (AccountBalance * MarginBufferPercent) / 100.0;
    int retryCount = 0;
-   const int maxRetries = 10;
+   const int maxRetries = 22;
    int retcode = 0;
 
    if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, retryCount, maxRetries, OrderDigits))
