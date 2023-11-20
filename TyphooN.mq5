@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.233"
+#property version   "1.234"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -878,8 +878,8 @@ double PerformOrderCheckWithRetries(const MqlTradeRequest &request, MqlTradeChec
          else
          {
             Print("OrderCheck failed with retcode ", retcode);
-            Print("Request details: Symbol=", request.symbol, " Type=", request.type, " Action=", request.action, " Lots=", request.volume,
-                  " Price=", request.price, " SL=", request.sl, " TP=", request.tp, " Deviation=", request.deviation, " Magic=", request.magic);
+          //  Print("Request details: Symbol=", request.symbol, " Type=", request.type, " Action=", request.action, " Lots=", request.volume,
+         //         " Price=", request.price, " SL=", request.sl, " TP=", request.tp, " Deviation=", request.deviation, " Magic=", request.magic);
             Print("Check result: ", check_result.comment);
             return -1.0; // Return -1.0 to indicate failure
          }
