@@ -48,7 +48,7 @@ input bool   MN1_ATR_Projections           = true;
 input ENUM_LINE_STYLE ATR_linestyle        = STYLE_DOT;
 input int    ATR_Line_Thickness             = 2;
 input color  ATR_Line_Color                = clrYellow;
-input bool   ATR_Line_Background           = false;
+input bool   ATR_Line_Background           = true;
 #ifdef __MQL5__
     input group  "[INFO TEXT SETTINGS]";
 #else
@@ -346,7 +346,7 @@ int OnCalculate(const int        rates_total,
    ObjectSetInteger(0, objname + "Info1", OBJPROP_COLOR, FontColor1);
    ObjectSetString(0, objname + "Info2", OBJPROP_TEXT, infoText2);
    ObjectSetInteger(0, objname + "Info2", OBJPROP_COLOR, FontColor2);
-   static int waitCount = 3;
+   static int waitCount = 4;
    if ( waitCount > 0 )
    {
       UpdateATRData();
