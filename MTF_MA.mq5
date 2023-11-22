@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.043"
+#property version   "1.050"
 #property indicator_chart_window
 #property indicator_buffers 40
 #property indicator_plots   8
@@ -74,10 +74,6 @@ input int    FontSize                      = 8;
 const ENUM_BASE_CORNER Corner              = CORNER_RIGHT_UPPER;
 input int    HorizPos                      = 310;
 input int    VertPos                       = 130;
-input group "[POWER SETTINGS]"
-input double    PowerLTFMulti                = 0.6666;
-input double    PowerMTFMulti                = 1.5;
-input double    PowerHTFMulti                = 5;
 bool W1_Empty_Warning = false;
 ENUM_APPLIED_PRICE MAPrice = PRICE_CLOSE;
 // Handles
@@ -252,28 +248,46 @@ int OnInit()
       ObjectSetString(0, objname10_20, OBJPROP_TEXT, timeFrames[i]);
       ObjectSetInteger(0, objname10_20, OBJPROP_ZORDER, 1);
    }
-   string BullPowerText = "Bull Power INIT";
-   string BearPowerText = "Bear Power INIT";
-   ObjectSetString(0, "objnameInfoBullPower", OBJPROP_TEXT, BullPowerText);
-   ObjectSetString(0, "objnameInfoBearPower", OBJPROP_TEXT, BullPowerText);
-   ObjectCreate(0, "objnameInfoBullPower", OBJ_LABEL, 0, 0, 0);
-   ObjectSetInteger(0, "objnameInfoBullPower", OBJPROP_XDISTANCE, HorizPos);
-   ObjectSetInteger(0, "objnameInfoBullPower", OBJPROP_YDISTANCE, VertPos + 65);
-   ObjectSetInteger(0, "objnameInfoBullPower", OBJPROP_CORNER, Corner);
-   ObjectSetString(0, "objnameInfoBullPower", OBJPROP_FONT, FontName);
-   ObjectSetInteger(0, "objnameInfoBullPower", OBJPROP_FONTSIZE, FontSize);
-   ObjectSetInteger(0, "objnameInfoBullPower", OBJPROP_COLOR, clrWhite);
-   ObjectSetString(0, "objnameInfoBullPower", OBJPROP_TEXT, BullPowerText);
-   ObjectSetInteger(0, "objnameInfoBullPower", OBJPROP_ZORDER, 1);
-   ObjectCreate(0, "objnameInfoBearPower", OBJ_LABEL, 0, 0, 0);
-   ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_XDISTANCE, HorizPos - 160);
-   ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_YDISTANCE, VertPos + 65);
-   ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_CORNER, Corner);
-   ObjectSetString(0, "objnameInfoBearPower", OBJPROP_FONT, FontName);
-   ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_FONTSIZE, FontSize);
-   ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_COLOR, clrWhite);
-   ObjectSetString(0, "objnameInfoBearPower", OBJPROP_TEXT, BearPowerText);
-   ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_ZORDER, 1);
+   string BullPowerTextLTF = "LTF Bull Power INIT";
+   string BearPowerTextLTF = "LTF Bear Power INIT";
+   string BullPowerTextHTF = "HTF Bull Power INIT";
+   string BearPowerTextHTF = "HTF Bear Power INIT";
+   ObjectCreate(0, "objnameInfoBullPowerLTF", OBJ_LABEL, 0, 0, 0);
+   ObjectSetInteger(0, "objnameInfoBullPowerLTF", OBJPROP_XDISTANCE, HorizPos);
+   ObjectSetInteger(0, "objnameInfoBullPowerLTF", OBJPROP_YDISTANCE, VertPos + 65);
+   ObjectSetInteger(0, "objnameInfoBullPowerLTF", OBJPROP_CORNER, Corner);
+   ObjectSetString(0, "objnameInfoBullPowerLTF", OBJPROP_FONT, FontName);
+   ObjectSetInteger(0, "objnameInfoBullPowerLTF", OBJPROP_FONTSIZE, FontSize);
+   ObjectSetInteger(0, "objnameInfoBullPowerLTF", OBJPROP_COLOR, clrWhite);
+   ObjectSetString(0, "objnameInfoBullPowerLTF", OBJPROP_TEXT, BullPowerTextLTF);
+   ObjectSetInteger(0, "objnameInfoBullPowerLTF", OBJPROP_ZORDER, 1);
+   ObjectCreate(0, "objnameInfoBearPowerLTF", OBJ_LABEL, 0, 0, 0);
+   ObjectSetInteger(0, "objnameInfoBearPowerLTF", OBJPROP_XDISTANCE, HorizPos - 160);
+   ObjectSetInteger(0, "objnameInfoBearPowerLTF", OBJPROP_YDISTANCE, VertPos + 65);
+   ObjectSetInteger(0, "objnameInfoBearPowerLTF", OBJPROP_CORNER, Corner);
+   ObjectSetString(0, "objnameInfoBearPowerLTF", OBJPROP_FONT, FontName);
+   ObjectSetInteger(0, "objnameInfoBearPowerLTF", OBJPROP_FONTSIZE, FontSize);
+   ObjectSetInteger(0, "objnameInfoBearPowerLTF", OBJPROP_COLOR, clrWhite);
+   ObjectSetString(0, "objnameInfoBearPowerLTF", OBJPROP_TEXT, BearPowerTextLTF);
+   ObjectSetInteger(0, "objnameInfoBearPowerLTF", OBJPROP_ZORDER, 1);
+   ObjectCreate(0, "objnameInfoBullPowerHTF", OBJ_LABEL, 0, 0, 0);
+   ObjectSetInteger(0, "objnameInfoBullPowerHTF", OBJPROP_XDISTANCE, HorizPos);
+   ObjectSetInteger(0, "objnameInfoBullPowerHTF", OBJPROP_YDISTANCE, VertPos + 77);
+   ObjectSetInteger(0, "objnameInfoBullPowerHTF", OBJPROP_CORNER, Corner);
+   ObjectSetString(0, "objnameInfoBullPowerHTF", OBJPROP_FONT, FontName);
+   ObjectSetInteger(0, "objnameInfoBullPowerHTF", OBJPROP_FONTSIZE, FontSize);
+   ObjectSetInteger(0, "objnameInfoBullPowerHTF", OBJPROP_COLOR, clrWhite);
+   ObjectSetString(0, "objnameInfoBullPowerHTF", OBJPROP_TEXT, BullPowerTextHTF);
+   ObjectSetInteger(0, "objnameInfoBullPowerHTF", OBJPROP_ZORDER, 1);
+   ObjectCreate(0, "objnameInfoBearPowerHTF", OBJ_LABEL, 0, 0, 0);
+   ObjectSetInteger(0, "objnameInfoBearPowerHTF", OBJPROP_XDISTANCE, HorizPos - 160);
+   ObjectSetInteger(0, "objnameInfoBearPowerHTF", OBJPROP_YDISTANCE, VertPos + 77);
+   ObjectSetInteger(0, "objnameInfoBearPowerHTF", OBJPROP_CORNER, Corner);
+   ObjectSetString(0, "objnameInfoBearPowerHTF", OBJPROP_FONT, FontName);
+   ObjectSetInteger(0, "objnameInfoBearPowerHTF", OBJPROP_FONTSIZE, FontSize);
+   ObjectSetInteger(0, "objnameInfoBearPowerHTF", OBJPROP_COLOR, clrWhite);
+   ObjectSetString(0, "objnameInfoBearPowerHTF", OBJPROP_TEXT, BearPowerTextHTF);
+   ObjectSetInteger(0, "objnameInfoBearPowerHTF", OBJPROP_ZORDER, 1);
    return 0;
 }
 void OnDeinit(const int pReason)
@@ -285,37 +299,35 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
    GlobalVariableSet("PowerCalcComplete", false);
    string objnameInfo = objname + timeframe + label;
    color textColor = condition ? clrLime : clrRed;
+   int TotalBearPowerLTF, TotalBullPowerLTF, TotalBearPowerHTF, TotalBullPowerHTF;
+   // Calculate TotalBearPowerLTF and TotalBullPowerLTF
+   TotalBearPowerLTF = (BearPowerLTF * 5);
+   TotalBullPowerLTF = (BullPowerLTF * 5);
+   // Calculate TotalBearPowerHTF and TotalBullPowerHTF
+   TotalBearPowerHTF = (BearPowerHTF * 5);
+   TotalBullPowerHTF = (BullPowerHTF * 5);
    // Check if the color has changed
    if (ObjectGetInteger(0, objnameInfo, OBJPROP_COLOR) != textColor)
    {
-      // Decrement the appropriate variable if it was previously clrLime
+      // Decrement the appropriate variable based on the previous color
       if (ObjectGetInteger(0, objnameInfo, OBJPROP_COLOR) == clrLime)
       {
-         if(StringFind(timeframe, "M1", 0) != -1 || StringFind(timeframe, "M5", 0) != -1 || StringFind(timeframe, "M15", 0) != -1)
+         if (StringFind(timeframe, "M1", 0) != -1 || StringFind(timeframe, "M5", 0) != -1 || StringFind(timeframe, "M15", 0) != -1 || StringFind(timeframe, "M30", 0) != -1) 
          {
             BullPowerLTF--;
          }
-         if (StringFind(timeframe, "M30", 0) != -1 || StringFind(timeframe, "H1", 0) != -1)
-         {
-            BullPowerMTF--;
-         }
-         else if (StringFind(timeframe, "H4", 0) != -1 || StringFind(timeframe, "D1", 0) != -1 || StringFind(timeframe, "W1", 0) != -1)
+         else if (StringFind(timeframe, "H1", 0) != -1)
          {
             BullPowerHTF--;
          }
       }
-      // Decrement the appropriate variable if it was previously clrRed
       else if (ObjectGetInteger(0, objnameInfo, OBJPROP_COLOR) == clrRed)
       {
-         if(StringFind(timeframe, "M1", 0) != -1 || StringFind(timeframe, "M5", 0) != -1 || StringFind(timeframe, "M15", 0) != -1)
+         if (StringFind(timeframe, "M1", 0) != -1 || StringFind(timeframe, "M5", 0) != -1 || StringFind(timeframe, "M15", 0) != -1 || StringFind(timeframe, "M30", 0) != -1) 
          {
             BearPowerLTF--;
          }
-         if (StringFind(timeframe, "M30", 0) != -1 || StringFind(timeframe, "H1", 0) != -1)
-         {
-            BearPowerMTF--;
-         }
-         else if (StringFind(timeframe, "H4", 0) != -1 || StringFind(timeframe, "D1", 0) != -1 || StringFind(timeframe, "W1", 0) != -1)
+         else if (StringFind(timeframe, "H1", 0) != -1 || StringFind(timeframe, "H4", 0) != -1 || StringFind(timeframe, "D1", 0) != -1 || StringFind(timeframe, "W1", 0) != -1)
          {
             BearPowerHTF--;
          }
@@ -324,30 +336,24 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
       ObjectSetInteger(0, objnameInfo, OBJPROP_COLOR, textColor);
       if (condition)
       {
-         if(StringFind(timeframe, "M1", 0) != -1 || StringFind(timeframe, "M5", 0) != -1 || StringFind(timeframe, "M15", 0) != -1)
+         // Increment the appropriate variable based on the timeframe
+         if (StringFind(timeframe, "M1", 0) != -1 || StringFind(timeframe, "M5", 0) != -1 || StringFind(timeframe, "M15", 0) != -1 || StringFind(timeframe, "M30", 0) != -1) 
          {
             BullPowerLTF++;
          }
-         if (StringFind(timeframe, "M30", 0) != -1 || StringFind(timeframe, "H1", 0) != -1)
-         {
-            BullPowerMTF++;
-         }
-         else if (StringFind(timeframe, "H4", 0) != -1 || StringFind(timeframe, "D1", 0) != -1 || StringFind(timeframe, "W1", 0) != -1)
+         else if (StringFind(timeframe, "H1", 0) != -1 || StringFind(timeframe, "H4", 0) != -1 || StringFind(timeframe, "D1", 0) != -1 || StringFind(timeframe, "W1", 0) != -1)
          {
             BullPowerHTF++;
          }
       }
       else
       {
-         if(StringFind(timeframe, "M1", 0) != -1 || StringFind(timeframe, "M5", 0) != -1|| StringFind(timeframe, "M15", 0) != -1)
+         // Increment the appropriate variable based on the timeframe
+         if (StringFind(timeframe, "M1", 0) != -1 || StringFind(timeframe, "M5", 0) != -1 || StringFind(timeframe, "M15", 0) != -1 || StringFind(timeframe, "M30", 0) != -1) 
          {
             BearPowerLTF++;
          }
-         if (StringFind(timeframe, "M30", 0) != -1 || StringFind(timeframe, "H1", 0) != -1)
-         {
-            BearPowerMTF++;
-         }
-         else if (StringFind(timeframe, "H4", 0) != -1 || StringFind(timeframe, "D1", 0) != -1 || StringFind(timeframe, "W1", 0) != -1)
+         else if (StringFind(timeframe, "H1", 0) != -1 || StringFind(timeframe, "H4", 0) != -1 || StringFind(timeframe, "D1", 0) != -1 || StringFind(timeframe, "W1", 0) != -1)
          {
             BearPowerHTF++;
          }
@@ -359,57 +365,97 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
       if (!W1SMA200Exists)
       {
          // If W1 200SMA does not exist, increment BullPowerHTF and BearPowerHTF
-         BullPowerHTF ++;
-         BearPowerHTF ++;
+         BullPowerHTF++;
+         BearPowerHTF++;
          // Set the color to clrWhite
-         ObjectSetInteger(0, "objnameInfoBullPower", OBJPROP_COLOR, clrWhite);
-         ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_COLOR, clrWhite);
+         ObjectSetInteger(0, "objnameInfoBullPowerHTF", OBJPROP_COLOR, clrWhite);
+         ObjectSetInteger(0, "objnameInfoBearPowerHTF", OBJPROP_COLOR, clrWhite);
       }
       else
       {
-         // Update the colors based on the TotalBullPower and TotalBearPower
-         if (TotalBearPower > TotalBullPower)
-         {
-            ObjectSetInteger(0, "objnameInfoBullPower", OBJPROP_COLOR, clrWhite);
-            ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_COLOR, clrRed);
-         }
-         if (TotalBullPower > TotalBearPower)
-         {
-            ObjectSetInteger(0, "objnameInfoBullPower", OBJPROP_COLOR, clrLime);
-            ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_COLOR, clrWhite);
-         }
-         if (TotalBullPower == TotalBearPower)
-         {
-            ObjectSetInteger(0, "objnameInfoBullPower", OBJPROP_COLOR, clrWhite);
-            ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_COLOR, clrWhite);
-         }
+        // Update the colors based on the TotalBullPower and TotalBearPower
+        if (TotalBearPowerHTF > TotalBullPowerHTF)
+        {
+            ObjectSetInteger(0, "objnameInfoBullPowerHTF", OBJPROP_COLOR, clrWhite);
+            ObjectSetInteger(0, "objnameInfoBearPowerHTF", OBJPROP_COLOR, clrRed);
+        }
+        if (TotalBullPowerHTF > TotalBearPowerHTF)
+        {
+            ObjectSetInteger(0, "objnameInfoBullPowerHTF", OBJPROP_COLOR, clrLime);
+            ObjectSetInteger(0, "objnameInfoBearPowerHTF", OBJPROP_COLOR, clrWhite);
+        }
+        if (TotalBearPowerLTF > TotalBullPowerLTF)
+        {
+            ObjectSetInteger(0, "objnameInfoBullPowerLTF", OBJPROP_COLOR, clrWhite);
+            ObjectSetInteger(0, "objnameInfoBearPowerLTF", OBJPROP_COLOR, clrRed);
+        }
+        if (TotalBullPowerLTF > TotalBearPowerLTF)
+        {
+            ObjectSetInteger(0, "objnameInfoBullPowerLTF", OBJPROP_COLOR, clrLime);
+            ObjectSetInteger(0, "objnameInfoBearPowerLTF", OBJPROP_COLOR, clrWhite);
+        }
+        if (TotalBullPowerHTF == TotalBearPowerHTF)
+        {
+            ObjectSetInteger(0, "objnameInfoBullPowerHTF", OBJPROP_COLOR, clrWhite);
+            ObjectSetInteger(0, "objnameInfoBearPowerHTF", OBJPROP_COLOR, clrWhite);
+        }
+        if (TotalBullPowerLTF == TotalBearPowerLTF)
+        {
+            ObjectSetInteger(0, "objnameInfoBullPowerLTF", OBJPROP_COLOR, clrWhite);
+            ObjectSetInteger(0, "objnameInfoBearPowerLTF", OBJPROP_COLOR, clrWhite);
+        }
       }
       // Update the total variables
-      TotalBearPower = (BearPowerLTF * PowerLTFMulti) + (BearPowerMTF * PowerMTFMulti) + (BearPowerHTF * PowerHTFMulti);
-      TotalBullPower = (BullPowerLTF * PowerLTFMulti) + (BullPowerMTF * PowerMTFMulti) + (BullPowerHTF * PowerHTFMulti);
-      double TotalScore = TotalBullPower + TotalBearPower;
-      if (TotalBearPower > TotalBullPower)
+      TotalBearPowerLTF = (BearPowerLTF * 5);
+      TotalBullPowerLTF = (BullPowerLTF * 5);
+      double TotalScoreLTF = TotalBullPowerLTF + TotalBearPowerLTF;
+      TotalBearPowerHTF = (BearPowerHTF * 5);
+      TotalBullPowerHTF = (BullPowerHTF * 5);
+      double TotalScoreHTF = TotalBullPowerHTF + TotalBearPowerHTF;
+      if (TotalBearPowerHTF > TotalBullPowerHTF)
       {
-         ObjectSetInteger(0, "objnameInfoBullPower", OBJPROP_COLOR, clrWhite);
-         ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_COLOR, clrRed);
+         ObjectSetInteger(0, "objnameInfoBullPowerHTF", OBJPROP_COLOR, clrWhite);
+         ObjectSetInteger(0, "objnameInfoBearPowerHTF", OBJPROP_COLOR, clrRed);
       }
-      if (TotalBullPower > TotalBearPower)
+      if (TotalBullPowerHTF > TotalBearPowerHTF)
       {
-         ObjectSetInteger(0, "objnameInfoBullPower", OBJPROP_COLOR, clrLime);
-         ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_COLOR, clrWhite);
+         ObjectSetInteger(0, "objnameInfoBullPowerHTF", OBJPROP_COLOR, clrLime);
+         ObjectSetInteger(0, "objnameInfoBearPowerHTF", OBJPROP_COLOR, clrWhite);
       }
-      if (TotalBullPower == TotalBearPower)
+      if (TotalBearPowerLTF > TotalBullPowerLTF)
       {
-         ObjectSetInteger(0, "objnameInfoBullPower", OBJPROP_COLOR, clrWhite);
-         ObjectSetInteger(0, "objnameInfoBearPower", OBJPROP_COLOR, clrWhite);
+         ObjectSetInteger(0, "objnameInfoBullPowerLTF", OBJPROP_COLOR, clrWhite);
+         ObjectSetInteger(0, "objnameInfoBearPowerLTF", OBJPROP_COLOR, clrRed);
       }
-      string BullPowerText = "[ Bull Power: " + DoubleToString(TotalBullPower,2) + " ]";
-      string BearPowerText = "[ Bear Power: " + DoubleToString(TotalBearPower,2) + " ]";
-      ObjectSetString(0, "objnameInfoBullPower", OBJPROP_TEXT, BullPowerText);
-      ObjectSetString(0, "objnameInfoBearPower", OBJPROP_TEXT, BearPowerText);
+      else if (TotalBullPowerLTF > TotalBearPowerLTF)
+      {
+         ObjectSetInteger(0, "objnameInfoBullPowerLTF", OBJPROP_COLOR, clrLime);
+         ObjectSetInteger(0, "objnameInfoBearPowerLTF", OBJPROP_COLOR, clrWhite);
+      }
+      if (TotalBullPowerHTF == TotalBearPowerHTF)
+      {
+         ObjectSetInteger(0, "objnameInfoBullPowerHTF", OBJPROP_COLOR, clrWhite);
+         ObjectSetInteger(0, "objnameInfoBearPowerHTF", OBJPROP_COLOR, clrWhite);
+      }
+      if (TotalBullPowerLTF == TotalBearPowerLTF)
+      {
+         ObjectSetInteger(0, "objnameInfoBullPowerLTF", OBJPROP_COLOR, clrWhite);
+         ObjectSetInteger(0, "objnameInfoBearPowerLTF", OBJPROP_COLOR, clrWhite);
+      }
+      // Update the labels with the new values
+      string BullPowerTextLTF = "Bull Power LTF: " + IntegerToString(TotalBullPowerLTF);
+      string BearPowerTextLTF = "Bear Power LTF: " + IntegerToString(TotalBearPowerLTF);
+      ObjectSetString(0, "objnameInfoBullPowerLTF", OBJPROP_TEXT, BullPowerTextLTF);
+      ObjectSetString(0, "objnameInfoBearPowerLTF", OBJPROP_TEXT, BearPowerTextLTF);
+      string BullPowerTextHTF = "Bull Power HTF: " + IntegerToString(TotalBullPowerHTF);
+      string BearPowerTextHTF = "Bear Power HTF: " + IntegerToString(TotalBearPowerHTF);
+      ObjectSetString(0, "objnameInfoBullPowerHTF", OBJPROP_TEXT, BullPowerTextHTF);
+      ObjectSetString(0, "objnameInfoBearPowerHTF", OBJPROP_TEXT, BearPowerTextHTF);
    }
-   GlobalVariableSet("GlobalBullPower", TotalBullPower);
-   GlobalVariableSet("GlobalBearPower", TotalBearPower);
+   GlobalVariableSet("GlobalBullPowerLTF", TotalBullPowerLTF);
+   GlobalVariableSet("GlobalBearPowerLTF", TotalBearPowerLTF);
+   GlobalVariableSet("GlobalBullPowerHTF", TotalBullPowerHTF);
+   GlobalVariableSet("GlobalBearPowerHTF", TotalBearPowerHTF);
    GlobalVariableSet("PowerCalcComplete", true);
 }
 int OnCalculate(const int rates_total,
@@ -461,7 +507,7 @@ int OnCalculate(const int rates_total,
       prevTime = currentTime;
       UpdateBuffers();
    }
-   static int waitCount = 4;
+   static int waitCount = 3;
    if (waitCount > 0)
    {
       UpdateBuffersOnCalculate(0, rates_total);
