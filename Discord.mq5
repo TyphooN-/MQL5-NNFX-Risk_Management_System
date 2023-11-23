@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.decapool.net/"
-#property version   "1.22"
+#property version   "1.23"
 double LastBullPower = -1;
 double LastBearPower = -1;
 datetime LastPowerNotification = 0;
@@ -67,20 +67,28 @@ void SendPowerNotification()
    double PowerCalculated = GlobalVariableGet("PowerCalcComplete");
    if(GlobalVariableCheck("GlobalBullPowerLTF") || GlobalVariableCheck("GlobalBearPowerLTF") || GlobalVariableCheck("GlobalBullPowerHTF") || GlobalVariableCheck("GlobalBearPowerHTF"))
    {
-      CurrentBullPowerHTF = GlobalVariableGet("GlobalBullPower");
-      CurrentBearPowerHTF = GlobalVariableGet("GlobalBearPower");
       int RandomSleepDuration = 21337 + MathRand() % (6669);
+      CurrentBullPowerHTF = GlobalVariableGet("GlobalBullPowerHTF");
+      CurrentBearPowerHTF = GlobalVariableGet("GlobalBearPowerHTF");
+      CurrentBullPowerLTF = GlobalVariableGet("GlobalBullPowerLTF");
+      CurrentBearPowerLTF = GlobalVariableGet("GlobalBearPowerLTF");
       Sleep(RandomSleepDuration);
-      VerifiedBullPowerHTF1 = GlobalVariableGet("GlobalBullPower");
-      VerifiedBearPowerHTF1 = GlobalVariableGet("GlobalBearPower");
+      VerifiedBullPowerHTF1 = GlobalVariableGet("GlobalBullPowerHTF");
+      VerifiedBearPowerHTF1 = GlobalVariableGet("GlobalBearPowerHTF");
+      VerifiedBullPowerLTF1 = GlobalVariableGet("GlobalBullPowerLTF");
+      VerifiedBearPowerLTF1 = GlobalVariableGet("GlobalBearPowerLTF");
       Sleep(RandomSleepDuration);
-      VerifiedBullPowerHTF2 = GlobalVariableGet("GlobalBullPower");
-      VerifiedBearPowerHTF2 = GlobalVariableGet("GlobalBearPower");
+      VerifiedBullPowerHTF2 = GlobalVariableGet("GlobalBullPowerHTF");
+      VerifiedBearPowerHTF2 = GlobalVariableGet("GlobalBearPowerHTF");
+      VerifiedBullPowerLTF2 = GlobalVariableGet("GlobalBullPowerLTF");
+      VerifiedBearPowerLTF2 = GlobalVariableGet("GlobalBearPowerLTF");
       Sleep(RandomSleepDuration);
-      VerifiedBullPowerHTF3 = GlobalVariableGet("GlobalBullPower");
-      VerifiedBearPowerHTF3 = GlobalVariableGet("GlobalBearPower");
+      VerifiedBullPowerHTF3 = GlobalVariableGet("GlobalBullPowerHTF");
+      VerifiedBearPowerHTF3 = GlobalVariableGet("GlobalBearPowerHTF");
+      VerifiedBullPowerLTF3 = GlobalVariableGet("GlobalBullPowerLTF");
+      VerifiedBearPowerLTF3 = GlobalVariableGet("GlobalBearPowerLTF");
       PowerCalculated = GlobalVariableGet("PowerCalcComplete");
-      while((CurrentBullPowerHTF != VerifiedBullPowerHTF1 ||  CurrentBullPowerHTF != VerifiedBullPowerHTF2  || CurrentBullPowerHTF != VerifiedBullPowerHTF3) && PowerCalculated == true)
+      while((CurrentBullPowerHTF != VerifiedBullPowerHTF1 ||  CurrentBullPowerHTF != VerifiedBullPowerHTF2  || CurrentBullPowerHTF != VerifiedBullPowerHTF3 || CurrentBullPowerLTF != VerifiedBullPowerLTF1 ||  CurrentBullPowerLTF != VerifiedBullPowerLTF2  || CurrentBullPowerLTF != VerifiedBullPowerLTF3) && PowerCalculated == true)
       {
          CurrentBullPowerHTF = GlobalVariableGet("GlobalBullPower");
          CurrentBearPowerHTF = GlobalVariableGet("GlobalBearPower");
@@ -96,7 +104,7 @@ void SendPowerNotification()
          PowerCalculated = GlobalVariableGet("PowerCalcComplete");
       }
       PowerCalculated = GlobalVariableGet("PowerCalcComplete");
-      if((CurrentBullPowerHTF != LastBullPowerHTF || CurrentBearPowerHTF != LastBearPowerHTF) && PowerCalculated == true && ((CurrentBullPowerHTF + CurrentBearPowerHTF == 99.999) || (CurrentBullPowerHTF + CurrentBearPowerHTF == 99.99900000000001)))
+      if((CurrentBullPowerHTF != LastBullPowerHTF || CurrentBearPowerHTF != LastBearPowerHTF) && ((CurrentBullPowerHTF + CurrentBearPowerHTF == 100) && (CurrentBullPowerLTF + CurrentBearPowerLTF == 100)) && PowerCalculated == true)
       {
          // Update the stored values
          LastBullPowerHTF = CurrentBullPowerHTF;
@@ -142,7 +150,7 @@ void SendPowerNotification()
          uchar result[];
          string result_headers;
          string PowerText = "[" + _Symbol + "] [ LTF Bull Power " + DoubleToString(CurrentBullPowerLTF, 0) + " ]" + " [ LTF Bear Power " + DoubleToString(CurrentBearPowerLTF, 0)+ " ]" + 
-          " [ HTF Bull Power " + DoubleToString(CurrentBullPowerHTF) + " ]" + " [ HTF Bear Power " + DoubleToString(CurrentBearPowerHTF)+ " ]";
+          " [ HTF Bull Power " + DoubleToString(CurrentBullPowerHTF) + " ]" + " [ HTF Bear Power " + IntegerToString(CurrentBearPowerHTF)+ " ]";
          string json = "{\"content\":\""+PowerText+"\"}";
          char jsonArray[];
          StringToCharArray(json, jsonArray);
