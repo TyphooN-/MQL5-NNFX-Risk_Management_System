@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.decapool.net/"
-#property version   "1.24"
+#property version   "1.25"
 double LastBullPower = -1;
 double LastBearPower = -1;
 datetime LastPowerNotification = 0;
@@ -159,8 +159,8 @@ void SendPowerNotification()
          string headers = "Content-Type: application/json";
          uchar result[];
          string result_headers;
-         string PowerText = "[" + _Symbol + "] [ LTF Bull Power " + DoubleToString(CurrentBullPowerLTF, 0) + " ]" + " [ LTF Bear Power " + DoubleToString(CurrentBearPowerLTF, 0)+ " ]" + 
-          " [ HTF Bull Power " + DoubleToString(CurrentBullPowerHTF) + " ]" + " [ HTF Bear Power " + IntegerToString(CurrentBearPowerHTF)+ " ]";
+         string PowerText = "[" + _Symbol + "] [LTF Bull Power " + DoubleToString(CurrentBullPowerLTF, 0) + "]" + " [LTF Bear Power " + DoubleToString(CurrentBearPowerLTF, 0)+ "]" + 
+          " [HTF Bull Power " + DoubleToString(CurrentBullPowerHTF) + "]" + " [HTF Bear Power " + IntegerToString(CurrentBearPowerHTF)+ "]";
          string json = "{\"content\":\""+PowerText+"\"}";
          char jsonArray[];
          StringToCharArray(json, jsonArray);
