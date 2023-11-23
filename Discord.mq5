@@ -142,7 +142,7 @@ void SendPowerNotification()
          uchar result[];
          string result_headers;
          string PowerText = "[" + _Symbol + "] [ LTF Bull Power " + DoubleToString(CurrentBullPowerLTF, 0) + " ]" + " [ LTF Bear Power " + DoubleToString(CurrentBearPowerLTF, 0)+ " ]" + 
-          " [ HTF Bull Power " + DoubleToString(CurrentBullPowerHTF) + " ]" + " [ HTF Bear Power " + IntegerToString(CurrentBearPowerHTF)+ " ]";
+          " [ HTF Bull Power " + DoubleToString(CurrentBullPowerHTF) + " ]" + " [ HTF Bear Power " + DoubleToString(CurrentBearPowerHTF)+ " ]";
          string json = "{\"content\":\""+PowerText+"\"}";
          char jsonArray[];
          StringToCharArray(json, jsonArray);
