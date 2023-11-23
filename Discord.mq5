@@ -23,19 +23,31 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.decapool.net/"
-#property version   "1.20"
+#property version   "1.21"
 double LastBullPower = -1;
 double LastBearPower = -1;
 datetime LastPowerNotification = 0;
 const int NotificationCoolDown = 900;
-double CurrentBullPower = 0;
-double CurrentBearPower = 0;
-double VerifiedBullPower1 = -1;
-double VerifiedBearPower1 = -1;
-double VerifiedBullPower2 = -1;
-double VerifiedBearPower2 = -1;
-double VerifiedBullPower3 = -1;
-double VerifiedBearPower3 = -1;
+double LastBullPowerHTF = -1;
+double LastBearPowerHTF = -1;
+double LastBullPowerLTF = -1;
+double LastBearPowerLTF = -1;
+double CurrentBullPowerLTF = 0;
+double CurrentBearPowerLTF = 0;
+double VerifiedBullPowerLTF1 = -1;
+double VerifiedBearPowerLTF1 = -1;
+double VerifiedBullPowerLTF2 = -1;
+double VerifiedBearPowerLTF2 = -1;
+double VerifiedBullPowerLTF3 = -1;
+double VerifiedBearPowerLTF3 = -1;
+double CurrentBullPowerHTF = 0;
+double CurrentBearPowerHTF = 0;
+double VerifiedBullPowerHTF1 = -1;
+double VerifiedBearPowerHTF1 = -1;
+double VerifiedBullPowerHTF2 = -1;
+double VerifiedBearPowerHTF2 = -1;
+double VerifiedBullPowerHTF3 = -1;
+double VerifiedBearPowerHTF3 = -1;
 input string DiscordAPIKey = "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
 int OnInit()
 {
@@ -52,42 +64,43 @@ string arrayToString(uchar &arr[])
 }
 void SendPowerNotification()
 {
+   double PowerCalculated = GlobalVariableGet("PowerCalcComplete");
    if(GlobalVariableCheck("GlobalBullPower") || GlobalVariableCheck("GlobalBearPower"))
    {
-      CurrentBullPower = GlobalVariableGet("GlobalBullPower");
-      CurrentBearPower = GlobalVariableGet("GlobalBearPower");
-      int RandomSleepDuration = 30000 + MathRand() % (13000);
+      CurrentBullPowerHTF = GlobalVariableGet("GlobalBullPower");
+      CurrentBearPowerHTF = GlobalVariableGet("GlobalBearPower");
+      int RandomSleepDuration = 21337 + MathRand() % (6669);
       Sleep(RandomSleepDuration);
-      VerifiedBullPower1 = GlobalVariableGet("GlobalBullPower");
-      VerifiedBearPower1 = GlobalVariableGet("GlobalBearPower");
+      VerifiedBullPowerHTF1 = GlobalVariableGet("GlobalBullPower");
+      VerifiedBearPowerHTF1 = GlobalVariableGet("GlobalBearPower");
       Sleep(RandomSleepDuration);
-      VerifiedBullPower2 = GlobalVariableGet("GlobalBullPower");
-      VerifiedBearPower2 = GlobalVariableGet("GlobalBearPower");
+      VerifiedBullPowerHTF2 = GlobalVariableGet("GlobalBullPower");
+      VerifiedBearPowerHTF2 = GlobalVariableGet("GlobalBearPower");
       Sleep(RandomSleepDuration);
-      VerifiedBullPower3 = GlobalVariableGet("GlobalBullPower");
-      VerifiedBearPower3 = GlobalVariableGet("GlobalBearPower");
-      double PowerCalculated = GlobalVariableGet("PowerCalcComplete");
-      while((CurrentBullPower != VerifiedBullPower1 ||  CurrentBullPower != VerifiedBullPower2  || CurrentBullPower != VerifiedBullPower3) && PowerCalculated == true)
+      VerifiedBullPowerHTF3 = GlobalVariableGet("GlobalBullPower");
+      VerifiedBearPowerHTF3 = GlobalVariableGet("GlobalBearPower");
+      PowerCalculated = GlobalVariableGet("PowerCalcComplete");
+      while((CurrentBullPowerHTF != VerifiedBullPowerHTF1 ||  CurrentBullPowerHTF != VerifiedBullPowerHTF2  || CurrentBullPowerHTF != VerifiedBullPowerHTF3) && PowerCalculated == true)
       {
-         CurrentBullPower = GlobalVariableGet("GlobalBullPower");
-         CurrentBearPower = GlobalVariableGet("GlobalBearPower");
+         CurrentBullPowerHTF = GlobalVariableGet("GlobalBullPower");
+         CurrentBearPowerHTF = GlobalVariableGet("GlobalBearPower");
          Sleep(RandomSleepDuration);
-         VerifiedBullPower1 = GlobalVariableGet("GlobalBullPower");
-         VerifiedBearPower1 = GlobalVariableGet("GlobalBearPower");
+         VerifiedBullPowerHTF1 = GlobalVariableGet("GlobalBullPower");
+         VerifiedBearPowerHTF1 = GlobalVariableGet("GlobalBearPower");
          Sleep(RandomSleepDuration);
-         VerifiedBullPower2 = GlobalVariableGet("GlobalBullPower");
-         VerifiedBearPower2 = GlobalVariableGet("GlobalBearPower");
+         VerifiedBullPowerHTF2 = GlobalVariableGet("GlobalBullPower");
+         VerifiedBearPowerHTF2 = GlobalVariableGet("GlobalBearPower");
          Sleep(RandomSleepDuration);
-         VerifiedBullPower3 = GlobalVariableGet("GlobalBullPower");
-         VerifiedBearPower3 = GlobalVariableGet("GlobalBearPower");
+         VerifiedBullPowerHTF3 = GlobalVariableGet("GlobalBullPower");
+         VerifiedBearPowerHTF3 = GlobalVariableGet("GlobalBearPower");
          PowerCalculated = GlobalVariableGet("PowerCalcComplete");
       }
       PowerCalculated = GlobalVariableGet("PowerCalcComplete");
-      if((CurrentBullPower != LastBullPower || CurrentBearPower != LastBearPower) && PowerCalculated == true && ((CurrentBullPower + CurrentBearPower == 99.999) || (CurrentBullPower + CurrentBearPower == 99.99900000000001)))
+      if((CurrentBullPowerHTF != LastBullPowerHTF || CurrentBearPowerHTF != LastBearPowerHTF) && PowerCalculated == true && ((CurrentBullPowerHTF + CurrentBearPowerHTF == 99.999) || (CurrentBullPowerHTF + CurrentBearPowerHTF == 99.99900000000001)))
       {
          // Update the stored values
-         LastBullPower = CurrentBullPower;
-         LastBearPower = CurrentBearPower;
+         LastBullPowerHTF = CurrentBullPowerHTF;
+         LastBearPowerHTF = CurrentBearPowerHTF;
          string url;
          if ( _Symbol == "USOUSD" || _Symbol == "UKOUSD" || _Symbol == "NATGAS.f" )
          {
@@ -128,7 +141,8 @@ void SendPowerNotification()
          string headers = "Content-Type: application/json";
          uchar result[];
          string result_headers;
-         string PowerText = "[" + _Symbol + "] [Bull Power " + DoubleToString(CurrentBullPower, 2) + "]" + " [Bear Power " + DoubleToString(CurrentBearPower, 2)+ "]";
+         string PowerText = "[" + _Symbol + "] [ LTF Bull Power " + IntegerToString(CurrentBullPowerLTF) + "]" + " [ LTF Bear Power " + IntegerToString(CurrentBearPowerLTF)+ "]" + 
+          " [ HTF Bull Power " + IntegerToString(CurrentBullPowerHTF) + "]" + " [ HTF Bear Power " + IntegerToString(CurrentBearPowerHTF)+ "]";
          string json = "{\"content\":\""+PowerText+"\"}";
          char jsonArray[];
          StringToCharArray(json, jsonArray);
@@ -142,7 +156,7 @@ void SendPowerNotification()
          string resultString = CharArrayToString(result);
          LastPowerNotification = TimeCurrent();
       }
-      }
+   }
 }
 void OnTick()
 {
