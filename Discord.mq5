@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.decapool.net/"
-#property version   "1.25"
+#property version   "1.26"
 double LastBullPower = -1;
 double LastBearPower = -1;
 datetime LastPowerNotification = 0;
@@ -48,7 +48,13 @@ double VerifiedBullPowerHTF2 = -1;
 double VerifiedBearPowerHTF2 = -1;
 double VerifiedBullPowerHTF3 = -1;
 double VerifiedBearPowerHTF3 = -1;
-input string DiscordAPIKey = "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
+input string AgricultureAPIKey = "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
+input string CryptoAPIKey = "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
+input string EnergyAPIKey = "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
+input string ForexAPIKey = "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
+input string IndicesAPIKey = "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
+input string MetalAPIKey = "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
+input string StocksAPIKey = "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
 int OnInit()
 {
    return(INIT_SUCCEEDED);
@@ -67,7 +73,7 @@ void SendPowerNotification()
    double PowerCalculated = GlobalVariableGet("PowerCalcComplete");
    if(GlobalVariableCheck("GlobalBullPowerLTF") || GlobalVariableCheck("GlobalBearPowerLTF") || GlobalVariableCheck("GlobalBullPowerHTF") || GlobalVariableCheck("GlobalBearPowerHTF"))
    {
-      int RandomSleepDuration = 21337 + MathRand() % (6669);
+      int RandomSleepDuration = 26669 + MathRand() % (7779);
       CurrentBullPowerHTF = GlobalVariableGet("GlobalBullPowerHTF");
       CurrentBearPowerHTF = GlobalVariableGet("GlobalBearPowerHTF");
       CurrentBullPowerLTF = GlobalVariableGet("GlobalBullPowerLTF");
@@ -160,7 +166,7 @@ void SendPowerNotification()
          uchar result[];
          string result_headers;
          string PowerText = "[" + _Symbol + "] [LTF Bull Power " + DoubleToString(CurrentBullPowerLTF, 0) + "]" + " [LTF Bear Power " + DoubleToString(CurrentBearPowerLTF, 0)+ "]" + 
-          " [HTF Bull Power " + DoubleToString(CurrentBullPowerHTF) + "]" + " [HTF Bear Power " + IntegerToString(CurrentBearPowerHTF)+ "]";
+          " [HTF Bull Power " + DoubleToString(CurrentBullPowerHTF, 0) + "]" + " [HTF Bear Power " + DoubleToString(CurrentBearPowerHTF, 0)+ "]";
          string json = "{\"content\":\""+PowerText+"\"}";
          char jsonArray[];
          StringToCharArray(json, jsonArray);
