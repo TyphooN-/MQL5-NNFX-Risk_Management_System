@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.decapool.net/"
-#property version   "1.21"
+#property version   "1.22"
 double LastBullPower = -1;
 double LastBearPower = -1;
 datetime LastPowerNotification = 0;
@@ -65,7 +65,7 @@ string arrayToString(uchar &arr[])
 void SendPowerNotification()
 {
    double PowerCalculated = GlobalVariableGet("PowerCalcComplete");
-   if(GlobalVariableCheck("GlobalBullPower") || GlobalVariableCheck("GlobalBearPower"))
+   if(GlobalVariableCheck("GlobalBullPowerLTF") || GlobalVariableCheck("GlobalBearPowerLTF") || GlobalVariableCheck("GlobalBullPowerHTF") || GlobalVariableCheck("GlobalBearPowerHTF"))
    {
       CurrentBullPowerHTF = GlobalVariableGet("GlobalBullPower");
       CurrentBearPowerHTF = GlobalVariableGet("GlobalBearPower");
@@ -141,8 +141,8 @@ void SendPowerNotification()
          string headers = "Content-Type: application/json";
          uchar result[];
          string result_headers;
-         string PowerText = "[" + _Symbol + "] [ LTF Bull Power " + IntegerToString(CurrentBullPowerLTF) + "]" + " [ LTF Bear Power " + IntegerToString(CurrentBearPowerLTF)+ "]" + 
-          " [ HTF Bull Power " + IntegerToString(CurrentBullPowerHTF) + "]" + " [ HTF Bear Power " + IntegerToString(CurrentBearPowerHTF)+ "]";
+         string PowerText = "[" + _Symbol + "] [ LTF Bull Power " + DoubleToString(CurrentBullPowerLTF, 0) + " ]" + " [ LTF Bear Power " + DoubleToString(CurrentBearPowerLTF, 0)+ " ]" + 
+          " [ HTF Bull Power " + DoubleToString(CurrentBullPowerHTF) + " ]" + " [ HTF Bear Power " + IntegerToString(CurrentBearPowerHTF)+ " ]";
          string json = "{\"content\":\""+PowerText+"\"}";
          char jsonArray[];
          StringToCharArray(json, jsonArray);
