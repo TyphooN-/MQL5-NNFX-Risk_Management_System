@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.decapool.net/"
-#property version   "1.23"
+#property version   "1.24"
 double LastBullPower = -1;
 double LastBearPower = -1;
 datetime LastPowerNotification = 0;
@@ -88,27 +88,37 @@ void SendPowerNotification()
       VerifiedBullPowerLTF3 = GlobalVariableGet("GlobalBullPowerLTF");
       VerifiedBearPowerLTF3 = GlobalVariableGet("GlobalBearPowerLTF");
       PowerCalculated = GlobalVariableGet("PowerCalcComplete");
-      while((CurrentBullPowerHTF != VerifiedBullPowerHTF1 ||  CurrentBullPowerHTF != VerifiedBullPowerHTF2  || CurrentBullPowerHTF != VerifiedBullPowerHTF3 || CurrentBullPowerLTF != VerifiedBullPowerLTF1 ||  CurrentBullPowerLTF != VerifiedBullPowerLTF2  || CurrentBullPowerLTF != VerifiedBullPowerLTF3) && PowerCalculated == true)
+      while((CurrentBullPowerHTF != VerifiedBullPowerHTF1 || CurrentBullPowerHTF != VerifiedBullPowerHTF2 || CurrentBullPowerHTF != VerifiedBullPowerHTF3 || CurrentBullPowerLTF != VerifiedBullPowerLTF1 || CurrentBullPowerLTF != VerifiedBullPowerLTF2 || CurrentBullPowerLTF != VerifiedBullPowerLTF3) && PowerCalculated == true)
       {
-         CurrentBullPowerHTF = GlobalVariableGet("GlobalBullPower");
-         CurrentBearPowerHTF = GlobalVariableGet("GlobalBearPower");
-         Sleep(RandomSleepDuration);
-         VerifiedBullPowerHTF1 = GlobalVariableGet("GlobalBullPower");
-         VerifiedBearPowerHTF1 = GlobalVariableGet("GlobalBearPower");
-         Sleep(RandomSleepDuration);
-         VerifiedBullPowerHTF2 = GlobalVariableGet("GlobalBullPower");
-         VerifiedBearPowerHTF2 = GlobalVariableGet("GlobalBearPower");
-         Sleep(RandomSleepDuration);
-         VerifiedBullPowerHTF3 = GlobalVariableGet("GlobalBullPower");
-         VerifiedBearPowerHTF3 = GlobalVariableGet("GlobalBearPower");
+      CurrentBullPowerHTF = GlobalVariableGet("GlobalBullPowerHTF");
+      CurrentBearPowerHTF = GlobalVariableGet("GlobalBearPowerHTF");
+      CurrentBullPowerLTF = GlobalVariableGet("GlobalBullPowerLTF");
+      CurrentBearPowerLTF = GlobalVariableGet("GlobalBearPowerLTF");
+      Sleep(RandomSleepDuration);
+      VerifiedBullPowerHTF1 = GlobalVariableGet("GlobalBullPowerHTF");
+      VerifiedBearPowerHTF1 = GlobalVariableGet("GlobalBearPowerHTF");
+      VerifiedBullPowerLTF1 = GlobalVariableGet("GlobalBullPowerLTF");
+      VerifiedBearPowerLTF1 = GlobalVariableGet("GlobalBearPowerLTF");
+      Sleep(RandomSleepDuration);
+      VerifiedBullPowerHTF2 = GlobalVariableGet("GlobalBullPowerHTF");
+      VerifiedBearPowerHTF2 = GlobalVariableGet("GlobalBearPowerHTF");
+      VerifiedBullPowerLTF2 = GlobalVariableGet("GlobalBullPowerLTF");
+      VerifiedBearPowerLTF2 = GlobalVariableGet("GlobalBearPowerLTF");
+      Sleep(RandomSleepDuration);
+      VerifiedBullPowerHTF3 = GlobalVariableGet("GlobalBullPowerHTF");
+      VerifiedBearPowerHTF3 = GlobalVariableGet("GlobalBearPowerHTF");
+      VerifiedBullPowerLTF3 = GlobalVariableGet("GlobalBullPowerLTF");
+      VerifiedBearPowerLTF3 = GlobalVariableGet("GlobalBearPowerLTF");
          PowerCalculated = GlobalVariableGet("PowerCalcComplete");
       }
       PowerCalculated = GlobalVariableGet("PowerCalcComplete");
-      if((CurrentBullPowerHTF != LastBullPowerHTF || CurrentBearPowerHTF != LastBearPowerHTF) && ((CurrentBullPowerHTF + CurrentBearPowerHTF == 100) && (CurrentBullPowerLTF + CurrentBearPowerLTF == 100)) && PowerCalculated == true)
+      if((CurrentBullPowerHTF != LastBullPowerHTF || CurrentBearPowerHTF != LastBearPowerHTF || CurrentBullPowerLTF != LastBullPowerLTF || CurrentBearPowerLTF != LastBearPowerLTF) && ((CurrentBullPowerHTF + CurrentBearPowerHTF == 100) && (CurrentBullPowerLTF + CurrentBearPowerLTF == 100)) && PowerCalculated == true)
       {
          // Update the stored values
          LastBullPowerHTF = CurrentBullPowerHTF;
          LastBearPowerHTF = CurrentBearPowerHTF;
+         LastBullPowerLTF = CurrentBullPowerLTF;
+         LastBearPowerLTF = CurrentBearPowerLTF;
          string url;
          if ( _Symbol == "USOUSD" || _Symbol == "UKOUSD" || _Symbol == "NATGAS.f" )
          {
