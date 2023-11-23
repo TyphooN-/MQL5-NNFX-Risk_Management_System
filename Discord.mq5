@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.decapool.net/"
-#property version   "1.26"
+#property version   "1.27"
 double LastBullPower = -1;
 double LastBearPower = -1;
 datetime LastPowerNotification = 0;
@@ -115,7 +115,7 @@ void SendPowerNotification()
       VerifiedBearPowerHTF3 = GlobalVariableGet("GlobalBearPowerHTF");
       VerifiedBullPowerLTF3 = GlobalVariableGet("GlobalBullPowerLTF");
       VerifiedBearPowerLTF3 = GlobalVariableGet("GlobalBearPowerLTF");
-         PowerCalculated = GlobalVariableGet("PowerCalcComplete");
+      PowerCalculated = GlobalVariableGet("PowerCalcComplete");
       }
       PowerCalculated = GlobalVariableGet("PowerCalcComplete");
       if((CurrentBullPowerHTF != LastBullPowerHTF || CurrentBearPowerHTF != LastBearPowerHTF || CurrentBullPowerLTF != LastBullPowerLTF || CurrentBearPowerLTF != LastBearPowerLTF) && ((CurrentBullPowerHTF + CurrentBearPowerHTF == 100) && (CurrentBullPowerLTF + CurrentBearPowerLTF == 100)) && PowerCalculated == true)
@@ -126,7 +126,7 @@ void SendPowerNotification()
          LastBullPowerLTF = CurrentBullPowerLTF;
          LastBearPowerLTF = CurrentBearPowerLTF;
          string url;
-         if ( _Symbol == "USOUSD" || _Symbol == "UKOUSD" || _Symbol == "NATGAS.f" )
+         if ( _Symbol == "EnergyAPIKey" || _Symbol == "UKOUSD" || _Symbol == "NATGAS.f" )
          {
             url = "DiscordAPIKey";
          }
@@ -135,32 +135,32 @@ void SendPowerNotification()
          || _Symbol == "DOTUSD" || _Symbol == "DOGEUSD" || _Symbol == "VETUSD" || _Symbol == "BNBUSD" || _Symbol == "TRXUSD" || _Symbol == "ADAUSD"
          || _Symbol == "XLMUSD" || _Symbol == "DASHUSD" || _Symbol == "XMRUSD" )
          {
-            url = "DiscordAPIKey";
+            url = "CryptoAPIKey";
          }
          if ( _Symbol == "XAUUSD" || _Symbol == "XAGUSD" || _Symbol == "XPTUSD" || _Symbol == "XPDUSD" )
          {
-            url = "DiscordAPIKey";
+            url = "MetalAPIKey";
          }
          if ( _Symbol == "AUDCAD.i" || _Symbol == "AUDCHF.i" || _Symbol == "AUDJPY.i" || _Symbol == "AUDUSD.i" || _Symbol == "CADCHF.i" || _Symbol == "CADJPY.i" || _Symbol == "CHFJPY.i"
          || _Symbol == "EURAUD.i" || _Symbol == "EURCAD.i" || _Symbol == "EURCHF.i" || _Symbol == "EURGBP.i" || _Symbol == "EURJPY.i" || _Symbol == "EURUSD.i" || _Symbol == "GBPAUD.i"
          || _Symbol == "GBPCAD.i" || _Symbol == "GBPCHF.i" || _Symbol == "GBPJPY.i" || _Symbol == "GBPUSD.i" || _Symbol == "USDCAD.i" || _Symbol == "USDCHF.i" || _Symbol == "USDJPY.i" )
          {
-            url = "DiscordAPIKey";
+            url = "ForexAPIKey";
          }
          if ( _Symbol == "NDX100" || _Symbol == "SPX500" || _Symbol == "US30" || _Symbol == "UK100" || _Symbol == "GER30" || _Symbol == "ASX200" || _Symbol == "SPN35"
          || _Symbol == "EUSTX50" || _Symbol == "FRA40" || _Symbol == "JPN225" || _Symbol == "HK50" || _Symbol == "USDX" || _Symbol == "US2000.cash" || _Symbol == "USTN10.f" )
          {
-            url = "DiscordAPIKey";
+            url = "IndicesAPIKey";
          }
          if ( _Symbol == "CORN.c" || _Symbol == "COCOA.c" || _Symbol == "COFFEE.c" || _Symbol == "SOYBEAN.c" || _Symbol == "WHEAT.c" )
          {
-            url = "DiscordAPIKey";
+            url = "AgricultureAPIKey";
          }
          if (  _Symbol == "AAPL" || _Symbol == "AMZN" || _Symbol == "BABA" || _Symbol == "BAC" || _Symbol == "FB" || _Symbol == "GOOG" || _Symbol == "META"  || _Symbol == "MSFT"   
          || _Symbol == "NFLX" || _Symbol == "NVDA"  || _Symbol == "PFE" || _Symbol == "RACE" || _Symbol == "T" || _Symbol == "TSLA" || _Symbol == "V" || _Symbol == "WMT"  
          || _Symbol == "ZM" || _Symbol == "ALVG" || _Symbol == "BAYGn" || _Symbol == "AIRF" || _Symbol == "DBKGn" || _Symbol == "VOWG_p" || _Symbol == "IBE" || _Symbol == "LVMH" )
          {
-            url = "DiscordAPIKey";
+            url = "StocksAPIKey";
          }
          string headers = "Content-Type: application/json";
          uchar result[];
