@@ -64,7 +64,7 @@
   - 100/200: 100/200 SMA cross.
   - 20/50: 20/50 SMA cross.
   - 10/20: 10/20 SMA cross.
-- Bear Power and Bull Power are based on a scoring system which scores several SMA crossovers across all timeframes M1 -> W1 (Total Power is always 99.9999 which rounds up to 100).  M1 -> M15 signals are worth 0.6666 points,  M30-> H1 are worth 1.5 points, and H4 -> W1 are worth 5 points.  The MA crossovers used are 200 SMA (price above or below the MA line), Death/Golden Cross (50/200 SMA), 100/200 SMA cross, 20/50 SMA cross, and 10/20 SMA cross.
+- Bear Power and Bull Power are based on a scoring system which scores several SMA crossovers across all timeframes M1 -> W1 (Total Power is always 100 for both LTF and HTF).  The MA crossovers used are 200 SMA (price above or below the MA line), Death/Golden Cross (50/200 SMA), 100/200 SMA cross, 20/50 SMA cross, and 10/20 SMA cross.
 
 ![MTF_MA_200SMA_Lines](Images/MTF_MA_200SMA_Lines.png)
 
@@ -82,15 +82,6 @@
 - FontSize: Font Size to use when drawing InfoText.
 - HorizPos: Horizontal position in pixels where the InfoText will appear.
 - VertPos : Vertical position in pixels where the InfoText will appear.
-
-### Power Settings
-- PowerLTFMulti: The number of points given to the Bull/Bear "Power" per M1 -> M15 signal. (Default 0.6666)
-- PowerMTFMulti: The number of points given to the Bull/Bear "Power" per M30 -> H1 signal. (Default 1.5)
-- PowerHTFMulti: The number of points given to the Bull/Bear "Power" per H4 -> W1 signal. (Default 5)
-input group "[POWER SETTINGS]"
-input double    PowerLTFMulti                = 0.6666;
-input double    PowerMTFMulti                = 1.5;
-input double    PowerHTFMulti                = 5;
 
 
 # TyphooN's ATR Projection Indicator
