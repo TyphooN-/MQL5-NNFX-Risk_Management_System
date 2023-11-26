@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.234"
+#property version   "1.240"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -53,12 +53,10 @@ input double   Risk                       = 2.0;
 input int      InitialOrdersToPlace       = 1;
 input double   MarginBufferPercent        = 1.0;
 input group    "[ACCOUNT PROTECTION SETTINGS]";
-input bool     EnableAutoProtect          = false;
-input int      APCloseDivider             = 2;
-input int      APPositionsToClose         = 1;
-input int      APStartHour                = 23;
+input bool     EnableAutoProtect          = true;
+input int      APStartHour                = 0;
 input int      APStopHour                 = 24;
-input double   APRRLevel                  = 3.1415926535897932384626433832795;
+input double   APRRLevel                  = 1.0;
 input group    "[EXPERT ADVISOR SETTINGS]";
 input int      MagicNumber                = 13;
 input int      HorizontalLineThickness    = 3;
@@ -479,8 +477,8 @@ void OnTick()
    {
          if (rr >= APRRLevel && sl_risk < 0)
          {
-            Print ("Auto Protect has removed risk and taken a piece of the Pi as RR >= " + DoubleToString(APRRLevel,8));
-            AutoProtect();
+            Print ("Auto Protect has removed risk as RR >= " + DoubleToString(APRRLevel,8));
+            Protect();
             AutoProtectCalled = true;
          }
    }
@@ -1001,7 +999,7 @@ void TyWindow::OnClickTrade(void)
    double required_margin = 0.0;
    double MarginBuffer = (AccountBalance * MarginBufferPercent) / 100.0;
    int retryCount = 0;
-   const int maxRetries = 22;
+   const int maxRetries = 44;
    int retcode = 0;
 
    if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, retryCount, maxRetries, OrderDigits))
@@ -1262,89 +1260,6 @@ void BubbleSort(PositionInfo &arr[])
             PositionInfo temp = arr[j];
             arr[j] = arr[j+1];
             arr[j+1] = temp;
-         }
-      }
-   }
-}
-void AutoProtect()
-{
-   double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
-   PositionInfo positionsArray[];
-   int totalPositions = 0;
-   for (int i = 0; i < PositionsTotal(); i++)
-   {
-      ulong ticket = PositionGetTicket(i);
-      if (PositionSelectByTicket(ticket))
-      {
-         bool ShouldProcessPosition = ProcessPositionCheck(ticket, _Symbol, MagicNumber, ManageAllPositions);
-         if (!ShouldProcessPosition) continue;
-            totalPositions++;
-      }
-   }
-   ArrayResize(positionsArray, totalPositions);
-   int j = 0;  // Index for positionsArray
-   for (int i = 0; i < PositionsTotal(); i++)
-   {
-      ulong ticket = PositionGetTicket(i);
-      if (PositionSelectByTicket(ticket))
-      {
-         bool ShouldProcessPosition = ProcessPositionCheck(ticket, _Symbol, MagicNumber, ManageAllPositions);
-         if (!ShouldProcessPosition) continue;
-         double diff = MathAbs(PositionGetDouble(POSITION_PRICE_OPEN) - currentPrice);
-         positionsArray[j].diff = diff;
-         positionsArray[j].ticket = ticket;
-         positionsArray[j].lotSize = PositionGetDouble(POSITION_VOLUME);
-         j++;
-      }
-   }
-   BubbleSort(positionsArray);
-   int ClosedPositions = 0;
-   int PositionsToClose = (int)MathFloor(((double)ArraySize(positionsArray)) * ((double)APPositionsToClose / APCloseDivider));
-   if (totalPositions == 1)
-   {
-      SL = PositionGetDouble(POSITION_PRICE_OPEN);
-      if (!Trade.PositionModify(positionsArray[0].ticket, SL, PositionGetDouble(POSITION_TP)))
-      {
-         Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
-      }
-      else
-      {
-         Print("SL moved to break even for Position #", positionsArray[0].ticket);
-      }
-   }
-   else
-   {
-      for (int i = 0; i < ArraySize(positionsArray); i++)
-      {
-         if (PositionSelectByTicket(positionsArray[i].ticket))
-         {
-            if (ClosedPositions < PositionsToClose)
-            {
-               Print("Closing Position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + ".");
-               double positionProfit = PositionGetDouble(POSITION_PROFIT);
-            if (!Trade.PositionClose(positionsArray[i].ticket))
-            {
-               Print("Failed to close position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + ". Error code: ", GetLastError());
-            }
-            else
-            {
-               Print("Position " + IntegerToString(i + 1) + "/" + IntegerToString(PositionsToClose) + " closed successfully with lot size of ", positionsArray[i].lotSize, ".");
-               Print("Order #", positionsArray[i].ticket, " realized a profit of ", positionProfit, ". Open Price: ", PositionGetDouble(POSITION_PRICE_OPEN), ". Close Price: ", currentPrice);
-               ClosedPositions++;
-            }
-            }
-            else
-            {
-               SL = PositionGetDouble(POSITION_PRICE_OPEN);
-               if (!Trade.PositionModify(positionsArray[i].ticket, SL, PositionGetDouble(POSITION_TP)))
-               {
-                  Print("Failed to modify SL via PROTECT. Error code: ", GetLastError());
-               }
-               else
-               {
-                  Print("SL moved to break even for Position #", positionsArray[i].ticket);
-               }
-            }
          }
       }
    }
