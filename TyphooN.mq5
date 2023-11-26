@@ -1001,7 +1001,6 @@ void TyWindow::OnClickTrade(void)
    int retryCount = 0;
    const int maxRetries = 44;
    int retcode = 0;
-
    if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, retryCount, maxRetries, OrderDigits))
    {
       Print("Failed to calculate required margin. Error:", GetLastError());
