@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.240"
+#property version   "1.250"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -51,7 +51,7 @@ input group    "[ORDER PLACEMENT SETTINGS]";
 input double   MaxRisk                    = 2.0;
 input double   Risk                       = 2.0;
 input int      InitialOrdersToPlace       = 1;
-input double   MarginBufferPercent        = 1.0;
+
 input group    "[ACCOUNT PROTECTION SETTINGS]";
 input bool     EnableAutoProtect          = true;
 input int      APStartHour                = 0;
@@ -859,44 +859,100 @@ double GetTotalVolumeForSymbol(string symbol)
    }
    return totalVolume;
 }
-double PerformOrderCheckWithRetries(const MqlTradeRequest &request, MqlTradeCheckResult &check_result, double &OrderLots, int &retryCount, const int maxRetries, int OrderDigits)
+double GetAdjustedPrice(double currentPrice, int deviationPercentage)
 {
-   while (retryCount < maxRetries)
+    double deviation = currentPrice * deviationPercentage / 100.0;
+    return currentPrice + deviation;
+}
+double PerformOrderCheckWithRetries(const MqlTradeRequest &request, MqlTradeCheckResult &check_result, double &OrderLots, int OrderDigits)
+{
+   int MaxRetries = 999;
+   int TotalReductions = 0;
+   // Calculate the initial reduction lots (1% of the original order size)
+   double reductionLots = OrderLots * 0.01;
+   reductionLots = MathMax(reductionLots, SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_STEP)); // Ensure reduction is at least the minimum volume
+   reductionLots = NormalizeDouble(reductionLots, OrderDigits);
+   for (int RetryCount = 0; RetryCount < MaxRetries; ++RetryCount)
    {
+      //Print("Entering retry loop. RetryCount: ", RetryCount);
+      bool reductionSuccessful = false;
+      // Check if the original order passes the order check
       if (!Trade.OrderCheck(request, check_result))
       {
          int retcode = (int)check_result.retcode;
+         //Print("OrderCheck failed. Retcode: ", retcode);
          if (retcode == 10019)
          {
-            OrderLots *= 0.9;
-            OrderLots = NormalizeDouble(OrderLots, OrderDigits);
-            retryCount++;
-            Print("OrderCheck failed with retcode 10019. Retrying attempt ", retryCount, ". Adjusted OrderLots: ", OrderLots);
+            // Retry logic for adjusting OrderLots
+            MqlTradeRequest adjustedRequest = request;
+            // Ensure adjusted lots are positive
+            double AdjustedLots = OrderLots - reductionLots;
+            double MinVolumeStep = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_STEP);
+            AdjustedLots = MathCeil(AdjustedLots / MinVolumeStep) * MinVolumeStep;
+            AdjustedLots = NormalizeDouble(AdjustedLots, OrderDigits);
+            // Ensure adjusted lots are smaller than the original lots
+            if (AdjustedLots < OrderLots)
+            {
+               // Check if the adjusted lots pass the order check
+               adjustedRequest.volume = AdjustedLots;
+               if (!Trade.OrderCheck(adjustedRequest, check_result))
+               {
+                  OrderLots = AdjustedLots;
+                  OrderLots = NormalizeDouble(OrderLots, OrderDigits);
+                  //Print("Retry #", RetryCount + 1, " - Adjusted OrderLots to: ", AdjustedLots);
+                  TotalReductions++;
+                  reductionSuccessful = true;
+                  // Reduce OrderLots by the initial reduction lots for the next retry
+                  OrderLots -= reductionLots;
+                  OrderLots = NormalizeDouble(OrderLots, OrderDigits);
+               }
+               else
+               {
+                  //Print("Retry #", RetryCount + 1, " - Adjusted OrderLots passed order check: ", AdjustedLots);
+                  //Print("Check result: ", check_result.comment);
+                  OrderLots = NormalizeDouble(AdjustedLots, OrderDigits);
+               }
+               }
+               else
+               {
+                  Print("Adjusted lots not smaller or check failed. Stopping adjustment. OrderLots: ", OrderLots, " AdjustedLots: ", AdjustedLots);
+                  break;  // Break out of the loop when further reductions are not possible
+               }
+            }
+            else
+            {
+               //Print("OrderCheck failed with retcode ", retcode);
+               //Print("Check result: ", check_result.comment);
+               return -1.0; // Return -1.0 to indicate failure
+            }
          }
          else
          {
-            Print("OrderCheck failed with retcode ", retcode);
-          //  Print("Request details: Symbol=", request.symbol, " Type=", request.type, " Action=", request.action, " Lots=", request.volume,
-         //         " Price=", request.price, " SL=", request.sl, " TP=", request.tp, " Deviation=", request.deviation, " Magic=", request.magic);
-            Print("Check result: ", check_result.comment);
-            return -1.0; // Return -1.0 to indicate failure
+            // OrderCheck successful, calculate and return the required margin
+            double required_margin = 0.0;
+            if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
+            {
+               Print("Failed to calculate required margin after successful OrderCheck. Error:", GetLastError());
+               return -1.0; // Return -1.0 to indicate failure
+            }
+            MqlTradeRequest finalRequest = request;
+            finalRequest.volume = OrderLots;
+            return required_margin;
          }
-      }
-      else
-      {
-         // OrderCheck successful, calculate and return the required margin
-         double required_margin = 0.0;
-         if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
+         if (!reductionSuccessful)
          {
-            Print("Failed to calculate required margin after successful OrderCheck. Error:", GetLastError());
-            return -1.0; // Return -1.0 to indicate failure
+            Print("No further reduction necessary after Retry #", RetryCount, ". Breaking out of the loop.");
+            break;
          }
-         OrderLots = NormalizeDouble(OrderLots, OrderDigits);
-         return required_margin;
-      }
    }
-   // Maximum retries reached, return -1.0 to indicate failure
-   Print("Maximum retries reached. OrderCheck failed.");
+   if (TotalReductions == MaxRetries)
+   {
+      Print("Maximum retries reached. OrderCheck failed.");
+   }
+   else
+   {
+      Print("Reduced order size until OrderCheck succeeded. OrderLots reduced by 1% per retry. Total reductions: ", TotalReductions);
+   }
    return -1.0;
 }
 void TyWindow::OnClickTrade(void)
@@ -997,21 +1053,18 @@ void TyWindow::OnClickTrade(void)
    MqlTradeCheckResult check_result;
    MqlTick latest_tick;
    double required_margin = 0.0;
-   double MarginBuffer = (AccountBalance * MarginBufferPercent) / 100.0;
-   int retryCount = 0;
-   const int maxRetries = 44;
    int retcode = 0;
-   if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, retryCount, maxRetries, OrderDigits))
+   if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits))
    {
       Print("Failed to calculate required margin. Error:", GetLastError());
       return;
    }
    double free_margin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
    // Decrease the order size if necessary to fit within available margin
-   while ((required_margin + MarginBuffer) >= free_margin && OrderLots > min_volume)
+   while (required_margin >= free_margin && OrderLots > min_volume)
    {
       OrderLots -= min_volume;
-      if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, retryCount, maxRetries, OrderDigits))
+      if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits))
       {
          Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
          return;
@@ -1044,7 +1097,7 @@ void TyWindow::OnClickTrade(void)
             request.action = TRADE_ACTION_PENDING;
             request.type = ORDER_TYPE_BUY_LIMIT;
             request.price = Limit_Price;
-            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, retryCount, maxRetries, OrderDigits))
+            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits))
             {
                Print("Buy Limit OrderCheck failed, retcode=", check_result.retcode);
                return;
@@ -1061,7 +1114,7 @@ void TyWindow::OnClickTrade(void)
             request.action = TRADE_ACTION_PENDING;
             request.type = ORDER_TYPE_SELL_LIMIT;
             request.price = Limit_Price;
-            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, retryCount, maxRetries, OrderDigits))
+            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits))
             {
                Print("Sell Limit OrderCheck failed, retcode=", check_result.retcode);
                return;
@@ -1083,7 +1136,7 @@ void TyWindow::OnClickTrade(void)
                request.action = TRADE_ACTION_DEAL;
                request.type = ORDER_TYPE_BUY;
             }
-            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, retryCount, maxRetries, OrderDigits))
+            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits))
             {
                Print("Buy OrderCheck failed, retcode=", check_result.retcode);
                return;
@@ -1102,7 +1155,7 @@ void TyWindow::OnClickTrade(void)
                request.action = TRADE_ACTION_DEAL;
                request.type = ORDER_TYPE_SELL;
             }
-            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, retryCount, maxRetries, OrderDigits))
+            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits))
             {
                Print("Sell OrderCheck failed, retcode=", check_result.retcode);
                return;
@@ -1272,15 +1325,16 @@ void Protect()
       {
          bool ShouldProcessPosition = ProcessPositionCheck(ticket, _Symbol, MagicNumber, ManageAllPositions);
          if (!ShouldProcessPosition) continue;
-         double OriginalSL = PositionGetDouble(POSITION_PRICE_OPEN);
-         SL = OriginalSL;
+         double EntryPrice = PositionGetDouble(POSITION_PRICE_OPEN);
+         double OriginalSL = PositionGetDouble(POSITION_SL);
+         SL = EntryPrice;
+         if (OriginalSL == EntryPrice)
+         {
+            Print("SL for Position #", ticket, " is already at breakeven.");
+         }
          if(!Trade.PositionModify(ticket, SL, PositionGetDouble(POSITION_TP)))
          {
             Print("Failed to modify SL via PROTECT for Position #", ticket, ". Error code: ", GetLastError());
-         }
-         else if (SL == OriginalSL)
-         {
-            Print("SL for Position #", ticket, " is already at breakeven.");
          }
          else
          {
