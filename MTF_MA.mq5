@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.050"
+#property version   "1.051"
 #property indicator_chart_window
 #property indicator_buffers 40
 #property indicator_plots   8
@@ -300,10 +300,8 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
    string objnameInfo = objname + timeframe + label;
    color textColor = condition ? clrLime : clrRed;
    int TotalBearPowerLTF, TotalBullPowerLTF, TotalBearPowerHTF, TotalBullPowerHTF;
-   // Calculate TotalBearPowerLTF and TotalBullPowerLTF
    TotalBearPowerLTF = (BearPowerLTF * 5);
    TotalBullPowerLTF = (BullPowerLTF * 5);
-   // Calculate TotalBearPowerHTF and TotalBullPowerHTF
    TotalBearPowerHTF = (BearPowerHTF * 5);
    TotalBullPowerHTF = (BullPowerHTF * 5);
    // Check if the color has changed
@@ -316,7 +314,7 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
          {
             BullPowerLTF--;
          }
-         else if (StringFind(timeframe, "H1", 0) != -1)
+         else if (StringFind(timeframe, "H1", 0) != -1 || StringFind(timeframe, "H4", 0) != -1 || StringFind(timeframe, "D1", 0) != -1 || StringFind(timeframe, "W1", 0) != -1)
          {
             BullPowerHTF--;
          }
@@ -443,12 +441,12 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
          ObjectSetInteger(0, "objnameInfoBearPowerLTF", OBJPROP_COLOR, clrWhite);
       }
       // Update the labels with the new values
-      string BullPowerTextLTF = "Bull Power LTF: " + IntegerToString(TotalBullPowerLTF);
-      string BearPowerTextLTF = "Bear Power LTF: " + IntegerToString(TotalBearPowerLTF);
+      string BullPowerTextLTF = "LTF Bull Power: " + IntegerToString(TotalBullPowerLTF);
+      string BearPowerTextLTF = "LTF Bear Power: " + IntegerToString(TotalBearPowerLTF);
       ObjectSetString(0, "objnameInfoBullPowerLTF", OBJPROP_TEXT, BullPowerTextLTF);
       ObjectSetString(0, "objnameInfoBearPowerLTF", OBJPROP_TEXT, BearPowerTextLTF);
-      string BullPowerTextHTF = "Bull Power HTF: " + IntegerToString(TotalBullPowerHTF);
-      string BearPowerTextHTF = "Bear Power HTF: " + IntegerToString(TotalBearPowerHTF);
+      string BullPowerTextHTF = "HTF Bull Power: " + IntegerToString(TotalBullPowerHTF);
+      string BearPowerTextHTF = "HTF Bear Power: " + IntegerToString(TotalBearPowerHTF);
       ObjectSetString(0, "objnameInfoBullPowerHTF", OBJPROP_TEXT, BullPowerTextHTF);
       ObjectSetString(0, "objnameInfoBearPowerHTF", OBJPROP_TEXT, BearPowerTextHTF);
    }
