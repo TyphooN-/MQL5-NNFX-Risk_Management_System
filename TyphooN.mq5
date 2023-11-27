@@ -859,11 +859,6 @@ double GetTotalVolumeForSymbol(string symbol)
    }
    return totalVolume;
 }
-double GetAdjustedPrice(double currentPrice, int deviationPercentage)
-{
-    double deviation = currentPrice * deviationPercentage / 100.0;
-    return currentPrice + deviation;
-}
 double PerformOrderCheckWithRetries(const MqlTradeRequest &request, MqlTradeCheckResult &check_result, double &OrderLots, int OrderDigits)
 {
    int MaxRetries = 999;
