@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.250"
+#property version   "1.251"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -54,8 +54,6 @@ input int      InitialOrdersToPlace       = 1;
 
 input group    "[ACCOUNT PROTECTION SETTINGS]";
 input bool     EnableAutoProtect          = true;
-input int      APStartHour                = 0;
-input int      APStopHour                 = 24;
 input double   APRRLevel                  = 1.0;
 input group    "[EXPERT ADVISOR SETTINGS]";
 input int      MagicNumber                = 13;
@@ -383,7 +381,6 @@ void OnTick()
    HasOpenPosition = false;
    // Filter AutoProtect to only execute during user defined window
    MqlDateTime time;TimeCurrent(time);
-   bool APFilter=(APStartHour < APStopHour && (time.hour >= APStartHour && time.hour < APStopHour )) || (APStartHour > APStopHour && (time.hour >= APStartHour || time.hour < APStopHour));
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (Risk / 100));
@@ -473,7 +470,7 @@ void OnTick()
          percent_risk = MathAbs((sl_risk / account_balance) * 100);
       }
    }
-   if (EnableAutoProtect == true && AutoProtectCalled == false && breakEvenFound == false && APFilter == true)
+   if (EnableAutoProtect == true && AutoProtectCalled == false && breakEvenFound == false)
    {
          if (rr >= APRRLevel && sl_risk < 0)
          {
