@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.251"
+#property version   "1.252"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -1075,7 +1075,7 @@ void TyWindow::OnClickTrade(void)
       Print("Order size adjusted to zero due to insufficient margin. Cannot place order.");
       return;
    }
-   if (potentialRisk <= (MaxRisk + 0.05))
+   if (potentialRisk <= (MaxRisk))
    {
       if (LimitLineExists == true)
       {
