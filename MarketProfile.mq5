@@ -3,9 +3,9 @@
 //|                             Copyright © 2010-2023, EarnForex.com |
 //|                                       https://www.earnforex.com/ |
 //+------------------------------------------------------------------+
-#property copyright "EarnForex.com"
+#property copyright "EarnForex.com (edited by TyphooN v1.23+)"
 #property link      "https://www.earnforex.com/metatrader-indicators/MarketProfile/"
-#property version   "1.22"
+#property version   "1.23"
 
 #property description "Displays the Market Profile indicator for intraday, daily, weekly, or monthly trading sessions."
 #property description "Daily - should be attached to M5-M30 timeframes. M30 is recommended."
@@ -106,7 +106,7 @@ enum alert_types // Required to type a parameter of DoAlerts().
 };
 
 input group "Main"
-input session_period Session                 = Daily;
+session_period Session                 = Daily;
 input datetime       StartFromDate           = __DATE__;        // StartFromDate: lower priority.
 input bool           StartFromCurrentSession = true;            // StartFromCurrentSession: higher priority.
 input int            SessionsToCount         = 2;               // SessionsToCount: Number of sessions to count Market Profile.
@@ -274,10 +274,33 @@ double DevelopingPOC_1[], DevelopingPOC_2[]; // Indicator buffers for Developing
 int OnInit()
 {
     InitFailed = false;
-
     // Sessions to count for the object creation.
     _SessionsToCount = SessionsToCount;
-
+    // Determine the appropriate session based on the timeframe
+    
+    if (_Period >= PERIOD_M5 && _Period <= PERIOD_M15)
+    {
+        Session = Daily;
+        Suffix = "_D";
+    }
+    else if (_Period >= PERIOD_M30 && _Period <= PERIOD_H4)
+    {
+        Session = Weekly;
+        Suffix = "_W";
+    }
+    else if (_Period > PERIOD_H4 && _Period <= PERIOD_D1)
+    {
+        Session = Monthly;
+        Suffix = "_M";
+    }
+    else if (_Period == PERIOD_W1 || _Period == PERIOD_MN1)
+    {
+        Session = Rectangle;
+    }
+    else if (_Period <= PERIOD_M5)
+    {
+        Session = Intraday;
+    }
     // Check for user Session settings.
     if (Session == Daily)
     {
@@ -286,8 +309,8 @@ int OnInit()
         {
             string alert_text = "Timeframe should be between M5 and M30 for a Daily session.";
             if (!DisableAlertsOnWrongTimeframes) Print(alert_text);
-           // else Print("Initialization failed: " + alert_text);
-      //      InitFailed = true; // Soft INIT_FAILED.
+            else Print("Initialization failed: " + alert_text);
+            InitFailed = true; // Soft INIT_FAILED.
         }
     }
     else if (Session == Weekly)
@@ -296,9 +319,9 @@ int OnInit()
         if ((PeriodSeconds() < PeriodSeconds(PERIOD_M30)) || (PeriodSeconds() > PeriodSeconds(PERIOD_H4)))
         {
             string alert_text = "Timeframe should be between M30 and H4 for a Weekly session.";
-            if (!DisableAlertsOnWrongTimeframes) Alert(alert_text);
-           // else Print("Initialization failed: " + alert_text);
-       //     InitFailed = true; // Soft INIT_FAILED.
+            if (!DisableAlertsOnWrongTimeframes) Print(alert_text);
+            else Print("Initialization failed: " + alert_text);
+            InitFailed = true; // Soft INIT_FAILED.
         }
     }
     else if (Session == Monthly)
@@ -307,9 +330,9 @@ int OnInit()
         if ((PeriodSeconds() < PeriodSeconds(PERIOD_H1)) || (PeriodSeconds() > PeriodSeconds(PERIOD_D1)))
         {
             string alert_text = "Timeframe should be between H1 and D1 for a Monthly session.";
-            if (!DisableAlertsOnWrongTimeframes) Alert(alert_text);
-          //  else Print("Initialization failed: " + alert_text);
-      //      InitFailed = true; // Soft INIT_FAILED.
+            if (!DisableAlertsOnWrongTimeframes) Print(alert_text);
+            else Print("Initialization failed: " + alert_text);
+            InitFailed = true; // Soft INIT_FAILED.
         }
     }
     else if (Session == Intraday)
@@ -317,9 +340,9 @@ int OnInit()
         if (PeriodSeconds() > PeriodSeconds(PERIOD_M15))
         {
             string alert_text = "Timeframe should not be higher than M15 for an Intraday sessions.";
-            if (!DisableAlertsOnWrongTimeframes) Alert(alert_text);
-         //   else Print("Initialization failed: " + alert_text);
-      //      InitFailed = true; // Soft INIT_FAILED.
+            if (!DisableAlertsOnWrongTimeframes) Print(alert_text);
+            else Print("Initialization failed: " + alert_text);
+            InitFailed = true; // Soft INIT_FAILED.
         }
 
         // Check if intraday user settings are valid.
@@ -334,16 +357,16 @@ int OnInit()
         {
             string alert_text = "Enable at least one intraday session if you want to use Intraday mode.";
             if (!DisableAlertsOnWrongTimeframes) Alert(alert_text);
-          //  else Print("Initialization failed: " + alert_text);
-        //    InitFailed = true; // Soft INIT_FAILED.
+            else Print("Initialization failed: " + alert_text);
+            InitFailed = true; // Soft INIT_FAILED.
         }
     }
     else if ((Session == Rectangle) && (SeamlessScrollingMode)) // No point in seamless scrolling mode with rectangle sessions.
     {
         string alert_text = "Seamless scrolling mode doesn't work with Rectangle sessions.";
-        if (!DisableAlertsOnWrongTimeframes) Alert(alert_text);
-    //    else Print("Initialization failed: " + alert_text);
-     //   InitFailed = true; // Soft INIT_FAILED.
+        if (!DisableAlertsOnWrongTimeframes) Print(alert_text);
+        else Print("Initialization failed: " + alert_text);
+        InitFailed = true; // Soft INIT_FAILED.
     }
     
     // Indicator Name.
