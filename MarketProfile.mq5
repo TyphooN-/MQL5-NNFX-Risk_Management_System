@@ -3,9 +3,9 @@
 //|                             Copyright © 2010-2023, EarnForex.com |
 //|                                       https://www.earnforex.com/ |
 //+------------------------------------------------------------------+
-#property copyright "EarnForex.com (edited by TyphooN v1.23+)"
+#property copyright "EarnForex.com (edited by TyphooN)"
 #property link      "https://www.earnforex.com/metatrader-indicators/MarketProfile/"
-#property version   "1.26"
+#property version   "1.27"
 
 #property description "Displays the Market Profile indicator for intraday, daily, weekly, or monthly trading sessions."
 #property description "Daily - should be attached to M5-M30 timeframes. M30 is recommended."
@@ -111,8 +111,8 @@ session_period Session                 = Daily;
 input datetime       StartFromDate           = __DATE__;        // StartFromDate: lower priority.
 input bool           StartFromCurrentSession = true;            // StartFromCurrentSession: higher priority.
 input int            SessionsToCount         = 2;               // SessionsToCount: Number of sessions to count Market Profile.
-input bool           SeamlessScrollingMode   = false;           // SeamlessScrollingMode: show sessions on current screen.
-input bool           EnableDevelopingPOC     = false;           // Enable Developing POC.
+input bool           SeamlessScrollingMode   = true;           // SeamlessScrollingMode: show sessions on current screen.
+input bool           EnableDevelopingPOC     = true;           // Enable Developing POC.
 input int            ValueAreaPercentage     = 70;              // ValueAreaPercentage: Percentage of TPO's inside Value Area.
 
 input group "Colors and looks"
