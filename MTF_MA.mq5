@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://decapool.net"
-#property version   "1.051"
+#property version   "1.052"
 #property indicator_chart_window
 #property indicator_buffers 40
 #property indicator_plots   8
@@ -356,52 +356,36 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
             BearPowerHTF++;
          }
       }
-      // Check if the W1 200SMA exists
-      bool W1SMA200Exists = ObjectCreate(0, "W1_200SMA", OBJ_TREND, 0, 0, 0);
-      // Update the color and count variables
-      ObjectSetInteger(0, objnameInfo, OBJPROP_COLOR, textColor);
-      if (!W1SMA200Exists)
+      // Update the colors based on the TotalBullPower and TotalBearPower
+      if (TotalBearPowerHTF > TotalBullPowerHTF)
       {
-         // If W1 200SMA does not exist, increment BullPowerHTF and BearPowerHTF
-         BullPowerHTF++;
-         BearPowerHTF++;
-         // Set the color to clrWhite
+         ObjectSetInteger(0, "objnameInfoBullPowerHTF", OBJPROP_COLOR, clrWhite);
+         ObjectSetInteger(0, "objnameInfoBearPowerHTF", OBJPROP_COLOR, clrRed);
+      }
+      if (TotalBullPowerHTF > TotalBearPowerHTF)
+      {
+         ObjectSetInteger(0, "objnameInfoBullPowerHTF", OBJPROP_COLOR, clrLime);
+         ObjectSetInteger(0, "objnameInfoBearPowerHTF", OBJPROP_COLOR, clrWhite);
+      }
+      if (TotalBearPowerLTF > TotalBullPowerLTF)
+      {
+         ObjectSetInteger(0, "objnameInfoBullPowerLTF", OBJPROP_COLOR, clrWhite);
+         ObjectSetInteger(0, "objnameInfoBearPowerLTF", OBJPROP_COLOR, clrRed);
+      }
+      if (TotalBullPowerLTF > TotalBearPowerLTF)
+      {
+         ObjectSetInteger(0, "objnameInfoBullPowerLTF", OBJPROP_COLOR, clrLime);
+         ObjectSetInteger(0, "objnameInfoBearPowerLTF", OBJPROP_COLOR, clrWhite);
+      }
+      if (TotalBullPowerHTF == TotalBearPowerHTF)
+      {
          ObjectSetInteger(0, "objnameInfoBullPowerHTF", OBJPROP_COLOR, clrWhite);
          ObjectSetInteger(0, "objnameInfoBearPowerHTF", OBJPROP_COLOR, clrWhite);
       }
-      else
+      if (TotalBullPowerLTF == TotalBearPowerLTF)
       {
-        // Update the colors based on the TotalBullPower and TotalBearPower
-        if (TotalBearPowerHTF > TotalBullPowerHTF)
-        {
-            ObjectSetInteger(0, "objnameInfoBullPowerHTF", OBJPROP_COLOR, clrWhite);
-            ObjectSetInteger(0, "objnameInfoBearPowerHTF", OBJPROP_COLOR, clrRed);
-        }
-        if (TotalBullPowerHTF > TotalBearPowerHTF)
-        {
-            ObjectSetInteger(0, "objnameInfoBullPowerHTF", OBJPROP_COLOR, clrLime);
-            ObjectSetInteger(0, "objnameInfoBearPowerHTF", OBJPROP_COLOR, clrWhite);
-        }
-        if (TotalBearPowerLTF > TotalBullPowerLTF)
-        {
-            ObjectSetInteger(0, "objnameInfoBullPowerLTF", OBJPROP_COLOR, clrWhite);
-            ObjectSetInteger(0, "objnameInfoBearPowerLTF", OBJPROP_COLOR, clrRed);
-        }
-        if (TotalBullPowerLTF > TotalBearPowerLTF)
-        {
-            ObjectSetInteger(0, "objnameInfoBullPowerLTF", OBJPROP_COLOR, clrLime);
-            ObjectSetInteger(0, "objnameInfoBearPowerLTF", OBJPROP_COLOR, clrWhite);
-        }
-        if (TotalBullPowerHTF == TotalBearPowerHTF)
-        {
-            ObjectSetInteger(0, "objnameInfoBullPowerHTF", OBJPROP_COLOR, clrWhite);
-            ObjectSetInteger(0, "objnameInfoBearPowerHTF", OBJPROP_COLOR, clrWhite);
-        }
-        if (TotalBullPowerLTF == TotalBearPowerLTF)
-        {
-            ObjectSetInteger(0, "objnameInfoBullPowerLTF", OBJPROP_COLOR, clrWhite);
-            ObjectSetInteger(0, "objnameInfoBearPowerLTF", OBJPROP_COLOR, clrWhite);
-        }
+         ObjectSetInteger(0, "objnameInfoBullPowerLTF", OBJPROP_COLOR, clrWhite);
+         ObjectSetInteger(0, "objnameInfoBearPowerLTF", OBJPROP_COLOR, clrWhite);
       }
       // Update the total variables
       TotalBearPowerLTF = (BearPowerLTF * 5);
