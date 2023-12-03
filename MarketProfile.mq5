@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "EarnForex.com (edited by TyphooN v1.23+)"
 #property link      "https://www.earnforex.com/metatrader-indicators/MarketProfile/"
-#property version   "1.25"
+#property version   "1.26"
 
 #property description "Displays the Market Profile indicator for intraday, daily, weekly, or monthly trading sessions."
 #property description "Daily - should be attached to M5-M30 timeframes. M30 is recommended."
@@ -279,12 +279,12 @@ int OnInit()
     _SessionsToCount = SessionsToCount;
     // Determine the appropriate session based on the timeframe
     
-    if (_Period >= PERIOD_M5 && _Period <= PERIOD_M15)
+    if (_Period >= PERIOD_M5 && _Period <= PERIOD_M30)
     {
         Session = Daily;
         Suffix = "_D";
     }
-    else if (_Period >= PERIOD_M30 && _Period <= PERIOD_H4)
+    else if (_Period >= PERIOD_H1 && _Period <= PERIOD_H4)
     {
         Session = Weekly;
         Suffix = "_W";
@@ -3243,7 +3243,6 @@ void CheckAlerts(const double &Open[], const double &High[], const double &Low[]
         }
     }
 }
-
 //+------------------------------------------------------------------+
 //| Issues alerts based on the alert type and includes object name   |
 //| in the message.                                                  |
