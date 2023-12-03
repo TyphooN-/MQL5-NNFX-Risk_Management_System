@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "EarnForex.com (edited by TyphooN v1.23+)"
 #property link      "https://www.earnforex.com/metatrader-indicators/MarketProfile/"
-#property version   "1.23"
+#property version   "1.24"
 
 #property description "Displays the Market Profile indicator for intraday, daily, weekly, or monthly trading sessions."
 #property description "Daily - should be attached to M5-M30 timeframes. M30 is recommended."
@@ -49,7 +49,8 @@ enum session_period
     Weekly,
     Monthly,
     Intraday,
-    Rectangle
+    Rectangle,
+    Disabled
 };
 
 enum sat_sun_solution
@@ -295,7 +296,7 @@ int OnInit()
     }
     else if (_Period == PERIOD_W1 || _Period == PERIOD_MN1)
     {
-        Session = Rectangle;
+        Session = Disabled;
     }
     else if (_Period <= PERIOD_M5)
     {
@@ -553,7 +554,7 @@ int OnCalculate(const int rates_total,
     int sessionend = FindSessionEndByDate(Time, StartDate, rates_total); // Finding the session's right-most bar using the date of the previous session or starting date.
     int sessionstart = FindSessionStart(Time, sessionend, rates_total); // Finding the session's left-most bar using its end (right-most) bar.
 
-    if (sessionstart == -1)
+    if (sessionstart == -1 && Session != Disabled) 
     {
         Print("Something went wrong! Waiting for data to load.");
         return prev_calculated;
@@ -1231,7 +1232,8 @@ bool ProcessSession(const int sessionstart, const int sessionend, const int i, c
     {
         // Find Time[sessionstart] among RememberSessionStart[].
         bool need_to_increment = true;
-
+        if (Session != Disabled)
+        {
         for (int j = 0; j < SessionsNumber; j++)
         {
             if (RememberSessionStart[j] == Time[sessionstart])
@@ -1252,8 +1254,6 @@ bool ProcessSession(const int sessionstart, const int sessionend, const int i, c
             ArrayResize(RememberSessionSuffix, SessionsNumber);
             ArrayResize(RememberSessionEnd, SessionsNumber); // Used only for Arrows.
         }
-    }
-
     // Adjust SessionMin, SessionMax for onetick granularity.
     SessionMax = NormalizeDouble(MathRound(SessionMax / onetick) * onetick, DigitsM);
     SessionMin = NormalizeDouble(MathRound(SessionMin / onetick) * onetick, DigitsM);
@@ -1263,7 +1263,6 @@ bool ProcessSession(const int sessionstart, const int sessionend, const int i, c
     RememberSessionStart[session_counter] = Time[sessionstart];
     RememberSessionSuffix[session_counter] = Suffix;
     RememberSessionEnd[session_counter] = Time[sessionend]; // Used only for Arrows.
-
     // Used to make sure that SessionMax increments only by 'onetick' increments.
     // This is needed only when updating the latest trading session and PointMultiplier_calculated > 1.
     static double PreviousSessionMax = DBL_MIN;
@@ -1292,7 +1291,8 @@ bool ProcessSession(const int sessionstart, const int sessionend, const int i, c
             PreviousSessionMax = SessionMax;
         }
     }
-
+}
+    }
     int TPOperPrice[];
     // Possible price levels if multiplied to integer.
     int max = (int)MathRound((SessionMax - SessionMin) / onetick + 2); // + 2 because further we will be possibly checking array at SessionMax + 1.
