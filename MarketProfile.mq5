@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "EarnForex.com (edited by TyphooN v1.23+)"
 #property link      "https://www.earnforex.com/metatrader-indicators/MarketProfile/"
-#property version   "1.24"
+#property version   "1.25"
 
 #property description "Displays the Market Profile indicator for intraday, daily, weekly, or monthly trading sessions."
 #property description "Daily - should be attached to M5-M30 timeframes. M30 is recommended."
@@ -296,7 +296,7 @@ int OnInit()
     }
     else if (_Period == PERIOD_W1 || _Period == PERIOD_MN1)
     {
-        Session = Disabled;
+        Session = Rectangle;
     }
     else if (_Period <= PERIOD_M5)
     {
