@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.252"
+#property version   "1.260"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -48,10 +48,10 @@ double TickSize( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRA
 double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_VALUE ) ); }
 // input vars
 input group    "[ORDER PLACEMENT SETTINGS]";
-input double   MaxRisk                    = 2.0;
-input double   Risk                       = 2.0;
+input double   MaxRisk                    = 0.5;
+input double   Risk                       = 0.5;
 input int      InitialOrdersToPlace       = 1;
-
+input double   AdditionalRiskAtSLBE       = 0.125;
 input group    "[ACCOUNT PROTECTION SETTINGS]";
 input bool     EnableAutoProtect          = true;
 input double   APRRLevel                  = 1.0;
@@ -72,6 +72,7 @@ bool LimitLineExists = false;
 bool AutoProtectCalled = false;
 double percent_risk = 0;
 bool HasOpenPosition = false;
+bool breakEvenFound = false;
 // defines
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
 #define INDENT_TOP        (10)      // indent from top (with allowance for border width)
@@ -379,8 +380,7 @@ double PointValue()
 void OnTick()
 {
    HasOpenPosition = false;
-   // Filter AutoProtect to only execute during user defined window
-   MqlDateTime time;TimeCurrent(time);
+   breakEvenFound = false;
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (Risk / 100));
@@ -394,7 +394,7 @@ void OnTick()
    double sl_profit = 0;
    double sl_risk = 0;
    double account_balance = AccountInfoDouble(ACCOUNT_BALANCE);
-   bool breakEvenFound = false;
+
    for (int i = 0; i < PositionsTotal(); i++)
    {
       ulong ticket = PositionGetTicket(i);
@@ -954,8 +954,18 @@ void TyWindow::OnClickTrade(void)
    double max_volume = NormalizeDouble(SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX), _Digits);
    double limit_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_LIMIT);
    double existing_volume = GetTotalVolumeForSymbol(_Symbol);
-   double potentialRisk = Risk + percent_risk;
-   double OrderRisk = Risk;
+   double potentialRisk;
+   if (breakEvenFound)
+   {
+      // Use AdditionalRiskAtSLBE instead of the normal Risk if a position is found to have SL at BE
+      potentialRisk = AdditionalRiskAtSLBE + percent_risk;
+   }
+   else
+   {
+      // Use the normal Risk in every other situation
+      potentialRisk = Risk + percent_risk;
+    }
+   double OrderRisk = breakEvenFound ? AdditionalRiskAtSLBE : Risk;
    double AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
    double available_volume;
    double min_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
@@ -1075,7 +1085,7 @@ void TyWindow::OnClickTrade(void)
       Print("Order size adjusted to zero due to insufficient margin. Cannot place order.");
       return;
    }
-   if (potentialRisk <= (MaxRisk))
+   if (potentialRisk <= (MaxRisk + 0.05))
    {
       if (LimitLineExists == true)
       {
