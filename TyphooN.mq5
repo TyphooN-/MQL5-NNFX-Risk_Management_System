@@ -971,8 +971,7 @@ void TyWindow::OnClickTrade(void)
    {
       // Use the normal Risk in every other situation
       potentialRisk = Risk + percent_risk;
-      OrderRisk = Risk;  // Update OrderRisk here
-      // Debug prints
+      OrderRisk = Risk;
    }
    if (breakEvenFound == true && percent_risk > 0)
    {
