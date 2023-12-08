@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.260"
+#property version   "1.261"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -380,10 +380,8 @@ double PointValue()
 void OnTick()
 {
    HasOpenPosition = false;
-   breakEvenFound = false;
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
-   order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (Risk / 100));
    double total_risk = 0;
    double total_tpprofit = 0;
    double total_pl = 0;
@@ -394,7 +392,14 @@ void OnTick()
    double sl_profit = 0;
    double sl_risk = 0;
    double account_balance = AccountInfoDouble(ACCOUNT_BALANCE);
-
+   if (breakEvenFound == true)
+   {
+      order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (AdditionalRiskAtSLBE / 100));
+   }
+   if (breakEvenFound == false)
+   {
+      order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (Risk / 100));
+   }
    for (int i = 0; i < PositionsTotal(); i++)
    {
       ulong ticket = PositionGetTicket(i);
@@ -955,17 +960,25 @@ void TyWindow::OnClickTrade(void)
    double limit_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_LIMIT);
    double existing_volume = GetTotalVolumeForSymbol(_Symbol);
    double potentialRisk;
-   if (breakEvenFound)
+   double OrderRisk;
+   if (breakEvenFound == true)
    {
       // Use AdditionalRiskAtSLBE instead of the normal Risk if a position is found to have SL at BE
-      potentialRisk = AdditionalRiskAtSLBE + percent_risk;
+      potentialRisk = AdditionalRiskAtSLBE;
+      OrderRisk = AdditionalRiskAtSLBE;
    }
    else
    {
       // Use the normal Risk in every other situation
       potentialRisk = Risk + percent_risk;
-    }
-   double OrderRisk = breakEvenFound ? AdditionalRiskAtSLBE : Risk;
+      OrderRisk = Risk;  // Update OrderRisk here
+      // Debug prints
+   }
+   if (breakEvenFound == true && percent_risk > 0)
+   {
+      Print("Break Even positions found, and a risk position already placed. Not placing additional order.");
+      return;
+   }
    double AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
    double available_volume;
    double min_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
@@ -1085,7 +1098,7 @@ void TyWindow::OnClickTrade(void)
       Print("Order size adjusted to zero due to insufficient margin. Cannot place order.");
       return;
    }
-   if (potentialRisk <= (MaxRisk + 0.05))
+   if (potentialRisk <= (MaxRisk))
    {
       if (LimitLineExists == true)
       {
