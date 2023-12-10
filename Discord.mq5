@@ -1,5 +1,5 @@
 /**=             Discord.mq5  (TyphooN's Discord EA Notification System)
- *               Copyright 2023, TyphooN (https://www.decapool.net/)
+ *               Copyright 2023, TyphooN (https://www.marketwizardry.org/)
  *
  * Disclaimer and Licence
  *
@@ -22,7 +22,7 @@
  *
  **/
 #property copyright "TyphooN"
-#property link      "https://www.decapool.net/"
+#property link      "https://www.marketwizardry.org/"
 #property version   "1.29"
 double LastBullPower = -1;
 double LastBearPower = -1;
