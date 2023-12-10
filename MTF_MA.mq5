@@ -22,7 +22,7 @@
  *
  **/
 #property copyright "TyphooN"
-#property link      "http://marketwizardry.org"
+#property link      "https://www.marketwizardry.org"
 #property version   "1.052"
 #property indicator_chart_window
 #property indicator_buffers 40
