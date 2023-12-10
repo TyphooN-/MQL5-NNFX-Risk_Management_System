@@ -1,5 +1,5 @@
 /**=             MTF_MA.mq5  (TyphooN's Multi Timeframe MA Bull/Bear Power Indicator)
- *               Copyright 2023, TyphooN (https://www.decapool.net/)
+ *               Copyright 2023, TyphooN (https://www.marketwizardry.org/)
  *
  * Disclaimer and Licence
  *
@@ -22,7 +22,7 @@
  *
  **/
 #property copyright "TyphooN"
-#property link      "http://decapool.net"
+#property link      "http://marketwizardry.org"
 #property version   "1.052"
 #property indicator_chart_window
 #property indicator_buffers 40
