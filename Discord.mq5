@@ -23,11 +23,11 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.decapool.net/"
-#property version   "1.28"
+#property version   "1.29"
 double LastBullPower = -1;
 double LastBearPower = -1;
 datetime LastPowerNotification = 0;
-const int NotificationCoolDown = 900;
+const int NotificationCoolDown = 1200;
 double LastBullPowerHTF = -1;
 double LastBearPowerHTF = -1;
 double LastBullPowerLTF = -1;
@@ -73,7 +73,7 @@ void SendPowerNotification()
    double PowerCalculated = GlobalVariableGet("PowerCalcComplete");
    if(GlobalVariableCheck("GlobalBullPowerLTF") || GlobalVariableCheck("GlobalBearPowerLTF") || GlobalVariableCheck("GlobalBullPowerHTF") || GlobalVariableCheck("GlobalBearPowerHTF"))
    {
-      int RandomSleepDuration = 26669 + MathRand() % (7779);
+      int RandomSleepDuration = 31337 + MathRand() % (7777);
       CurrentBullPowerHTF = GlobalVariableGet("GlobalBullPowerHTF");
       CurrentBearPowerHTF = GlobalVariableGet("GlobalBearPowerHTF");
       CurrentBullPowerLTF = GlobalVariableGet("GlobalBullPowerLTF");
