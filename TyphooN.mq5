@@ -1,5 +1,5 @@
 /**=             TyphooN.mq5  (TyphooN's MQL5 Risk Management System)
- *               Copyright 2023, TyphooN (https://www.decapool.net/)
+ *               Copyright 2023, TyphooN (https://www.marketwizardry.org/)
  *
  * Disclaimer and Licence
  *

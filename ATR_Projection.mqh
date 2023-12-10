@@ -1,5 +1,5 @@
 /**=        ATR_Projection.mqh  (TyphooN's ATR Projection Indicator)
- *               Copyright 2023, TyphooN (https://www.decapool.net/)
+ *               Copyright 2023, TyphooN (https://www.marketwizardry.org/)
  *
  * Disclaimer and Licence
  *
