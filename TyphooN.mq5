@@ -1,5 +1,5 @@
 /**=             TyphooN.mq5  (TyphooN's MQL5 Risk Management System)
- *               Copyright 2023, TyphooN (https://www.decapool.net/)
+ *               Copyright 2023, TyphooN (https://www.marketwizardry.org/)
  *
  * Disclaimer and Licence
  *
@@ -21,9 +21,9 @@
  * See the README.MD file for more information and before using this software.
  *
  **/
-#property copyright "Copyright 2023 TyphooN (Decapool.net)"
+#property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.mql5.com"
-#property version   "1.262"
+#property version   "1.263"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -433,7 +433,9 @@ void OnTick()
    double account_equity = AccountInfoDouble(ACCOUNT_EQUITY);
    if (account_equity >= TargetEquityTP && EnableEquityTP == true)
    {
+      Print ("Closing all positions across all symbols because Equity >= TargetEquityTP");
       CloseAllPositionsOnAllSymbols();
+      Print ("New account balance: " + DoubleToString(account_balance , 2));
    }
    if (breakEvenFound == true)
    {
