@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.mql5.com"
-#property version   "1.265"
+#property version   "1.266"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -405,17 +405,19 @@ void OnTick()
    double account_equity = AccountInfoDouble(ACCOUNT_EQUITY);
    if (account_equity >= TargetEquityTP && EnableEquityTP == true && EquityTPCalled == false)
    {
-      Print ("Closing all positions across all symbols because Equity >= TargetEquityTP");
+      Print("Closing all positions across all symbols because Equity >= TargetEquityTP");
       CloseAllPositionsOnAllSymbols();
       EquityTPCalled = true;
-      Print ("New account balance: " + DoubleToString(account_balance , 2));
+      Print("New account balance: " + DoubleToString(account_balance , 2));
+      Alert("EquityTP closed all positions on all symbols. New account balance: " + DoubleToString(account_balance , 2));
    }
    if (account_equity < TargetEquitySL && EnableEquitySL == true && EquitySLCalled == false)
    {
-      Print ("Closing all positions across all symbols because Equity < TargetEquityTP");
+      Print("Closing all positions across all symbols because Equity < TargetEquityTP");
       CloseAllPositionsOnAllSymbols();
       EquitySLCalled = true;
-      Print ("New account balance: " + DoubleToString(account_balance , 2));
+      Print("New account balance: " + DoubleToString(account_balance , 2));
+      Alert("EquitySL closed all positions on all symbols. New account balance: " + DoubleToString(account_balance , 2));
    }
    if (breakEvenFound == true)
    {
