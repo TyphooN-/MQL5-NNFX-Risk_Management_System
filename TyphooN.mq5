@@ -1,5 +1,5 @@
 /**=             TyphooN.mq5  (TyphooN's MQL5 Risk Management System)
- *               Copyright 2023, TyphooN (https://www.marketwizardry.org/)
+ *               Copyright 2023, TyphooN (https://www.decapool.net/)
  *
  * Disclaimer and Licence
  *
@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (Decapool.net)"
 #property link      "http://www.mql5.com"
-#property version   "1.261"
+#property version   "1.262"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -55,6 +55,8 @@ input double   AdditionalRiskAtSLBE       = 0.125;
 input group    "[ACCOUNT PROTECTION SETTINGS]";
 input bool     EnableAutoProtect          = true;
 input double   APRRLevel                  = 1.0;
+input bool     EnableEquityTP             = false;
+input double   TargetEquityTP             = 110500;
 input group    "[EXPERT ADVISOR SETTINGS]";
 input int      MagicNumber                = 13;
 input int      HorizontalLineThickness    = 3;
@@ -377,6 +379,42 @@ double PointValue()
  //               tickSize, tickValue, point, ticksPerPoint, pointValue );
    return ( pointValue );
 }
+void CloseAllPositionsOnAllSymbols()
+{
+   double TotalPL = 0.00;
+   for(int i=PositionsTotal()-1; i>=0 ;i--)
+   {
+      double entryPrice = PositionGetDouble(POSITION_PRICE_OPEN);
+      double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+      double positionProfit = PositionGetDouble(POSITION_PROFIT);
+      double lotSize = PositionGetDouble(POSITION_VOLUME);
+      if(Trade.PositionClose(PositionGetInteger(POSITION_TICKET)))
+      {
+         TotalPL += positionProfit;
+         if (positionProfit >= 0)
+         {
+            Print("Closed Position #", PositionGetInteger(POSITION_TICKET), " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a profit of $", positionProfit);
+         }
+         else
+         {
+            Print("Closed Position #", PositionGetInteger(POSITION_TICKET), " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a loss of -$", MathAbs(positionProfit));
+         }
+         }
+         else
+         {
+            Print("Position #", PositionGetInteger(POSITION_TICKET), " close failed with error ", GetLastError());
+         }
+         if (TotalPL >= 0)
+         {
+            Print("Total profit of closed positions: $", TotalPL);
+         }
+         if (TotalPL < 0)
+         {
+            Print("Total loss of closed positions: -$", MathAbs(TotalPL));
+         }
+      }
+}
+
 void OnTick()
 {
    HasOpenPosition = false;
@@ -392,6 +430,11 @@ void OnTick()
    double sl_profit = 0;
    double sl_risk = 0;
    double account_balance = AccountInfoDouble(ACCOUNT_BALANCE);
+   double account_equity = AccountInfoDouble(ACCOUNT_EQUITY);
+   if (account_equity >= TargetEquityTP && EnableEquityTP == true)
+   {
+      CloseAllPositionsOnAllSymbols();
+   }
    if (breakEvenFound == true)
    {
       order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (AdditionalRiskAtSLBE / 100));
