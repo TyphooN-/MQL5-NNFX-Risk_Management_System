@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.mql5.com"
-#property version   "1.263"
+#property version   "1.264"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -381,40 +381,8 @@ double PointValue()
 }
 void CloseAllPositionsOnAllSymbols()
 {
-   double TotalPL = 0.00;
-   for(int i=PositionsTotal()-1; i>=0 ;i--)
-   {
-      double entryPrice = PositionGetDouble(POSITION_PRICE_OPEN);
-      double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
-      double positionProfit = PositionGetDouble(POSITION_PROFIT);
-      double lotSize = PositionGetDouble(POSITION_VOLUME);
-      if(Trade.PositionClose(PositionGetInteger(POSITION_TICKET)))
-      {
-         TotalPL += positionProfit;
-         if (positionProfit >= 0)
-         {
-            Print("Closed Position #", PositionGetInteger(POSITION_TICKET), " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a profit of $", positionProfit);
-         }
-         else
-         {
-            Print("Closed Position #", PositionGetInteger(POSITION_TICKET), " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a loss of -$", MathAbs(positionProfit));
-         }
-         }
-         else
-         {
-            Print("Position #", PositionGetInteger(POSITION_TICKET), " close failed with error ", GetLastError());
-         }
-         if (TotalPL >= 0)
-         {
-            Print("Total profit of closed positions: $", TotalPL);
-         }
-         if (TotalPL < 0)
-         {
-            Print("Total loss of closed positions: -$", MathAbs(TotalPL));
-         }
-      }
+   Trade.PositionClose(0);
 }
-
 void OnTick()
 {
    HasOpenPosition = false;
