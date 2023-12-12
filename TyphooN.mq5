@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.mql5.com"
-#property version   "1.264"
+#property version   "1.265"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -57,6 +57,8 @@ input bool     EnableAutoProtect          = true;
 input double   APRRLevel                  = 1.0;
 input bool     EnableEquityTP             = false;
 input double   TargetEquityTP             = 110500;
+input bool     EnableEquitySL             = false;
+input double   TargetEquitySL             = 97500;
 input group    "[EXPERT ADVISOR SETTINGS]";
 input int      MagicNumber                = 13;
 input int      HorizontalLineThickness    = 3;
@@ -72,6 +74,8 @@ double Ask = 0;
 double order_risk_money = 0;
 bool LimitLineExists = false;
 bool AutoProtectCalled = false;
+bool EquityTPCalled = false;
+bool EquitySLCalled = false;
 double percent_risk = 0;
 bool HasOpenPosition = false;
 bool breakEvenFound = false;
@@ -399,10 +403,18 @@ void OnTick()
    double sl_risk = 0;
    double account_balance = AccountInfoDouble(ACCOUNT_BALANCE);
    double account_equity = AccountInfoDouble(ACCOUNT_EQUITY);
-   if (account_equity >= TargetEquityTP && EnableEquityTP == true)
+   if (account_equity >= TargetEquityTP && EnableEquityTP == true && EquityTPCalled == false)
    {
       Print ("Closing all positions across all symbols because Equity >= TargetEquityTP");
       CloseAllPositionsOnAllSymbols();
+      EquityTPCalled = true;
+      Print ("New account balance: " + DoubleToString(account_balance , 2));
+   }
+   if (account_equity < TargetEquitySL && EnableEquitySL == true && EquitySLCalled == false)
+   {
+      Print ("Closing all positions across all symbols because Equity < TargetEquityTP");
+      CloseAllPositionsOnAllSymbols();
+      EquitySLCalled = true;
       Print ("New account balance: " + DoubleToString(account_balance , 2));
    }
    if (breakEvenFound == true)
