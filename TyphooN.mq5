@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.mql5.com"
-#property version   "1.267"
+#property version   "1.268"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -389,11 +389,26 @@ void CloseAllPositionsOnAllSymbols()
    for (int i = 0; i < totalPositions; i++)
    {
       ulong ticket = PositionGetTicket(i);
-      double closePrice = SymbolInfoDouble(PositionGetSymbol(ticket), SYMBOL_BID);
-      double profitLoss = PositionGetDouble(ticket, POSITION_PROFIT);
-      PositionClose(ticket);
-      Print("Closed position with ticket ", ticket, ", Profit/Loss: ", DoubleToString(profitLoss, 2));
-    }
+      double entryPrice = PositionGetDouble(POSITION_PRICE_OPEN);
+      double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+      double positionProfit = PositionGetDouble(POSITION_PROFIT);
+      double lotSize = PositionGetDouble(POSITION_VOLUME);
+      if(Trade.PositionClose(PositionGetInteger(POSITION_TICKET)))
+      {
+         if (positionProfit >= 0)
+         {
+            Print("Closed Position #", PositionGetInteger(POSITION_TICKET), " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a profit of $", positionProfit);
+         }
+         else
+         {
+            Print("Closed Position #", PositionGetInteger(POSITION_TICKET), " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a loss of -$", MathAbs(positionProfit));
+         }
+         }
+         else
+         {
+            Print("Position #", PositionGetInteger(POSITION_TICKET), " close failed with error ", GetLastError());
+         }
+      }
 }
 void OnTick()
 {
@@ -415,6 +430,7 @@ void OnTick()
       {
          Print("Closing all positions across all symbols because Equity >= TargetEquityTP");
          CloseAllPositionsOnAllSymbols();
+         Sleep(1000);
          CloseAllPositionsOnAllSymbols();
          EquityTPCalled = true;
          account_balance = AccountInfoDouble(ACCOUNT_BALANCE);
@@ -424,6 +440,7 @@ void OnTick()
    {
       Print("Closing all positions across all symbols because Equity < TargetEquityTP");
       CloseAllPositionsOnAllSymbols();
+      Sleep(1000);
       CloseAllPositionsOnAllSymbols();
       EquitySLCalled = true;
       account_balance = AccountInfoDouble(ACCOUNT_BALANCE);
