@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.mql5.com"
-#property version   "1.266"
+#property version   "1.267"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -385,7 +385,15 @@ double PointValue()
 }
 void CloseAllPositionsOnAllSymbols()
 {
-   Trade.PositionClose(0);
+   int totalPositions = PositionsTotal();
+   for (int i = 0; i < totalPositions; i++)
+   {
+      ulong ticket = PositionGetTicket(i);
+      double closePrice = SymbolInfoDouble(PositionGetSymbol(ticket), SYMBOL_BID);
+      double profitLoss = PositionGetDouble(ticket, POSITION_PROFIT);
+      PositionClose(ticket);
+      Print("Closed position with ticket ", ticket, ", Profit/Loss: ", DoubleToString(profitLoss, 2));
+    }
 }
 void OnTick()
 {
@@ -403,20 +411,22 @@ void OnTick()
    double sl_risk = 0;
    double account_balance = AccountInfoDouble(ACCOUNT_BALANCE);
    double account_equity = AccountInfoDouble(ACCOUNT_EQUITY);
-   if (account_equity >= TargetEquityTP && EnableEquityTP == true && EquityTPCalled == false)
-   {
-      Print("Closing all positions across all symbols because Equity >= TargetEquityTP");
-      CloseAllPositionsOnAllSymbols();
-      EquityTPCalled = true;
-      Print("New account balance: " + DoubleToString(account_balance , 2));
-      Alert("EquityTP closed all positions on all symbols. New account balance: " + DoubleToString(account_balance , 2));
-   }
+      if (account_equity >= TargetEquityTP && EnableEquityTP == true && EquityTPCalled == false)
+      {
+         Print("Closing all positions across all symbols because Equity >= TargetEquityTP");
+         CloseAllPositionsOnAllSymbols();
+         CloseAllPositionsOnAllSymbols();
+         EquityTPCalled = true;
+         account_balance = AccountInfoDouble(ACCOUNT_BALANCE);
+         Alert("EquityTP closed all positions on all symbols. New account balance: " + DoubleToString(account_balance , 2));
+      }
    if (account_equity < TargetEquitySL && EnableEquitySL == true && EquitySLCalled == false)
    {
       Print("Closing all positions across all symbols because Equity < TargetEquityTP");
       CloseAllPositionsOnAllSymbols();
+      CloseAllPositionsOnAllSymbols();
       EquitySLCalled = true;
-      Print("New account balance: " + DoubleToString(account_balance , 2));
+      account_balance = AccountInfoDouble(ACCOUNT_BALANCE);
       Alert("EquitySL closed all positions on all symbols. New account balance: " + DoubleToString(account_balance , 2));
    }
    if (breakEvenFound == true)
@@ -965,7 +975,7 @@ double PerformOrderCheckWithRetries(const MqlTradeRequest &request, MqlTradeChec
          }
          if (!reductionSuccessful)
          {
-            Print("No further reduction necessary after Retry #", RetryCount, ". Breaking out of the loop.");
+         //   Print("No further reduction necessary after Retry #", RetryCount, ". Breaking out of the loop.");
             break;
          }
    }
