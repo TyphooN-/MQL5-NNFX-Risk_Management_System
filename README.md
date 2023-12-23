@@ -1,5 +1,5 @@
 # Discord Market Wizardry Community
-- Join my Discord community for support with my EA and indicators, and also share trading ideas at https://discord.gg/mrhzvEh429
+- Join my Discord community for support with my EA and indicators, and also share trading ideas at http://marketwizardry.info/
 
 # TyphooN's MQL5-Risk_Management_System (Expert)
 ![Expert_Panel](Images/Expert_Panel.png)
@@ -21,10 +21,11 @@
 
 - EnableAutoProtect will place stop loss(es) at break even when RR passes AutoProtectRRLevel and risk > 0.  This will only happen once per market, and will not happen again if SL is set to break even on any position for that symbol.  (Default: false)
 - APCloseDivider: The number of positions that have to be open in order for trades to automatically take profit on APPositionsToClose position(s), and set the rest to break even stop loss.
-- APPositionsToClose: The number of positions to close in profit when AutoProtect is triggered.
-- APStartHour: The server hour when AutoProtect can start to be active.  By default it is active from 23 -> 24 server time (last 4 hour candlestick of the day).  Can be set to 0 to start at the beginning of the day.
-- APStopHour: The server hour when AutoProtect can stops being active.  By default it is active from 20 -> 24 server time (last 4 hour candlestick of the day).  Can be set to 24 to be active until the end of the day.
 - AutoProtectRRLevel is the Reward:Risk level that will trigger AutoProtect.
+- EnableEquityTP: Will close all open positions on the account when Equity >= TargetEquityTP.  Do not use this feature in Default template or on more than 1 chart.
+- TargetEquityTP: The Equity value of the account that EquityTP will be triggered by.
+- EnableEquitySL: Will close all open positions on the account when Equity < TargetEquitySL.  Do not use this feature in Default template or on more than 1 chart.
+- TargetEquitySL: The Equity value of the account that EquitySL will be triggered by.
 
 ### EXPERT ADVISOR SETTINGS
 - MagicNumber: Can be set to anything the user wants, but this expert will only modify trades/positions that match the MagicNumber on the chart.
@@ -64,7 +65,7 @@
   - 100/200: 100/200 SMA cross.
   - 20/50: 20/50 SMA cross.
   - 10/20: 10/20 SMA cross.
-- Bear Power and Bull Power are based on a scoring system which scores several SMA crossovers across all timeframes M1 -> W1 (Total Power is always 100 for both LTF and HTF).  The MA crossovers used are 200 SMA (price above or below the MA line), Death/Golden Cross (50/200 SMA), 100/200 SMA cross, 20/50 SMA cross, and 10/20 SMA cross.
+- Bear Power and Bull Power are based on a scoring system which scores several SMA crossovers across all timeframes M1 -> W1 (Total Power is always 100 for both LTF and HTF).  LTF Power is based on M1 -> M30 signals.  HTF Power is based on H1 -> W1 signals.  Each signal is worth 5 points currently (subject to change).
 
 ![MTF_MA_200SMA_Lines](Images/MTF_MA_200SMA_Lines.png)
 
@@ -126,9 +127,9 @@
 # Third Party Open Source Supporting Indicators
 - [Minions.BetterVolume](https://www.mql5.com/en/code/23479) - improved volume indicator.
 - [shved_supply_and_demand_v1.5](https://www.mql5.com/en/code/29395) - automatic supply and demand zone plotting.
-- SqKAMA
-- [Heiken Ashi Smoothed](https://www.forexfactory.com/thread/post/14170997#post14170997)
-
+- [KAMA (Kauffman's Adaptive Moving Average)](https://forex-station.com/download/file.php?id=3314561&sid=563944d8cfb302d8a712d2f9028ccbe4) - confirmation indicator.
+- [Ehlers' Mother of Adaptive Moving Averages](https://fxstill.com/indikators/the-mother-of-adaptive-moving-averages) - confirmation indicator.
+- [Heiken Ashi Smoothed](https://www.forexfactory.com/thread/post/14170997#post14170997) - confirmation indicator.
 
 # Usage
 
@@ -164,7 +165,7 @@ these TERMS OF USE and that you agree to be bound by such Terms of Use ("License
 
 # Copyright information
 
-Copyright © 2023 - Decapool.net - All Rights Reserved
+Copyright © 2023 - MarketWizardry.org - All Rights Reserved
 
 # Disclaimer and Risk Warnings
 
