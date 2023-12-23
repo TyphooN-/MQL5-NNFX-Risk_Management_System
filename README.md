@@ -15,7 +15,6 @@
 - MaxRisk: Maximum percentage of risk across the symbol, once this level is hit no more orders will be placed.
 - Risk: The % of the account that is being risked every time "Open Trade" is clicked.
 - InitialOrdersToPlace: This is the number of orders placed when there are 0 orders on the current symbol.  Risk will be divided amongst the orders.  If another position is open on the symbol, then only 1 order will be placed.
-- MarginBufferPercent: This is the % buffer of margin used when placing orders.  If this value is too low, retcode = 10019 might be returned when placing orders with low free margin.
 
 ### ACCOUNT PROTECTION SETTINGS
 
