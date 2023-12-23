@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.mql5.com"
-#property version   "1.268"
+#property version   "1.269"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -383,9 +383,14 @@ double PointValue()
  //               tickSize, tickValue, point, ticksPerPoint, pointValue );
    return ( pointValue );
 }
-void CloseAllPositionsOnAllSymbols()
+bool CloseAllPositionsOnAllSymbols()
 {
    int totalPositions = PositionsTotal();
+   if (totalPositions == 0)
+   {
+      Print("No open positions to close.");
+      return true;  // No need to proceed if there are no positions
+   }
    for (int i = 0; i < totalPositions; i++)
    {
       ulong ticket = PositionGetTicket(i);
@@ -393,23 +398,26 @@ void CloseAllPositionsOnAllSymbols()
       double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
       double positionProfit = PositionGetDouble(POSITION_PROFIT);
       double lotSize = PositionGetDouble(POSITION_VOLUME);
-      if(Trade.PositionClose(PositionGetInteger(POSITION_TICKET)))
+      if (Trade.PositionClose(ticket))
       {
          if (positionProfit >= 0)
          {
-            Print("Closed Position #", PositionGetInteger(POSITION_TICKET), " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a profit of $", positionProfit);
+            Print("Closed Position #", ticket, " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a profit of $", DoubleToString(positionProfit, 2));
          }
          else
          {
-            Print("Closed Position #", PositionGetInteger(POSITION_TICKET), " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a loss of -$", MathAbs(positionProfit));
+            Print("Closed Position #", ticket, " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a loss of -$", MathAbs(positionProfit));
          }
          }
          else
          {
-            Print("Position #", PositionGetInteger(POSITION_TICKET), " close failed with error ", GetLastError());
+            Print("Position #", ticket, " close failed with error ", GetLastError());
+            return false;  // Return false if any position close fails
          }
-      }
+   }
+   return true;  // Return true if all positions are closed successfully
 }
+
 void OnTick()
 {
    HasOpenPosition = false;
@@ -426,25 +434,25 @@ void OnTick()
    double sl_risk = 0;
    double account_balance = AccountInfoDouble(ACCOUNT_BALANCE);
    double account_equity = AccountInfoDouble(ACCOUNT_EQUITY);
-      if (account_equity >= TargetEquityTP && EnableEquityTP == true && EquityTPCalled == false)
+   if (account_equity >= TargetEquityTP && EnableEquityTP == true && EquityTPCalled == false)
+   {
+      Print("Closing all positions across all symbols because Equity >= TargetEquityTP ($" + DoubleToString(TargetEquityTP, 2) + ").");
+      if (CloseAllPositionsOnAllSymbols())
       {
-         Print("Closing all positions across all symbols because Equity >= TargetEquityTP");
-         CloseAllPositionsOnAllSymbols();
-         Sleep(1000);
-         CloseAllPositionsOnAllSymbols();
-         EquityTPCalled = true;
-         account_balance = AccountInfoDouble(ACCOUNT_BALANCE);
-         Alert("EquityTP closed all positions on all symbols. New account balance: " + DoubleToString(account_balance , 2));
+        EquityTPCalled = true;
+        account_balance = AccountInfoDouble(ACCOUNT_BALANCE);
+        Alert("EquityTP closed all positions on all symbols. New account balance: " + DoubleToString(account_balance, 2));
       }
+   }
    if (account_equity < TargetEquitySL && EnableEquitySL == true && EquitySLCalled == false)
    {
-      Print("Closing all positions across all symbols because Equity < TargetEquityTP");
-      CloseAllPositionsOnAllSymbols();
-      Sleep(1000);
-      CloseAllPositionsOnAllSymbols();
-      EquitySLCalled = true;
-      account_balance = AccountInfoDouble(ACCOUNT_BALANCE);
-      Alert("EquitySL closed all positions on all symbols. New account balance: " + DoubleToString(account_balance , 2));
+      Print("Closing all positions across all symbols because Equity < TargetEquitySL ($" + DoubleToString(TargetEquitySL, 2) + ").");
+      if (CloseAllPositionsOnAllSymbols())
+      {
+         EquitySLCalled = true;
+         account_balance = AccountInfoDouble(ACCOUNT_BALANCE);
+         Alert("EquitySL closed all positions on all symbols. New account balance: " + DoubleToString(account_balance, 2));
+      }
    }
    if (breakEvenFound == true)
    {
@@ -1487,7 +1495,7 @@ void TyWindow::OnClickCloseAll(void)
                   TotalPL += positionProfit;
                   if (positionProfit >= 0)
                   {
-                     Print("Closed Position #", PositionGetInteger(POSITION_TICKET), " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a profit of $", positionProfit);
+                     Print("Closed Position #", PositionGetInteger(POSITION_TICKET), " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a profit of $", DoubleToString(positionProfit, 2));
                   }
                   else
                   {
