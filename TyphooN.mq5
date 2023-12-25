@@ -22,7 +22,7 @@
  *
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
-#property link      "http://www.mql5.com"
+#property link      "http://marketwizardry.info/"
 #property version   "1.272"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
