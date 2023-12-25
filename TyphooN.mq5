@@ -22,8 +22,8 @@
  *
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
-#property link      "http://www.marketwizardry.info"
-#property version   "1.269"
+#property link      "http://www.mql5.com"
+#property version   "1.270"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -79,6 +79,7 @@ bool EquitySLCalled = false;
 double percent_risk = 0;
 bool HasOpenPosition = false;
 bool breakEvenFound = false;
+bool asyncOrderStatus[];
 // defines
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
 #define INDENT_TOP        (10)      // indent from top (with allowance for border width)
@@ -385,12 +386,14 @@ double PointValue()
 }
 bool CloseAllPositionsOnAllSymbols()
 {
+   Trade.SetAsyncMode(true); // true: Async, false: Sync
    int totalPositions = PositionsTotal();
    if (totalPositions == 0)
    {
       Print("No open positions to close.");
       return true;  // No need to proceed if there are no positions
    }
+
    for (int i = 0; i < totalPositions; i++)
    {
       ulong ticket = PositionGetTicket(i);
@@ -402,22 +405,38 @@ bool CloseAllPositionsOnAllSymbols()
       {
          if (positionProfit >= 0)
          {
-            Print("Closed Position #", ticket, " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a profit of $", DoubleToString(positionProfit, 2));
+            Print("Closing Position #", ticket, " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a profit of $", DoubleToString(positionProfit, 2));
          }
          else
          {
-            Print("Closed Position #", ticket, " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a loss of -$", MathAbs(positionProfit));
+            Print("Closing Position #", ticket, " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a loss of -$", MathAbs(positionProfit));
          }
-         }
-         else
-         {
-            Print("Position #", ticket, " close failed with error ", GetLastError());
-            return false;  // Return false if any position close fails
-         }
+      }
+      else
+      {
+         Print("Position #", ticket, " close failed asynchronously with error ", GetLastError());
+         // Do not return false immediately for asynchronous processing
+      }
    }
-   return true;  // Return true if all positions are closed successfully
+   // Wait for the asynchronous operations to complete
+   int timeout = 10000; // Set a timeout (in milliseconds) to wait for order execution
+   int startTime = GetTickCount();
+   while (PositionsTotal() > 0 && (GetTickCount() - startTime) < timeout)
+   {
+      Print("Waiting for positions to close asynchronously...");
+      Sleep(100); // Sleep for a short duration
+   }
+   if (PositionsTotal() == 0)
+   {
+      Print("All positions closed successfully.");
+      return true;
+   }
+   else
+   {
+      Print("Failed to close all positions within the specified timeout.");
+      return false;
+   }
 }
-
 void OnTick()
 {
    HasOpenPosition = false;
