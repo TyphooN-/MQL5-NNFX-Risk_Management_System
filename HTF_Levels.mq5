@@ -22,14 +22,23 @@
  *
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
-#property link      "http://www.mql5.com"
-#property version   "1.000"
-#property description "TyphooN's MQL5 Risk Management System"
+#property link      "http://www.marketwizardry.info/"
+#property version   "1.001"
+#property description "TyphooN's HTF High/Low Levels"
 #property indicator_chart_window
 // Define input parameters
 input string objectName = "HL_Lines"; // Object name
 input color lineColor = clrWhite;       // Line color
 input int Line_Thickness = 2;
+double W1_High;
+double W1_Low;
+double D1_High;
+double D1_Low;
+double H4_High;
+double H4_Low;
+double MN1_High;
+double MN1_Low;
+int lastCheckedCandle = -1;
 int OnInit()
 {
    return(INIT_SUCCEEDED);
@@ -45,38 +54,54 @@ int OnCalculate(const int rates_total,
                 const long &volume[],
                 const int &spread[])
 {
-   static datetime LastCandlestick = 0;
-   // Check if a new candlestick has formed
-   if (time[0] != LastCandlestick)
+   static datetime prevTradeServerTime = 0;  // Initialize with 0 on the first run
+   datetime currentTradeServerTime = 0;
+   currentTradeServerTime = TimeTradeServer();
+   // Check if a new 15-minute interval
+   if (IsNewM15Interval(currentTradeServerTime, prevTradeServerTime))
    {
-      // Update the last candle time
-      LastCandlestick = time[0];
-      // Calculate the highest and lowest prices for the specified timeframes
-      double w1High = iHigh(_Symbol, PERIOD_W1, 1);
-      double w1Low = iLow(_Symbol, PERIOD_W1, 1);
-      double d1High = iHigh(_Symbol, PERIOD_D1, 1);
-      double d1Low = iLow(_Symbol, PERIOD_D1, 1);
-      double h4High = iHigh(_Symbol, PERIOD_H4, 1);
-      double h4Low = iLow(_Symbol, PERIOD_H4, 1);
-      double mn1High = iHigh(_Symbol, PERIOD_MN1, 1);
-      double mn1Low = iLow(_Symbol, PERIOD_MN1, 1);
-      // Draw horizontal lines for each timeframe with the start time as the beginning of the previous D1 candle
-      DrawHorizontalLine(w1High, "W1_High", lineColor, iTime(_Symbol, PERIOD_W1, 1), TimeCurrent());
-      DrawHorizontalLine(w1Low, "W1_Low", lineColor, iTime(_Symbol, PERIOD_W1, 1), TimeCurrent());
-      DrawHorizontalLine(d1High, "D1_High", lineColor, iTime(_Symbol, PERIOD_D1, 1), TimeCurrent());
-      DrawHorizontalLine(d1Low, "D1_Low", lineColor, iTime(_Symbol, PERIOD_D1, 1), TimeCurrent());
-      DrawHorizontalLine(h4High, "H4_High", lineColor, iTime(_Symbol, PERIOD_H4, 1), TimeCurrent());
-      DrawHorizontalLine(h4Low, "H4_Low", lineColor, iTime(_Symbol, PERIOD_H4, 1), TimeCurrent());
-      DrawHorizontalLine(mn1High, "MN1_High", lineColor, iTime(_Symbol, PERIOD_MN1, 1), TimeCurrent());
-      DrawHorizontalLine(mn1Low, "MN1_Low", lineColor, iTime(_Symbol, PERIOD_MN1, 1), TimeCurrent());
+      UpdateCandlestickData();
+      prevTradeServerTime = currentTradeServerTime;
+      //Print("Updating ATR Data and Candlestick data due to 15 min server time.");
    }
+   // Calculate the number of bars to be processed
+   int limit = rates_total - prev_calculated;
+   // If there are no new bars, return
+   if (limit <= 0)
+   {
+      return 0;
+   }
+   // Check if a new candlestick has formed
+   if (lastCheckedCandle != rates_total - 1)
+   {
+      //Print("New candle has formed, updating ATR & Candlestick Data");
+      // Update the last checked candle index
+      lastCheckedCandle = rates_total - 1;
+      UpdateCandlestickData();
+   }
+   DrawHorizontalLine(W1_High, "W1_High", lineColor, iTime(_Symbol, PERIOD_W1, 1), TimeCurrent());
+   DrawHorizontalLine(W1_Low, "W1_Low", lineColor, iTime(_Symbol, PERIOD_W1, 1), TimeCurrent());
+   DrawHorizontalLine(D1_High, "D1_High", lineColor, iTime(_Symbol, PERIOD_D1, 1), TimeCurrent());
+   DrawHorizontalLine(D1_Low, "D1_Low", lineColor, iTime(_Symbol, PERIOD_D1, 1), TimeCurrent());
+   DrawHorizontalLine(H4_High, "H4_High", lineColor, iTime(_Symbol, PERIOD_H4, 1), TimeCurrent());
+   DrawHorizontalLine(H4_Low, "H4_Low", lineColor, iTime(_Symbol, PERIOD_H4, 1), TimeCurrent());
+   DrawHorizontalLine(MN1_High, "MN1_High", lineColor, iTime(_Symbol, PERIOD_MN1, 1), TimeCurrent());
+   DrawHorizontalLine(MN1_Low, "MN1_Low", lineColor, iTime(_Symbol, PERIOD_MN1, 1), TimeCurrent());
    return(rates_total);
+}
+void UpdateCandlestickData()
+{
+      W1_High = iHigh(_Symbol, PERIOD_W1, 1);
+      W1_Low = iLow(_Symbol, PERIOD_W1, 1);
+      D1_High = iHigh(_Symbol, PERIOD_D1, 1);
+      D1_Low = iLow(_Symbol, PERIOD_D1, 1);
+      H4_High = iHigh(_Symbol, PERIOD_H4, 1);
+      H4_Low = iLow(_Symbol, PERIOD_H4, 1);
+      MN1_High = iHigh(_Symbol, PERIOD_MN1, 1);
+      MN1_Low = iLow(_Symbol, PERIOD_MN1, 1);
 }
 void DrawHorizontalLine(double price, string label, color clr, datetime startTime, datetime endTime)
 {
-   // Delete the previous object with the same name
-   ObjectDelete(0, label);
-   // Draw a horizontal line at the specified price
    ObjectCreate(0, label, OBJ_TREND, 0, startTime, price, endTime, price);
    ObjectSetInteger(0, label, OBJPROP_COLOR, clr);
    ObjectSetInteger(0, label, OBJPROP_STYLE, STYLE_SOLID);
@@ -85,6 +110,23 @@ void DrawHorizontalLine(double price, string label, color clr, datetime startTim
    ObjectSetInteger(0, label, OBJPROP_SELECTED, false);
    ObjectSetDouble(0, label, OBJPROP_PRICE, price);
    ObjectSetInteger(0, label, OBJPROP_WIDTH, Line_Thickness);
+}
+bool IsNewM15Interval(const datetime& currentTime, const datetime& prevTime)
+{
+   MqlDateTime currentMqlTime, prevMqlTime;
+   TimeToStruct(currentTime, currentMqlTime);
+   TimeToStruct(prevTime, prevMqlTime);
+   //Print("IsNewM15Interval() has run.");
+   // Check if the minutes have changed
+   if (currentMqlTime.min != prevMqlTime.min)
+   {
+   // Check if the current time is at a a 15 minute interval
+   if (currentMqlTime.min == 0 || currentMqlTime.min == 15 || currentMqlTime.min == 30 || currentMqlTime.min == 45 )
+   {
+      return true;
+   }
+   }
+   return false;
 }
 void OnDeinit(const int reason)
 {
