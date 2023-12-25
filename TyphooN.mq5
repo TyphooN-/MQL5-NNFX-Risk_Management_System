@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.mql5.com"
-#property version   "1.270"
+#property version   "1.271"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -393,7 +393,6 @@ bool CloseAllPositionsOnAllSymbols()
       Print("No open positions to close.");
       return true;  // No need to proceed if there are no positions
    }
-
    for (int i = 0; i < totalPositions; i++)
    {
       ulong ticket = PositionGetTicket(i);
@@ -420,8 +419,8 @@ bool CloseAllPositionsOnAllSymbols()
    }
    // Wait for the asynchronous operations to complete
    int timeout = 10000; // Set a timeout (in milliseconds) to wait for order execution
-   int startTime = GetTickCount();
-   while (PositionsTotal() > 0 && (GetTickCount() - startTime) < timeout)
+   uint startTime = GetTickCount();
+   while (PositionsTotal() > 0 && (GetTickCount() - startTime) < (uint) timeout)
    {
       Print("Waiting for positions to close asynchronously...");
       Sleep(100); // Sleep for a short duration
@@ -1497,50 +1496,65 @@ void TyWindow::OnClickCloseAll(void)
    // Close open positions logic
    if(HasOpenPosition)
    {
-      double TotalPL = 0.00;
-      int result = MessageBox("Do you want to close all positions on " + _Symbol + "?", "Close Positions", MB_YESNO | MB_ICONQUESTION);
-      if (result == IDYES)
+   Trade.SetAsyncMode(true); // Set asynchronous mode
+
+   double TotalPL = 0.0;
+
+   for (int i = PositionsTotal() - 1; i >= 0; i--)
+   {
+      if (PositionGetSymbol(i) == _Symbol && (ManageAllPositions || PositionGetInteger(POSITION_MAGIC) == MagicNumber))
       {
-         for(int i=PositionsTotal()-1; i>=0 ;i--)
+         double entryPrice = PositionGetDouble(POSITION_PRICE_OPEN);
+         double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+         double positionProfit = PositionGetDouble(POSITION_PROFIT);
+         double lotSize = PositionGetDouble(POSITION_VOLUME);
+
+         if (Trade.PositionClose(PositionGetInteger(POSITION_TICKET)))
          {
-            if (PositionGetSymbol(i) == _Symbol && (ManageAllPositions || PositionGetInteger(POSITION_MAGIC) == MagicNumber))
+            TotalPL += positionProfit;
+            if (positionProfit >= 0)
             {
-               double entryPrice = PositionGetDouble(POSITION_PRICE_OPEN);
-               double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
-               double positionProfit = PositionGetDouble(POSITION_PROFIT);
-               double lotSize = PositionGetDouble(POSITION_VOLUME);
-               if(Trade.PositionClose(PositionGetInteger(POSITION_TICKET)))
-               {
-                  TotalPL += positionProfit;
-                  if (positionProfit >= 0)
-                  {
-                     Print("Closed Position #", PositionGetInteger(POSITION_TICKET), " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a profit of $", DoubleToString(positionProfit, 2));
-                  }
-                  else
-                  {
-                     Print("Closed Position #", PositionGetInteger(POSITION_TICKET), " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a loss of -$", MathAbs(positionProfit));
-                  }
-               }
-               else
-               {
-                  Print("Position #", PositionGetInteger(POSITION_TICKET), " close failed with error ", GetLastError());
-               }
+               Print("Closed Position #", PositionGetInteger(POSITION_TICKET), " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a profit of $", DoubleToString(positionProfit, 2));
             }
-            }
-            if (TotalPL >= 0)
+            else
             {
-                Print("Total profit of closed positions: $", TotalPL);
+               Print("Closed Position #", PositionGetInteger(POSITION_TICKET), " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a loss of -$", MathAbs(positionProfit));
             }
-            if (TotalPL < 0)
-            {
-                Print("Total loss of closed positions: -$", MathAbs(TotalPL));
-            }
-        }
-        else if(result == IDNO)
-        {
-            Print("Positions not closed.");
-        }
-    }
+         }
+         else
+         {
+            Print("Position #", PositionGetInteger(POSITION_TICKET), " close failed asynchronously with error ", GetLastError());
+         }
+      }
+   }
+
+   // Wait for the asynchronous operations to complete
+   int timeout = 10000; // Set a timeout (in milliseconds) to wait for order execution
+   uint startTime = GetTickCount();
+   while (PositionsTotal() > 0 && (GetTickCount() - startTime) < (uint) timeout)
+   {
+      Print("Waiting for positions to close asynchronously...");
+      Sleep(100); // Sleep for a short duration
+   }
+
+   if (PositionsTotal() == 0)
+   {
+      Print("All positions closed successfully.");
+   }
+   else
+   {
+      Print("Failed to close all positions within the specified timeout.");
+   }
+
+   if (TotalPL >= 0)
+   {
+      Print("Total profit of closed positions: $", TotalPL);
+   }
+   else
+   {
+      Print("Total loss of closed positions: -$", MathAbs(TotalPL));
+   }
+}
 }
 void TyWindow::OnClickClosePartial(void)
 {
