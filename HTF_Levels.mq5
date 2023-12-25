@@ -23,21 +23,21 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.marketwizardry.info/"
-#property version   "1.001"
+#property version   "1.002"
 #property description "TyphooN's HTF High/Low Levels"
 #property indicator_chart_window
 // Define input parameters
 input string objectName = "HL_Lines"; // Object name
 input color lineColor = clrWhite;       // Line color
 input int Line_Thickness = 2;
-double W1_High;
-double W1_Low;
-double D1_High;
-double D1_Low;
-double H4_High;
-double H4_Low;
-double MN1_High;
-double MN1_Low;
+double Previous_W1_High;
+double Previous_W1_Low;
+double Previous_D1_High;
+double Previous_D1_Low;
+double Previous_H4_High;
+double Previous_H4_Low;
+double Previous_MN1_High;
+double Previous_MN1_Low;
 int lastCheckedCandle = -1;
 int OnInit()
 {
@@ -79,26 +79,26 @@ int OnCalculate(const int rates_total,
       lastCheckedCandle = rates_total - 1;
       UpdateCandlestickData();
    }
-   DrawHorizontalLine(W1_High, "W1_High", lineColor, iTime(_Symbol, PERIOD_W1, 1), TimeCurrent());
-   DrawHorizontalLine(W1_Low, "W1_Low", lineColor, iTime(_Symbol, PERIOD_W1, 1), TimeCurrent());
-   DrawHorizontalLine(D1_High, "D1_High", lineColor, iTime(_Symbol, PERIOD_D1, 1), TimeCurrent());
-   DrawHorizontalLine(D1_Low, "D1_Low", lineColor, iTime(_Symbol, PERIOD_D1, 1), TimeCurrent());
-   DrawHorizontalLine(H4_High, "H4_High", lineColor, iTime(_Symbol, PERIOD_H4, 1), TimeCurrent());
-   DrawHorizontalLine(H4_Low, "H4_Low", lineColor, iTime(_Symbol, PERIOD_H4, 1), TimeCurrent());
-   DrawHorizontalLine(MN1_High, "MN1_High", lineColor, iTime(_Symbol, PERIOD_MN1, 1), TimeCurrent());
-   DrawHorizontalLine(MN1_Low, "MN1_Low", lineColor, iTime(_Symbol, PERIOD_MN1, 1), TimeCurrent());
+   DrawHorizontalLine(Previous_W1_High, "Previous_W1_High", lineColor, iTime(_Symbol, PERIOD_W1, 1), TimeCurrent());
+   DrawHorizontalLine(Previous_W1_Low, "Previous_W1_Low", lineColor, iTime(_Symbol, PERIOD_W1, 1), TimeCurrent());
+   DrawHorizontalLine(Previous_D1_High, "Previous_D1_High", lineColor, iTime(_Symbol, PERIOD_D1, 1), TimeCurrent());
+   DrawHorizontalLine(Previous_D1_Low, "Previous_D1_Low", lineColor, iTime(_Symbol, PERIOD_D1, 1), TimeCurrent());
+   DrawHorizontalLine(Previous_H4_High, "Previous_H4_High", lineColor, iTime(_Symbol, PERIOD_H4, 1), TimeCurrent());
+   DrawHorizontalLine(Previous_H4_Low, "Previous_H4_Low", lineColor, iTime(_Symbol, PERIOD_H4, 1), TimeCurrent());
+   DrawHorizontalLine(Previous_MN1_High, "Previous_MN1_High", lineColor, iTime(_Symbol, PERIOD_MN1, 1), TimeCurrent());
+   DrawHorizontalLine(Previous_MN1_Low, "Previous_MN1_Low", lineColor, iTime(_Symbol, PERIOD_MN1, 1), TimeCurrent());
    return(rates_total);
 }
 void UpdateCandlestickData()
 {
-      W1_High = iHigh(_Symbol, PERIOD_W1, 1);
-      W1_Low = iLow(_Symbol, PERIOD_W1, 1);
-      D1_High = iHigh(_Symbol, PERIOD_D1, 1);
-      D1_Low = iLow(_Symbol, PERIOD_D1, 1);
-      H4_High = iHigh(_Symbol, PERIOD_H4, 1);
-      H4_Low = iLow(_Symbol, PERIOD_H4, 1);
-      MN1_High = iHigh(_Symbol, PERIOD_MN1, 1);
-      MN1_Low = iLow(_Symbol, PERIOD_MN1, 1);
+      Previous_W1_High = iHigh(_Symbol, PERIOD_W1, 1);
+      Previous_W1_Low = iLow(_Symbol, PERIOD_W1, 1);
+      Previous_D1_High = iHigh(_Symbol, PERIOD_D1, 1);
+      Previous_D1_Low = iLow(_Symbol, PERIOD_D1, 1);
+      Previous_H4_High = iHigh(_Symbol, PERIOD_H4, 1);
+      Previous_H4_Low = iLow(_Symbol, PERIOD_H4, 1);
+      Previous_MN1_High = iHigh(_Symbol, PERIOD_MN1, 1);
+      Previous_MN1_Low = iLow(_Symbol, PERIOD_MN1, 1);
 }
 void DrawHorizontalLine(double price, string label, color clr, datetime startTime, datetime endTime)
 {
