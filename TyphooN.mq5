@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.272"
+#property version   "1.273"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -400,20 +400,21 @@ bool CloseAllPositionsOnAllSymbols()
       double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
       double positionProfit = PositionGetDouble(POSITION_PROFIT);
       double lotSize = PositionGetDouble(POSITION_VOLUME);
+      string symbol = PositionGetString(POSITION_SYMBOL);
       if (Trade.PositionClose(ticket))
       {
          if (positionProfit >= 0)
          {
-            Print("Closing Position #", ticket, " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a profit of $", DoubleToString(positionProfit, 2));
+            Print("Closing [" + symbol + "] Position #", ticket, " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a profit of $", DoubleToString(positionProfit, 2));
          }
          else
          {
-            Print("Closing Position #", ticket, " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a loss of -$", MathAbs(positionProfit));
+            Print("Closing [" + symbol + "] Position #", ticket, " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a loss of -$", MathAbs(positionProfit));
          }
       }
       else
       {
-         Print("Position #", ticket, " close failed asynchronously with error ", GetLastError());
+         Print("[" + symbol + "] Position #", ticket, " close failed asynchronously with error ", GetLastError());
          // Do not return false immediately for asynchronous processing
       }
    }
