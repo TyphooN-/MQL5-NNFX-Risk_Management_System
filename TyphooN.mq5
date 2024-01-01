@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.273"
+#property version   "1.274"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -1499,6 +1499,7 @@ void TyWindow::OnClickCloseAll(void)
    {
       int result = MessageBox("Do you want to close all positions on " + _Symbol + "?", "Close Positions", MB_YESNO | MB_ICONQUESTION);
       if (result == IDYES)
+      {
       Trade.SetAsyncMode(true); // Set asynchronous mode
       double TotalPL = 0.0;
       for (int i = PositionsTotal() - 1; i >= 0; i--)
@@ -1550,6 +1551,11 @@ void TyWindow::OnClickCloseAll(void)
       else
       {
          Print("Total loss of closed positions: -$", MathAbs(TotalPL));
+      }
+      }
+      else if(result == IDNO)
+      {
+         Print("Positions not closed as user answered no.");
       }
    }
 }
