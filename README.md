@@ -19,7 +19,6 @@
 ### ACCOUNT PROTECTION SETTINGS
 
 - EnableAutoProtect will place stop loss(es) at break even when RR passes AutoProtectRRLevel and risk > 0.  This will only happen once per market, and will not happen again if SL is set to break even on any position for that symbol.  (Default: false)
-- APCloseDivider: The number of positions that have to be open in order for trades to automatically take profit on APPositionsToClose position(s), and set the rest to break even stop loss.
 - AutoProtectRRLevel is the Reward:Risk level that will trigger AutoProtect.
 - EnableEquityTP: Will close all open positions on the account when Equity >= TargetEquityTP.  Do not use this feature in Default template or on more than 1 chart.
 - TargetEquityTP: The Equity value of the account that EquityTP will be triggered by.
