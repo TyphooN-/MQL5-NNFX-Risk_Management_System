@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.274"
+#property version   "1.275"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -493,7 +493,7 @@ void OnTick()
          double risk = 0;
          double tpprofit = 0;
          double margin = 0;
-         if (PositionGetDouble(POSITION_SL) == PositionGetDouble(POSITION_PRICE_OPEN))
+         if (PositionGetDouble(POSITION_SL) == PositionGetDouble(POSITION_PRICE_OPEN) && PositionGetString(POSITION_SYMBOL) == _Symbol)
          {
             breakEvenFound = true;
          }
