@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright   "2009, MetaQuotes Software Corp."
 #property link        "http://www.mql5.com"
-#property version     "1.01"
+#property version     "1.02"
 #property description "Kaufmans Adaptive Moving Average"
 
 #property indicator_chart_window
@@ -20,7 +20,7 @@
 //--- default applied price
 #property indicator_applied_price PRICE_OPEN
 //--- input parameters
-input int      InpPeriodAMA=6;      // AMA period
+input int      InpPeriodAMA=5;      // AMA period
 input int      InpFastPeriodEMA=2;   // Fast EMA period
 input int      InpSlowPeriodEMA=30;  // Slow EMA period
 int      InpShiftAMA=0;        // AMA shift
@@ -128,3 +128,4 @@ double CalculateER(const int nPosition,const double &PriceData[])
    return(0.0);
   }
 //+------------------------------------------------------------------+
+
