@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.275"
+#property version   "1.280"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -48,17 +48,22 @@ double TickSize( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRA
 double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_VALUE ) ); }
 // input vars
 input group    "[ORDER PLACEMENT SETTINGS]";
+input int      InitialOrdersToPlace       = 1;
+input bool     UseStandardRisk            = true;
 input double   MaxRisk                    = 0.5;
 input double   Risk                       = 0.5;
-input int      InitialOrdersToPlace       = 1;
+input int      MarginBufferPercent        = 10;
 input double   AdditionalRiskAtSLBE       = 0.125;
+input bool     UseDynamicRisk             = false;
+input double   MinAccountBalance          = 96100;
+input int      LossesToMinBalance         = 5;
 input group    "[ACCOUNT PROTECTION SETTINGS]";
 input bool     EnableAutoProtect          = true;
 input double   APRRLevel                  = 1.0;
 input bool     EnableEquityTP             = false;
-input double   TargetEquityTP             = 110500;
+input double   TargetEquityTP             = 110200;
 input bool     EnableEquitySL             = false;
-input double   TargetEquitySL             = 97500;
+input double   TargetEquitySL             = 98000;
 input group    "[EXPERT ADVISOR SETTINGS]";
 input int      MagicNumber                = 13;
 input int      HorizontalLineThickness    = 3;
@@ -72,6 +77,8 @@ double SL = 0;
 double Bid = 0;
 double Ask = 0;
 double order_risk_money = 0;
+double DynamicRisk = 0;
+double AccountBalance = 0;
 bool LimitLineExists = false;
 bool AutoProtectCalled = false;
 bool EquityTPCalled = false;
@@ -451,7 +458,7 @@ void OnTick()
    double tprr = 0;
    double sl_profit = 0;
    double sl_risk = 0;
-   double account_balance = AccountInfoDouble(ACCOUNT_BALANCE);
+   AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
    double account_equity = AccountInfoDouble(ACCOUNT_EQUITY);
    if (account_equity >= TargetEquityTP && EnableEquityTP == true && EquityTPCalled == false)
    {
@@ -459,8 +466,8 @@ void OnTick()
       if (CloseAllPositionsOnAllSymbols())
       {
         EquityTPCalled = true;
-        account_balance = AccountInfoDouble(ACCOUNT_BALANCE);
-        Alert("EquityTP closed all positions on all symbols. New account balance: " + DoubleToString(account_balance, 2));
+        AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
+        Alert("EquityTP closed all positions on all symbols. New account balance: " + DoubleToString(AccountBalance, 2));
       }
    }
    if (account_equity < TargetEquitySL && EnableEquitySL == true && EquitySLCalled == false)
@@ -469,17 +476,9 @@ void OnTick()
       if (CloseAllPositionsOnAllSymbols())
       {
          EquitySLCalled = true;
-         account_balance = AccountInfoDouble(ACCOUNT_BALANCE);
-         Alert("EquitySL closed all positions on all symbols. New account balance: " + DoubleToString(account_balance, 2));
+         AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
+         Alert("EquitySL closed all positions on all symbols. New account balance: " + DoubleToString(AccountBalance, 2));
       }
-   }
-   if (breakEvenFound == true)
-   {
-      order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (AdditionalRiskAtSLBE / 100));
-   }
-   if (breakEvenFound == false)
-   {
-      order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (Risk / 100));
    }
    for (int i = 0; i < PositionsTotal(); i++)
    {
@@ -553,7 +552,7 @@ void OnTick()
          total_margin += margin;
          tprr = total_tp/MathAbs(total_risk);
          rr = total_pl/MathAbs(total_risk);
-         percent_risk = MathAbs((sl_risk / account_balance) * 100);
+         percent_risk = MathAbs((sl_risk / AccountBalance) * 100);
       }
    }
    if (EnableAutoProtect == true && AutoProtectCalled == false && breakEvenFound == false)
@@ -944,7 +943,7 @@ double GetTotalVolumeForSymbol(string symbol)
 }
 double PerformOrderCheckWithRetries(const MqlTradeRequest &request, MqlTradeCheckResult &check_result, double &OrderLots, int OrderDigits)
 {
-   int MaxRetries = 999;
+   int MaxRetries = 9999;
    int TotalReductions = 0;
    // Calculate the initial reduction lots (1% of the original order size)
    double reductionLots = OrderLots * 0.01;
@@ -1040,26 +1039,54 @@ void TyWindow::OnClickTrade(void)
    double max_volume = NormalizeDouble(SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX), _Digits);
    double limit_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_LIMIT);
    double existing_volume = GetTotalVolumeForSymbol(_Symbol);
-   double potentialRisk;
+   double potentialRisk = -1;
    double OrderRisk;
-   if (breakEvenFound == true)
+   if (UseStandardRisk == true && UseDynamicRisk == false)
    {
-      // Use AdditionalRiskAtSLBE instead of the normal Risk if a position is found to have SL at BE
-      potentialRisk = AdditionalRiskAtSLBE;
-      OrderRisk = AdditionalRiskAtSLBE;
+      if (breakEvenFound == true)
+      {
+         // Use AdditionalRiskAtSLBE instead of the normal Risk if a position is found to have SL at BE
+         potentialRisk = AdditionalRiskAtSLBE;
+         OrderRisk = AdditionalRiskAtSLBE;
+      }
+      else
+      {
+         // Use the normal Risk in every other situation
+         potentialRisk = Risk + percent_risk;
+         OrderRisk = Risk;
+      }
+      if (potentialRisk > MaxRisk)
+      {
+         OrderRisk = (MaxRisk - percent_risk);  // Adjust the risk for the next order
+         potentialRisk = OrderRisk + percent_risk;  // Recalculate potential risk after adjusting
+         order_risk_money = (AccountBalance * (OrderRisk / 100));
+      }
+      if (breakEvenFound == true && percent_risk > 0)
+      {
+         Print("Break Even positions found, and a risk position already placed. Not placing additional order.");
+         return;
+      }
    }
-   else
+   if (UseStandardRisk == false && UseDynamicRisk == true)
    {
-      // Use the normal Risk in every other situation
-      potentialRisk = Risk + percent_risk;
-      OrderRisk = Risk;
+      if (breakEvenFound == true)
+      {
+         order_risk_money = ((AccountBalance - MinAccountBalance) / (LossesToMinBalance * (AdditionalRiskAtSLBE / Risk)));
+      }
+      if (breakEvenFound == false)
+      {
+         order_risk_money = ((AccountBalance - MinAccountBalance) / LossesToMinBalance);
+      }
+      if (breakEvenFound == true && percent_risk > 0)
+      {
+         Print("Break Even positions found, and a risk position already placed. Not placing additional order.");
+         return;
+      }
    }
-   if (breakEvenFound == true && percent_risk > 0)
+   if (UseStandardRisk == true && UseDynamicRisk == true)
    {
-      Print("Break Even positions found, and a risk position already placed. Not placing additional order.");
-      return;
+      Print("Cannot open order as both Standard and Dynamic Risk are enabled.  Please enable only 1 risk mode.");
    }
-   double AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
    double available_volume;
    double min_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
    int OrderDigits = 0;
@@ -1092,12 +1119,6 @@ void TyWindow::OnClickTrade(void)
    if (LimitLineExists == true)
    {
       Limit_Price = ObjectGetDouble(0, "Limit_Line", OBJPROP_PRICE, 0);
-   }
-   if (potentialRisk > MaxRisk)
-   {
-      OrderRisk = (MaxRisk - percent_risk);  // Adjust the risk for the next order
-      potentialRisk = OrderRisk + percent_risk;  // Recalculate potential risk after adjusting
-      order_risk_money = (AccountBalance * (OrderRisk / 100));
    }
    double TotalLots   = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, Ask - SL), OrderDigits)
                               : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - Bid), OrderDigits);
@@ -1155,8 +1176,10 @@ void TyWindow::OnClickTrade(void)
       return;
    }
    double free_margin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
+   double margin_buffer = AccountBalance * MarginBufferPercent;
+   double available_margin = free_margin - margin_buffer;
    // Decrease the order size if necessary to fit within available margin
-   while (required_margin >= free_margin && OrderLots > min_volume)
+   while (required_margin >= available_margin && OrderLots > min_volume)
    {
       OrderLots -= min_volume;
       if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits))
@@ -1167,7 +1190,7 @@ void TyWindow::OnClickTrade(void)
    }
    //Print("OrderLots: ", OrderLots, " Required Margin: ", required_margin, " Free Margin: ", free_margin);
    // Check if there's enough free margin to place the order
-   if (required_margin >= free_margin)
+   if (required_margin >= available_margin)
    {
       Print("Insufficient margin to place the order. Cannot proceed.");
       return;
