@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.280"
+#property version   "1.281"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -79,6 +79,7 @@ double Ask = 0;
 double order_risk_money = 0;
 double DynamicRisk = 0;
 double AccountBalance = 0;
+double adjusted_required_margin = 0;
 bool LimitLineExists = false;
 bool AutoProtectCalled = false;
 bool EquityTPCalled = false;
@@ -976,17 +977,27 @@ double PerformOrderCheckWithRetries(const MqlTradeRequest &request, MqlTradeChec
                {
                   OrderLots = AdjustedLots;
                   OrderLots = NormalizeDouble(OrderLots, OrderDigits);
-                  //Print("Retry #", RetryCount + 1, " - Adjusted OrderLots to: ", AdjustedLots);
+                  Print("Retry #", RetryCount + 1, " - Adjusted OrderLots to: ", AdjustedLots);
                   TotalReductions++;
                   reductionSuccessful = true;
                   // Reduce OrderLots by the initial reduction lots for the next retry
                   OrderLots -= reductionLots;
                   OrderLots = NormalizeDouble(OrderLots, OrderDigits);
-               }
-               else
-               {
-                  //Print("Retry #", RetryCount + 1, " - Adjusted OrderLots passed order check: ", AdjustedLots);
-                  //Print("Check result: ", check_result.comment);
+                  if (!OrderCalcMargin(adjustedRequest.type, _Symbol, OrderLots, (adjustedRequest.type == ORDER_TYPE_BUY || adjustedRequest.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, adjusted_required_margin))
+                  {
+                     Print("Failed to calculate required margin after adjusting OrderLots. Error:", GetLastError());
+                     return -1.0; // Return -1.0 to indicate failure
+                  }
+                     Print("Retry #", RetryCount + 1, " - Adjusted Required Margin: ", adjusted_required_margin);
+                  }
+                  else
+                  {
+                     if (!OrderCalcMargin(adjustedRequest.type, _Symbol, OrderLots, (adjustedRequest.type == ORDER_TYPE_BUY || adjustedRequest.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, adjusted_required_margin))
+                     {
+                        Print("Failed to calculate required margin after successful OrderCheck. Error:", GetLastError());
+                        return -1.0; // Return -1.0 to indicate failure
+                     }
+                  Print("Retry #", RetryCount + 1, " - Adjusted Required Margin: ", adjusted_required_margin);
                   OrderLots = NormalizeDouble(AdjustedLots, OrderDigits);
                }
                }
@@ -1010,11 +1021,10 @@ double PerformOrderCheckWithRetries(const MqlTradeRequest &request, MqlTradeChec
             if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
             {
                Print("Failed to calculate required margin after successful OrderCheck. Error:", GetLastError());
-               return -1.0; // Return -1.0 to indicate failure
+               //return -1.0; // Return -1.0 to indicate failure
             }
             MqlTradeRequest finalRequest = request;
-            finalRequest.volume = OrderLots;
-            return required_margin;
+            finalRequest.volume = OrderLots; 
          }
          if (!reductionSuccessful)
          {
@@ -1026,7 +1036,7 @@ double PerformOrderCheckWithRetries(const MqlTradeRequest &request, MqlTradeChec
    {
       Print("Maximum retries reached. OrderCheck failed.");
    }
-   else
+   else if (TotalReductions > 0 && TotalReductions < MaxRetries)
    {
       Print("Reduced order size until OrderCheck succeeded. OrderLots reduced by 1% per retry. Total reductions: ", TotalReductions);
    }
@@ -1154,10 +1164,6 @@ void TyWindow::OnClickTrade(void)
       OrderLots = max_volume;
    }
    OrderLots = NormalizeDouble(OrderLots, OrderDigits);
-   //Print("OrderLots: ", OrderLots, " Min Volume: ", min_volume, " Max Volume: ", max_volume);
-   //Print("Ask: ", Ask, " Bid: ", Bid, " Spread: ", Ask - Bid);
-   //Print("Free Margin: ", AccountInfoDouble(ACCOUNT_FREEMARGIN));
-   //Print("Account Balance: ", AccountInfoDouble(ACCOUNT_BALANCE));
    MqlTradeRequest request;
    ZeroMemory(request);
    request.symbol = _Symbol;
@@ -1168,27 +1174,30 @@ void TyWindow::OnClickTrade(void)
    request.tp = TP;
    MqlTradeCheckResult check_result;
    MqlTick latest_tick;
-   double required_margin = 0.0;
    int retcode = 0;
    if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits))
    {
       Print("Failed to calculate required margin. Error:", GetLastError());
       return;
    }
+   double required_margin = 0.0;
    double free_margin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
-   double margin_buffer = AccountBalance * MarginBufferPercent;
+   double margin_buffer = AccountBalance * (MarginBufferPercent / 100);
    double available_margin = free_margin - margin_buffer;
    // Decrease the order size if necessary to fit within available margin
    while (required_margin >= available_margin && OrderLots > min_volume)
    {
       OrderLots -= min_volume;
+      Print("Adjusted OrderLots: ", OrderLots);
       if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits))
       {
          Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
          return;
       }
    }
-   //Print("OrderLots: ", OrderLots, " Required Margin: ", required_margin, " Free Margin: ", free_margin);
+   Print("OrderLots: ", OrderLots, " Min Volume: ", min_volume, " Max Volume: ", max_volume);
+   Print("Ask: ", Ask, " Bid: ", Bid, " Spread: ", Ask - Bid);
+   Print("Free Margin: ", free_margin, " Available Margin: ", available_margin, " Required Margin: ", required_margin);
    // Check if there's enough free margin to place the order
    if (required_margin >= available_margin)
    {
