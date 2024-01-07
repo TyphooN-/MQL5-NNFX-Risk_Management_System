@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.282"
+#property version   "1.283"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -80,6 +80,9 @@ double order_risk_money = 0;
 double DynamicRisk = 0;
 double AccountBalance = 0;
 double required_margin = 0;
+double margin_buffer = 0;
+double available_margin = 0;
+double account_equity = 0;
 bool LimitLineExists = false;
 bool AutoProtectCalled = false;
 bool EquityTPCalled = false;
@@ -460,7 +463,10 @@ void OnTick()
    double sl_profit = 0;
    double sl_risk = 0;
    AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
-   double account_equity = AccountInfoDouble(ACCOUNT_EQUITY);
+   double free_margin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
+   margin_buffer = AccountBalance * (MarginBufferPercent / 100);
+   available_margin = free_margin - margin_buffer;
+   account_equity = AccountInfoDouble(ACCOUNT_EQUITY);
    if (account_equity >= TargetEquityTP && EnableEquityTP == true && EquityTPCalled == false)
    {
       Print("Closing all positions across all symbols because Equity >= TargetEquityTP ($" + DoubleToString(TargetEquityTP, 2) + ").");
@@ -479,6 +485,37 @@ void OnTick()
          EquitySLCalled = true;
          AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
          Alert("EquitySL closed all positions on all symbols. New account balance: " + DoubleToString(AccountBalance, 2));
+      }
+   }
+   if (breakEvenFound == true)
+   {
+      order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (AdditionalRiskAtSLBE / 100));
+   }
+   if (breakEvenFound == false)
+   {
+      order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (Risk / 100));
+   }
+   
+   if (UseStandardRisk == true && UseDynamicRisk == false)
+   {
+      if (breakEvenFound == true)
+      {
+         order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (AdditionalRiskAtSLBE / 100));
+      }
+      if (breakEvenFound == false)
+      {
+         order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (Risk / 100));
+      }
+   }
+   if (UseStandardRisk == false && UseDynamicRisk == true)
+   {
+      if (breakEvenFound == true)
+      {
+         order_risk_money = ((AccountBalance - MinAccountBalance) / (LossesToMinBalance * (AdditionalRiskAtSLBE / Risk)));
+      }
+      if (breakEvenFound == false)
+      {
+         order_risk_money = ((AccountBalance - MinAccountBalance) / LossesToMinBalance);
       }
    }
    for (int i = 0; i < PositionsTotal(); i++)
@@ -942,7 +979,7 @@ double GetTotalVolumeForSymbol(string symbol)
    }
    return totalVolume;
 }
-double PerformOrderCheckWithRetries(const MqlTradeRequest &request, MqlTradeCheckResult &check_result, double &OrderLots, int OrderDigits, double available_margin)
+double PerformOrderCheckWithRetries(const MqlTradeRequest &request, MqlTradeCheckResult &check_result, double &OrderLots, int OrderDigits)
 {
     const int MaxRetries = 9999;
     int TotalReductions = 0;
@@ -960,9 +997,9 @@ double PerformOrderCheckWithRetries(const MqlTradeRequest &request, MqlTradeChec
                 // Handle margin calculation failure
                 Print("Failed to calculate required margin after successful OrderCheck. Error:", GetLastError());
                 // Additional debug information
-                Print("Request details: Symbol=", request.symbol, ", Type=", request.type, ", Volume=", request.volume, ", Price=", request.price);
-                Print("Ask: ", Ask, " Bid: ", Bid, " Spread: ", Ask - Bid);
-                Print("Free Margin: ", AccountInfoDouble(ACCOUNT_FREEMARGIN), " Available Margin: ", available_margin);
+                //Print("Request details: Symbol=", request.symbol, ", Type=", request.type, ", Volume=", request.volume, ", Price=", request.price);
+                //Print("Ask: ", Ask, " Bid: ", Bid, " Spread: ", Ask - Bid);
+                //Print("Free Margin: ", AccountInfoDouble(ACCOUNT_FREEMARGIN), " Available Margin: ", available_margin);
                 return -1.0; // Return -1.0 to indicate failure
             }
             // Adjust OrderLots based on the calculated required margin
@@ -1029,7 +1066,6 @@ double PerformOrderCheckWithRetries(const MqlTradeRequest &request, MqlTradeChec
             }
         }
     }
-
     // Print debug information
     if (TotalReductions == MaxRetries)
     {
@@ -1039,7 +1075,6 @@ double PerformOrderCheckWithRetries(const MqlTradeRequest &request, MqlTradeChec
     {
         Print("Reduced order size until OrderCheck succeeded. OrderLots reduced by 1% per retry. Total reductions: ", TotalReductions);
     }
-
     return -1.0;
 }
 void TyWindow::OnClickTrade(void)
@@ -1130,6 +1165,12 @@ void TyWindow::OnClickTrade(void)
    {
       Limit_Price = ObjectGetDouble(0, "Limit_Line", OBJPROP_PRICE, 0);
    }
+   if (potentialRisk > MaxRisk)
+   {
+      OrderRisk = (MaxRisk - percent_risk);  // Adjust the risk for the next order
+      potentialRisk = OrderRisk + percent_risk;  // Recalculate potential risk after adjusting
+      order_risk_money = (AccountBalance * (OrderRisk / 100));
+   }
    double TotalLots   = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, Ask - SL), OrderDigits)
                               : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - Bid), OrderDigits);
    double PartialLots = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, Ask - SL) / InitialOrdersToPlace, OrderDigits)
@@ -1186,19 +1227,21 @@ void TyWindow::OnClickTrade(void)
    MqlTick latest_tick;
    int retcode = 0;
    double free_margin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
-   double margin_buffer = AccountBalance * (MarginBufferPercent / 100);
-   double available_margin = free_margin - margin_buffer;
-   if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits, available_margin))
-   {
-      Print("Failed to calculate required margin. Error:", GetLastError());
-      return;
-   }
-   // Decrease the order size if necessary to fit within available margin
+   available_margin = free_margin - margin_buffer;
    while (required_margin >= available_margin && OrderLots > min_volume)
    {
       OrderLots -= min_volume;
       Print("Adjusted OrderLots: ", OrderLots);
-      if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits, available_margin))
+      // Recalculate the required_margin for the adjusted OrderLots
+      if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
+      {
+         // Handle margin calculation failure
+         Print("Failed to calculate required margin after adjusting OrderLots. Error:", GetLastError());
+         return;
+      }
+      // Update available_margin for the next iteration
+      available_margin = AccountInfoDouble(ACCOUNT_FREEMARGIN) - (OrderLots * required_margin);
+      if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits))
       {
          Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
          return;
@@ -1233,7 +1276,7 @@ void TyWindow::OnClickTrade(void)
             request.action = TRADE_ACTION_PENDING;
             request.type = ORDER_TYPE_BUY_LIMIT;
             request.price = Limit_Price;
-            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits, available_margin))
+            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits))
             {
                Print("Buy Limit OrderCheck failed, retcode=", check_result.retcode);
                return;
@@ -1250,7 +1293,7 @@ void TyWindow::OnClickTrade(void)
             request.action = TRADE_ACTION_PENDING;
             request.type = ORDER_TYPE_SELL_LIMIT;
             request.price = Limit_Price;
-            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits, available_margin))
+            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits))
             {
                Print("Sell Limit OrderCheck failed, retcode=", check_result.retcode);
                return;
@@ -1272,7 +1315,7 @@ void TyWindow::OnClickTrade(void)
                request.action = TRADE_ACTION_DEAL;
                request.type = ORDER_TYPE_BUY;
             }
-            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits, available_margin))
+            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits))
             {
                Print("Buy OrderCheck failed, retcode=", check_result.retcode);
                return;
@@ -1291,7 +1334,7 @@ void TyWindow::OnClickTrade(void)
                request.action = TRADE_ACTION_DEAL;
                request.type = ORDER_TYPE_SELL;
             }
-            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits, available_margin))
+            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits))
             {
                Print("Sell OrderCheck failed, retcode=", check_result.retcode);
                return;
