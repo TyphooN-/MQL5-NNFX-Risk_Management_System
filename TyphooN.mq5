@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.283"
+#property version   "1.284"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -53,7 +53,7 @@ input bool     UseStandardRisk            = true;
 input double   MaxRisk                    = 0.5;
 input double   Risk                       = 0.5;
 input int      MarginBufferPercent        = 10;
-input double   AdditionalRiskAtSLBE       = 0.125;
+input double   AdditionalRiskRatio        = 0.25;
 input bool     UseDynamicRisk             = false;
 input double   MinAccountBalance          = 96100;
 input int      LossesToMinBalance         = 5;
@@ -487,20 +487,11 @@ void OnTick()
          Alert("EquitySL closed all positions on all symbols. New account balance: " + DoubleToString(AccountBalance, 2));
       }
    }
-   if (breakEvenFound == true)
-   {
-      order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (AdditionalRiskAtSLBE / 100));
-   }
-   if (breakEvenFound == false)
-   {
-      order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (Risk / 100));
-   }
-   
    if (UseStandardRisk == true && UseDynamicRisk == false)
    {
       if (breakEvenFound == true)
       {
-         order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (AdditionalRiskAtSLBE / 100));
+         order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * ((Risk / 100) * AdditionalRiskRatio));
       }
       if (breakEvenFound == false)
       {
@@ -511,7 +502,7 @@ void OnTick()
    {
       if (breakEvenFound == true)
       {
-         order_risk_money = ((AccountBalance - MinAccountBalance) / (LossesToMinBalance * (AdditionalRiskAtSLBE / Risk)));
+         order_risk_money = ((AccountBalance - MinAccountBalance) / (LossesToMinBalance * AdditionalRiskRatio));
       }
       if (breakEvenFound == false)
       {
@@ -1090,9 +1081,9 @@ void TyWindow::OnClickTrade(void)
    {
       if (breakEvenFound == true)
       {
-         // Use AdditionalRiskAtSLBE instead of the normal Risk if a position is found to have SL at BE
-         potentialRisk = AdditionalRiskAtSLBE;
-         OrderRisk = AdditionalRiskAtSLBE;
+         // Use AdditionalRiskRatio instead of the normal Risk if a position is found to have SL at BE
+         potentialRisk = (Risk * AdditionalRiskRatio);
+         OrderRisk = (Risk * AdditionalRiskRatio);
       }
       else
       {
@@ -1116,7 +1107,7 @@ void TyWindow::OnClickTrade(void)
    {
       if (breakEvenFound == true)
       {
-         order_risk_money = ((AccountBalance - MinAccountBalance) / (LossesToMinBalance * (AdditionalRiskAtSLBE / Risk)));
+         order_risk_money = ((AccountBalance - MinAccountBalance) / (LossesToMinBalance * AdditionalRiskRatio));
       }
       if (breakEvenFound == false)
       {
