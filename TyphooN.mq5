@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.285"
+#property version   "1.286"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -80,8 +80,6 @@ double order_risk_money = 0;
 double DynamicRisk = 0;
 double AccountBalance = 0;
 double required_margin = 0;
-double margin_buffer = 0;
-double usable_margin = 0;
 double account_equity = 0;
 bool LimitLineExists = false;
 bool AutoProtectCalled = false;
@@ -463,9 +461,6 @@ void OnTick()
    double sl_profit = 0;
    double sl_risk = 0;
    AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
-   double free_margin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
-   margin_buffer = AccountBalance * (MarginBufferPercent / 100);
-   usable_margin = free_margin - margin_buffer;
    account_equity = AccountInfoDouble(ACCOUNT_EQUITY);
    if (account_equity >= TargetEquityTP && EnableEquityTP == true && EquityTPCalled == false)
    {
@@ -1073,6 +1068,7 @@ void TyWindow::OnClickTrade(void)
    double max_volume = NormalizeDouble(SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX), _Digits);
    double limit_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_LIMIT);
    double existing_volume = GetTotalVolumeForSymbol(_Symbol);
+   double usable_margin = (AccountBalance - (AccountBalance * (MarginBufferPercent / 100.0))) - AccountInfoDouble(ACCOUNT_MARGIN);
    double potentialRisk = -1;
    double OrderRisk;
    if (UseStandardRisk == true && UseDynamicRisk == false)
@@ -1216,7 +1212,8 @@ void TyWindow::OnClickTrade(void)
    MqlTick latest_tick;
    int retcode = 0;
    double free_margin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
-   usable_margin = free_margin - margin_buffer;
+   AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
+   usable_margin = (AccountBalance - (AccountBalance * (MarginBufferPercent / 100.0))) - AccountInfoDouble(ACCOUNT_MARGIN);
    while (required_margin >= usable_margin && OrderLots > min_volume)
    {
       OrderLots -= min_volume;
@@ -1229,7 +1226,7 @@ void TyWindow::OnClickTrade(void)
          return;
       }
       // Update usable_margin for the next iteration
-      usable_margin = AccountInfoDouble(ACCOUNT_FREEMARGIN) - (OrderLots * required_margin);
+      usable_margin = (AccountBalance - (AccountBalance * (MarginBufferPercent / 100.0))) - AccountInfoDouble(ACCOUNT_MARGIN);
       if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits))
       {
          Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
