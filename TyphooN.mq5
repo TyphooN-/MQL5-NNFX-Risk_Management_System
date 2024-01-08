@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.286"
+#property version   "1.287"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -981,12 +981,12 @@ double PerformOrderCheckWithRetries(const MqlTradeRequest &request, MqlTradeChec
       if (!Trade.OrderCheck(request, check_result))
       {
          int retcode = (int)check_result.retcode;
-         //Print("OrderCheck failed. Retcode: ", retcode);
+         Print("OrderCheck failed. Retcode: ", retcode);
          if (retcode == 10013)
          {
-             // Handle error code 10013 (Invalid request)
-             Print("Invalid request. Check the request parameters.");
-             return -1.0; // Return -1.0 to indicate failure
+            // Handle error code 10013 (Invalid request)
+            Print("Invalid request. Check the request parameters.");
+            return -1.0; // Return -1.0 to indicate failure
          }
          if (retcode == 10019)
          {
@@ -1217,25 +1217,25 @@ void TyWindow::OnClickTrade(void)
    while (required_margin >= usable_margin && OrderLots > min_volume)
    {
       OrderLots -= min_volume;
-      Print("Adjusted OrderLots: ", OrderLots);
-      // Recalculate the required_margin for the adjusted OrderLots
+      if (required_margin >= usable_margin)
+      {
+         Print("Insufficient margin after adjustment. Cannot proceed.");
+         return;
+      }
       if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
       {
-         // Handle margin calculation failure
          Print("Failed to calculate required margin after adjusting OrderLots. Error:", GetLastError());
          return;
       }
-      // Update usable_margin for the next iteration
-      usable_margin = (AccountBalance - (AccountBalance * (MarginBufferPercent / 100.0))) - AccountInfoDouble(ACCOUNT_MARGIN);
-      if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits))
-      {
-         Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
-         return;
-      }
+   usable_margin = (AccountBalance - (AccountBalance * (MarginBufferPercent / 100.0))) - AccountInfoDouble(ACCOUNT_MARGIN);
+   if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits))
+   {
+      Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
+      return;
    }
-   Print("OrderLots: ", OrderLots, " Min Volume: ", min_volume, " Max Volume: ", max_volume);
-   Print("Ask: ", Ask, " Bid: ", Bid, " Spread: ", Ask - Bid);
-   Print("Free Margin: ", free_margin, " Available Margin: ", usable_margin, " Required Margin: ", required_margin);
+   // Print statements to check required_margin and usable_margin after each iteration
+   Print("After adjustment - OrderLots: ", OrderLots, " Required Margin: ", required_margin, " Usable Margin: ", usable_margin);
+   }
    // Check if there's enough free margin to place the order
    if (required_margin >= usable_margin)
    {
