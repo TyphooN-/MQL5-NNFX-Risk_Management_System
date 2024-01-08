@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.287"
+#property version   "1.288"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -1107,7 +1107,16 @@ void TyWindow::OnClickTrade(void)
       {
          order_risk_money = ((AccountBalance - MinAccountBalance) / LossesToMinBalance);
       }
-      if (breakEvenFound == true && percent_risk > 0)
+      if (!breakEvenFound)
+      {
+         // Check if another position with the same order type is already open on the symbol
+         if (HasOpenPosition(_Symbol, (TP > SL) ? POSITION_TYPE_BUY : POSITION_TYPE_SELL))
+         {
+            Print("Another position is already open with the same order type on the symbol. Not placing additional order.");
+            return;
+         }
+      }
+      else if (percent_risk > 0)
       {
          Print("Break Even positions found, and a risk position already placed. Not placing additional order.");
          return;
