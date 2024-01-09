@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.288"
+#property version   "1.289"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -497,7 +497,7 @@ void OnTick()
    {
       if (breakEvenFound == true)
       {
-         order_risk_money = ((AccountBalance - MinAccountBalance) / (LossesToMinBalance * AdditionalRiskRatio));
+         order_risk_money = ((AccountBalance - MinAccountBalance) / (LossesToMinBalance / AdditionalRiskRatio));
       }
       if (breakEvenFound == false)
       {
