@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.289"
+#property version   "1.290"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -49,13 +49,13 @@ double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TR
 // input vars
 input group    "[ORDER PLACEMENT SETTINGS]";
 input bool     UseStandardRisk            = true;
-input double   MaxRisk                    = 0.5;
+input double   MaxRisk                    = 1.0;
 input double   Risk                       = 0.5;
 input int      MarginBufferPercent        = 10;
 input double   AdditionalRiskRatio        = 0.25;
 input bool     UseDynamicRisk             = false;
 input double   MinAccountBalance          = 96100;
-input int      LossesToMinBalance         = 5;
+input int      LossesToMinBalance         = 10;
 input group    "[ACCOUNT PROTECTION SETTINGS]";
 input bool     EnableAutoProtect          = true;
 input double   APRRLevel                  = 1.0;
@@ -206,8 +206,6 @@ int OnInit()
    int LeftColumnX=310;
    int RightColumnX=150;
    int YRowWidth = 13;
-   // Create background rectangle
-   //CreateLabelBackground("info", 469, 105, 312, 160);
    ObjectCreate(0,"infoSLPL", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoTP", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoMargin", OBJ_LABEL,0,0,0);
@@ -316,10 +314,6 @@ int OnInit()
    ObjectSetString(0,"infoD1",OBJPROP_TEXT,infoD1);
    string infoMN1 = "MN1: " + TimeTilNextBar(PERIOD_MN1);
    ObjectSetString(0,"infoMN1",OBJPROP_TEXT,infoMN1);
-   // set ZORDER for supporting indicators
-   //SetZOrder("MTF_MA_", 1);
-   //SetZOrder("Projected ATR", 1);
-   //SetZOrder("info", 1);
    if(!ExtDialog.Create(0,"TyphooN Risk Management",0,40,40,272,200))
       return(INIT_FAILED);
    ExtDialog.Run();
@@ -338,36 +332,6 @@ string arrayToString(uchar &arr[])
       result += IntegerToString(arr[i], 16) + " ";  // Using hex representation
    }
    return result;
-}
-void CreateLabelBackground(string objName, int x, int y, int width, int height, color colour = clrBlack)
-{
-   ObjectCreate(0, objName + "_bg", OBJ_RECTANGLE_LABEL, 0, 0, 0);
-   ObjectSetInteger(0, objName + "_bg", OBJPROP_COLOR, colour);
-   ObjectSetInteger(0, objName + "_bg", OBJPROP_BGCOLOR, colour);
-   ObjectSetInteger(0, objName + "_bg", OBJPROP_BORDER_COLOR, colour);
-   ObjectSetInteger(0, objName + "_bg", OBJPROP_STYLE, STYLE_SOLID);
-   ObjectSetInteger(0, objName + "_bg", OBJPROP_XDISTANCE, x - width / 2);
-   ObjectSetInteger(0, objName + "_bg", OBJPROP_YDISTANCE, y - height / 2);
-   ObjectSetInteger(0, objName + "_bg", OBJPROP_XSIZE, width);
-   ObjectSetInteger(0, objName + "_bg", OBJPROP_YSIZE, height);
-   ObjectSetInteger(0, objName + "_bg", OBJPROP_CORNER, CORNER_RIGHT_UPPER);
-   ObjectSetInteger(0, objName + "_bg", OBJPROP_ZORDER, 0);
-   // set ZORDER for supporting indicators
-   //SetZOrder("MTF_MA_", 1);
-   //SetZOrder("Projected ATR", 1);
-   //SetZOrder("info", 1);
-}
-void SetZOrder(string prefix, int zorder)
-{
-   int totalObjects = ObjectsTotal(0);
-   for (int i = 0; i < totalObjects; i++)
-   {
-      string objName = ObjectName(0, i);
-      if (StringFind(objName, prefix) == 0)
-      {
-         ObjectSetInteger(0, objName, OBJPROP_ZORDER, zorder);
-      }
-   }
 }
 string TimeTilNextBar(ENUM_TIMEFRAMES tf=PERIOD_CURRENT)
 {
@@ -640,10 +604,6 @@ void OnTick()
    ObjectSetString(0,"infoD1",OBJPROP_TEXT,infoD1);
    string infoMN1 = "MN1: " + TimeTilNextBar(PERIOD_MN1);
    ObjectSetString(0,"infoMN1",OBJPROP_TEXT,infoMN1);
-   // set ZORDER for supporting indicators
-   //SetZOrder("MTF_MA_", 1);
-   //SetZOrder("Projected ATR", 1);
-   //SetZOrder("info", 1);
 }
 void OnChartEvent(const int id,         // event ID  
                   const long& lparam,   // event parameter of the long type
@@ -892,24 +852,6 @@ void TyWindow::ExecuteSellOrder(double lots)
       Print("Failed to open sell position, error: ", GetLastError());
    }
 }
-int GetOrdersForSymbol(string symbol)
-{
-   int totalOrders = 0;
-   int total = PositionsTotal();
-   
-   for(int i = 0; i < total; i++)
-   {
-      ulong ticket = PositionGetTicket(i);
-      if(PositionSelectByTicket(ticket))
-      {
-         if (ManageAllPositions || (PositionGetString(POSITION_SYMBOL) == symbol && PositionGetInteger(POSITION_MAGIC) == MagicNumber))
-         {
-            totalOrders++;
-         }
-      }
-   }
-   return totalOrders;
-}
 bool ProcessPositionCheck(ulong ticket, string symbol, int magicNumber, bool manageAllPositions)
 {
     bool ShouldProcessPosition = false;
@@ -954,27 +896,27 @@ double GetTotalVolumeForSymbol(string symbol)
 }
 double PerformOrderCheck(const MqlTradeRequest &request, MqlTradeCheckResult &check_result, double &OrderLots, int OrderDigits)
 {
-      // Check if the original order passes the order check
-      if (!Trade.OrderCheck(request, check_result))
+   // Check if the original order passes the order check
+   if (!Trade.OrderCheck(request, check_result))
+   {
+      int retcode = (int)check_result.retcode;
+      Print("OrderCheck failed. Retcode: ", retcode);
+      if (retcode == 10013)
       {
-         int retcode = (int)check_result.retcode;
-         Print("OrderCheck failed. Retcode: ", retcode);
-         if (retcode == 10013)
-         {
-            // Handle error code 10013 (Invalid request)
-            Print("Invalid request. Check the request parameters.");
-            return -1.0; // Return -1.0 to indicate failure
-         }
-         if (retcode == 10019)
-         {
-            return -1.0;
-         }
-         else
-         {
-            Print("OrderCheck failed with retcode ", retcode);
-            Print("Check result: ", check_result.comment);
-            return -1.0; // Return -1.0 to indicate failure
-         }
+         // Handle error code 10013 (Invalid request)
+         Print("Invalid request. Check the request parameters.");
+         return -1.0; // Return -1.0 to indicate failure
+      }
+      if (retcode == 10019)
+      {
+         return -1.0;
+      }
+      else
+      {
+         Print("OrderCheck failed with retcode ", retcode);
+         Print("Check result: ", check_result.comment);
+         return -1.0; // Return -1.0 to indicate failure
+      }
       }
       else
       {
@@ -984,10 +926,10 @@ double PerformOrderCheck(const MqlTradeRequest &request, MqlTradeCheckResult &ch
             Print("Failed to calculate required margin after successful OrderCheck. Error:", GetLastError());
             return -1.0; // Return -1.0 to indicate failure
          }
-            MqlTradeRequest Request = request;
-            Request.volume = OrderLots;
-            return required_margin;
-         }
+         MqlTradeRequest Request = request;
+         Request.volume = OrderLots;
+         return required_margin;
+      }
    return -1.0;
 }
 void TyWindow::OnClickTrade(void)
@@ -1096,7 +1038,6 @@ void TyWindow::OnClickTrade(void)
    }
    double OrderLots   = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, Ask - SL), OrderDigits)
                               : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - Bid), OrderDigits);
-   int ExistingOrders = GetOrdersForSymbol(_Symbol);
    // Ensure that the calculated volumes do not exceed the available volume
    if (OrderLots > available_volume)
    {
@@ -1132,7 +1073,8 @@ void TyWindow::OnClickTrade(void)
       request.action = TRADE_ACTION_DEAL;
       request.type = ORDER_TYPE_BUY;
    }
-   else if (SL > TP) {
+   else if (SL > TP)
+   {
    request.action = TRADE_ACTION_DEAL;
    request.type = ORDER_TYPE_SELL;
    }
@@ -1154,7 +1096,7 @@ void TyWindow::OnClickTrade(void)
       {
          Print("Failed to calculate required margin after adjusting OrderLots. Error:", GetLastError());
          return;
-      }
+   }
    usable_margin = (AccountBalance - (AccountBalance * (MarginBufferPercent / 100.0))) - AccountInfoDouble(ACCOUNT_MARGIN);
    if (!PerformOrderCheck(request, check_result, OrderLots, OrderDigits))
    {
