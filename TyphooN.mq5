@@ -48,7 +48,6 @@ double TickSize( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRA
 double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_VALUE ) ); }
 // input vars
 input group    "[ORDER PLACEMENT SETTINGS]";
-input int      InitialOrdersToPlace       = 1;
 input bool     UseStandardRisk            = true;
 input double   MaxRisk                    = 0.5;
 input double   Risk                       = 0.5;
@@ -113,10 +112,10 @@ class TyWindow : public CAppDialog
    public:
       TyWindow(void);
       ~TyWindow(void);
-      void ExecuteBuyLimitOrders(double lots, double Limit_Price, int Orders);
-      void ExecuteSellLimitOrders(double lots, double Limit_Price, int Orders);
-      void ExecuteBuyOrders(double lots, int Orders);
-      void ExecuteSellOrders(double lots, int Orders);
+      void ExecuteBuyLimitOrder(double lots, double Limit_Price);
+      void ExecuteSellLimitOrder(double lots, double Limit_Price);
+      void ExecuteBuyOrder(double lots);
+      void ExecuteSellOrder(double lots);
       virtual bool      Create(const long chart,const string name,const int subwin,const int x1,const int y1,const int x2,const int y2);
       // handlers of drag
       virtual bool      OnDialogDragStart(void);
@@ -825,84 +824,72 @@ void BroadcastDiscordAnnouncement(string announcement)
       return;
    }
 }
-void TyWindow::ExecuteBuyLimitOrders(double lots, double Limit_Price, int Orders)
+void TyWindow::ExecuteBuyLimitOrder(double lots, double Limit_Price)
 {
-   for (int i = 0; i < Orders; i++)
+   if (Trade.BuyLimit(lots, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
    {
-      if (Trade.BuyLimit(lots, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
+      string BuyLimitText = "[" + _Symbol + "] Buy limit order opened. Price: " + DoubleToString(Limit_Price, _Digits) + 
+            ", Lots: " + DoubleToString(lots, 2) + ", SL: " + DoubleToString(SL, _Digits) + ", TP: " + DoubleToString(TP, _Digits);
+      Print(BuyLimitText);
+      if(EnableBroadcast == true)
       {
-         string BuyLimitText = "[" + _Symbol + "] Buy limit order opened, Order " + IntegerToString(i+1) + "/" + IntegerToString(Orders) + ". Price: " + DoubleToString(Limit_Price, _Digits) + 
-               ", Lots: " + DoubleToString(lots, 2) + ", SL: " + DoubleToString(SL, _Digits) + ", TP: " + DoubleToString(TP, _Digits);
-         Print(BuyLimitText);
-         if(EnableBroadcast == true)
-         {
-            BroadcastDiscordAnnouncement(BuyLimitText);
-         }
-      }
-      else
-      {
-         Print("Failed to open buy limit order, error: ", GetLastError());
+         BroadcastDiscordAnnouncement(BuyLimitText);
       }
    }
-}
-void TyWindow::ExecuteSellLimitOrders(double lots, double Limit_Price, int Orders)
-{
-   for (int i = 0; i < Orders; i++)
+   else
    {
-      if (Trade.SellLimit(lots, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
-      {
-         string SellLimitText = "[" + _Symbol + "] Sell limit order opened, Order " + IntegerToString(i+1) + "/" + IntegerToString(Orders) + ". Price: " + DoubleToString(Limit_Price, _Digits) + 
-               ", Lots: " + DoubleToString(lots, 2) + ", SL: " + DoubleToString(SL, _Digits) + ", TP: " + DoubleToString(TP, _Digits);
-         Print(SellLimitText);
-         if(EnableBroadcast == true)
-         {
-            BroadcastDiscordAnnouncement(SellLimitText);
-         }
-      }
-      else
-      {
-         Print("Failed to open sell limit order, error: ", GetLastError());
-      }
+      Print("Failed to open buy limit order, error: ", GetLastError());
    }
 }
-void TyWindow::ExecuteBuyOrders(double lots, int Orders)
+void TyWindow::ExecuteSellLimitOrder(double lots, double Limit_Price)
 {
-   for (int i = 0; i < Orders; i++)
+   if (Trade.SellLimit(lots, Limit_Price, _Symbol, SL, TP, 0, 0, NULL))
    {
-      if (Trade.Buy(lots, _Symbol, 0, SL, TP, NULL))
+      string SellLimitText = "[" + _Symbol + "] Sell limit order opened. Price: " + DoubleToString(Limit_Price, _Digits) + 
+      ", Lots: " + DoubleToString(lots, 2) + ", SL: " + DoubleToString(SL, _Digits) + ", TP: " + DoubleToString(TP, _Digits);
+      Print(SellLimitText);
+      if(EnableBroadcast == true)
       {
-         string MarketBuyText = "[" + _Symbol + "] Market Buy position opened, Order " + IntegerToString(i+1) + "/" + IntegerToString(Orders) + ". Price: " + DoubleToString(SymbolInfoDouble(_Symbol, SYMBOL_ASK), _Digits) + 
-               ", Lots: " + DoubleToString(lots, 2) + ", SL: " +  DoubleToString(SL, _Digits) + ", TP: " + DoubleToString(TP, _Digits);
-         Print(MarketBuyText);
-         if(EnableBroadcast == true)
-         {
-            BroadcastDiscordAnnouncement(MarketBuyText);
-         }
-      }
-      else
-      {
-         Print("Failed to open buy trade, error: ", GetLastError());
+         BroadcastDiscordAnnouncement(SellLimitText);
       }
    }
-}
-void TyWindow::ExecuteSellOrders(double lots, int Orders)
-{
-   for (int i = 0; i < Orders; i++)
+   else
    {
-      if (Trade.Sell(lots, _Symbol, 0, SL, TP, NULL))
+      Print("Failed to open sell limit order, error: ", GetLastError());
+   }
+}
+void TyWindow::ExecuteBuyOrder(double lots)
+{
+   if (Trade.Buy(lots, _Symbol, 0, SL, TP, NULL))
+   {
+      string MarketBuyText = "[" + _Symbol + "] Market Buy position opened. Price: " + DoubleToString(SymbolInfoDouble(_Symbol, SYMBOL_ASK), _Digits) + 
+      ", Lots: " + DoubleToString(lots, 2) + ", SL: " +  DoubleToString(SL, _Digits) + ", TP: " + DoubleToString(TP, _Digits);
+      Print(MarketBuyText);
+      if(EnableBroadcast == true)
       {
-         string MarketSellText = "[" + _Symbol + "] Market Sell position opened, Order " + IntegerToString(i+1) + "/" + IntegerToString(Orders) + ". Price: " + DoubleToString(SymbolInfoDouble(_Symbol, SYMBOL_BID), _Digits) + 
-               ", Lots: " + DoubleToString(lots, 2) + ", SL: " + DoubleToString(SL, _Digits) + ", TP: " + DoubleToString(TP, _Digits);
-         Print(MarketSellText);
-         if(EnableBroadcast == true)
-         {
-            BroadcastDiscordAnnouncement(MarketSellText);
-         }
+         BroadcastDiscordAnnouncement(MarketBuyText);
       }
-      else
+   }
+   else
+   {
+      Print("Failed to open buy trade, error: ", GetLastError());
+   }
+}
+void TyWindow::ExecuteSellOrder(double lots)
+{
+   if (Trade.Sell(lots, _Symbol, 0, SL, TP, NULL))
+   {
+      string MarketSellText = "[" + _Symbol + "] Market Sell position opened. Price: " + DoubleToString(SymbolInfoDouble(_Symbol, SYMBOL_BID), _Digits) + 
+         ", Lots: " + DoubleToString(lots, 2) + ", SL: " + DoubleToString(SL, _Digits) + ", TP: " + DoubleToString(TP, _Digits);
+      Print(MarketSellText);
+      if(EnableBroadcast == true)
       {
-          Print("Failed to open sell position, error: ", GetLastError());
+         BroadcastDiscordAnnouncement(MarketSellText);
       }
+   }
+   else
+   {
+      Print("Failed to open sell position, error: ", GetLastError());
    }
 }
 int GetOrdersForSymbol(string symbol)
@@ -965,18 +952,8 @@ double GetTotalVolumeForSymbol(string symbol)
    }
    return totalVolume;
 }
-double PerformOrderCheckWithRetries(const MqlTradeRequest &request, MqlTradeCheckResult &check_result, double &OrderLots, int OrderDigits)
+double PerformOrderCheck(const MqlTradeRequest &request, MqlTradeCheckResult &check_result, double &OrderLots, int OrderDigits)
 {
-   int MaxRetries = 999;
-   int TotalReductions = 0;
-   // Calculate the initial reduction lots (1% of the original order size)
-   double reductionLots = OrderLots * 0.01;
-   reductionLots = MathMax(reductionLots, SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_STEP)); // Ensure reduction is at least the minimum volume
-   reductionLots = NormalizeDouble(reductionLots, OrderDigits);
-   for (int RetryCount = 0; RetryCount < MaxRetries; ++RetryCount)
-   {
-      //Print("Entering retry loop. RetryCount: ", RetryCount);
-      bool reductionSuccessful = false;
       // Check if the original order passes the order check
       if (!Trade.OrderCheck(request, check_result))
       {
@@ -990,75 +967,27 @@ double PerformOrderCheckWithRetries(const MqlTradeRequest &request, MqlTradeChec
          }
          if (retcode == 10019)
          {
-            // Retry logic for adjusting OrderLots
-            MqlTradeRequest adjustedRequest = request;
-            // Ensure adjusted lots are positive
-            double AdjustedLots = OrderLots - reductionLots;
-            double MinVolumeStep = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_STEP);
-            AdjustedLots = MathCeil(AdjustedLots / MinVolumeStep) * MinVolumeStep;
-            AdjustedLots = NormalizeDouble(AdjustedLots, OrderDigits);
-            // Ensure adjusted lots are smaller than the original lots
-            if (AdjustedLots < OrderLots)
-            {
-               // Check if the adjusted lots pass the order check
-               adjustedRequest.volume = AdjustedLots;
-               if (!Trade.OrderCheck(adjustedRequest, check_result))
-               {
-                  OrderLots = AdjustedLots;
-                  OrderLots = NormalizeDouble(OrderLots, OrderDigits);
-                  //Print("Retry #", RetryCount + 1, " - Adjusted OrderLots to: ", AdjustedLots);
-                  TotalReductions++;
-                  reductionSuccessful = true;
-                  // Reduce OrderLots by the initial reduction lots for the next retry
-                  OrderLots -= reductionLots;
-                  OrderLots = NormalizeDouble(OrderLots, OrderDigits);
-               }
-               else
-               {
-                  //Print("Retry #", RetryCount + 1, " - Adjusted OrderLots passed order check: ", AdjustedLots);
-                  //Print("Check result: ", check_result.comment);
-                  OrderLots = NormalizeDouble(AdjustedLots, OrderDigits);
-               }
-               }
-               else
-               {
-                  Print("Adjusted lots not smaller or check failed. Stopping adjustment. OrderLots: ", OrderLots, " AdjustedLots: ", AdjustedLots);
-                  break;  // Break out of the loop when further reductions are not possible
-               }
-            }
-            else
-            {
-               //Print("OrderCheck failed with retcode ", retcode);
-               //Print("Check result: ", check_result.comment);
-               return -1.0; // Return -1.0 to indicate failure
-            }
+            return -1.0;
          }
          else
          {
-            // OrderCheck successful, calculate and return the required margin
-            if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
-            {
-               Print("Failed to calculate required margin after successful OrderCheck. Error:", GetLastError());
-               return -1.0; // Return -1.0 to indicate failure
-            }
-            MqlTradeRequest finalRequest = request;
-            finalRequest.volume = OrderLots;
+            Print("OrderCheck failed with retcode ", retcode);
+            Print("Check result: ", check_result.comment);
+            return -1.0; // Return -1.0 to indicate failure
+         }
+      }
+      else
+      {
+         // OrderCheck successful, calculate and return the required margin
+         if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
+         {
+            Print("Failed to calculate required margin after successful OrderCheck. Error:", GetLastError());
+            return -1.0; // Return -1.0 to indicate failure
+         }
+            MqlTradeRequest Request = request;
+            Request.volume = OrderLots;
             return required_margin;
          }
-         if (!reductionSuccessful)
-         {
-         //   Print("No further reduction necessary after Retry #", RetryCount, ". Breaking out of the loop.");
-            break;
-         }
-   }
-   if (TotalReductions == MaxRetries)
-   {
-      Print("Maximum retries reached. OrderCheck failed.");
-   }
-   else
-   {
-      Print("Reduced order size until OrderCheck succeeded. OrderLots reduced by 1% per retry. Total reductions: ", TotalReductions);
-   }
    return -1.0;
 }
 void TyWindow::OnClickTrade(void)
@@ -1165,29 +1094,19 @@ void TyWindow::OnClickTrade(void)
       potentialRisk = OrderRisk + percent_risk;  // Recalculate potential risk after adjusting
       order_risk_money = (AccountBalance * (OrderRisk / 100));
    }
-   double TotalLots   = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, Ask - SL), OrderDigits)
+   double OrderLots   = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, Ask - SL), OrderDigits)
                               : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - Bid), OrderDigits);
-   double PartialLots = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, Ask - SL) / InitialOrdersToPlace, OrderDigits)
-                              : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - Bid) / InitialOrdersToPlace, OrderDigits);
    int ExistingOrders = GetOrdersForSymbol(_Symbol);
-   int OrdersToPlaceNow = ExistingOrders >= InitialOrdersToPlace ? 1 : InitialOrdersToPlace;
    // Ensure that the calculated volumes do not exceed the available volume
-   if (TotalLots > available_volume)
+   if (OrderLots > available_volume)
    {
-      TotalLots = available_volume;
-   }
-   if (PartialLots > available_volume)
-   {
-      PartialLots = available_volume;
+      OrderLots = available_volume;
    }
    // Ensure that each order is max_volume if available_volume > max_volume
    if (available_volume > max_volume)
    {
-      TotalLots = max_volume;
-      PartialLots = max_volume;
-      OrdersToPlaceNow = 1;
+      OrderLots = max_volume;
    }
-   double OrderLots = ExistingOrders > 1 ? TotalLots : PartialLots;
    if (OrderLots < min_volume)
    {
       //Print("Order size adjusted to minimum volume.");
@@ -1220,7 +1139,7 @@ void TyWindow::OnClickTrade(void)
    MqlTradeCheckResult check_result;
    MqlTick latest_tick;
    int retcode = 0;
-   double free_margin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
+   double free_margin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
    AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
    usable_margin = (AccountBalance - (AccountBalance * (MarginBufferPercent / 100.0))) - AccountInfoDouble(ACCOUNT_MARGIN);
    while (required_margin >= usable_margin && OrderLots > min_volume)
@@ -1237,7 +1156,7 @@ void TyWindow::OnClickTrade(void)
          return;
       }
    usable_margin = (AccountBalance - (AccountBalance * (MarginBufferPercent / 100.0))) - AccountInfoDouble(ACCOUNT_MARGIN);
-   if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits))
+   if (!PerformOrderCheck(request, check_result, OrderLots, OrderDigits))
    {
       Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
       return;
@@ -1271,12 +1190,12 @@ void TyWindow::OnClickTrade(void)
             request.action = TRADE_ACTION_PENDING;
             request.type = ORDER_TYPE_BUY_LIMIT;
             request.price = Limit_Price;
-            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits))
+            if (!PerformOrderCheck(request, check_result, OrderLots, OrderDigits))
             {
                Print("Buy Limit OrderCheck failed, retcode=", check_result.retcode);
                return;
             }
-            ExecuteBuyLimitOrders(OrderLots, Limit_Price, OrdersToPlaceNow);
+            ExecuteBuyLimitOrder(OrderLots, Limit_Price);
          }
          else if (SL > TP)
          {
@@ -1288,12 +1207,12 @@ void TyWindow::OnClickTrade(void)
             request.action = TRADE_ACTION_PENDING;
             request.type = ORDER_TYPE_SELL_LIMIT;
             request.price = Limit_Price;
-            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits))
+            if (!PerformOrderCheck(request, check_result, OrderLots, OrderDigits))
             {
                Print("Sell Limit OrderCheck failed, retcode=", check_result.retcode);
                return;
             }
-            ExecuteSellLimitOrders(OrderLots, Limit_Price, OrdersToPlaceNow);
+            ExecuteSellLimitOrder(OrderLots, Limit_Price);
          }
       }
       else
@@ -1310,12 +1229,12 @@ void TyWindow::OnClickTrade(void)
                request.action = TRADE_ACTION_DEAL;
                request.type = ORDER_TYPE_BUY;
             }
-            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits))
+            if (!PerformOrderCheck(request, check_result, OrderLots, OrderDigits))
             {
                Print("Buy OrderCheck failed, retcode=", check_result.retcode);
                return;
             }
-            ExecuteBuyOrders(OrderLots, OrdersToPlaceNow);
+            ExecuteBuyOrder(OrderLots);
          }
          else if (SL > TP)
          {
@@ -1329,12 +1248,12 @@ void TyWindow::OnClickTrade(void)
                request.action = TRADE_ACTION_DEAL;
                request.type = ORDER_TYPE_SELL;
             }
-            if (!PerformOrderCheckWithRetries(request, check_result, OrderLots, OrderDigits))
+            if (!PerformOrderCheck(request, check_result, OrderLots, OrderDigits))
             {
                Print("Sell OrderCheck failed, retcode=", check_result.retcode);
                return;
             }
-            ExecuteSellOrders(OrderLots, OrdersToPlaceNow);
+            ExecuteSellOrder(OrderLots);
          }
       }
    }
