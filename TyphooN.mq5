@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.291"
+#property version   "1.292"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -1056,7 +1056,7 @@ void TyWindow::OnClickTrade(void)
       OrderLots = available_volume;
    }
    // Ensure that each order is max_volume if available_volume > max_volume
-   if (available_volume > max_volume)
+   if (available_volume > max_volume && OrderLots > max_volume)
    {
       OrderLots = max_volume;
    }
@@ -1096,18 +1096,36 @@ void TyWindow::OnClickTrade(void)
    double free_margin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
    AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
    usable_margin = (AccountBalance - (AccountBalance * (MarginBufferPercent / 100.0))) - AccountInfoDouble(ACCOUNT_MARGIN);
-   while (required_margin >= usable_margin && OrderLots > min_volume)
+   // Initial margin calculation before entering the loop
+   if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
+   {
+      Print("Failed to calculate required margin before the loop. Error:", GetLastError());
+      return;
+   }
+   //Print("Before the Loop - OrderLots: ", OrderLots, " Required Margin: ", required_margin, " Usable Margin: ", usable_margin);
+   while (required_margin > usable_margin && OrderLots > min_volume)
    {
       OrderLots -= min_volume;
-      if (required_margin >= usable_margin)
+      //Print("After adjustment - OrderLots: ", OrderLots, " Required Margin: ", required_margin, " Usable Margin: ", usable_margin);
+      // Update usable_margin after adjusting OrderLots
+      usable_margin = (AccountBalance - (AccountBalance * (MarginBufferPercent / 100.0))) - AccountInfoDouble(ACCOUNT_MARGIN);
+      // Perform OrderCheck
+      if (!PerformOrderCheck(request, check_result, OrderLots, OrderDigits))
       {
-         Print("Insufficient margin after adjustment. Cannot proceed.");
+         Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
          return;
       }
-      if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
-      {
-         Print("Failed to calculate required margin after adjusting OrderLots. Error:", GetLastError());
-         return;
+    if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
+    {
+    Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
+    return;
+      }
+    // Ensure a minimum value for OrderLots
+    if (OrderLots < min_volume)
+    {
+        OrderLots = min_volume;
+    }
+      //Print("After adjustment - OrderLots: ", OrderLots, " Required Margin: ", required_margin, " Usable Margin: ", usable_margin);
    }
    usable_margin = (AccountBalance - (AccountBalance * (MarginBufferPercent / 100.0))) - AccountInfoDouble(ACCOUNT_MARGIN);
    if (!PerformOrderCheck(request, check_result, OrderLots, OrderDigits))
@@ -1116,8 +1134,7 @@ void TyWindow::OnClickTrade(void)
       return;
    }
    // Print statements to check required_margin and usable_margin after each iteration
-   Print("After adjustment - OrderLots: ", OrderLots, " Required Margin: ", required_margin, " Usable Margin: ", usable_margin);
-   }
+   //Print("After adjustment - OrderLots: ", OrderLots, " Required Margin: ", required_margin, " Usable Margin: ", usable_margin);
    // Check if there's enough free margin to place the order
    if (required_margin >= usable_margin)
    {
