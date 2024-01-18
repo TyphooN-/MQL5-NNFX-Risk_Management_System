@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.292"
+#property version   "1.293"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -483,6 +483,10 @@ void OnTick()
          {
             breakEvenFound = true;
          }
+         else
+         {  // Make sure to set breakEvenFound to false if no SL BE is found
+            breakEvenFound = false;
+         }
          if (PositionGetDouble(POSITION_TP) > PositionGetDouble(POSITION_SL))
          {
             if (!OrderCalcMargin(ORDER_TYPE_BUY, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), margin))
@@ -912,7 +916,6 @@ double PerformOrderCheck(const MqlTradeRequest &request, MqlTradeCheckResult &ch
    if (!Trade.OrderCheck(request, check_result))
    {
       int retcode = (int)check_result.retcode;
-      Print("OrderCheck failed. Retcode: ", retcode);
       if (retcode == 10013)
       {
          // Handle error code 10013 (Invalid request)
@@ -941,7 +944,7 @@ double PerformOrderCheck(const MqlTradeRequest &request, MqlTradeCheckResult &ch
          MqlTradeRequest Request = request;
          Request.volume = OrderLots;
          return required_margin;
-      }
+   }
    return -1.0;
 }
 void TyWindow::OnClickTrade(void)
