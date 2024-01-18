@@ -1,4 +1,4 @@
-/**=        ATR_Projection.mqh   (TyphooN's HTF Levels Indicator)
+/**=   PreviousCandleLevels.mq5   (TyphooN's Previous Candlestick Level Indicator)
  *      Copyright 2023, TyphooN (https://www.marketwizardry.org/)
  *
  * Disclaimer and Licence
@@ -23,25 +23,35 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.marketwizardry.info/"
-#property version   "1.003"
-#property description "TyphooN's HTF High/Low Levels"
+#property version   "1.004"
+#property description "TyphooN's PreviousCandleLevels"
 #property indicator_chart_window
 // Define input parameters
-input string objectName = "HL_Lines"; // Object name
+input string objname = "Previous_"; // Object name
 input color lineColor = clrWhite;       // Line color
 input int Line_Thickness = 2;
-double Previous_W1_High;
-double Previous_W1_Low;
-double Previous_D1_High;
-double Previous_D1_Low;
+double Previous_H1_High;
+double Previous_H1_Low;
 double Previous_H4_High;
 double Previous_H4_Low;
+double Previous_D1_High;
+double Previous_D1_Low;
+double Previous_W1_High;
+double Previous_W1_Low;
 double Previous_MN1_High;
 double Previous_MN1_Low;
 int lastCheckedCandle = -1;
 int OnInit()
 {
+   if(_Period >= PERIOD_D1)
+   {
+      ObjectDelete(0, "Previous_H");
+   }
    return(INIT_SUCCEEDED);
+}
+void OnDeinit(const int reason)
+{
+   ObjectsDeleteAll(0, objname);
 }
 int OnCalculate(const int rates_total,
                 const int prev_calculated,
@@ -57,8 +67,8 @@ int OnCalculate(const int rates_total,
    static datetime prevTradeServerTime = 0;  // Initialize with 0 on the first run
    datetime currentTradeServerTime = 0;
    currentTradeServerTime = TimeTradeServer();
-   // Check if a new 15-minute interval
-   if (IsNewM15Interval(currentTradeServerTime, prevTradeServerTime))
+   // Check if it is a new H1 interval
+   if (IsNewH1Interval(currentTradeServerTime, prevTradeServerTime))
    {
       UpdateCandlestickData();
       prevTradeServerTime = currentTradeServerTime;
@@ -79,24 +89,46 @@ int OnCalculate(const int rates_total,
       lastCheckedCandle = rates_total - 1;
       UpdateCandlestickData();
    }
-   DrawHorizontalLine(Previous_W1_High, "Previous_W1_High", lineColor, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-   DrawHorizontalLine(Previous_W1_Low, "Previous_W1_Low", lineColor, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-   DrawHorizontalLine(Previous_D1_High, "Previous_D1_High", lineColor, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-   DrawHorizontalLine(Previous_D1_Low, "Previous_D1_Low", lineColor, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-   DrawHorizontalLine(Previous_H4_High, "Previous_H4_High", lineColor, iTime(_Symbol, PERIOD_H4, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-   DrawHorizontalLine(Previous_H4_Low, "Previous_H4_Low", lineColor, iTime(_Symbol, PERIOD_H4, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-   DrawHorizontalLine(Previous_MN1_High, "Previous_MN1_High", lineColor, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-   DrawHorizontalLine(Previous_MN1_Low, "Previous_MN1_Low", lineColor, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+   if(_Period <= PERIOD_H4)
+   {
+      DrawHorizontalLine(Previous_H1_High, objname + "H1_High", lineColor, iTime(_Symbol, PERIOD_H1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_H1_Low, objname + "H1_Low", lineColor, iTime(_Symbol, PERIOD_H1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_H4_High, objname + "H4_High", lineColor, iTime(_Symbol, PERIOD_H4, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_H4_Low, objname + "H4_Low", lineColor, iTime(_Symbol, PERIOD_H4, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_D1_High, objname + "D1_High", lineColor, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_D1_Low, objname + "D1_Low", lineColor, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_W1_High, objname + "W1_High", lineColor, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_W1_Low, objname + "W1_Low", lineColor, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_MN1_High, objname + "MN1_High", lineColor, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_MN1_Low, objname + "MN1_Low", lineColor, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+   }
+   if(_Period == PERIOD_D1)
+   {
+      DrawHorizontalLine(Previous_D1_High, objname + "D1_High", lineColor, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_D1_Low, objname + "D1_Low", lineColor, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+   }
+   if(_Period == PERIOD_W1)
+   {
+      DrawHorizontalLine(Previous_W1_High, objname + "W1_High", lineColor, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_W1_Low, objname + "W1_Low", lineColor, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+   }
+   if(_Period == PERIOD_MN1)
+   {
+      DrawHorizontalLine(Previous_MN1_High, objname + "MN1_High", lineColor, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_MN1_Low, objname + "MN1_Low", lineColor, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+   }
    return(rates_total);
 }
 void UpdateCandlestickData()
 {
-      Previous_W1_High = iHigh(_Symbol, PERIOD_W1, 1);
-      Previous_W1_Low = iLow(_Symbol, PERIOD_W1, 1);
-      Previous_D1_High = iHigh(_Symbol, PERIOD_D1, 1);
-      Previous_D1_Low = iLow(_Symbol, PERIOD_D1, 1);
+      Previous_H1_High = iHigh(_Symbol, PERIOD_H1, 1);
+      Previous_H1_Low = iLow(_Symbol, PERIOD_H1, 1);
       Previous_H4_High = iHigh(_Symbol, PERIOD_H4, 1);
       Previous_H4_Low = iLow(_Symbol, PERIOD_H4, 1);
+      Previous_D1_High = iHigh(_Symbol, PERIOD_D1, 1);
+      Previous_D1_Low = iLow(_Symbol, PERIOD_D1, 1);
+      Previous_W1_High = iHigh(_Symbol, PERIOD_W1, 1);
+      Previous_W1_Low = iLow(_Symbol, PERIOD_W1, 1);
       Previous_MN1_High = iHigh(_Symbol, PERIOD_MN1, 1);
       Previous_MN1_Low = iLow(_Symbol, PERIOD_MN1, 1);
 }
@@ -111,7 +143,7 @@ void DrawHorizontalLine(double price, string label, color clr, datetime startTim
    ObjectSetDouble(0, label, OBJPROP_PRICE, price);
    ObjectSetInteger(0, label, OBJPROP_WIDTH, Line_Thickness);
 }
-bool IsNewM15Interval(const datetime& currentTime, const datetime& prevTime)
+bool IsNewH1Interval(const datetime& currentTime, const datetime& prevTime)
 {
    MqlDateTime currentMqlTime, prevMqlTime;
    TimeToStruct(currentTime, currentMqlTime);
@@ -120,15 +152,12 @@ bool IsNewM15Interval(const datetime& currentTime, const datetime& prevTime)
    // Check if the minutes have changed
    if (currentMqlTime.min != prevMqlTime.min)
    {
-   // Check if the current time is at a a 15 minute interval
-   if (currentMqlTime.min == 0 || currentMqlTime.min == 15 || currentMqlTime.min == 30 || currentMqlTime.min == 45 )
+   // Check if the current time is at a a hourly interval
+   if (currentMqlTime.min == 0  && prevMqlTime.hour < currentMqlTime.hour)
    {
       return true;
    }
    }
    return false;
 }
-void OnDeinit(const int reason)
-{
-   ObjectDelete(0, objectName);
-}
+
