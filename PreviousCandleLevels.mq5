@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.marketwizardry.info/"
-#property version   "1.004"
+#property version   "1.005"
 #property description "TyphooN's PreviousCandleLevels"
 #property indicator_chart_window
 // Define input parameters
@@ -43,10 +43,6 @@ double Previous_MN1_Low;
 int lastCheckedCandle = -1;
 int OnInit()
 {
-   if(_Period >= PERIOD_D1)
-   {
-      ObjectDelete(0, "Previous_H");
-   }
    return(INIT_SUCCEEDED);
 }
 void OnDeinit(const int reason)
