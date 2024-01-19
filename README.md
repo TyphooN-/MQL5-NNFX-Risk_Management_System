@@ -12,18 +12,21 @@
 - Allow Algo Trading must be checked for the expert to place trades.
 
 ### ORDER PLACEMENT SETTINGS
+- MarginBufferPercent: The percent of buffer in margin that will not be used for placing orders.
+- MagicNumber: Can be set to anything the user wants, but this expert will only modify trades/positions that match the MagicNumber on the chart.
+- AdditionalRiskRatio: The multiplier to risk when adding additional lots when  SL Break Even is detected.
+
+### STANDARD RISK SETTINGS
 - UseStandardRisk: Use standard Risk mode (user defined MaxRisk / Risk)
 - MaxRisk (Standard Mode): Maximum percentage of risk across the symbol, once this level is hit no more orders will be placed.
 - Risk(Standard Mode): The % of the account that is being risked every time "Open Trade" is clicked.
-- InitialOrdersToPlace: This is the number of orders placed when there are 0 orders on the current symbol.  Risk will be divided amongst the orders.  If another position is open on the symbol, then only 1 order will be placed.
-- MarginBufferPercent: The percent of buffer in margin that will not be used for placing orders.
-- AdditionalRiskRatio: The multiplier to risk when adding additional lots when  SL Break Even is detected.
+
+### DYNAMIC RISK SETTINGS
 - UseDynamicRisk: Use Dynamic Risk Mode.  In Dynamic Risk Mode, Risk = (Balance - MinimumAccountBalance) / LossesToMinBalance.
 - MinAccountBalance: The Minimum account balance used to calculate Dynamic Risk.
 - LossesToMinBalance: The number of losses required to reach the MinAccountBalance.
 
 ### ACCOUNT PROTECTION SETTINGS
-
 - EnableAutoProtect will place stop loss(es) at break even when RR passes AutoProtectRRLevel and risk > 0.  This will only happen once per market, and will not happen again if SL is set to break even on any position for that symbol.  (Default: false)
 - AutoProtectRRLevel is the Reward:Risk level that will trigger AutoProtect.
 - EnableEquityTP: Will close all open positions on the account when Equity >= TargetEquityTP.
@@ -32,7 +35,6 @@
 - TargetEquitySL: The Equity value of the account that EquitySL will be triggered by.
 
 ### EXPERT ADVISOR SETTINGS
-- MagicNumber: Can be set to anything the user wants, but this expert will only modify trades/positions that match the MagicNumber on the chart.
 - HorizontalLineThickness: The width in pixels that the SL, TP, and Limit lines are drawn with.
 - ManageAllPositions: This is set to false by default, which will only manage positions that have been opened by the EA's MagicNumber.  If set to true, will manage all positions on a symbol regardless of MagicNumber.
 
