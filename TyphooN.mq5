@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.293"
+#property version   "1.294"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -1002,7 +1002,7 @@ void TyWindow::OnClickTrade(void)
             return;
          }
       }
-      else if (percent_risk > 0)
+      if (breakEvenFound == true && percent_risk > 0)
       {
          Print("Break Even positions found, and a risk position already placed. Not placing additional order.");
          return;
