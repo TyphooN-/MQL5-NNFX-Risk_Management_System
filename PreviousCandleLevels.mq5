@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.marketwizardry.info/"
-#property version   "1.006"
+#property version   "1.007"
 #property description "TyphooN's PreviousCandleLevels"
 #property indicator_chart_window
 // Define input parameters
@@ -98,7 +98,7 @@ int OnCalculate(const int rates_total,
       DrawHorizontalLine(Previous_MN1_High, objname + "MN1_High", lineColor, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Previous_MN1_Low, objname + "MN1_Low", lineColor, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
    }
-   if(_Period <= PERIOD_H4)
+   if(_Period == PERIOD_H4)
    {
       DrawHorizontalLine(Previous_H4_High, objname + "H4_High", lineColor, iTime(_Symbol, PERIOD_H4, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Previous_H4_Low, objname + "H4_Low", lineColor, iTime(_Symbol, PERIOD_H4, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
