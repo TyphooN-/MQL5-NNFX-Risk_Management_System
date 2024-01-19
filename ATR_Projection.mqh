@@ -337,8 +337,8 @@ int OnCalculate(const int        rates_total,
       ATRLevelBelowD1 = currentOpenD1 - avgD1;
       GlobalVariableSet("GlobalATRLevelAboveD1", ATRLevelAboveD1);
       GlobalVariableSet("GlobalATRLevelBelowD1", ATRLevelBelowD1);
-      DrawHorizontalLine(ATRLevelAboveD1, objname + "High D1", ATR_Line_Color, startTimeD1, endTime);
-      DrawHorizontalLine(ATRLevelBelowD1, objname + "Low D1", ATR_Line_Color, startTimeD1, endTime);
+      DrawHorizontalLine(ATRLevelAboveD1, objname + "High D1", startTimeD1, endTime);
+      DrawHorizontalLine(ATRLevelBelowD1, objname + "Low D1", startTimeD1, endTime);
    }
    if (W1_ATR_Projections)
    {
@@ -347,8 +347,8 @@ int OnCalculate(const int        rates_total,
       ATRLevelBelowW1 = currentOpenW1 - avgW1;
       GlobalVariableSet("GlobalATRLevelAboveW1", ATRLevelAboveW1);
       GlobalVariableSet("GlobalATRLevelBelowW1", ATRLevelBelowW1);
-      DrawHorizontalLine(ATRLevelAboveW1, objname + "High W1", ATR_Line_Color, startTimeW1, endTime);
-      DrawHorizontalLine(ATRLevelBelowW1, objname + "Low W1", ATR_Line_Color, startTimeW1, endTime);
+      DrawHorizontalLine(ATRLevelAboveW1, objname + "High W1", startTimeW1, endTime);
+      DrawHorizontalLine(ATRLevelBelowW1, objname + "Low W1", startTimeW1, endTime);
    }
    if (MN1_ATR_Projections)
    {
@@ -357,8 +357,8 @@ int OnCalculate(const int        rates_total,
       ATRLevelBelowMN1 = currentOpenMN1 - avgMN1;
       GlobalVariableSet("GlobalATRLevelAboveMN1", ATRLevelAboveMN1);
       GlobalVariableSet("GlobalATRLevelBelowMN1", ATRLevelBelowMN1);
-      DrawHorizontalLine(ATRLevelAboveMN1, objname + "High MN1", ATR_Line_Color, startTimeMN1, endTime);
-      DrawHorizontalLine(ATRLevelBelowMN1, objname + "Low MN1", ATR_Line_Color, startTimeMN1, endTime);
+      DrawHorizontalLine(ATRLevelAboveMN1, objname + "High MN1", startTimeMN1, endTime);
+      DrawHorizontalLine(ATRLevelBelowMN1, objname + "Low MN1", startTimeMN1, endTime);
    }
    if (H4_ATR_Projections && _Period <= PERIOD_D1)
    {
@@ -367,8 +367,8 @@ int OnCalculate(const int        rates_total,
       ATRLevelBelowH4 = currentOpenH4 - avgH4;
       GlobalVariableSet("GlobalATRLevelAboveH4", ATRLevelAboveH4);
       GlobalVariableSet("GlobalATRLevelBelowH4", ATRLevelBelowH4);
-      DrawHorizontalLine(ATRLevelAboveH4, objname + "High H4", ATR_Line_Color, startTimeH4, endTime);
-      DrawHorizontalLine(ATRLevelBelowH4, objname + "Low H4", ATR_Line_Color, startTimeH4, endTime);
+      DrawHorizontalLine(ATRLevelAboveH4, objname + "High H4", startTimeH4, endTime);
+      DrawHorizontalLine(ATRLevelBelowH4, objname + "Low H4", startTimeH4, endTime);
    }
    if (H1_ATR_Projections && _Period <= PERIOD_H4)
    {
@@ -377,8 +377,8 @@ int OnCalculate(const int        rates_total,
       ATRLevelBelowH1 = currentOpenH1 - avgH1;
       GlobalVariableSet("GlobalATRLevelAboveH1", ATRLevelAboveH1);
       GlobalVariableSet("GlobalATRLevelBelowH1", ATRLevelBelowH1);
-      DrawHorizontalLine(ATRLevelAboveH1, objname + "High H1", ATR_Line_Color, startTimeH1, endTime);
-      DrawHorizontalLine(ATRLevelBelowH1, objname + "Low H1", ATR_Line_Color, startTimeH1, endTime);
+      DrawHorizontalLine(ATRLevelAboveH1, objname + "High H1", startTimeH1, endTime);
+      DrawHorizontalLine(ATRLevelBelowH1, objname + "Low H1", startTimeH1, endTime);
    }
    if (M15_ATR_Projections && _Period <= PERIOD_H1)
    {
@@ -387,19 +387,18 @@ int OnCalculate(const int        rates_total,
       ATRLevelBelowM15 = currentOpenM15 - avgM15;
       GlobalVariableSet("GlobalATRLevelAboveM15", ATRLevelAboveM15);
       GlobalVariableSet("GlobalATRLevelBelowM15", ATRLevelAboveM15);
-      DrawHorizontalLine(ATRLevelAboveM15, objname + "High M15", ATR_Line_Color, startTimeM15, endTime);
-      DrawHorizontalLine(ATRLevelBelowM15, objname + "Low M15", ATR_Line_Color, startTimeM15, endTime);
+      DrawHorizontalLine(ATRLevelAboveM15, objname + "High M15", startTimeM15, endTime);
+      DrawHorizontalLine(ATRLevelBelowM15, objname + "Low M15", startTimeM15, endTime);
    }
    return rates_total;
 }
-void DrawHorizontalLine(double price, string label, color clr, datetime StartTime, datetime EndTime)
+void DrawHorizontalLine(double price, string label, datetime StartTime, datetime EndTime)
 {
    ObjectCreate(0, label, OBJ_TREND, 0, StartTime, price, EndTime, price);
-   ObjectSetDouble(0, label, OBJPROP_PRICE, price);
-   ObjectSetInteger(0, objname + "Low M15", OBJPROP_STYLE, ATR_linestyle);
-   ObjectSetInteger(0, objname + "Low M15", OBJPROP_WIDTH, ATR_Line_Thickness);
-   ObjectSetInteger(0, objname + "Low M15", OBJPROP_COLOR, ATR_Line_Color);
-   ObjectSetInteger(0, objname + "Low M15", OBJPROP_BACK, ATR_Line_Background);
+   ObjectSetInteger(0, label, OBJPROP_STYLE, ATR_linestyle);
+   ObjectSetInteger(0, label, OBJPROP_WIDTH, ATR_Line_Thickness);
+   ObjectSetInteger(0, label, OBJPROP_COLOR, ATR_Line_Color);
+   ObjectSetInteger(0, label, OBJPROP_BACK, ATR_Line_Background);
 }
 bool IsNewM15Interval(const datetime& currentTime, const datetime& prevTime)
 {
