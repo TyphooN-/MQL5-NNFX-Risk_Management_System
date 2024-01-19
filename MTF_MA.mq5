@@ -148,7 +148,6 @@ int OnInit()
    ObjectSetInteger(0, objnameInfo1, OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, objnameInfo1, OBJPROP_COLOR, clrWhite);
    ObjectSetString(0, objnameInfo1, OBJPROP_TEXT, "200 SMA");
-   ObjectSetInteger(0, objnameInfo1, OBJPROP_ZORDER, 1);
    string objnameInfo2 = objname + "Info2";
    ObjectCreate(0, objnameInfo2, OBJ_LABEL, 0, 0, 0);
    ObjectSetInteger(0, objnameInfo2, OBJPROP_XDISTANCE, HorizPos);
@@ -158,7 +157,6 @@ int OnInit()
    ObjectSetInteger(0, objnameInfo2, OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, objnameInfo2, OBJPROP_COLOR, clrWhite);
    ObjectSetString(0, objnameInfo2, OBJPROP_TEXT, "DEATH X");
-   ObjectSetInteger(0, objnameInfo2, OBJPROP_ZORDER, 1);
    string objnameInfo3 = objname + "Info3";
    ObjectCreate(0, objnameInfo3, OBJ_LABEL, 0, 0, 0);
    ObjectSetInteger(0, objnameInfo3, OBJPROP_XDISTANCE, HorizPos);
@@ -168,7 +166,6 @@ int OnInit()
    ObjectSetInteger(0, objnameInfo3, OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, objnameInfo3, OBJPROP_COLOR, clrWhite);
    ObjectSetString(0, objnameInfo3, OBJPROP_TEXT, "100/200");
-   ObjectSetInteger(0, objnameInfo3, OBJPROP_ZORDER, 1);
    string objnameInfo4 = objname + "Info4";
    ObjectCreate(0, objnameInfo4, OBJ_LABEL, 0, 0, 0);
    ObjectSetInteger(0, objnameInfo4, OBJPROP_XDISTANCE, HorizPos);
@@ -178,7 +175,6 @@ int OnInit()
    ObjectSetInteger(0, objnameInfo4, OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, objnameInfo4, OBJPROP_COLOR, clrWhite);
    ObjectSetString(0, objnameInfo4, OBJPROP_TEXT, "20/50 X");
-   ObjectSetInteger(0, objnameInfo4, OBJPROP_ZORDER, 1);
    string objnameInfo5 = objname + "Info5";
    ObjectCreate(0, objnameInfo5, OBJ_LABEL, 0, 0, 0);
    ObjectSetInteger(0, objnameInfo5, OBJPROP_XDISTANCE, HorizPos);
@@ -188,7 +184,6 @@ int OnInit()
    ObjectSetInteger(0, objnameInfo5, OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, objnameInfo5, OBJPROP_COLOR, clrWhite);
    ObjectSetString(0, objnameInfo5, OBJPROP_TEXT, "10/20 X");
-   ObjectSetInteger(0, objnameInfo5, OBJPROP_ZORDER, 1);
    int additionalSpacing = 0; 
    string timeFrames[] = {"M1", "M5", "M15", "M30", "H1", "H4", "D1", "W1"};
    for (int i = 0; i < ArraySize(timeFrames); i++)
@@ -206,7 +201,6 @@ int OnInit()
       ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_FONTSIZE, FontSize);
       ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_COLOR, clrWhite);
       ObjectSetString(0, objnameInfo200SMA, OBJPROP_TEXT, timeFrames[i]);
-      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_ZORDER, 1);
       string objnameInfoDEATH = objname + timeFrames[i] + "DEATH";
       ObjectCreate(0, objnameInfoDEATH, OBJ_LABEL, 0, 0, 0);
       ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
@@ -216,7 +210,6 @@ int OnInit()
       ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_FONTSIZE, FontSize);
       ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_COLOR, clrWhite);
       ObjectSetString(0, objnameInfoDEATH, OBJPROP_TEXT, timeFrames[i]);
-      ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_ZORDER, 1);
       string objnameInfo100_200 = objname + timeFrames[i] + "100_200";
       ObjectCreate(0, objnameInfo100_200, OBJ_LABEL, 0, 0, 0);
       ObjectSetInteger(0, objnameInfo100_200, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
@@ -226,7 +219,6 @@ int OnInit()
       ObjectSetInteger(0, objnameInfo100_200, OBJPROP_FONTSIZE, FontSize);
       ObjectSetInteger(0, objnameInfo100_200, OBJPROP_COLOR, clrWhite);
       ObjectSetString(0, objnameInfo100_200, OBJPROP_TEXT, timeFrames[i]);
-      ObjectSetInteger(0, objnameInfo100_200, OBJPROP_ZORDER, 1);
       string objname20_50 = objname + timeFrames[i] + "20_50";
       ObjectCreate(0, objname20_50, OBJ_LABEL, 0, 0, 0);
       ObjectSetInteger(0, objname20_50, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
@@ -236,7 +228,6 @@ int OnInit()
       ObjectSetInteger(0, objname20_50, OBJPROP_FONTSIZE, FontSize);
       ObjectSetInteger(0, objname20_50, OBJPROP_COLOR, clrWhite);
       ObjectSetString(0, objname20_50, OBJPROP_TEXT, timeFrames[i]);
-      ObjectSetInteger(0, objname20_50, OBJPROP_ZORDER, 1);
       string objname10_20 = objname + timeFrames[i] + "10_20";
       ObjectCreate(0, objname10_20, OBJ_LABEL, 0, 0, 0);
       ObjectSetInteger(0, objname10_20, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
@@ -246,7 +237,6 @@ int OnInit()
       ObjectSetInteger(0, objname10_20, OBJPROP_FONTSIZE, FontSize);
       ObjectSetInteger(0, objname10_20, OBJPROP_COLOR, clrWhite);
       ObjectSetString(0, objname10_20, OBJPROP_TEXT, timeFrames[i]);
-      ObjectSetInteger(0, objname10_20, OBJPROP_ZORDER, 1);
    }
    string BullPowerTextLTF = "LTF Bull Power INIT";
    string BearPowerTextLTF = "LTF Bear Power INIT";
@@ -260,7 +250,6 @@ int OnInit()
    ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_COLOR, clrWhite);
    ObjectSetString(0, objname + "InfoBullPowerLTF", OBJPROP_TEXT, BullPowerTextLTF);
-   ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_ZORDER, 1);
    ObjectCreate(0, objname + "InfoBearPowerLTF", OBJ_LABEL, 0, 0, 0);
    ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_XDISTANCE, HorizPos - 160);
    ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_YDISTANCE, VertPos + 65);
@@ -268,8 +257,7 @@ int OnInit()
    ObjectSetString(0, objname + "InfoBearPowerLTF", OBJPROP_FONT, FontName);
    ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_COLOR, clrWhite);
-   ObjectSetString(0, objname + "InfoBearPowerLTF", OBJPROP_TEXT, BearPowerTextLTF);
-   ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_ZORDER, 1);
+   ObjectSetString(0, objname + "InfoBearPowerLTF", OBJPROP_TEXT, BearPowerTextLTF);;
    ObjectCreate(0, objname + "InfoBullPowerHTF", OBJ_LABEL, 0, 0, 0);
    ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_XDISTANCE, HorizPos);
    ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_YDISTANCE, VertPos + 77);
@@ -278,7 +266,6 @@ int OnInit()
    ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_COLOR, clrWhite);
    ObjectSetString(0, objname + "InfoBullPowerHTF", OBJPROP_TEXT, BullPowerTextHTF);
-   ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_ZORDER, 1);
    ObjectCreate(0, objname + "InfoBearPowerHTF", OBJ_LABEL, 0, 0, 0);
    ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_XDISTANCE, HorizPos - 160);
    ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_YDISTANCE, VertPos + 77);
@@ -287,7 +274,6 @@ int OnInit()
    ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_COLOR, clrWhite);
    ObjectSetString(0, objname + "InfoBearPowerHTF", OBJPROP_TEXT, BearPowerTextHTF);
-   ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_ZORDER, 1);
    return 0;
 }
 void OnDeinit(const int pReason)
