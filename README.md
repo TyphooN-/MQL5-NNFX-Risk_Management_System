@@ -12,9 +12,15 @@
 - Allow Algo Trading must be checked for the expert to place trades.
 
 ### ORDER PLACEMENT SETTINGS
-- MaxRisk: Maximum percentage of risk across the symbol, once this level is hit no more orders will be placed.
-- Risk: The % of the account that is being risked every time "Open Trade" is clicked.
+- UseStandardRisk: Use standard Risk mode (user defined MaxRisk / Risk)
+- MaxRisk (Standard Mode): Maximum percentage of risk across the symbol, once this level is hit no more orders will be placed.
+- Risk(Standard Mode): The % of the account that is being risked every time "Open Trade" is clicked.
 - InitialOrdersToPlace: This is the number of orders placed when there are 0 orders on the current symbol.  Risk will be divided amongst the orders.  If another position is open on the symbol, then only 1 order will be placed.
+- MarginBufferPercent: The percent of buffer in margin that will not be used for placing orders.
+- AdditionalRiskRatio: The multiplier to risk when adding additional lots when  SL Break Even is detected.
+- UseDynamicRisk: Use Dynamic Risk Mode.  In Dynamic Risk Mode, Risk = (Balance - MinimumAccountBalance) / LossesToMinBalance.
+- MinAccountBalance: The Minimum account balance used to calculate Dynamic Risk.
+- LossesToMinBalance: The Number of losses required to reach the MinAccountBalance.
 
 ### ACCOUNT PROTECTION SETTINGS
 
@@ -107,7 +113,6 @@ Heiken Ashi Smoothed (T3) price action off of a condition below:
 ![MTF_MA_InfoText_Bull](Images/MTF_MA_InfoText_Bull.png)
 
 ### Info Text Settings
-
 - FontName: The Font to draw InfoText with.
 - FontSize: Font Size to use when drawing InfoText.
 - HorizPos: Horizontal position in pixels where the InfoText will appear.
