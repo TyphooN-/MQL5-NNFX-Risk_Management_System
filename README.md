@@ -64,13 +64,14 @@
 # NNFX Trading System
 
 ### Baseline
-Heiken Ashi Smoothed (T3) price action off of a condition below:
-- [shved_supply_and_demand_v1.5](https://www.mql5.com/en/code/29395) (price is hitting resistance or finding support at a zone)
-- PreviousCandleLevels (price is hitting resistance or support at a previous candle high or low)
-- ATR_Projection (price is hitting resistance or support at a level)
-- MTF_MA (price is hitting resistance or support at 200SMA level)
-- HTF bull power or bear power agreeing with all of the above
 - [Ehlers' Fisher Transform](https://forex-station.com/post1295528062.html#p1295528062)
+- Heiken Ashi Smoothed (T3) price action off of a condition below:
+	- [shved_supply_and_demand_v1.5](https://www.mql5.com/en/code/29395) (price is hitting resistance or finding support at a zone)
+	- PreviousCandleLevels (price is hitting resistance or support at a previous candle high or low)
+	- ATR_Projection (price is hitting resistance or support at a level)
+	- MTF_MA (price is hitting resistance or support at 200SMA level)
+	- HTF bull power or bear power agreeing with all of the above
+
 
 ### Confirmation
 - C1: [KAMA (Kauffman's Adaptive Moving Average)](https://forex-station.com/download/file.php?id=3314561&sid=563944d8cfb302d8a712d2f9028ccbe4) (price above is bullish, price below is bearish)
