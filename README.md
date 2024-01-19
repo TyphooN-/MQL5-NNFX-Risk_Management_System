@@ -55,22 +55,21 @@
 - TP RR: Reward/Risk ratio if price hits TP.
 - H4 - MN1: The amount of time until the next candlestick of that time period will print.
 
-
 # NNFX Trading System
 
 ### Baseline
 Heiken Ashi Smoothed (T3) price action off of a condition below:
-- shved_supply_and_demand (price is hitting resistance or finding support at a zone)
+- [shved_supply_and_demand_v1.5](https://www.mql5.com/en/code/29395) (price is hitting resistance or finding support at a zone)
 - PreviousCandleLevels (price is hitting resistance or support at a previous candle high or low)
 - ATR_Projection (price is hitting resistance or support at a level)
 - MTF_MA (price is hitting resistance or support at 200SMA level)
 - HTF bull power or bear power agreeing with all of the above
-- Ehlers' Fisher Transform
+- ![Ehlers' Fisher Transform](https://forex-station.com/post1295528062.html#p1295528062)
 
 ### Confirmation
 - C1: [KAMA (Kauffman's Adaptive Moving Average)](https://forex-station.com/download/file.php?id=3314561&sid=563944d8cfb302d8a712d2f9028ccbe4) (price above is bullish, price below is bearish)
-- C2: LTF bull or bear power dominance
-- C2: Ehlers MAMA (cross of mama/fama indicates a shift in trend)
+- C2: LTF Bull or Bear power Dominance (MTF_MA)
+- C2: [Ehlers' Mother of Adaptive Moving Averages](https://www.mesasoftware.com/papers/MAMA.pdf) (cross of mama/fama indicates a shift in trend)
 
 ### Exit (opposite condition as the  entry reason)
 - ![Ehlers' Fisher Transform](https://forex-station.com/post1295528062.html#p1295528062)
@@ -85,7 +84,7 @@ Heiken Ashi Smoothed (T3) price action off of a condition below:
 - RVOL (Relative Volume)
 
 ### Volatility
--ATR_Projection (price has pierced through a projected level well before candle close time)
+- ATR_Projection (price has pierced through a projected level well before candle close time)
 
 # TyphooN's Multi Timeframe MA Bull/Bear Power Indicator (MTF_MA)
 - Plots 200 SMA lines across all timeframes M1 -> W1 onto the chart.  M1 -> M5 are Orange coloured lines. M15 -> M30 are Tomato coloured lines.  H1 -> W1 timeframes are Magenta coloured lines.  The colours used are easily visible in contrast to the colours used in the supporting indicators.
@@ -96,7 +95,6 @@ Heiken Ashi Smoothed (T3) price action off of a condition below:
   - 20/50: 20/50 SMA cross.
   - 10/20: 10/20 SMA cross.
 - Bear Power and Bull Power are based on a scoring system which scores several SMA crossovers across all timeframes M1 -> W1 (Total Power is always 100 for both LTF and HTF).  LTF Power is based on M1 -> M30 signals.  HTF Power is based on H1 -> W1 signals.  Each signal is worth 5 points currently (subject to change).
-
 
 ![MTF_MA_200SMA_Lines](Images/MTF_MA_200SMA_Lines.png)
 
@@ -118,6 +116,9 @@ Heiken Ashi Smoothed (T3) price action off of a condition below:
 
 ### TyphooN's Previous Candle Levels Indicator
 - Draws horizontal lines for Previous H1 -> MN1 candlesticks and updates them as new candlesticks print.
+- The lines begin at the previous candlestick high and low, and end at the current candlestick.
+- LTF levels are disabled on higher timeframes because they are not visible.
+![MTF_MA_InfoText_Bear](Images/PreviousCandleLevels.png)
 
 # TyphooN's ATR Projection Indicator
 - The ATR Projection Indicator plots a yellow line +/- the ATR value (Projection) whenever a new candlestick forms on the enabled timeframe(s).  The length of the line indicates a longer timeframe.  Some timeframes are disabled when viewing higher timeframes as they are barely visible.
