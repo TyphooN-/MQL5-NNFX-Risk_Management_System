@@ -81,10 +81,10 @@ Heiken Ashi Smoothed (T3) price action off of a condition below:
 	- MTF_MA (price is hitting resistance or support at 200SMA level)
 	- C1/C2 condition flips the opposite direction
 
-###Volume
+### Volume
 - RVOL (Relative Volume)
 
-###Volatility
+### Volatility
 -ATR_Projection (price has pierced through a projected level well before candle close time)
 
 # TyphooN's Multi Timeframe MA Bull/Bear Power Indicator (MTF_MA)
