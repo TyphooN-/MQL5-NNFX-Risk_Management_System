@@ -20,21 +20,21 @@
 - AdditionalRiskRatio: The multiplier to risk when adding additional lots when  SL Break Even is detected.
 - UseDynamicRisk: Use Dynamic Risk Mode.  In Dynamic Risk Mode, Risk = (Balance - MinimumAccountBalance) / LossesToMinBalance.
 - MinAccountBalance: The Minimum account balance used to calculate Dynamic Risk.
-- LossesToMinBalance: The Number of losses required to reach the MinAccountBalance.
+- LossesToMinBalance: The number of losses required to reach the MinAccountBalance.
 
 ### ACCOUNT PROTECTION SETTINGS
 
 - EnableAutoProtect will place stop loss(es) at break even when RR passes AutoProtectRRLevel and risk > 0.  This will only happen once per market, and will not happen again if SL is set to break even on any position for that symbol.  (Default: false)
 - AutoProtectRRLevel is the Reward:Risk level that will trigger AutoProtect.
-- EnableEquityTP: Will close all open positions on the account when Equity >= TargetEquityTP.  Do not use this feature in Default template or on more than 1 chart.
+- EnableEquityTP: Will close all open positions on the account when Equity >= TargetEquityTP.
 - TargetEquityTP: The Equity value of the account that EquityTP will be triggered by.
-- EnableEquitySL: Will close all open positions on the account when Equity < TargetEquitySL.  Do not use this feature in Default template or on more than 1 chart.
+- EnableEquitySL: Will close all open positions on the account when Equity < TargetEquitySL.
 - TargetEquitySL: The Equity value of the account that EquitySL will be triggered by.
 
 ### EXPERT ADVISOR SETTINGS
 - MagicNumber: Can be set to anything the user wants, but this expert will only modify trades/positions that match the MagicNumber on the chart.
-- HorizontalLineThickness: How thick in pixels SL, TP, and Limit lines are drawn with.
-- ManageAllPositions: By default is set to false which will only manage positions that have been opened by the EA's MagicNumber.  If set to true, will manage all positions on a symbol.
+- HorizontalLineThickness: The width in pixels that the SL, TP, and Limit lines are drawn with.
+- ManageAllPositions: This is set to false by default, which will only manage positions that have been opened by the EA's MagicNumber.  If set to true, will manage all positions on a symbol regardless of MagicNumber.
 
 ### DISCORD ANNOUNCEMENT SETTINGS
 - DiscordAPIKey: Must be set to a user's discord API key (webhook) prior to use.
