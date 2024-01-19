@@ -55,6 +55,38 @@
 - TP RR: Reward/Risk ratio if price hits TP.
 - H4 - MN1: The amount of time until the next candlestick of that time period will print.
 
+
+# NNFX Trading System
+
+### Baseline
+Heiken Ashi Smoothed (T3) price action off of a condition below:
+- shved_supply_and_demand (price is hitting resistance or finding support at a zone)
+- PreviousCandleLevels (price is hitting resistance or support at a previous candle high or low)
+- ATR_Projection (price is hitting resistance or support at a level)
+- MTF_MA (price is hitting resistance or support at 200SMA level)
+- HTF bull power or bear power agreeing with all of the above
+- Ehlers' Fisher Transform
+
+### Confirmation
+- C1: [KAMA (Kauffman's Adaptive Moving Average)](https://forex-station.com/download/file.php?id=3314561&sid=563944d8cfb302d8a712d2f9028ccbe4) (price above is bullish, price below is bearish)
+- C2: LTF bull or bear power dominance
+- C2: Ehlers MAMA (cross of mama/fama indicates a shift in trend)
+
+### Exit (opposite condition as the  entry reason)
+- ![Ehlers' Fisher Transform](https://forex-station.com/post1295528062.html#p1295528062)
+- [Heiken Ashi Smoothed (T3)](https://www.forexfactory.com/thread/post/14170997#post14170997) price action off of a condition below:
+	- [shved_supply_and_demand_v1.5](https://www.mql5.com/en/code/29395) (price is hitting resistance or finding support at a zone)
+	- PreviousCandleLevels (price is hitting resistance or support at a previous candle high or low)
+	- ATR_Projection (price is hitting resistance or support at a level)
+	- MTF_MA (price is hitting resistance or support at 200SMA level)
+	- C1/C2 condition flips the opposite direction
+
+###Volume
+- RVOL (Relative Volume)
+
+###Volatility
+-ATR_Projection (price has pierced through a projected level well before candle close time)
+
 # TyphooN's Multi Timeframe MA Bull/Bear Power Indicator (MTF_MA)
 - Plots 200 SMA lines across all timeframes M1 -> W1 onto the chart.  M1 -> M5 are Orange coloured lines. M15 -> M30 are Tomato coloured lines.  H1 -> W1 timeframes are Magenta coloured lines.  The colours used are easily visible in contrast to the colours used in the supporting indicators.
 - The SMA crossovers and levels used are as follows (and displayed in the infotext):
@@ -65,8 +97,6 @@
   - 10/20: 10/20 SMA cross.
 - Bear Power and Bull Power are based on a scoring system which scores several SMA crossovers across all timeframes M1 -> W1 (Total Power is always 100 for both LTF and HTF).  LTF Power is based on M1 -> M30 signals.  HTF Power is based on H1 -> W1 signals.  Each signal is worth 5 points currently (subject to change).
 
-# TyphooN's Previous Candle Levels Indicator
-- Draws horizontal lines for Previous H1 -> MN1 candlesticks and updates them as new candlesticks print.
 
 ![MTF_MA_200SMA_Lines](Images/MTF_MA_200SMA_Lines.png)
 
@@ -85,6 +115,9 @@
 - HorizPos: Horizontal position in pixels where the InfoText will appear.
 - VertPos : Vertical position in pixels where the InfoText will appear.
 
+
+### TyphooN's Previous Candle Levels Indicator
+- Draws horizontal lines for Previous H1 -> MN1 candlesticks and updates them as new candlesticks print.
 
 # TyphooN's ATR Projection Indicator
 - The ATR Projection Indicator plots a yellow line +/- the ATR value (Projection) whenever a new candlestick forms on the enabled timeframe(s).  The length of the line indicates a longer timeframe.  Some timeframes are disabled when viewing higher timeframes as they are barely visible.
@@ -124,37 +157,6 @@
 - HorizPos: Horizontal position in pixels where the InfoText will appear.
 - VertPos : Vertical position in pixels where the InfoText will appear.
 - ATRInfoDecimals: The number of decimals to display in the ATR InfoText.
-
-# NNFX Trading System
-
-###Baseline
-Heiken Ashi Smoothed (T3) price action off of a condition below:
-- shved_supply_and_demand (price is hitting resistance or finding support at a zone)
-- PreviousCandleLevels (price is hitting resistance or support at a previous candle high or low)
-- ATR_Projection (price is hitting resistance or support at a level)
-- MTF_MA (price is hitting resistance or support at 200SMA level)
-- HTF bull power or bear power agreeing with all of the above
-- Ehlers' Fisher Transform
-
-###Confirmation
-- C1: [KAMA (Kauffman's Adaptive Moving Average)](https://forex-station.com/download/file.php?id=3314561&sid=563944d8cfb302d8a712d2f9028ccbe4) (price above is bullish, price below is bearish)
-- C2: LTF bull or bear power dominance
-- C2: Ehlers MAMA (cross of mama/fama indicates a shift in trend)
-
-###Exit (opposite condition as the  entry reason)
-- ![Ehlers' Fisher Transform](https://forex-station.com/post1295528062.html#p1295528062)
-- [Heiken Ashi Smoothed (T3)](https://www.forexfactory.com/thread/post/14170997#post14170997) price action off of a condition below:
-	- [shved_supply_and_demand_v1.5](https://www.mql5.com/en/code/29395) (price is hitting resistance or finding support at a zone)
-	- PreviousCandleLevels (price is hitting resistance or support at a previous candle high or low)
-	- ATR_Projection (price is hitting resistance or support at a level)
-	- MTF_MA (price is hitting resistance or support at 200SMA level)
-	- C1/C2 condition flips the opposite direction
-
-###Volume
-- RVOL (Relative Volume)
-
-###Volatility
--ATR_Projection (price has pierced through a projected level well before candle close time)
 
 # Usage
 
