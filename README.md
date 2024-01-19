@@ -36,7 +36,7 @@
 
 ### EXPERT ADVISOR SETTINGS
 - HorizontalLineThickness: The width in pixels that the SL, TP, and Limit lines are drawn with.
-- ManageAllPositions: This is set to false by default, which will only manage positions that have been opened by the EA's MagicNumber.  If set to true, will manage all positions on a symbol regardless of MagicNumber.
+- ManageAllPositions: This is set to false by default, which will only manage positions that have been opened by the EA's MagicNumber.  If ManageAllPositions is set to true, will manage all positions on a symbol regardless of MagicNumber.
 
 ### DISCORD ANNOUNCEMENT SETTINGS
 - DiscordAPIKey: Must be set to a user's discord API key (webhook) prior to use.
