@@ -70,7 +70,7 @@ Heiken Ashi Smoothed (T3) price action off of a condition below:
 - ATR_Projection (price is hitting resistance or support at a level)
 - MTF_MA (price is hitting resistance or support at 200SMA level)
 - HTF bull power or bear power agreeing with all of the above
-- ![Ehlers' Fisher Transform](https://forex-station.com/post1295528062.html#p1295528062)
+- [Ehlers' Fisher Transform](https://forex-station.com/post1295528062.html#p1295528062)
 
 ### Confirmation
 - C1: [KAMA (Kauffman's Adaptive Moving Average)](https://forex-station.com/download/file.php?id=3314561&sid=563944d8cfb302d8a712d2f9028ccbe4) (price above is bullish, price below is bearish)
@@ -78,7 +78,7 @@ Heiken Ashi Smoothed (T3) price action off of a condition below:
 - C2: [Ehlers' Mother of Adaptive Moving Averages](https://www.mesasoftware.com/papers/MAMA.pdf) (cross of mama/fama indicates a shift in trend)
 
 ### Exit (opposite condition as the  entry reason)
-- ![Ehlers' Fisher Transform](https://forex-station.com/post1295528062.html#p1295528062)
+- [Ehlers' Fisher Transform](https://forex-station.com/post1295528062.html#p1295528062)
 - [Heiken Ashi Smoothed (T3)](https://www.forexfactory.com/thread/post/14170997#post14170997) price action off of a condition below:
 	- [shved_supply_and_demand_v1.5](https://www.mql5.com/en/code/29395) (price is hitting resistance or finding support at a zone)
 	- PreviousCandleLevels (price is hitting resistance or support at a previous candle high or low)
