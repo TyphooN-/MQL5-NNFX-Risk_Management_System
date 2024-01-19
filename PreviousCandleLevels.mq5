@@ -23,13 +23,14 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.marketwizardry.info/"
-#property version   "1.007"
+#property version   "1.008"
 #property description "TyphooN's PreviousCandleLevels"
 #property indicator_chart_window
 // Define input parameters
-input string objname = "Previous_"; // Object name
 input color lineColor = clrWhite;       // Line color
 input int Line_Thickness = 2;
+// Global vars
+string objname = "Previous_"; // Object name
 double Previous_H1_High;
 double Previous_H1_Low;
 double Previous_H4_High;
@@ -167,4 +168,3 @@ bool IsNewH1Interval(const datetime& currentTime, const datetime& prevTime)
    }
    return false;
 }
-
