@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.294"
+#property version   "1.295"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -48,11 +48,13 @@ double TickSize( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRA
 double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_VALUE ) ); }
 // input vars
 input group    "[ORDER PLACEMENT SETTINGS]";
+input int      MarginBufferPercent        = 1;
+input double   AdditionalRiskRatio        = 0.25;
+input group    "[STANDARD RISK SETTINGS]";
 input bool     UseStandardRisk            = true;
 input double   MaxRisk                    = 1.0;
 input double   Risk                       = 0.5;
-input int      MarginBufferPercent        = 1;
-input double   AdditionalRiskRatio        = 0.25;
+input group    "[DYNAMIC RISK SETTINGS]";
 input bool     UseDynamicRisk             = false;
 input double   MinAccountBalance          = 96100;
 input int      LossesToMinBalance         = 10;
