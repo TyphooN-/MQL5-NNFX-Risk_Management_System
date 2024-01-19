@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.marketwizardry.info"
-#property version   "1.053"
+#property version   "1.054"
 #property indicator_chart_window
 #property indicator_buffers 40
 #property indicator_plots   8
@@ -257,7 +257,7 @@ int OnInit()
    ObjectSetString(0, objname + "InfoBearPowerLTF", OBJPROP_FONT, FontName);
    ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_COLOR, clrWhite);
-   ObjectSetString(0, objname + "InfoBearPowerLTF", OBJPROP_TEXT, BearPowerTextLTF);;
+   ObjectSetString(0, objname + "InfoBearPowerLTF", OBJPROP_TEXT, BearPowerTextLTF);
    ObjectCreate(0, objname + "InfoBullPowerHTF", OBJ_LABEL, 0, 0, 0);
    ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_XDISTANCE, HorizPos);
    ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_YDISTANCE, VertPos + 77);
