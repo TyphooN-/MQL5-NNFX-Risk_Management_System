@@ -88,7 +88,6 @@ int OnInit()
    ObjectSetString(0, objname + "Info1", OBJPROP_FONT, FontName);
    ObjectSetInteger(0, objname + "Info1", OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, objname + "Info1", OBJPROP_COLOR, FontColor);
-   ObjectSetInteger(0, objname + "Info1", OBJPROP_ZORDER, 1);
    ObjectCreate(0, objname + "Info2", OBJ_LABEL, 0, 0, 0);
    ObjectSetInteger(0, objname + "Info2", OBJPROP_XDISTANCE, HorizPos);
    ObjectSetInteger(0, objname + "Info2", OBJPROP_YDISTANCE, VertPos + 13);
@@ -96,7 +95,6 @@ int OnInit()
    ObjectSetString(0, objname + "Info2", OBJPROP_FONT, FontName);
    ObjectSetInteger(0, objname + "Info2", OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, objname + "Info2", OBJPROP_COLOR, FontColor);
-   ObjectSetInteger(0, objname + "Info2", OBJPROP_ZORDER, 1);
 #ifdef __MQL5__
    ArraySetAsSeries(iATR_D1, true);
    ArraySetAsSeries(iATR_W1, true);
