@@ -74,7 +74,6 @@
 	- MTF_MA (price is hitting resistance or support at 200SMA level)
 	- HTF bull power or bear power agreeing with all of the above
 
-
 ### Confirmation
 - C1: [KAMA (Kauffman's Adaptive Moving Average)](https://forex-station.com/download/file.php?id=3314561&sid=563944d8cfb302d8a712d2f9028ccbe4) (price above is bullish, price below is bearish)
 - C2: LTF Bull or Bear power Dominance (MTF_MA)
@@ -121,7 +120,6 @@
 - HorizPos: Horizontal position in pixels where the InfoText will appear.
 - VertPos : Vertical position in pixels where the InfoText will appear.
 
-
 ### TyphooN's Previous Candle Levels Indicator
 - Draws horizontal lines for Previous H1 -> MN1 candlesticks and updates them as new candlesticks print.
 - The lines begin at the previous candlestick high and low, and end at the current candlestick.
@@ -140,27 +138,22 @@
 ![ATR_Projection_Inputs](Images/ATR_Projection_Inputs.png)
 
 ## ATR Projection Indicator Settings
-
 ### ATR/PERIOD SETTINGS
-
 - ATR_Period: How many bars are used to calculate the ATR.  14 is the standard ATR period and is the default.
 - M15_ATR_Projections: Enables M15 ATR Projections if true (default true).
 - H1_ATR_Projections: Enables H1 ATR Projections if true (default true).
-- H1_Historical_Projection: Enables H1 Historical (2 hours previous) ATR Projections if true (default false).
 - H4_ATR_Projections: Enables H4 ATR Projections if true (default true).
 - D1_ATR_Projections: Enables D1 ATR Projections if true (default true).
 - W1_ATR_Projections: Enables W1 ATR Projections if true (default true).
 - MN1_ATR_Projections: Enables MN1 ATR Projections if true (default true).
 
 ### LINE SETTINGS
-
 - ATR_linestyle: The style of line to draw (default Dot).
 - ATR_Line_Thickness: The number of pixels thick that ATR Projection Lines will be drawn with.
 - ATR_Line_Color: The Colour of the ATR Projection Lines.
 - ATR_Line_Background: Enable to draw the ATR Lines in the background of other objects or not.
 
 ### INFO TEXT SETTINGS
-
 - FontName: The Font to draw InfoText with.
 - FontSize: Font Size to use when drawing InfoText.
 - HorizPos: Horizontal position in pixels where the InfoText will appear.
@@ -168,12 +161,10 @@
 - ATRInfoDecimals: The number of decimals to display in the ATR InfoText.
 
 # Usage
-
 This project is intended and may be freely used for education and entertainment purposes.
 However, **this project is not suitable for live trading** without relevant knowledge.
 
 # License
-
 The project is released under [GNU GPLv3 licence](https://www.gnu.org/licenses/quick-guide-gplv3.html),
 so that means the software is copyrighted, however you have the freedom to use, change or share the software
 for any purpose as long as the modified version stays free. See: [GNU FAQ](https://www.gnu.org/licenses/gpl-faq.html).
@@ -184,7 +175,6 @@ If not, please read <http://www.gnu.org/licenses/>.
 For simplified version, please read <https://tldrlegal.com/license/gnu-general-public-license-v3-(gpl-3)>.
 
 ## Terms of Use
-
 By using this software, you understand and agree that we (company and author)
 are not be liable or responsible for any loss or damage due to any reason.
 Although every attempt has been made to assure accuracy,
@@ -200,11 +190,9 @@ Use of this software serves as your acknowledgement and representation that you 
 these TERMS OF USE and that you agree to be bound by such Terms of Use ("License Agreement").
 
 # Copyright information
-
 Copyright © 2023 - MarketWizardry.org - All Rights Reserved
 
 # Disclaimer and Risk Warnings
-
 Trading any financial market involves risk.
 All forms of trading carry a high level of risk so you should only speculate with money you can afford to lose.
 You can lose more than your initial deposit and stake.
