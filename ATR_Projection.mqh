@@ -349,8 +349,8 @@ int OnCalculate(const int        rates_total,
       ATRLevelBelowW1 = currentOpenW1 - avgW1;
       GlobalVariableSet("GlobalATRLevelAboveW1", ATRLevelAboveW1);
       GlobalVariableSet("GlobalATRLevelBelowW1", ATRLevelBelowW1);
-      DrawHorizontalLine(ATRLevelAboveW1, objname + "High D1", ATR_Line_Color, startTimeW1, endTime);
-      DrawHorizontalLine(ATRLevelBelowW1, objname + "Low D1", ATR_Line_Color, startTimeW1, endTime);
+      DrawHorizontalLine(ATRLevelAboveW1, objname + "High W1", ATR_Line_Color, startTimeW1, endTime);
+      DrawHorizontalLine(ATRLevelBelowW1, objname + "Low W1", ATR_Line_Color, startTimeW1, endTime);
    }
    if (MN1_ATR_Projections)
    {
@@ -359,8 +359,8 @@ int OnCalculate(const int        rates_total,
       ATRLevelBelowMN1 = currentOpenMN1 - avgMN1;
       GlobalVariableSet("GlobalATRLevelAboveMN1", ATRLevelAboveMN1);
       GlobalVariableSet("GlobalATRLevelBelowMN1", ATRLevelBelowMN1);
-      DrawHorizontalLine(ATRLevelAboveMN1, objname + "High D1", ATR_Line_Color, startTimeMN1, endTime);
-      DrawHorizontalLine(ATRLevelBelowMN1, objname + "Low D1", ATR_Line_Color, startTimeMN1, endTime);
+      DrawHorizontalLine(ATRLevelAboveMN1, objname + "High MN1", ATR_Line_Color, startTimeMN1, endTime);
+      DrawHorizontalLine(ATRLevelBelowMN1, objname + "Low MN1", ATR_Line_Color, startTimeMN1, endTime);
    }
    if (H4_ATR_Projections && _Period <= PERIOD_D1)
    {
