@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.297"
+#property version   "1.298"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -82,6 +82,7 @@ double DynamicRisk = 0;
 double AccountBalance = 0;
 double required_margin = 0;
 double account_equity = 0;
+bool AutoProtectCalled = false;
 bool LimitLineExists = false;
 bool EquityTPCalled = false;
 bool EquitySLCalled = false;
@@ -552,12 +553,13 @@ void OnTick()
          percent_risk = MathAbs((sl_risk / AccountBalance) * 100);
       }
    }
-   if (EnableAutoProtect == true && breakEvenFound == false)
+   if (EnableAutoProtect == true && AutoProtectCalled == false && breakEvenFound == false)
    {
          if (rr >= APRRLevel && sl_risk < 0)
          {
             Print ("Auto Protect has removed risk as RR >= " + DoubleToString(APRRLevel,8));
             Protect();
+            AutoProtectCalled = true;
          }
    }
    string infoPL;
@@ -1632,6 +1634,7 @@ void TyWindow::OnClickSetSL(void)
          }
       }
    }
+   AutoProtectCalled = false;
 }
 bool TyWindow::OnDialogDragStart(void)
 {
