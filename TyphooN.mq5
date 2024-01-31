@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.296"
+#property version   "1.297"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -336,15 +336,20 @@ string arrayToString(uchar &arr[])
 }
 string TimeTilNextBar(ENUM_TIMEFRAMES tf=PERIOD_CURRENT)
 {
-   datetime now=TimeCurrent();
-   datetime bartime=iTime(NULL,tf,0);
-   datetime remainingTime=bartime+PeriodSeconds(tf)-now;
-   MqlDateTime mdt;
-   TimeToStruct(remainingTime,mdt);
-   if(mdt.day_of_year>0) return StringFormat("%dD %dH %dM",mdt.day_of_year,mdt.hour,mdt.min);
-   if(mdt.hour>0) return StringFormat("%dH %dM %ds",mdt.hour,mdt.min,mdt.sec);
-   if(mdt.min>0) return StringFormat("%dM %ds",mdt.min,mdt.sec);
-   return StringFormat("%ds",mdt.sec);
+   datetime now = TimeCurrent();
+   datetime bartime = iTime(NULL, tf, 0);
+   long remainingTime = (long)(bartime + PeriodSeconds(tf) - now);
+   // Ensure non-negativity
+   remainingTime = MathAbs(remainingTime);
+   long days = remainingTime / 86400; // 86400 seconds in a day
+   long hours = (remainingTime % 86400) / 3600; // 3600 seconds in an hour
+   long minutes = (remainingTime % 3600) / 60; // 60 seconds in a minute
+   long seconds = remainingTime % 60;
+   if (days > 0) return StringFormat("%ldD %ldH %ldM", days, hours, minutes);
+   if (hours > 0) return StringFormat("%ldH %ldM %lds", hours, minutes, seconds);
+   if (minutes > 0) return StringFormat("%ldM %lds", minutes, seconds);
+   // If less than 24 hours, consider it as hours and minutes until the new bar
+   return StringFormat("%ldH %ldM %lds", hours, minutes, seconds);
 }
 double PointValue()
 {
