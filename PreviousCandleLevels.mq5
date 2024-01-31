@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.marketwizardry.info/"
-#property version   "1.008"
+#property version   "1.009"
 #property description "TyphooN's PreviousCandleLevels"
 #property indicator_chart_window
 // Define input parameters
@@ -101,6 +101,14 @@ int OnCalculate(const int rates_total,
    }
    if(_Period == PERIOD_H4)
    {
+      if(ObjectCreate(0, objname + "H1_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname + "H1_High");
+      }
+      if(ObjectCreate(0, objname + "H1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname + "H1_Low");
+      }
       DrawHorizontalLine(Previous_H4_High, objname + "H4_High", lineColor, iTime(_Symbol, PERIOD_H4, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Previous_H4_Low, objname + "H4_Low", lineColor, iTime(_Symbol, PERIOD_H4, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Previous_D1_High, objname + "D1_High", lineColor, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
@@ -112,16 +120,88 @@ int OnCalculate(const int rates_total,
    }
    if(_Period == PERIOD_D1)
    {
+      if(ObjectCreate(0, objname + "H1_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname + "H1_High");
+      }
+      if(ObjectCreate(0, objname + "H1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname + "H1_Low");
+      }
+      if(ObjectCreate(0, objname + "H4_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname + "H4_High");
+      }
+      if(ObjectCreate(0, objname + "H4_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname + "H4_Low");
+      }
       DrawHorizontalLine(Previous_D1_High, objname + "D1_High", lineColor, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Previous_D1_Low, objname + "D1_Low", lineColor, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
    }
    if(_Period == PERIOD_W1)
    {
+      if(ObjectCreate(0, objname + "H1_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname + "H1_High");
+      }
+      if(ObjectCreate(0, objname + "H1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname + "H1_Low");
+      }
+      if(ObjectCreate(0, objname + "H4_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname + "H4_High");
+      }
+      if(ObjectCreate(0, objname + "H4_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname + "H4_Low");
+      }
+      if(ObjectCreate(0, objname + "D1_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname + "D1_High");
+      }
+      if(ObjectCreate(0, objname + "D1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname + "D1_Low");
+      }
       DrawHorizontalLine(Previous_W1_High, objname + "W1_High", lineColor, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Previous_W1_Low, objname + "W1_Low", lineColor, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
    }
    if(_Period == PERIOD_MN1)
    {
+      if(ObjectCreate(0, objname + "H1_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname + "H1_High");
+      }
+      if(ObjectCreate(0, objname + "H1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname + "H1_Low");
+      }
+      if(ObjectCreate(0, objname + "H4_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname + "H4_High");
+      }
+      if(ObjectCreate(0, objname + "H4_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname + "H4_Low");
+      }
+      if(ObjectCreate(0, objname + "D1_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname + "D1_High");
+      }
+      if(ObjectCreate(0, objname + "D1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname + "D1_Low");
+      }
+      if(ObjectCreate(0, objname + "D1_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname + "D1_High");
+      }
+      if(ObjectCreate(0, objname + "W1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname + "W1_Low");
+      }
       DrawHorizontalLine(Previous_MN1_High, objname + "MN1_High", lineColor, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Previous_MN1_Low, objname + "MN1_Low", lineColor, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
    }
