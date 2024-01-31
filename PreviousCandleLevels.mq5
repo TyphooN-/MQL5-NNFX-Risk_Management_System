@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.marketwizardry.info/"
-#property version   "1.009"
+#property version   "1.010"
 #property description "TyphooN's PreviousCandleLevels"
 #property indicator_chart_window
 // Define input parameters
@@ -68,6 +68,7 @@ int OnCalculate(const int rates_total,
    if (IsNewH1Interval(currentTradeServerTime, prevTradeServerTime))
    {
       UpdateCandlestickData();
+      CreateLines();
       prevTradeServerTime = currentTradeServerTime;
       //Print("Updating ATR Data and Candlestick data due to 15 min server time.");
    }
@@ -84,8 +85,26 @@ int OnCalculate(const int rates_total,
       //Print("New candle has formed, updating ATR & Candlestick Data");
       // Update the last checked candle index
       lastCheckedCandle = rates_total - 1;
+      CreateLines();
       UpdateCandlestickData();
    }
+   return(rates_total);
+}
+void UpdateCandlestickData()
+{
+      Previous_H1_High = iHigh(_Symbol, PERIOD_H1, 1);
+      Previous_H1_Low = iLow(_Symbol, PERIOD_H1, 1);
+      Previous_H4_High = iHigh(_Symbol, PERIOD_H4, 1);
+      Previous_H4_Low = iLow(_Symbol, PERIOD_H4, 1);
+      Previous_D1_High = iHigh(_Symbol, PERIOD_D1, 1);
+      Previous_D1_Low = iLow(_Symbol, PERIOD_D1, 1);
+      Previous_W1_High = iHigh(_Symbol, PERIOD_W1, 1);
+      Previous_W1_Low = iLow(_Symbol, PERIOD_W1, 1);
+      Previous_MN1_High = iHigh(_Symbol, PERIOD_MN1, 1);
+      Previous_MN1_Low = iLow(_Symbol, PERIOD_MN1, 1);
+}
+void CreateLines()
+{
    if(_Period <= PERIOD_H1)
    {
       DrawHorizontalLine(Previous_H1_High, objname + "H1_High", lineColor, iTime(_Symbol, PERIOD_H1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
@@ -205,20 +224,6 @@ int OnCalculate(const int rates_total,
       DrawHorizontalLine(Previous_MN1_High, objname + "MN1_High", lineColor, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Previous_MN1_Low, objname + "MN1_Low", lineColor, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
    }
-   return(rates_total);
-}
-void UpdateCandlestickData()
-{
-      Previous_H1_High = iHigh(_Symbol, PERIOD_H1, 1);
-      Previous_H1_Low = iLow(_Symbol, PERIOD_H1, 1);
-      Previous_H4_High = iHigh(_Symbol, PERIOD_H4, 1);
-      Previous_H4_Low = iLow(_Symbol, PERIOD_H4, 1);
-      Previous_D1_High = iHigh(_Symbol, PERIOD_D1, 1);
-      Previous_D1_Low = iLow(_Symbol, PERIOD_D1, 1);
-      Previous_W1_High = iHigh(_Symbol, PERIOD_W1, 1);
-      Previous_W1_Low = iLow(_Symbol, PERIOD_W1, 1);
-      Previous_MN1_High = iHigh(_Symbol, PERIOD_MN1, 1);
-      Previous_MN1_Low = iLow(_Symbol, PERIOD_MN1, 1);
 }
 void DrawHorizontalLine(double price, string label, color clr, datetime startTime, datetime endTime)
 {
