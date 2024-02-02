@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.marketwizardry.info/"
-#property version   "1.010"
+#property version   "1.011"
 #property description "TyphooN's PreviousCandleLevels"
 #property indicator_chart_window
 // Define input parameters
@@ -68,7 +68,7 @@ int OnCalculate(const int rates_total,
    if (IsNewH1Interval(currentTradeServerTime, prevTradeServerTime))
    {
       UpdateCandlestickData();
-      CreateLines();
+      DrawLines();
       prevTradeServerTime = currentTradeServerTime;
       //Print("Updating ATR Data and Candlestick data due to 15 min server time.");
    }
@@ -85,9 +85,10 @@ int OnCalculate(const int rates_total,
       //Print("New candle has formed, updating ATR & Candlestick Data");
       // Update the last checked candle index
       lastCheckedCandle = rates_total - 1;
-      CreateLines();
+      DrawLines();
       UpdateCandlestickData();
    }
+   DrawLines();
    return(rates_total);
 }
 void UpdateCandlestickData()
@@ -103,7 +104,7 @@ void UpdateCandlestickData()
       Previous_MN1_High = iHigh(_Symbol, PERIOD_MN1, 1);
       Previous_MN1_Low = iLow(_Symbol, PERIOD_MN1, 1);
 }
-void CreateLines()
+void DrawLines()
 {
    if(_Period <= PERIOD_H1)
    {
