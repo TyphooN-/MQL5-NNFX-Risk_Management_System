@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.marketwizardry.info/"
-#property version   "1.026"
+#property version   "1.027"
 #property description "TyphooN's PreviousCandleLevels"
 #property indicator_chart_window
 // Define input parameters
@@ -97,13 +97,14 @@ int OnCalculate(const int rates_total,
       UpdateJudasData();
       DrawLines();
    }
-   if (((Bid > Asian_High || Ask < Asian_Low) && (TimeCurrent() >= AsianSessionStart && TimeCurrent() <= AsianSessionEnd) && (TimeCurrent() > lastJudasUpdate + 60))
-       || ((Bid > London_High || Ask < London_Low) && (TimeCurrent() >= LondonSessionStart && TimeCurrent() <= LondonSessionEnd) && (TimeCurrent() > lastJudasUpdate + 60))
-       || ((Bid > Current_D1_High || Ask < Current_D1_Low) && (TimeCurrent() > lastJudasUpdate + 60)))
+   if ((TimeCurrent() > (lastJudasUpdate + 60)) &&
+      (((Bid > Asian_High || Ask < Asian_Low) && (TimeCurrent() >= AsianSessionStart && TimeCurrent() <= AsianSessionEnd)) ||
+      ((Bid > London_High || Ask < London_Low) && (TimeCurrent() >= LondonSessionStart && TimeCurrent() <= LondonSessionEnd)) ||
+      ((Bid > Current_D1_High || Ask < Current_D1_Low))))
    {
       UpdateJudasData();
       DrawLines();
-      Print("Called Judas Data update.");
+      //Print("Called Judas Data update.");
    }
    return(rates_total);
 }
@@ -335,8 +336,8 @@ void DrawLines()
       {
          ObjectDelete(0, objname2 + "Asian_High");
       }
-      DrawHorizontalLine(Previous_MN1_High, objname2 + "MN1_High", JudasLevelColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      DrawHorizontalLine(Previous_MN1_Low, objname2 + "MN1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_MN1_High, objname2 + "MN1_High", PreviousCandleColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_MN1_Low, objname2 + "MN1_Low", PreviousCandleColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
    }
 }
 void DrawHorizontalLine(double price, string label, color clr, datetime startTime, datetime endTime)
