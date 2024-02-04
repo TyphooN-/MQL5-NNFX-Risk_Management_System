@@ -41,7 +41,7 @@ input int AsianBeginningHour = 0;   // Asian session start hour
 input int AsianEndingHour = 8;      // Asian session end hour
 input int LondonBeginningHour = 8;  // London session start hour
 input int LondonEndingHour = 16;    // London session end hour
-datetime AsianSessionStart, AsianSessionEnd, LondonSessionStart, LondonSessionEnd;;
+datetime AsianSessionStart, AsianSessionEnd, LondonSessionStart, LondonSessionEnd;
 int OnInit()
 {
    return(INIT_SUCCEEDED);
