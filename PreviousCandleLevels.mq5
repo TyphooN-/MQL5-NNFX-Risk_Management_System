@@ -139,7 +139,6 @@ void UpdateJudasData()
    int currentDayEndShift = iBarShift(_Symbol, PERIOD_M1, iTime(_Symbol, PERIOD_M1, 0));
    Current_D1_High = iHigh(_Symbol, PERIOD_D1, currentDayEndShift);
    Current_D1_Low = iLow(_Symbol, PERIOD_D1, currentDayStartShift);
-
    lastJudasUpdate = TimeCurrent();
 }
 void DrawLines()
