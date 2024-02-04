@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.marketwizardry.info/"
-#property version   "1.022"
+#property version   "1.023"
 #property description "TyphooN's PreviousCandleLevels"
 #property indicator_chart_window
 // Define input parameters
@@ -92,8 +92,8 @@ int OnCalculate(const int rates_total,
       UpdateJudasData();
       DrawLines();
    }
-   if (Bid > Current_D1_High || Bid > Asian_High || Bid > London_High || Ask < Current_D1_Low
-      || Ask < Asian_Low || Ask < London_Low || TimeCurrent() > lastJudasUpdate + 60)
+   if ((Bid > Current_D1_High || Bid > Asian_High || Bid > London_High || Ask < Current_D1_Low
+      || Ask < Asian_Low || Ask < London_Low) && TimeCurrent() > lastJudasUpdate + 60)
    {
       UpdateJudasData();
       DrawLines();
