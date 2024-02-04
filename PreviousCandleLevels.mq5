@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.marketwizardry.info/"
-#property version   "1.020"
+#property version   "1.021"
 #property description "TyphooN's PreviousCandleLevels"
 #property indicator_chart_window
 // Define input parameters
@@ -34,8 +34,9 @@ input int Line_Thickness = 2;
 string objname1 = "Previous_";
 string objname2 = "Current_";
 double Previous_H1_High, Previous_H1_Low, Previous_H4_High, Previous_H4_Low, Previous_D1_High, Previous_D1_Low, Previous_W1_High, Previous_W1_Low,
-   Previous_MN1_High, Previous_MN1_Low, Asian_High, Asian_Low, London_High, London_Low, Current_D1_Low, Current_D1_High;
+   Previous_MN1_High, Previous_MN1_Low, Asian_High, Asian_Low, London_High, London_Low, Current_D1_Low, Current_D1_High, Ask, Bid;
 int lastCheckedCandle = -1;
+datetime lastJudasUpdate = 0;
 input int AsianBeginningHour = 0;   // Asian session start hour
 input int AsianEndingHour = 8;      // Asian session end hour
 input int LondonBeginningHour = 8;  // London session start hour
@@ -60,13 +61,16 @@ int OnCalculate(const int rates_total,
                 const long &volume[],
                 const int &spread[])
 {
+   Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+   Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    static datetime prevTradeServerTime = 0;  // Initialize with 0 on the first run
    datetime currentTradeServerTime = 0;
    currentTradeServerTime = TimeTradeServer();
    // Check if it is a new H1 interval
    if (IsNewH1Interval(currentTradeServerTime, prevTradeServerTime))
    {
-      UpdateCandlestickData();
+      UpdatePreviousData();
+      UpdateJudasData();
       DrawLines();
       prevTradeServerTime = currentTradeServerTime;
       //Print("Updating ATR Data and Candlestick data due to 15 min server time.");
@@ -84,43 +88,52 @@ int OnCalculate(const int rates_total,
       //Print("New candle has formed, updating ATR & Candlestick Data");
       // Update the last checked candle index
       lastCheckedCandle = rates_total - 1;
+      UpdatePreviousData();
+      UpdateJudasData();
       DrawLines();
-      UpdateCandlestickData();
    }
-   DrawLines();
+   if (Bid > Current_D1_High || Ask < Current_D1_Low || TimeCurrent() > lastJudasUpdate + 60)
+   {
+      UpdateJudasData();
+      DrawLines();
+   }
    return(rates_total);
 }
-void UpdateCandlestickData()
+void UpdatePreviousData()
 {
-    Previous_H1_High = iHigh(_Symbol, PERIOD_H1, 1);
-    Previous_H1_Low = iLow(_Symbol, PERIOD_H1, 1);
-    Previous_H4_High = iHigh(_Symbol, PERIOD_H4, 1);
-    Previous_H4_Low = iLow(_Symbol, PERIOD_H4, 1);
-    Previous_D1_High = iHigh(_Symbol, PERIOD_D1, 1);
-    Previous_D1_Low = iLow(_Symbol, PERIOD_D1, 1);
-    Previous_W1_High = iHigh(_Symbol, PERIOD_W1, 1);
-    Previous_W1_Low = iLow(_Symbol, PERIOD_W1, 1);
-    Previous_MN1_High = iHigh(_Symbol, PERIOD_MN1, 1);
-    Previous_MN1_Low = iLow(_Symbol, PERIOD_MN1, 1);
-    // Calculate Asian session high and low
-    datetime asianSessionStart = iTime(_Symbol, PERIOD_H1, 1) + AsianBeginningHour * 3600;
-    datetime asianSessionEnd = iTime(_Symbol, PERIOD_H1, 1) + AsianEndingHour * 3600;
-    int asianSessionEndShift = iBarShift(_Symbol, PERIOD_H1, asianSessionEnd);
-    int asianSessionStartShift = iBarShift(_Symbol, PERIOD_H1, asianSessionStart);
-    Asian_High = iHigh(_Symbol, PERIOD_H1, asianSessionEndShift);
-    Asian_Low = iLow(_Symbol, PERIOD_H1, asianSessionStartShift);
-    // Calculate London session high and low
-    datetime londonSessionStart = iTime(_Symbol, PERIOD_H1, 1) + LondonBeginningHour * 3600;
-    datetime londonSessionEnd = iTime(_Symbol, PERIOD_H1, 1) + LondonEndingHour * 3600;
-    int londonSessionEndShift = iBarShift(_Symbol, PERIOD_H1, londonSessionEnd);
-    int londonSessionStartShift = iBarShift(_Symbol, PERIOD_H1, londonSessionStart);
-    London_High = iHigh(_Symbol, PERIOD_H1, londonSessionEndShift);
-    London_Low = iLow(_Symbol, PERIOD_H1, londonSessionStartShift);
-    // Calculate current day's high and low
-    int currentDayStartShift = iBarShift(_Symbol, PERIOD_D1, iTime(_Symbol, PERIOD_D1, 0));
-    int currentDayEndShift = iBarShift(_Symbol, PERIOD_M1, iTime(_Symbol, PERIOD_M1, 0));
-    Current_D1_High = iHigh(_Symbol, PERIOD_D1, currentDayEndShift);
-    Current_D1_Low = iLow(_Symbol, PERIOD_D1, currentDayStartShift);
+   Previous_H1_High = iHigh(_Symbol, PERIOD_H1, 1);
+   Previous_H1_Low = iLow(_Symbol, PERIOD_H1, 1);
+   Previous_H4_High = iHigh(_Symbol, PERIOD_H4, 1);
+   Previous_H4_Low = iLow(_Symbol, PERIOD_H4, 1);
+   Previous_D1_High = iHigh(_Symbol, PERIOD_D1, 1);
+   Previous_D1_Low = iLow(_Symbol, PERIOD_D1, 1);
+   Previous_W1_High = iHigh(_Symbol, PERIOD_W1, 1);
+   Previous_W1_Low = iLow(_Symbol, PERIOD_W1, 1);
+   Previous_MN1_High = iHigh(_Symbol, PERIOD_MN1, 1);
+   Previous_MN1_Low = iLow(_Symbol, PERIOD_MN1, 1);
+}
+void UpdateJudasData()
+{
+   // Calculate Asian session high and low
+   datetime asianSessionStart = iTime(_Symbol, PERIOD_H1, 1) + AsianBeginningHour * 3600;
+   datetime asianSessionEnd = iTime(_Symbol, PERIOD_H1, 1) + AsianEndingHour * 3600;
+   int asianSessionEndShift = iBarShift(_Symbol, PERIOD_H1, asianSessionEnd);
+   int asianSessionStartShift = iBarShift(_Symbol, PERIOD_H1, asianSessionStart);
+   Asian_High = iHigh(_Symbol, PERIOD_H1, asianSessionEndShift);
+   Asian_Low = iLow(_Symbol, PERIOD_H1, asianSessionStartShift);
+   // Calculate London session high and low
+   datetime londonSessionStart = iTime(_Symbol, PERIOD_H1, 1) + LondonBeginningHour * 3600;
+   datetime londonSessionEnd = iTime(_Symbol, PERIOD_H1, 1) + LondonEndingHour * 3600;
+   int londonSessionEndShift = iBarShift(_Symbol, PERIOD_H1, londonSessionEnd);
+   int londonSessionStartShift = iBarShift(_Symbol, PERIOD_H1, londonSessionStart);
+   London_High = iHigh(_Symbol, PERIOD_H1, londonSessionEndShift);
+   London_Low = iLow(_Symbol, PERIOD_H1, londonSessionStartShift);
+   // Calculate current day's high and low
+   int currentDayStartShift = iBarShift(_Symbol, PERIOD_D1, iTime(_Symbol, PERIOD_D1, 0));
+   int currentDayEndShift = iBarShift(_Symbol, PERIOD_M1, iTime(_Symbol, PERIOD_M1, 0));
+   Current_D1_High = iHigh(_Symbol, PERIOD_D1, currentDayEndShift);
+   Current_D1_Low = iLow(_Symbol, PERIOD_D1, currentDayStartShift);
+   lastJudasUpdate = TimeCurrent();
 }
 void DrawLines()
 {
