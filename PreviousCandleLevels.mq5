@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.marketwizardry.info/"
-#property version   "1.024"
+#property version   "1.025"
 #property description "TyphooN's PreviousCandleLevels"
 #property indicator_chart_window
 // Define input parameters
@@ -41,6 +41,7 @@ input int AsianBeginningHour = 0;   // Asian session start hour
 input int AsianEndingHour = 8;      // Asian session end hour
 input int LondonBeginningHour = 8;  // London session start hour
 input int LondonEndingHour = 16;    // London session end hour
+datetime AsianSessionStart, AsianSessionEnd, LondonSessionStart, LondonSessionEnd;;
 int OnInit()
 {
    return(INIT_SUCCEEDED);
@@ -61,6 +62,10 @@ int OnCalculate(const int rates_total,
                 const long &volume[],
                 const int &spread[])
 {
+   AsianSessionStart = iTime(_Symbol, PERIOD_H1, 1) + AsianBeginningHour * 3600;
+   AsianSessionEnd = iTime(_Symbol, PERIOD_H1, 1) + AsianEndingHour * 3600;
+   LondonSessionStart = iTime(_Symbol, PERIOD_H1, 1) + LondonBeginningHour * 3600;
+   LondonSessionEnd = iTime(_Symbol, PERIOD_H1, 1) + LondonEndingHour * 3600;
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    static datetime prevTradeServerTime = 0;  // Initialize with 0 on the first run
@@ -92,10 +97,13 @@ int OnCalculate(const int rates_total,
       UpdateJudasData();
       DrawLines();
    }
-   if (((Bid > Asian_High || Bid > London_High || Ask < Asian_Low || Ask < London_Low) || (Bid > Current_D1_High || Ask < Current_D1_Low)) && (TimeCurrent() > lastJudasUpdate + 60))
+   if (((Bid > Asian_High || Ask < Asian_Low) && (TimeCurrent() >= AsianSessionStart && TimeCurrent() <= AsianSessionEnd) && (TimeCurrent() > lastJudasUpdate + 60))
+       || ((Bid > London_High || Ask < London_Low) && (TimeCurrent() >= LondonSessionStart && TimeCurrent() <= LondonSessionEnd) && (TimeCurrent() > lastJudasUpdate + 60))
+       || ((Bid > Current_D1_High || Ask < Current_D1_Low) && (TimeCurrent() > lastJudasUpdate + 60)))
    {
       UpdateJudasData();
       DrawLines();
+      //Print("Called Judas Data update.");
    }
    return(rates_total);
 }
@@ -114,20 +122,16 @@ void UpdatePreviousData()
 }
 void UpdateJudasData()
 {
-   datetime AsianSessionStart = iTime(_Symbol, PERIOD_H1, 1) + AsianBeginningHour * 3600;
-   datetime AsianSessionEnd = iTime(_Symbol, PERIOD_H1, 1) + AsianEndingHour * 3600;
-   datetime LondonSessionStart = iTime(_Symbol, PERIOD_H1, 1) + LondonBeginningHour * 3600;
-   datetime LondonSessionEnd = iTime(_Symbol, PERIOD_H1, 1) + LondonEndingHour * 3600;
-   // Check if the current time is within the Asian session hours
-   if (TimeCurrent() >= AsianSessionStart && TimeCurrent() <= AsianSessionEnd)
+   // Check if the current time is within the Asian session hours or if values are 0
+   if ((TimeCurrent() >= AsianSessionStart && TimeCurrent() <= AsianSessionEnd) || Asian_High != 0 || Asian_Low != 0)
    {
       int AsianSessionEndShift = iBarShift(_Symbol, PERIOD_H1, AsianSessionEnd);
       int AsianSessionStartShift = iBarShift(_Symbol, PERIOD_H1, AsianSessionStart);
       Asian_High = iHigh(_Symbol, PERIOD_H1, AsianSessionEndShift);
       Asian_Low = iLow(_Symbol, PERIOD_H1, AsianSessionStartShift);
    }
-   // Check if the current time is within the London session hours
-   if (TimeCurrent() >= LondonSessionStart && TimeCurrent() <= LondonSessionEnd)
+   // Check if the current time is within the London session hours or values are 0
+   if ((TimeCurrent() >= LondonSessionStart && TimeCurrent() <= LondonSessionEnd) || London_High != 0 || London_Low != 0)
    {
       int LondonSessionEndShift = iBarShift(_Symbol, PERIOD_H1, LondonSessionEnd);
       int LondonSessionStartShift = iBarShift(_Symbol, PERIOD_H1, LondonSessionStart);
