@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.marketwizardry.info/"
-#property version   "1.027"
+#property version   "1.028"
 #property description "TyphooN's PreviousCandleLevels"
 #property indicator_chart_window
 // Define input parameters
@@ -146,6 +146,13 @@ void UpdateJudasData()
    Current_D1_Low = iLow(_Symbol, PERIOD_D1, currentDayStartShift);
    lastJudasUpdate = TimeCurrent();
 }
+void DeleteHorizontalLine(string object)
+{
+      if(ObjectCreate(0, object, OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, object);
+      }
+}
 void DrawLines()
 {
    if(_Period <= PERIOD_H1)
@@ -169,14 +176,8 @@ void DrawLines()
    }
    if(_Period == PERIOD_H4)
    {
-      if(ObjectCreate(0, objname1 + "H1_High", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname1 + "H1_High");
-      }
-      if(ObjectCreate(0, objname1 + "H1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname1 + "H1_Low");
-      }
+      DeleteHorizontalLine(objname1 + "H1_High");
+      DeleteHorizontalLine(objname1 + "H1_Low");
       DrawHorizontalLine(Previous_H4_High, objname1 + "H4_High", PreviousCandleColour, iTime(_Symbol, PERIOD_H4, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Previous_H4_Low, objname1 + "H4_Low", PreviousCandleColour, iTime(_Symbol, PERIOD_H4, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Previous_D1_High, objname1 + "D1_High", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
@@ -194,22 +195,10 @@ void DrawLines()
    }
    if(_Period == PERIOD_D1)
    {
-      if(ObjectCreate(0, objname1 + "H1_High", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname1 + "H1_High");
-      }
-      if(ObjectCreate(0, objname1 + "H1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname1 + "H1_Low");
-      }
-      if(ObjectCreate(0, objname1 + "H4_High", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname1 + "H4_High");
-      }
-      if(ObjectCreate(0, objname1 + "H4_Low", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname1 + "H4_Low");
-      }
+      DeleteHorizontalLine(objname1 + "H1_High");
+      DeleteHorizontalLine(objname1 + "H1_Low");
+      DeleteHorizontalLine(objname1 + "H4_High");
+      DeleteHorizontalLine(objname1 + "H4_Low");
       DrawHorizontalLine(Previous_D1_High, objname1 + "D1_High", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Previous_D1_Low, objname1 + "D1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Previous_W1_High, objname1 + "W1_High", JudasLevelColour, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
@@ -225,54 +214,18 @@ void DrawLines()
    }
    if(_Period == PERIOD_W1)
    {
-      if(ObjectCreate(0, objname1 + "H1_High", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname1 + "H1_High");
-      }
-      if(ObjectCreate(0, objname1 + "H1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname1 + "H1_Low");
-      }
-      if(ObjectCreate(0, objname1 + "H4_High", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname1 + "H4_High");
-      }
-      if(ObjectCreate(0, objname1 + "H4_Low", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname1 + "H4_Low");
-      }
-      if(ObjectCreate(0, objname1 + "D1_High", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname1 + "D1_High");
-      }
-      if(ObjectCreate(0, objname1 + "D1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname1 + "D1_Low");
-      }
-      if(ObjectCreate(0, objname2 + "D1_High", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname2 + "D1_High");
-      }
-      if(ObjectCreate(0, objname2 + "D1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname2 + "D1_Low");
-      }
-      if(ObjectCreate(0, objname2 + "London_Low", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname2 + "London_Low");
-      }
-      if(ObjectCreate(0, objname2 + "London_High", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname2 + "London_High");
-      }
-      if(ObjectCreate(0, objname2 + "Asian_Low", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname2 + "Asian_Low");
-      }
-      if(ObjectCreate(0, objname2 + "Asian_High", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname2 + "Asian_High");
-      }
+      DeleteHorizontalLine(objname1 + "H1_High");
+      DeleteHorizontalLine(objname1 + "H1_Low");
+      DeleteHorizontalLine(objname1 + "H4_High");
+      DeleteHorizontalLine(objname1 + "H4_Low");
+      DeleteHorizontalLine(objname1 + "D1_High");
+      DeleteHorizontalLine(objname1 + "D1_Low");
+      DeleteHorizontalLine(objname2 + "D1_High");
+      DeleteHorizontalLine(objname2 + "D1_Low");
+      DeleteHorizontalLine(objname2 + "Asian_High");
+      DeleteHorizontalLine(objname2 + "Asian_Low");
+      DeleteHorizontalLine(objname2 + "London_High");
+      DeleteHorizontalLine(objname2 + "London_Low");
       DrawHorizontalLine(Previous_W1_High, objname2 + "W1_High", JudasLevelColour, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Previous_W1_Low, objname2 + "W1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Previous_MN1_High, objname1 + "MN1_High", PreviousCandleColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
@@ -280,62 +233,20 @@ void DrawLines()
    }
    if(_Period == PERIOD_MN1)
    {
-      if(ObjectCreate(0, objname1 + "H1_High", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname1 + "H1_High");
-      }
-      if(ObjectCreate(0, objname1 + "H1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname1 + "H1_Low");
-      }
-      if(ObjectCreate(0, objname1 + "H4_High", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname1 + "H4_High");
-      }
-      if(ObjectCreate(0, objname1 + "H4_Low", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname1 + "H4_Low");
-      }
-      if(ObjectCreate(0, objname1 + "D1_High", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname1 + "D1_High");
-      }
-      if(ObjectCreate(0, objname1 + "D1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname1 + "D1_Low");
-      }
-      if(ObjectCreate(0, objname1 + "W1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname1 + "W1_Low");
-      }
-      if(ObjectCreate(0, objname1 + "W1_High", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname1 + "W1_High");
-      }
-      if(ObjectCreate(0, objname2 + "D1_High", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname2 + "D1_High");
-      }
-      if(ObjectCreate(0, objname2 + "D1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname2 + "D1_Low");
-      }
-      if(ObjectCreate(0, objname2 + "London_Low", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname2 + "London_Low");
-      }
-      if(ObjectCreate(0, objname2 + "London_High", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname2 + "London_High");
-      }
-      if(ObjectCreate(0, objname2 + "Asian_Low", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname2 + "Asian_Low");
-      }
-      if(ObjectCreate(0, objname2 + "Asian_High", OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, objname2 + "Asian_High");
-      }
+      DeleteHorizontalLine(objname1 + "H1_High");
+      DeleteHorizontalLine(objname1 + "H1_Low");
+      DeleteHorizontalLine(objname1 + "H4_High");
+      DeleteHorizontalLine(objname1 + "H4_Low");
+      DeleteHorizontalLine(objname1 + "D1_High");
+      DeleteHorizontalLine(objname1 + "D1_Low");
+      DeleteHorizontalLine(objname1 + "W1_High");
+      DeleteHorizontalLine(objname1 + "W1_Low");
+      DeleteHorizontalLine(objname2 + "D1_High");
+      DeleteHorizontalLine(objname2 + "D1_Low");
+      DeleteHorizontalLine(objname2 + "Asian_High");
+      DeleteHorizontalLine(objname2 + "Asian_Low");
+      DeleteHorizontalLine(objname2 + "London_High");
+      DeleteHorizontalLine(objname2 + "London_Low");
       DrawHorizontalLine(Previous_MN1_High, objname2 + "MN1_High", PreviousCandleColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Previous_MN1_Low, objname2 + "MN1_Low", PreviousCandleColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
    }
