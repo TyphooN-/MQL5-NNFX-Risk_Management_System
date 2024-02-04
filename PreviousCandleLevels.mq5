@@ -23,32 +23,31 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.marketwizardry.info/"
-#property version   "1.011"
+#property version   "1.020"
 #property description "TyphooN's PreviousCandleLevels"
 #property indicator_chart_window
 // Define input parameters
-input color lineColor = clrWhite;       // Line color
+input color PreviousCandleColour = clrWhite;
+input color JudasLevelColour = clrMagenta;
 input int Line_Thickness = 2;
 // Global vars
-string objname = "Previous_"; // Object name
-double Previous_H1_High;
-double Previous_H1_Low;
-double Previous_H4_High;
-double Previous_H4_Low;
-double Previous_D1_High;
-double Previous_D1_Low;
-double Previous_W1_High;
-double Previous_W1_Low;
-double Previous_MN1_High;
-double Previous_MN1_Low;
+string objname1 = "Previous_";
+string objname2 = "Current_";
+double Previous_H1_High, Previous_H1_Low, Previous_H4_High, Previous_H4_Low, Previous_D1_High, Previous_D1_Low, Previous_W1_High, Previous_W1_Low,
+   Previous_MN1_High, Previous_MN1_Low, Asian_High, Asian_Low, London_High, London_Low, Current_D1_Low, Current_D1_High;
 int lastCheckedCandle = -1;
+input int AsianBeginningHour = 0;   // Asian session start hour
+input int AsianEndingHour = 8;      // Asian session end hour
+input int LondonBeginningHour = 8;  // London session start hour
+input int LondonEndingHour = 16;    // London session end hour
 int OnInit()
 {
    return(INIT_SUCCEEDED);
 }
 void OnDeinit(const int reason)
 {
-   ObjectsDeleteAll(0, objname);
+   ObjectsDeleteAll(0, objname1);
+   ObjectsDeleteAll(0, objname2);
 }
 int OnCalculate(const int rates_total,
                 const int prev_calculated,
@@ -93,137 +92,228 @@ int OnCalculate(const int rates_total,
 }
 void UpdateCandlestickData()
 {
-      Previous_H1_High = iHigh(_Symbol, PERIOD_H1, 1);
-      Previous_H1_Low = iLow(_Symbol, PERIOD_H1, 1);
-      Previous_H4_High = iHigh(_Symbol, PERIOD_H4, 1);
-      Previous_H4_Low = iLow(_Symbol, PERIOD_H4, 1);
-      Previous_D1_High = iHigh(_Symbol, PERIOD_D1, 1);
-      Previous_D1_Low = iLow(_Symbol, PERIOD_D1, 1);
-      Previous_W1_High = iHigh(_Symbol, PERIOD_W1, 1);
-      Previous_W1_Low = iLow(_Symbol, PERIOD_W1, 1);
-      Previous_MN1_High = iHigh(_Symbol, PERIOD_MN1, 1);
-      Previous_MN1_Low = iLow(_Symbol, PERIOD_MN1, 1);
+    Previous_H1_High = iHigh(_Symbol, PERIOD_H1, 1);
+    Previous_H1_Low = iLow(_Symbol, PERIOD_H1, 1);
+    Previous_H4_High = iHigh(_Symbol, PERIOD_H4, 1);
+    Previous_H4_Low = iLow(_Symbol, PERIOD_H4, 1);
+    Previous_D1_High = iHigh(_Symbol, PERIOD_D1, 1);
+    Previous_D1_Low = iLow(_Symbol, PERIOD_D1, 1);
+    Previous_W1_High = iHigh(_Symbol, PERIOD_W1, 1);
+    Previous_W1_Low = iLow(_Symbol, PERIOD_W1, 1);
+    Previous_MN1_High = iHigh(_Symbol, PERIOD_MN1, 1);
+    Previous_MN1_Low = iLow(_Symbol, PERIOD_MN1, 1);
+    // Calculate Asian session high and low
+    datetime asianSessionStart = iTime(_Symbol, PERIOD_H1, 1) + AsianBeginningHour * 3600;
+    datetime asianSessionEnd = iTime(_Symbol, PERIOD_H1, 1) + AsianEndingHour * 3600;
+    int asianSessionEndShift = iBarShift(_Symbol, PERIOD_H1, asianSessionEnd);
+    int asianSessionStartShift = iBarShift(_Symbol, PERIOD_H1, asianSessionStart);
+    Asian_High = iHigh(_Symbol, PERIOD_H1, asianSessionEndShift);
+    Asian_Low = iLow(_Symbol, PERIOD_H1, asianSessionStartShift);
+    // Calculate London session high and low
+    datetime londonSessionStart = iTime(_Symbol, PERIOD_H1, 1) + LondonBeginningHour * 3600;
+    datetime londonSessionEnd = iTime(_Symbol, PERIOD_H1, 1) + LondonEndingHour * 3600;
+    int londonSessionEndShift = iBarShift(_Symbol, PERIOD_H1, londonSessionEnd);
+    int londonSessionStartShift = iBarShift(_Symbol, PERIOD_H1, londonSessionStart);
+    London_High = iHigh(_Symbol, PERIOD_H1, londonSessionEndShift);
+    London_Low = iLow(_Symbol, PERIOD_H1, londonSessionStartShift);
+    // Calculate current day's high and low
+    int currentDayStartShift = iBarShift(_Symbol, PERIOD_D1, iTime(_Symbol, PERIOD_D1, 0));
+    int currentDayEndShift = iBarShift(_Symbol, PERIOD_M1, iTime(_Symbol, PERIOD_M1, 0));
+    Current_D1_High = iHigh(_Symbol, PERIOD_D1, currentDayEndShift);
+    Current_D1_Low = iLow(_Symbol, PERIOD_D1, currentDayStartShift);
 }
 void DrawLines()
 {
    if(_Period <= PERIOD_H1)
    {
-      DrawHorizontalLine(Previous_H1_High, objname + "H1_High", lineColor, iTime(_Symbol, PERIOD_H1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      DrawHorizontalLine(Previous_H1_Low, objname + "H1_Low", lineColor, iTime(_Symbol, PERIOD_H1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      DrawHorizontalLine(Previous_H4_High, objname + "H4_High", lineColor, iTime(_Symbol, PERIOD_H4, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      DrawHorizontalLine(Previous_H4_Low, objname + "H4_Low", lineColor, iTime(_Symbol, PERIOD_H4, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      DrawHorizontalLine(Previous_D1_High, objname + "D1_High", lineColor, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      DrawHorizontalLine(Previous_D1_Low, objname + "D1_Low", lineColor, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      DrawHorizontalLine(Previous_W1_High, objname + "W1_High", lineColor, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      DrawHorizontalLine(Previous_W1_Low, objname + "W1_Low", lineColor, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      DrawHorizontalLine(Previous_MN1_High, objname + "MN1_High", lineColor, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      DrawHorizontalLine(Previous_MN1_Low, objname + "MN1_Low", lineColor, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_H1_High, objname1 + "H1_High", PreviousCandleColour, iTime(_Symbol, PERIOD_H1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_H1_Low, objname1 + "H1_Low", PreviousCandleColour, iTime(_Symbol, PERIOD_H1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_H4_High, objname1 + "H4_High", PreviousCandleColour, iTime(_Symbol, PERIOD_H4, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_H4_Low, objname1 + "H4_Low", PreviousCandleColour, iTime(_Symbol, PERIOD_H4, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_D1_High, objname1 + "D1_High", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_D1_Low, objname1 + "D1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_W1_High, objname1 + "W1_High", JudasLevelColour, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_W1_Low, objname1 + "W1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_MN1_High, objname1 + "MN1_High", PreviousCandleColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_MN1_Low, objname1 + "MN1_Low", PreviousCandleColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Current_D1_High, objname2 + "D1_High", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Current_D1_Low, objname2 + "D1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Asian_High, objname2 + "Asian_High", JudasLevelColour, iTime(_Symbol, PERIOD_H1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Asian_Low, objname2 + "Asian_Low", JudasLevelColour, iTime(_Symbol, PERIOD_H1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(London_High, objname2 + "London_High", JudasLevelColour, iTime(_Symbol, PERIOD_H1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(London_Low, objname2 + "London_Low", JudasLevelColour, iTime(_Symbol, PERIOD_H1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
    }
    if(_Period == PERIOD_H4)
    {
-      if(ObjectCreate(0, objname + "H1_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      if(ObjectCreate(0, objname1 + "H1_High", OBJ_TREND, 0, 0, 0, 0, 0))
       {
-         ObjectDelete(0, objname + "H1_High");
+         ObjectDelete(0, objname1 + "H1_High");
       }
-      if(ObjectCreate(0, objname + "H1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      if(ObjectCreate(0, objname1 + "H1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
       {
-         ObjectDelete(0, objname + "H1_Low");
+         ObjectDelete(0, objname1 + "H1_Low");
       }
-      DrawHorizontalLine(Previous_H4_High, objname + "H4_High", lineColor, iTime(_Symbol, PERIOD_H4, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      DrawHorizontalLine(Previous_H4_Low, objname + "H4_Low", lineColor, iTime(_Symbol, PERIOD_H4, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      DrawHorizontalLine(Previous_D1_High, objname + "D1_High", lineColor, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      DrawHorizontalLine(Previous_D1_Low, objname + "D1_Low", lineColor, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      DrawHorizontalLine(Previous_W1_High, objname + "W1_High", lineColor, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      DrawHorizontalLine(Previous_W1_Low, objname + "W1_Low", lineColor, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      DrawHorizontalLine(Previous_MN1_High, objname + "MN1_High", lineColor, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      DrawHorizontalLine(Previous_MN1_Low, objname + "MN1_Low", lineColor, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_H4_High, objname1 + "H4_High", PreviousCandleColour, iTime(_Symbol, PERIOD_H4, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_H4_Low, objname1 + "H4_Low", PreviousCandleColour, iTime(_Symbol, PERIOD_H4, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_D1_High, objname1 + "D1_High", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_D1_Low, objname1 + "D1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_W1_High, objname1 + "W1_High", JudasLevelColour, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_W1_Low, objname1 + "W1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_MN1_High, objname1 + "MN1_High", PreviousCandleColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_MN1_Low, objname1 + "MN1_Low", PreviousCandleColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Current_D1_High, objname2 + "D1_High", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Current_D1_Low, objname2 + "D1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Asian_High, objname2 + "Asian_High", JudasLevelColour, iTime(_Symbol, PERIOD_H1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Asian_Low, objname2 + "Asian_Low", JudasLevelColour, iTime(_Symbol, PERIOD_H1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(London_High, objname2 + "London_High", JudasLevelColour, iTime(_Symbol, PERIOD_H1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(London_Low, objname2 + "London_Low", JudasLevelColour, iTime(_Symbol, PERIOD_H1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
    }
    if(_Period == PERIOD_D1)
    {
-      if(ObjectCreate(0, objname + "H1_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      if(ObjectCreate(0, objname1 + "H1_High", OBJ_TREND, 0, 0, 0, 0, 0))
       {
-         ObjectDelete(0, objname + "H1_High");
+         ObjectDelete(0, objname1 + "H1_High");
       }
-      if(ObjectCreate(0, objname + "H1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      if(ObjectCreate(0, objname1 + "H1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
       {
-         ObjectDelete(0, objname + "H1_Low");
+         ObjectDelete(0, objname1 + "H1_Low");
       }
-      if(ObjectCreate(0, objname + "H4_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      if(ObjectCreate(0, objname1 + "H4_High", OBJ_TREND, 0, 0, 0, 0, 0))
       {
-         ObjectDelete(0, objname + "H4_High");
+         ObjectDelete(0, objname1 + "H4_High");
       }
-      if(ObjectCreate(0, objname + "H4_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      if(ObjectCreate(0, objname1 + "H4_Low", OBJ_TREND, 0, 0, 0, 0, 0))
       {
-         ObjectDelete(0, objname + "H4_Low");
+         ObjectDelete(0, objname1 + "H4_Low");
       }
-      DrawHorizontalLine(Previous_D1_High, objname + "D1_High", lineColor, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      DrawHorizontalLine(Previous_D1_Low, objname + "D1_Low", lineColor, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_D1_High, objname1 + "D1_High", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_D1_Low, objname1 + "D1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_W1_High, objname1 + "W1_High", JudasLevelColour, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_W1_Low, objname1 + "W1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_MN1_High, objname1 + "MN1_High", PreviousCandleColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_MN1_Low, objname1 + "MN1_Low", PreviousCandleColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Current_D1_High, objname2 + "D1_High", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Current_D1_Low, objname2 + "D1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Asian_High, objname2 + "Asian_High", JudasLevelColour, iTime(_Symbol, PERIOD_H1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Asian_Low, objname2 + "Asian_Low", JudasLevelColour, iTime(_Symbol, PERIOD_H1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(London_High, objname2 + "London_High", JudasLevelColour, iTime(_Symbol, PERIOD_H1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(London_Low, objname2 + "London_Low", JudasLevelColour, iTime(_Symbol, PERIOD_H1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
    }
    if(_Period == PERIOD_W1)
    {
-      if(ObjectCreate(0, objname + "H1_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      if(ObjectCreate(0, objname1 + "H1_High", OBJ_TREND, 0, 0, 0, 0, 0))
       {
-         ObjectDelete(0, objname + "H1_High");
+         ObjectDelete(0, objname1 + "H1_High");
       }
-      if(ObjectCreate(0, objname + "H1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      if(ObjectCreate(0, objname1 + "H1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
       {
-         ObjectDelete(0, objname + "H1_Low");
+         ObjectDelete(0, objname1 + "H1_Low");
       }
-      if(ObjectCreate(0, objname + "H4_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      if(ObjectCreate(0, objname1 + "H4_High", OBJ_TREND, 0, 0, 0, 0, 0))
       {
-         ObjectDelete(0, objname + "H4_High");
+         ObjectDelete(0, objname1 + "H4_High");
       }
-      if(ObjectCreate(0, objname + "H4_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      if(ObjectCreate(0, objname1 + "H4_Low", OBJ_TREND, 0, 0, 0, 0, 0))
       {
-         ObjectDelete(0, objname + "H4_Low");
+         ObjectDelete(0, objname1 + "H4_Low");
       }
-      if(ObjectCreate(0, objname + "D1_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      if(ObjectCreate(0, objname1 + "D1_High", OBJ_TREND, 0, 0, 0, 0, 0))
       {
-         ObjectDelete(0, objname + "D1_High");
+         ObjectDelete(0, objname1 + "D1_High");
       }
-      if(ObjectCreate(0, objname + "D1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      if(ObjectCreate(0, objname1 + "D1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
       {
-         ObjectDelete(0, objname + "D1_Low");
+         ObjectDelete(0, objname1 + "D1_Low");
       }
-      DrawHorizontalLine(Previous_W1_High, objname + "W1_High", lineColor, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      DrawHorizontalLine(Previous_W1_Low, objname + "W1_Low", lineColor, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      if(ObjectCreate(0, objname2 + "D1_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname2 + "D1_High");
+      }
+      if(ObjectCreate(0, objname2 + "D1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname2 + "D1_Low");
+      }
+      if(ObjectCreate(0, objname2 + "London_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname2 + "London_Low");
+      }
+      if(ObjectCreate(0, objname2 + "London_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname2 + "London_High");
+      }
+      if(ObjectCreate(0, objname2 + "Asian_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname2 + "Asian_Low");
+      }
+      if(ObjectCreate(0, objname2 + "Asian_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname2 + "Asian_High");
+      }
+      DrawHorizontalLine(Previous_W1_High, objname2 + "W1_High", JudasLevelColour, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_W1_Low, objname2 + "W1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_MN1_High, objname1 + "MN1_High", PreviousCandleColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_MN1_Low, objname1 + "MN1_Low", PreviousCandleColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
    }
    if(_Period == PERIOD_MN1)
    {
-      if(ObjectCreate(0, objname + "H1_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      if(ObjectCreate(0, objname1 + "H1_High", OBJ_TREND, 0, 0, 0, 0, 0))
       {
-         ObjectDelete(0, objname + "H1_High");
+         ObjectDelete(0, objname1 + "H1_High");
       }
-      if(ObjectCreate(0, objname + "H1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      if(ObjectCreate(0, objname1 + "H1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
       {
-         ObjectDelete(0, objname + "H1_Low");
+         ObjectDelete(0, objname1 + "H1_Low");
       }
-      if(ObjectCreate(0, objname + "H4_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      if(ObjectCreate(0, objname1 + "H4_High", OBJ_TREND, 0, 0, 0, 0, 0))
       {
-         ObjectDelete(0, objname + "H4_High");
+         ObjectDelete(0, objname1 + "H4_High");
       }
-      if(ObjectCreate(0, objname + "H4_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      if(ObjectCreate(0, objname1 + "H4_Low", OBJ_TREND, 0, 0, 0, 0, 0))
       {
-         ObjectDelete(0, objname + "H4_Low");
+         ObjectDelete(0, objname1 + "H4_Low");
       }
-      if(ObjectCreate(0, objname + "D1_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      if(ObjectCreate(0, objname1 + "D1_High", OBJ_TREND, 0, 0, 0, 0, 0))
       {
-         ObjectDelete(0, objname + "D1_High");
+         ObjectDelete(0, objname1 + "D1_High");
       }
-      if(ObjectCreate(0, objname + "D1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      if(ObjectCreate(0, objname1 + "D1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
       {
-         ObjectDelete(0, objname + "D1_Low");
+         ObjectDelete(0, objname1 + "D1_Low");
       }
-      if(ObjectCreate(0, objname + "D1_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      if(ObjectCreate(0, objname1 + "W1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
       {
-         ObjectDelete(0, objname + "D1_High");
+         ObjectDelete(0, objname1 + "W1_Low");
       }
-      if(ObjectCreate(0, objname + "W1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      if(ObjectCreate(0, objname1 + "W1_High", OBJ_TREND, 0, 0, 0, 0, 0))
       {
-         ObjectDelete(0, objname + "W1_Low");
+         ObjectDelete(0, objname1 + "W1_High");
       }
-      DrawHorizontalLine(Previous_MN1_High, objname + "MN1_High", lineColor, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      DrawHorizontalLine(Previous_MN1_Low, objname + "MN1_Low", lineColor, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      if(ObjectCreate(0, objname2 + "D1_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname2 + "D1_High");
+      }
+      if(ObjectCreate(0, objname2 + "D1_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname2 + "D1_Low");
+      }
+      if(ObjectCreate(0, objname2 + "London_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname2 + "London_Low");
+      }
+      if(ObjectCreate(0, objname2 + "London_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname2 + "London_High");
+      }
+      if(ObjectCreate(0, objname2 + "Asian_Low", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname2 + "Asian_Low");
+      }
+      if(ObjectCreate(0, objname2 + "Asian_High", OBJ_TREND, 0, 0, 0, 0, 0))
+      {
+         ObjectDelete(0, objname2 + "Asian_High");
+      }
+      DrawHorizontalLine(Previous_MN1_High, objname2 + "MN1_High", JudasLevelColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
+      DrawHorizontalLine(Previous_MN1_Low, objname2 + "MN1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
    }
 }
 void DrawHorizontalLine(double price, string label, color clr, datetime startTime, datetime endTime)
