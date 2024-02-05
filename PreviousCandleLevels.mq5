@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.marketwizardry.info/"
-#property version   "1.031"
+#property version   "1.032"
 #property description "TyphooN's PreviousCandleLevels"
 #property indicator_chart_window
 // Define input parameters
@@ -36,7 +36,7 @@ string objname2 = "Current_";
 double Previous_H1_High, Previous_H1_Low, Previous_H4_High, Previous_H4_Low, Previous_D1_High, Previous_D1_Low, Previous_W1_High, Previous_W1_Low,
    Previous_MN1_High, Previous_MN1_Low, Asian_High, Asian_Low, London_High, London_Low, Current_D1_Low, Current_D1_High, Ask, Bid;
 int lastCheckedCandle = -1;
-datetime lastJudasUpdate = 0;
+datetime LastJudasUpdate = 0;
 input int AsianBeginningHour = 0;   // Asian session start hour
 input int AsianEndingHour = 8;      // Asian session end hour
 input int LondonBeginningHour = 8;  // London session start hour
@@ -97,7 +97,7 @@ int OnCalculate(const int rates_total,
       UpdateJudasData();
       DrawLines();
    }
-   if ((TimeCurrent() > (lastJudasUpdate + 60)) &&
+   if ((TimeCurrent() > (LastJudasUpdate + 60)) &&
       (((Ask > Asian_High || Bid < Asian_Low) && (TimeCurrent() >= AsianSessionStart && TimeCurrent() <= AsianSessionEnd)) ||
       ((Ask > London_High || Bid < London_Low) && (TimeCurrent() >= LondonSessionStart && TimeCurrent() <= LondonSessionEnd)) ||
       ((Ask > Current_D1_High || Bid < Current_D1_Low))))
@@ -123,55 +123,56 @@ void UpdatePreviousData()
 }
 void UpdateJudasData()
 {
-// Check if the current time is within the Asian session hours or if values are 0
-if ((TimeCurrent() >= AsianSessionStart && TimeCurrent() <= AsianSessionEnd) || Asian_High == 0 || Asian_Low == 0)
-{
-   Asian_High = 0;
-   Asian_Low = 0;
-   int asianSessionStartIndex = iBarShift(_Symbol, PERIOD_H1, AsianSessionStart);
-   int asianSessionEndIndex = iBarShift(_Symbol, PERIOD_H1, AsianSessionEnd);
-   for (int i = asianSessionStartIndex; i <= asianSessionEndIndex; i++)
+   // Update Asian session data
+   if (TimeCurrent() >= AsianSessionStart && TimeCurrent() <= AsianSessionEnd)
    {
-      double high = iHigh(_Symbol, PERIOD_H1, i);
-      double low = iLow(_Symbol, PERIOD_H1, i);
-      if (high > Asian_High || Asian_High == 0)
+      int asianSessionStartIndex = iBarShift(_Symbol, PERIOD_H1, AsianSessionStart);
+      int asianSessionEndIndex = iBarShift(_Symbol, PERIOD_H1, AsianSessionEnd);
+      Asian_High = 0;
+      Asian_Low = 0;
+      for (int i = asianSessionStartIndex; i <= asianSessionEndIndex; i++)
       {
-         Asian_High = high;
-      }
-      if (low < Asian_Low || Asian_Low == 0)
-      {
-         Asian_Low = low;
+         double high = iHigh(_Symbol, PERIOD_H1, i);
+         double low = iLow(_Symbol, PERIOD_H1, i);
+         if (high > Asian_High || Asian_High == 0)
+         {
+            Asian_High = high;
+         }
+         if (low < Asian_Low || Asian_Low == 0)
+         {
+            Asian_Low = low;
+         }
       }
    }
-}
+   // Update London session data
+   if (TimeCurrent() >= LondonSessionStart && TimeCurrent() <= LondonSessionEnd)
+   {
+      int londonSessionStartIndex = iBarShift(_Symbol, PERIOD_H1, LondonSessionStart);
+      int londonSessionEndIndex = iBarShift(_Symbol, PERIOD_H1, LondonSessionEnd);
+      London_High = 0;
+      London_Low = 0;
+      for (int i = londonSessionStartIndex; i <= londonSessionEndIndex; i++)
+      {
+         double high = iHigh(_Symbol, PERIOD_H1, i);
+         double low = iLow(_Symbol, PERIOD_H1, i);
 
-// Check if the current time is within the London session hours or values are 0
-if ((TimeCurrent() >= LondonSessionStart && TimeCurrent() <= LondonSessionEnd) || London_High == 0 || London_Low == 0)
-{
-   London_High = 0;
-   London_Low = 0;
-   int londonSessionStartIndex = iBarShift(_Symbol, PERIOD_H1, LondonSessionStart);
-   int londonSessionEndIndex = iBarShift(_Symbol, PERIOD_H1, LondonSessionEnd);
-   for (int i = londonSessionStartIndex; i <= londonSessionEndIndex; i++)
-   {
-      double high = iHigh(_Symbol, PERIOD_H1, i);
-      double low = iLow(_Symbol, PERIOD_H1, i);
-      if (high > London_High || London_High == 0)
-      {
-         London_High = high;
-      }
-      if (low < London_Low || London_Low == 0)
-      {
-         London_Low = low;
+         if (high > London_High || London_High == 0)
+         {
+            London_High = high;
+         }
+
+         if (low < London_Low || London_Low == 0)
+         {
+            London_Low = low;
+         }
       }
    }
-}
    // Calculate current day's high and low
    int currentDayStartShift = iBarShift(_Symbol, PERIOD_D1, iTime(_Symbol, PERIOD_D1, 0));
-   int currentDayEndShift = iBarShift(_Symbol, PERIOD_M1, iTime(_Symbol, PERIOD_M1, 0));
+   int currentDayEndShift = iBarShift(_Symbol, PERIOD_CURRENT, iTime(_Symbol, PERIOD_M1, 0));
    Current_D1_High = iHigh(_Symbol, PERIOD_D1, currentDayEndShift);
    Current_D1_Low = iLow(_Symbol, PERIOD_D1, currentDayStartShift);
-   lastJudasUpdate = TimeCurrent();
+   LastJudasUpdate = TimeCurrent();
 }
 void DeleteHorizontalLine(string object)
 {
@@ -207,7 +208,7 @@ void DrawLines()
          DrawHorizontalLine(London_Low, objname2 + "London_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       }
    }
-   if(_Period == PERIOD_H4)
+   if(_Period >= PERIOD_H1 && _Period <= PERIOD_H8)
    {
       DeleteHorizontalLine(objname1 + "H1_High");
       DeleteHorizontalLine(objname1 + "H1_Low");
@@ -232,7 +233,7 @@ void DrawLines()
          DrawHorizontalLine(London_Low, objname2 + "London_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       }
    }
-   if(_Period == PERIOD_D1)
+   if(_Period == PERIOD_D1 || _Period == PERIOD_H12)
    {
       DeleteHorizontalLine(objname1 + "H1_High");
       DeleteHorizontalLine(objname1 + "H1_Low");
