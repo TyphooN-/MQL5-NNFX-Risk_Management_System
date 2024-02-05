@@ -121,9 +121,10 @@
 - VertPos : Vertical position in pixels where the InfoText will appear.
 
 ### TyphooN's Previous Candle Levels Indicator
-- Draws horizontal lines for Previous H1 -> MN1 candlesticks and updates them as new candlesticks print.
+- Draws white horizontal lines for Previous H1 -> MN1 candlesticks and updates them as new candlesticks print.
 - The lines begin at the previous candlestick high and low, and end at the current candlestick.
 - LTF levels are disabled on higher timeframes because they are not visible.
+- Asian High/Low, London High/Low, W1 High/Low, and current D1 High/Low "Judas Swing" levels are drawn in magenta.
 ![MTF_MA_InfoText_Bear](Images/PreviousCandleLevels.png)
 
 # TyphooN's ATR Projection Indicator
