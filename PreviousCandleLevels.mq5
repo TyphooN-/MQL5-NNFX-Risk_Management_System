@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.marketwizardry.info/"
-#property version   "1.032"
+#property version   "1.033"
 #property description "TyphooN's PreviousCandleLevels"
 #property indicator_chart_window
 // Define input parameters
@@ -313,15 +313,19 @@ bool IsNewH1Interval(const datetime& currentTime, const datetime& prevTime)
    MqlDateTime currentMqlTime, prevMqlTime;
    TimeToStruct(currentTime, currentMqlTime);
    TimeToStruct(prevTime, prevMqlTime);
-   //Print("IsNewH1Interval() has run.");
-   // Check if the minutes have changed
-   if (currentMqlTime.min != prevMqlTime.min)
-   {
-   // Check if the current time is at a a hourly interval
-   if (currentMqlTime.min == 0  && prevMqlTime.hour < currentMqlTime.hour)
+   // Check if the day has changed
+   if (currentMqlTime.day != prevMqlTime.day)
    {
       return true;
    }
+   // Check if the minutes have changed
+   if (currentMqlTime.min != prevMqlTime.min)
+   {
+      // Check if the current time is at an hourly interval
+      if (currentMqlTime.min == 0 && prevMqlTime.hour < currentMqlTime.hour)
+      {
+         return true;
+      }
    }
    return false;
 }
