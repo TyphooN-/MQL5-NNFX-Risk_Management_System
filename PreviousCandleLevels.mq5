@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.marketwizardry.info/"
-#property version   "1.034"
+#property version   "1.035"
 #property description "TyphooN's PreviousCandleLevels"
 #property indicator_chart_window
 // Define input parameters
@@ -41,6 +41,7 @@ input int AsianEndingHour = 8;      // Asian session end hour
 input int LondonBeginningHour = 8;  // London session start hour
 input int LondonEndingHour = 16;    // London session end hour
 datetime AsianSessionStart, AsianSessionEnd, LondonSessionStart, LondonSessionEnd;
+datetime LastJudasUpdate = 0;
 int OnInit()
 {
    datetime CurrentDay = iTime(_Symbol, PERIOD_D1, 0);
@@ -73,17 +74,17 @@ int OnCalculate(const int rates_total,
    LondonSessionEnd = CurrentDay + LondonEndingHour * 3600;
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
-   static datetime prevTradeServerTime = 0;  // Initialize with 0 on the first run
-   datetime currentTradeServerTime = 0;
-   currentTradeServerTime = TimeTradeServer();
+   static datetime PrevTradeServerTime = 0;  // Initialize with 0 on the first run
+   datetime CurrentTradeServerTime = 0;
+   CurrentTradeServerTime = TimeCurrent();
    // Check if it is a new H1 interval
-   if (IsNewH1Interval(currentTradeServerTime, prevTradeServerTime))
+   if (IsNewH1Interval(CurrentTradeServerTime, PrevTradeServerTime))
    {
       UpdatePreviousData();
       UpdateJudasData();
       DrawLines();
-      prevTradeServerTime = currentTradeServerTime;
-      //Print("Updating ATR Data and Candlestick data due to 15 min server time.");
+      PrevTradeServerTime = CurrentTradeServerTime;
+      //Print("Updating ATR Data and Candlestick data due to 1 hour server time change.");
    }
    // Calculate the number of bars to be processed
    int limit = rates_total - prev_calculated;
@@ -102,7 +103,7 @@ int OnCalculate(const int rates_total,
       UpdateJudasData();
       DrawLines();
    }
-   if (Ask > Current_D1_High || Bid < Current_D1_Low)
+   if (((TimeCurrent() > (LastJudasUpdate + 60)) && ((Ask > Current_D1_High) || (Bid < Current_D1_Low))))
    {
       UpdateJudasData();
       DrawLines();
@@ -139,12 +140,53 @@ void UpdateJudasData()
 }
 void UpdateSessionData(const datetime& SessionStart, const datetime& SessionEnd, double& SessionHigh, double& SessionLow)
 {
-   int SessionStartIndex = iBarShift(_Symbol, PERIOD_H1, SessionStart);
-   int SessionEndIndex = iBarShift(_Symbol, PERIOD_H1, SessionEnd);
+   datetime currentDate = iTime(_Symbol, PERIOD_H1, 0);
+   int bars = iBars(_Symbol, PERIOD_H1);
+   int SessionStartIndex = -1;
+   int SessionEndIndex = -1;
+   MqlDateTime barDateTime;
+   MqlDateTime sessionStartDateTime;
+   MqlDateTime sessionEndDateTime;
+   MqlDateTime currentDateTime;
+   TimeToStruct(SessionStart, sessionStartDateTime);
+   TimeToStruct(SessionEnd, sessionEndDateTime);
+   TimeToStruct(currentDate, currentDateTime);
+   // Find SessionStartIndex and SessionEndIndex for the current date
+   for (int i = 0; i < bars; i++)
+   {
+      datetime barTime = iTime(_Symbol, PERIOD_H1, i);
+      TimeToStruct(barTime, barDateTime);
+      if (barDateTime.year == currentDateTime.year &&
+          barDateTime.mon == currentDateTime.mon &&
+          barDateTime.day == currentDateTime.day)
+      {
+         if (barDateTime.year > sessionStartDateTime.year ||
+             (barDateTime.year == sessionStartDateTime.year && barDateTime.mon > sessionStartDateTime.mon) ||
+             (barDateTime.year == sessionStartDateTime.year && barDateTime.mon == sessionStartDateTime.mon && barDateTime.day >= sessionStartDateTime.day))
+         {
+            SessionStartIndex = i;
+         }
+         if (barDateTime.year < sessionEndDateTime.year ||
+             (barDateTime.year == sessionEndDateTime.year && barDateTime.mon < sessionEndDateTime.mon) ||
+             (barDateTime.year == sessionEndDateTime.year && barDateTime.mon == sessionEndDateTime.mon && barDateTime.day <= sessionEndDateTime.day))
+         {
+            SessionEndIndex = i;
+         }
+         if (barDateTime.year > sessionEndDateTime.year ||
+             (barDateTime.year == sessionEndDateTime.year && barDateTime.mon > sessionEndDateTime.mon) ||
+             (barDateTime.year == sessionEndDateTime.year && barDateTime.mon == sessionEndDateTime.mon && barDateTime.day > sessionEndDateTime.day))
+         {
+            break;  // No need to check further, as we have found the SessionEndIndex
+         }
+      }
+   }
+   //Print("SessionStartIndex: ", SessionStartIndex, " SessionEndIndex: ", SessionEndIndex);
+   // Process bars between SessionStartIndex and SessionEndIndex
    for (int i = SessionStartIndex; i <= SessionEndIndex; i++)
    {
       double High = iHigh(_Symbol, PERIOD_H1, i);
       double Low = iLow(_Symbol, PERIOD_H1, i);
+      //Print("Bar: ", i, " High: ", High, " Low: ", Low);
       if (High > SessionHigh || SessionHigh == 0)
       {
          SessionHigh = High;
@@ -154,6 +196,7 @@ void UpdateSessionData(const datetime& SessionStart, const datetime& SessionEnd,
          SessionLow = Low;
       }
    }
+   //Print("Final SessionHigh: ", SessionHigh, " SessionLow: ", SessionLow);
 }
 void DeleteHorizontalLine(string object)
 {
@@ -178,12 +221,12 @@ void DrawLines()
       DrawHorizontalLine(Previous_MN1_Low, objname1 + "MN1_Low", PreviousCandleColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Current_D1_High, objname2 + "D1_High", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Current_D1_Low, objname2 + "D1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      if (TimeCurrent() >= AsianSessionStart)
+      if (TimeCurrent() >= AsianSessionEnd)
       {
          DrawHorizontalLine(Asian_High, objname2 + "Asian_High", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
          DrawHorizontalLine(Asian_Low, objname2 + "Asian_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       }
-      if (TimeCurrent() >= LondonSessionStart)
+      if (TimeCurrent() >= LondonSessionEnd)
       {
          DrawHorizontalLine(London_High, objname2 + "London_High", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
          DrawHorizontalLine(London_Low, objname2 + "London_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
@@ -203,12 +246,12 @@ void DrawLines()
       DrawHorizontalLine(Previous_MN1_Low, objname1 + "MN1_Low", PreviousCandleColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Current_D1_High, objname2 + "D1_High", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Current_D1_Low, objname2 + "D1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      if (TimeTradeServer() >= AsianSessionStart)
+      if (TimeTradeServer() >= AsianSessionEnd)
       {
          DrawHorizontalLine(Asian_High, objname2 + "Asian_High", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
          DrawHorizontalLine(Asian_Low, objname2 + "Asian_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       }
-      if (TimeTradeServer() >= LondonSessionStart)
+      if (TimeTradeServer() >= LondonSessionEnd)
       {
          DrawHorizontalLine(London_High, objname2 + "London_High", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
          DrawHorizontalLine(London_Low, objname2 + "London_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
@@ -228,12 +271,12 @@ void DrawLines()
       DrawHorizontalLine(Previous_MN1_Low, objname1 + "MN1_Low", PreviousCandleColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Current_D1_High, objname2 + "D1_High", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Current_D1_Low, objname2 + "D1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      if (TimeTradeServer() >= AsianSessionStart)
+      if (TimeTradeServer() >= AsianSessionEnd)
       {
          DrawHorizontalLine(Asian_High, objname2 + "Asian_High", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
          DrawHorizontalLine(Asian_Low, objname2 + "Asian_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       }
-      if (TimeTradeServer() >= LondonSessionStart)
+      if (TimeTradeServer() >= LondonSessionEnd)
       {
          DrawHorizontalLine(London_High, objname2 + "London_High", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
          DrawHorizontalLine(London_Low, objname2 + "London_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
