@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.marketwizardry.info/"
-#property version   "1.035"
+#property version   "1.036"
 #property description "TyphooN's PreviousCandleLevels"
 #property indicator_chart_window
 // Define input parameters
@@ -109,6 +109,15 @@ int OnCalculate(const int rates_total,
       DrawLines();
       //Print("Called Judas Data update.");
    }
+   // Check if a new day has started since the last calculation
+   if (IsNewDayForSessions())
+   {
+      // Delete current Asian and London session high/low lines
+      ObjectsDeleteAll(0, objname2 + "Asian_High");
+      ObjectsDeleteAll(0, objname2 + "Asian_Low");
+      ObjectsDeleteAll(0, objname2 + "London_High");
+      ObjectsDeleteAll(0, objname2 + "London_Low");
+    }
  //  Print("AsianSessionStart: ", AsianSessionStart, " AsianSessionEnd: ", AsianSessionEnd);
 //  Print("Current Time: ", TimeTradeServer());
  //  Print("LondonSessionStart: ", LondonSessionStart, " LondonSessionEnd: ", LondonSessionEnd);
@@ -246,12 +255,12 @@ void DrawLines()
       DrawHorizontalLine(Previous_MN1_Low, objname1 + "MN1_Low", PreviousCandleColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Current_D1_High, objname2 + "D1_High", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Current_D1_Low, objname2 + "D1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      if (TimeTradeServer() >= AsianSessionEnd)
+      if (TimeCurrent() >= AsianSessionEnd)
       {
          DrawHorizontalLine(Asian_High, objname2 + "Asian_High", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
          DrawHorizontalLine(Asian_Low, objname2 + "Asian_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       }
-      if (TimeTradeServer() >= LondonSessionEnd)
+      if (TimeCurrent() >= LondonSessionEnd)
       {
          DrawHorizontalLine(London_High, objname2 + "London_High", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
          DrawHorizontalLine(London_Low, objname2 + "London_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
@@ -271,12 +280,12 @@ void DrawLines()
       DrawHorizontalLine(Previous_MN1_Low, objname1 + "MN1_Low", PreviousCandleColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Current_D1_High, objname2 + "D1_High", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Current_D1_Low, objname2 + "D1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      if (TimeTradeServer() >= AsianSessionEnd)
+      if (TimeCurrent() >= AsianSessionEnd)
       {
          DrawHorizontalLine(Asian_High, objname2 + "Asian_High", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
          DrawHorizontalLine(Asian_Low, objname2 + "Asian_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       }
-      if (TimeTradeServer() >= LondonSessionEnd)
+      if (TimeCurrent() >= LondonSessionEnd)
       {
          DrawHorizontalLine(London_High, objname2 + "London_High", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
          DrawHorizontalLine(London_Low, objname2 + "London_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
@@ -352,4 +361,22 @@ bool IsNewH1Interval(const datetime& currentTime, const datetime& prevTime)
       }
    }
    return false;
+}
+bool IsNewDayForSessions()
+{
+    // Get the current date and time
+    datetime CurrentServerTime = TimeCurrent();
+    MqlDateTime CurrentMqlTime;
+    TimeToStruct(CurrentServerTime, CurrentMqlTime);
+    // Compare the current date to the date when Asian and London sessions were last updated
+    datetime AsianLondonSessionDate = iTime(_Symbol, PERIOD_D1, 1);
+    MqlDateTime AsianLondonSessionMqlTime;
+    TimeToStruct(AsianLondonSessionDate, AsianLondonSessionMqlTime);
+    if (CurrentMqlTime.year != AsianLondonSessionMqlTime.year ||
+        CurrentMqlTime.mon != AsianLondonSessionMqlTime.mon ||
+        CurrentMqlTime.day != AsianLondonSessionMqlTime.day)
+    {
+        return true; // It's a new day
+    }
+    return false; // Same day as the last session update
 }
