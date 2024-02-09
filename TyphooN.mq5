@@ -484,7 +484,6 @@ void OnTick()
          HasOpenPosition = true;
          double profit = PositionGetDouble(POSITION_PROFIT);
          double swap = PositionGetDouble(POSITION_SWAP);
-         if (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
          profit += swap;
          double risk = 0;
          double tpprofit = 0;
