@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.300"
+#property version   "1.301"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -213,7 +213,7 @@ int OnInit()
    ObjectCreate(0,"infoMargin", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoTPRR", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoRR", OBJ_LABEL,0,0,0);
-   ObjectCreate(0,"infoSLP", OBJ_LABEL,0,0,0);
+   ObjectCreate(0,"infoLots", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoRisk", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoH4", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoD1", OBJ_LABEL,0,0,0);
@@ -250,12 +250,12 @@ int OnInit()
    ObjectSetInteger(0,"infoRisk",OBJPROP_YDISTANCE,(YRowWidth * 4));
    ObjectSetInteger(0,"infoRisk",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoRisk",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   ObjectSetString(0,"infoSLP",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoSLP",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetInteger(0,"infoSLP", OBJPROP_XDISTANCE, RightColumnX);
-   ObjectSetInteger(0,"infoSLP",OBJPROP_YDISTANCE,(YRowWidth * 4));
-   ObjectSetInteger(0,"infoSLP",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoSLP",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   ObjectSetString(0,"infoLots",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoLots",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetInteger(0,"infoLots", OBJPROP_XDISTANCE, RightColumnX);
+   ObjectSetInteger(0,"infoLots",OBJPROP_YDISTANCE,(YRowWidth * 4));
+   ObjectSetInteger(0,"infoLots",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoLots",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    ObjectSetString(0,"infoTPRR",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoTPRR",OBJPROP_FONTSIZE,FontSize);
    ObjectSetInteger(0,"infoTPRR", OBJPROP_XDISTANCE, RightColumnX);
@@ -304,8 +304,8 @@ int OnInit()
    ObjectSetString(0,"infoMargin",OBJPROP_TEXT,infoMargin);
    string infoRisk = "Risk: $0.00";
    ObjectSetString(0,"infoRisk",OBJPROP_TEXT,infoRisk);
-   string infoSLP = "SL Profit: $0.00";
-   ObjectSetString(0,"infoSLP",OBJPROP_TEXT,infoSLP);
+   string infoLots = "Lots: 0.00";
+   ObjectSetString(0,"infoLots",OBJPROP_TEXT,infoLots);
    string infoTPRR = "TP RR: N/A";
    ObjectSetString(0,"infoTPRR",OBJPROP_TEXT,infoTPRR);
    string infoH4 = "H4 : " + TimeTilNextBar(PERIOD_H4);
@@ -428,7 +428,6 @@ void OnTick()
    double total_margin = 0;
    double rr = 0;
    double tprr = 0;
-   double sl_profit = 0;
    double sl_risk = 0;
    AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
    account_equity = AccountInfoDouble(ACCOUNT_EQUITY);
@@ -541,15 +540,13 @@ void OnTick()
          if (risk <= 0)
          {
             sl_risk += risk; // Add risk
-            total_risk += risk; // Add risk
-            sl_risk += swap; // Add swap to SL P/L
          }
          else if (risk > 0)
          {
-            sl_profit += risk; // Add profit
             total_risk += risk; // Add profit to total risk
-            sl_profit += swap; // Add swap to SL P/L
          }
+         total_risk += swap;
+         sl_risk += swap;
          total_pl += profit;
          total_tp += tpprofit;
          total_margin += margin;
@@ -567,6 +564,7 @@ void OnTick()
             AutoProtectCalled = true;
          }
    }
+   string infoRisk;
    string infoPL;
    string infoRR;
    if (rr >= 0)
@@ -576,6 +574,16 @@ void OnTick()
    if (rr <= 0)
    {
       infoRR = "RR : N/A";
+   }
+   if (total_pl >= MathAbs(total_risk))
+   {
+      double floatingRisk = MathAbs(total_pl - total_risk);
+      double floatingRiskPercent = MathAbs((total_pl - total_risk) / AccountBalance) * 100;
+      infoRisk = "Risk: $" + DoubleToString(floatingRisk, 2) + " (" + DoubleToString(floatingRiskPercent, 2) + "%)";
+   }
+   else
+   {
+      infoRisk = "Risk: $" + DoubleToString(MathAbs(sl_risk), 2) + " (" + DoubleToString(MathAbs(percent_risk), 2) + "%)";
    }
    if (total_pl < 0)
    {
@@ -606,10 +614,9 @@ void OnTick()
    ObjectSetString(0,"infoTP",OBJPROP_TEXT,infoTP);
    string infoMargin = "Margin: $" + DoubleToString(total_margin, 2);
    ObjectSetString(0,"infoMargin",OBJPROP_TEXT,infoMargin);
-   string infoRisk = "Risk: $" + DoubleToString(MathAbs(sl_risk), 2) + " ("+DoubleToString(percent_risk,2)+"%)";
    ObjectSetString(0,"infoRisk",OBJPROP_TEXT,infoRisk);
-   string infoSLP = "SL Profit: $" + DoubleToString(sl_profit, 2);
-   ObjectSetString(0,"infoSLP",OBJPROP_TEXT,infoSLP);
+   string infoLots = "Lots: " + DoubleToString(GetTotalVolumeForSymbol(_Symbol), 3);
+   ObjectSetString(0,"infoLots",OBJPROP_TEXT,infoLots);
    string infoTPRR = "TP RR: " + DoubleToString(tprr, 2);
    ObjectSetString(0,"infoTPRR",OBJPROP_TEXT,infoTPRR);
    string infoH4 = "H4 : " + TimeTilNextBar(PERIOD_H4);
