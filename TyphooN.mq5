@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.298"
+#property version   "1.299"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -483,6 +483,9 @@ void OnTick()
          if (!ShouldProcessPosition) continue;
          HasOpenPosition = true;
          double profit = PositionGetDouble(POSITION_PROFIT);
+         double swap = PositionGetDouble(POSITION_SWAP);
+         if (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
+         profit += swap;
          double risk = 0;
          double tpprofit = 0;
          double margin = 0;
@@ -536,16 +539,18 @@ void OnTick()
                }
             }
          }
-         if (risk < 0)
+         if (risk <= 0)
          {
-            sl_risk += risk;
+            sl_risk += swap;
          }
          else if (risk > 0)
          {
             sl_profit += risk;
+            sl_profit += swap;
          }
          total_pl += profit;
          total_risk += risk;
+         total_risk += swap;
          total_tp += tpprofit;
          total_margin += margin;
          tprr = total_tp/MathAbs(total_risk);
