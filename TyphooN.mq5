@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.303"
+#property version   "1.304"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -541,10 +541,6 @@ void OnTick()
          {
             sl_risk += risk; // Add risk
          }
-         else
-         {
-            total_risk += risk; // Add profit to total risk
-         }
          if (swap > 0)
          {
             total_risk += swap;
@@ -554,11 +550,12 @@ void OnTick()
          {
             sl_risk += swap;
          }
+         total_risk += risk; // Add profit to total risk
          total_pl += profit;
          total_tp += tpprofit;
          total_margin += margin;
          tprr = total_tp/MathAbs(total_risk);
-         rr = (total_risk != 0 && total_pl != 0) ? total_pl / MathAbs(total_risk) : 0;
+         rr = total_pl/MathAbs(total_risk);
          percent_risk = MathAbs((sl_risk / AccountBalance) * 100);
       }
    }
