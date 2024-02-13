@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.marketwizardry.info/"
-#property version   "1.038"
+#property version   "1.039"
 #property description "TyphooN's PreviousCandleLevels"
 #property indicator_chart_window
 // Define input parameters
@@ -34,25 +34,11 @@ input int Line_Thickness = 2;
 string objname1 = "Previous_";
 string objname2 = "Current_";
 double Previous_H1_High, Previous_H1_Low, Previous_H4_High, Previous_H4_Low, Previous_D1_High, Previous_D1_Low, Previous_W1_High, Previous_W1_Low,
-   Previous_MN1_High, Previous_MN1_Low, Asian_High, Asian_Low, London_High, London_Low, Current_D1_Low, Current_D1_High, Current_W1_Low, Current_W1_High, Ask, Bid;
+   Previous_MN1_High, Previous_MN1_Low, Current_D1_Low, Current_D1_High, Current_W1_Low, Current_W1_High, Ask, Bid;
 int lastCheckedCandle = -1;
-input int AsianBeginningHour = 0;
-input int AsianEndingHour = 9;
-input int LondonBeginningHour = 8;
-input int LondonEndingHour = 17;
-input bool EnableAsianLondonSessions = false;
-datetime AsianSessionStart, AsianSessionEnd, LondonSessionStart, LondonSessionEnd;
-int EXPECTED_ASIAN_SESSION_BARS = 0;
-int EXPECTED_LONDON_SESSION_BARS = 0;
-int LastAsianBarCount = 0;
-int LastLondonBarCount = 0;
 int OnInit()
 {
     datetime CurrentDay = iTime(_Symbol, PERIOD_D1, 0);
-    AsianSessionStart = CurrentDay + AsianBeginningHour * 3600;
-    AsianSessionEnd = CurrentDay + AsianEndingHour * 3600;
-    LondonSessionStart = CurrentDay + LondonBeginningHour * 3600;
-    LondonSessionEnd = CurrentDay + LondonEndingHour * 3600;
     return(INIT_SUCCEEDED);
 }
 void OnDeinit(const int reason)
@@ -72,10 +58,6 @@ int OnCalculate(const int rates_total,
                 const int &spread[])
 {
    datetime CurrentDay = iTime(_Symbol, PERIOD_D1, 0);
-   AsianSessionStart = CurrentDay + AsianBeginningHour * 3600;
-   AsianSessionEnd = CurrentDay + AsianEndingHour * 3600;
-   LondonSessionStart = CurrentDay + LondonBeginningHour * 3600;
-   LondonSessionEnd = CurrentDay + LondonEndingHour * 3600;
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    static datetime PrevTradeServerTime = 0;  // Initialize with 0 on the first run
@@ -113,19 +95,6 @@ int OnCalculate(const int rates_total,
       DrawLines();
       //Print("Called Judas Data update.");
    }
-   // Check if a new day has started since the last calculation
-   if (IsNewDayForSessions())
-   {
-      // Delete current Asian and London session high/low lines
-      ObjectsDeleteAll(0, objname2 + "Asian_High");
-      ObjectsDeleteAll(0, objname2 + "Asian_Low");
-      ObjectsDeleteAll(0, objname2 + "London_High");
-      ObjectsDeleteAll(0, objname2 + "London_Low");
-    }
- //  Print("AsianSessionStart: ", AsianSessionStart, " AsianSessionEnd: ", AsianSessionEnd);
- // Print("Current Time: ", TimeCurrent());
- //  Print("LondonSessionStart: ", LondonSessionStart, " LondonSessionEnd: ", LondonSessionEnd);
- // Print("Current Time: ", TimeCurrent());
    return(rates_total);
 }
 void UpdatePreviousData()
@@ -143,20 +112,6 @@ void UpdatePreviousData()
 }
 void UpdateJudasData()
 {
-   if (EnableAsianLondonSessions == true)
-   {
-      UpdateSessionData(AsianSessionStart, AsianSessionEnd, Asian_High, Asian_Low);
-      UpdateSessionData(LondonSessionStart, LondonSessionEnd, London_High, London_Low);
-      if (IsAsianSessionEnded() && IsAsianBarCountStable())
-      {
-         DrawLines(); // Redraw lines if session has ended
-      }
-      // Check if the London session has ended
-      if (IsLondonSessionEnded() && IsLondonBarCountStable())
-      {
-         DrawLines(); // Redraw lines if session has ended
-      }
-   }
    // Calculate current day's High and Low
    int currentDayStartShift = iBarShift(_Symbol, PERIOD_D1, iTime(_Symbol, PERIOD_D1, 0));
    int currentDayEndShift = iBarShift(_Symbol, PERIOD_CURRENT, iTime(_Symbol, PERIOD_M1, 0));
@@ -167,42 +122,6 @@ void UpdateJudasData()
    int currentWeekEndShift = iBarShift(_Symbol, PERIOD_CURRENT, iTime(_Symbol, PERIOD_M1, 0));
    Current_W1_High = iHigh(_Symbol, PERIOD_W1, currentWeekEndShift);
    Current_W1_Low = iLow(_Symbol, PERIOD_W1, currentWeekStartShift);
-   //Print("Current Asian High: ", Asian_High, ", Current Asian Low: ", Asian_Low);
-   //Print("Current London High: ", London_High, ", Current London Low: ", London_Low);
-   //Print("Current D1 High: ", Current_D1_High, ", Current D1 Low: ", Current_D1_Low);
-   // Check if the Asian session has ended
-}
-void UpdateSessionData(const datetime& SessionStart, const datetime& SessionEnd, double& SessionHigh, double& SessionLow)
-{
-   int SessionBarsCount = CountBarsInSession(SessionStart, SessionEnd);
-   if (SessionBarsCount <= 0) {
-       Print("No bars found for session.");
-       return;
-   }
-   // Initialize session high and low with the first bar's prices
-   SessionHigh = iHigh(_Symbol, PERIOD_H1, SessionBarsCount - 1); // The latest bar
-   SessionLow = iLow(_Symbol, PERIOD_H1, SessionBarsCount - 1); // The latest bar
-   // Process bars between SessionStartIndex and SessionEndIndex
-   for (int i = SessionBarsCount - 2; i >= 0; i--) // Start from the second last bar
-   {
-      double High = iHigh(_Symbol, PERIOD_H1, i);
-      double Low = iLow(_Symbol, PERIOD_H1, i);
-      // Skip bars with zero high or low prices
-      if (High == 0.0 || Low == 0.0)
-      {
-         Print("Skipping bar ", i, " due to zero price.");
-         continue;
-      }
-      if (High > SessionHigh)
-      {
-         SessionHigh = High;
-      }
-      if (Low < SessionLow)
-      {
-         SessionLow = Low;
-      }
-   }
-   Print("Final SessionHigh: ", SessionHigh, " SessionLow: ", SessionLow);
 }
 void DeleteHorizontalLine(string object)
 {
@@ -229,16 +148,6 @@ void DrawLines()
       DrawHorizontalLine(Current_D1_Low, objname2 + "D1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Current_W1_High, objname2 + "W1_High", JudasLevelColour, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Current_W1_Low, objname2 + "W1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      if (EnableAsianLondonSessions == true && IsAsianSessionEnded() && IsAsianBarCountStable())
-      {
-         DrawHorizontalLine(Asian_High, objname2 + "Asian_High", JudasLevelColour, AsianSessionStart, iTime(_Symbol, PERIOD_CURRENT, 0));
-         DrawHorizontalLine(Asian_Low, objname2 + "Asian_Low", JudasLevelColour, AsianSessionStart, iTime(_Symbol, PERIOD_CURRENT, 0));
-      }
-      if (EnableAsianLondonSessions == true && IsLondonSessionEnded() && IsLondonBarCountStable())
-      {
-         DrawHorizontalLine(London_High, objname2 + "London_High", JudasLevelColour, LondonSessionStart, iTime(_Symbol, PERIOD_CURRENT, 0));
-         DrawHorizontalLine(London_Low, objname2 + "London_Low", JudasLevelColour, LondonSessionStart, iTime(_Symbol, PERIOD_CURRENT, 0));
-      }
    }
    if(_Period >= PERIOD_H1 && _Period <= PERIOD_H8)
    {
@@ -256,16 +165,6 @@ void DrawLines()
       DrawHorizontalLine(Current_D1_Low, objname2 + "D1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Current_W1_High, objname2 + "W1_High", JudasLevelColour, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Current_W1_Low, objname2 + "W1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      if (EnableAsianLondonSessions == true && IsAsianSessionEnded() && IsAsianBarCountStable())
-      {
-         DrawHorizontalLine(Asian_High, objname2 + "Asian_High", JudasLevelColour, AsianSessionStart, iTime(_Symbol, PERIOD_CURRENT, 0));
-         DrawHorizontalLine(Asian_Low, objname2 + "Asian_Low", JudasLevelColour, AsianSessionStart, iTime(_Symbol, PERIOD_CURRENT, 0));
-      }
-      if (EnableAsianLondonSessions == true && IsLondonSessionEnded() && IsLondonBarCountStable())
-      {
-         DrawHorizontalLine(London_High, objname2 + "London_High", JudasLevelColour, LondonSessionStart, iTime(_Symbol, PERIOD_CURRENT, 0));
-         DrawHorizontalLine(London_Low, objname2 + "London_Low", JudasLevelColour, LondonSessionStart, iTime(_Symbol, PERIOD_CURRENT, 0));
-      }
    }
    if(_Period == PERIOD_D1 || _Period == PERIOD_H12)
    {
@@ -283,16 +182,6 @@ void DrawLines()
       DrawHorizontalLine(Current_D1_Low, objname2 + "D1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_D1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Current_W1_High, objname2 + "W1_High", JudasLevelColour, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Current_W1_Low, objname2 + "W1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
-      if (EnableAsianLondonSessions == true && IsAsianSessionEnded() && IsAsianBarCountStable())
-      {
-         DrawHorizontalLine(Asian_High, objname2 + "Asian_High", JudasLevelColour, AsianSessionStart, iTime(_Symbol, PERIOD_CURRENT, 0));
-         DrawHorizontalLine(Asian_Low, objname2 + "Asian_Low", JudasLevelColour, AsianSessionStart, iTime(_Symbol, PERIOD_CURRENT, 0));
-      }
-      if (EnableAsianLondonSessions == true && IsLondonSessionEnded() && IsLondonBarCountStable())
-      {
-         DrawHorizontalLine(London_High, objname2 + "London_High", JudasLevelColour, LondonSessionStart, iTime(_Symbol, PERIOD_CURRENT, 0));
-         DrawHorizontalLine(London_Low, objname2 + "London_Low", JudasLevelColour, LondonSessionStart, iTime(_Symbol, PERIOD_CURRENT, 0));
-      }
    }
    if(_Period == PERIOD_W1)
    {
@@ -385,72 +274,4 @@ bool IsNewDayForSessions()
         return true; // It's a new day
     }
     return false; // Same day as the last session update
-}
-int CountBarsInSession(const datetime& SessionStart, const datetime& SessionEnd)
-{
-    datetime currentDate = iTime(_Symbol, PERIOD_H1, 0);
-    int bars = iBars(_Symbol, PERIOD_H1);
-    int SessionBarsCount = 0;
-    MqlDateTime barDateTime;
-    MqlDateTime sessionStartDateTime;
-    MqlDateTime sessionEndDateTime;
-    MqlDateTime currentDateTime;
-    TimeToStruct(SessionStart, sessionStartDateTime);
-    TimeToStruct(SessionEnd, sessionEndDateTime);
-    TimeToStruct(currentDate, currentDateTime);
-    // Find SessionStartIndex and SessionEndIndex for the current date
-    for (int i = 0; i < bars; i++)
-    {
-        datetime barTime = iTime(_Symbol, PERIOD_H1, i);
-        TimeToStruct(barTime, barDateTime);
-        if (barDateTime.year == currentDateTime.year &&
-            barDateTime.mon == currentDateTime.mon &&
-            barDateTime.day == currentDateTime.day)
-        {
-            if (barDateTime.year > sessionStartDateTime.year ||
-                (barDateTime.year == sessionStartDateTime.year && barDateTime.mon > sessionStartDateTime.mon) ||
-                (barDateTime.year == sessionStartDateTime.year && barDateTime.mon == sessionStartDateTime.mon && barDateTime.day >= sessionStartDateTime.day))
-            {
-                SessionBarsCount++;
-            }
-            if (barDateTime.year < sessionEndDateTime.year ||
-                (barDateTime.year == sessionEndDateTime.year && barDateTime.mon < sessionEndDateTime.mon) ||
-                (barDateTime.year == sessionEndDateTime.year && barDateTime.mon == sessionEndDateTime.mon && barDateTime.day <= sessionEndDateTime.day))
-            {
-                SessionBarsCount++;
-            }
-            if (barDateTime.year > sessionEndDateTime.year ||
-                (barDateTime.year == sessionEndDateTime.year && barDateTime.mon > sessionEndDateTime.mon) ||
-                (barDateTime.year == sessionEndDateTime.year && barDateTime.mon == sessionEndDateTime.mon && barDateTime.day > sessionEndDateTime.day))
-            {
-                break;  // No need to check further, as we have found the SessionEndIndex
-            }
-        }
-    }
-    return SessionBarsCount;
-}
-bool IsAsianSessionEnded()
-{
-    return TimeCurrent() >= AsianSessionEnd;
-}
-bool IsLondonSessionEnded()
-{
-    return TimeCurrent() >= LondonSessionEnd;
-}
-bool IsAsianBarCountStable()
-{
-    int currentAsianBarCount = CountBarsInSession(AsianSessionStart, AsianSessionEnd);
-    return currentAsianBarCount == LastAsianBarCount;
-}
-bool IsLondonBarCountStable()
-{
-    int currentLondonBarCount = CountBarsInSession(LondonSessionStart, LondonSessionEnd);
-    return currentLondonBarCount == LastLondonBarCount;
-}
-void ClearBars()
-{
-    Asian_High = 0;
-    Asian_Low = 0;
-    London_High = 0;
-    London_Low = 0;
 }
