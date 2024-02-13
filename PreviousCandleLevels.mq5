@@ -256,22 +256,3 @@ bool IsNewH1Interval(const datetime& currentTime, const datetime& prevTime)
    }
    return false;
 }
-
-bool IsNewDayForSessions()
-{
-    // Get the current date and time
-    datetime CurrentServerTime = TimeCurrent();
-    MqlDateTime CurrentMqlTime;
-    TimeToStruct(CurrentServerTime, CurrentMqlTime);
-    // Compare the current date to the date when Asian and London sessions were last updated
-    datetime AsianLondonSessionDate = iTime(_Symbol, PERIOD_D1, 0);
-    MqlDateTime AsianLondonSessionMqlTime;
-    TimeToStruct(AsianLondonSessionDate, AsianLondonSessionMqlTime);
-    if (CurrentMqlTime.year != AsianLondonSessionMqlTime.year ||
-        CurrentMqlTime.mon != AsianLondonSessionMqlTime.mon ||
-        CurrentMqlTime.day != AsianLondonSessionMqlTime.day)
-    {
-        return true; // It's a new day
-    }
-    return false; // Same day as the last session update
-}
