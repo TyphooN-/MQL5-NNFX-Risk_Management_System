@@ -38,7 +38,6 @@ double Previous_H1_High, Previous_H1_Low, Previous_H4_High, Previous_H4_Low, Pre
 int lastCheckedCandle = -1;
 int OnInit()
 {
-    datetime CurrentDay = iTime(_Symbol, PERIOD_D1, 0);
     return(INIT_SUCCEEDED);
 }
 void OnDeinit(const int reason)
@@ -57,7 +56,6 @@ int OnCalculate(const int rates_total,
                 const long &volume[],
                 const int &spread[])
 {
-   datetime CurrentDay = iTime(_Symbol, PERIOD_D1, 0);
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    static datetime PrevTradeServerTime = 0;  // Initialize with 0 on the first run
@@ -193,10 +191,6 @@ void DrawLines()
       DeleteHorizontalLine(objname1 + "D1_Low");
       DeleteHorizontalLine(objname2 + "D1_High");
       DeleteHorizontalLine(objname2 + "D1_Low");
-      DeleteHorizontalLine(objname2 + "Asian_High");
-      DeleteHorizontalLine(objname2 + "Asian_Low");
-      DeleteHorizontalLine(objname2 + "London_High");
-      DeleteHorizontalLine(objname2 + "London_Low");
       DrawHorizontalLine(Current_W1_High, objname2 + "W1_High", JudasLevelColour, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Current_W1_Low, objname2 + "W1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Previous_W1_High, objname2 + "W1_High", JudasLevelColour, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
@@ -216,10 +210,6 @@ void DrawLines()
       DeleteHorizontalLine(objname1 + "W1_Low");
       DeleteHorizontalLine(objname2 + "D1_High");
       DeleteHorizontalLine(objname2 + "D1_Low");
-      DeleteHorizontalLine(objname2 + "Asian_High");
-      DeleteHorizontalLine(objname2 + "Asian_Low");
-      DeleteHorizontalLine(objname2 + "London_High");
-      DeleteHorizontalLine(objname2 + "London_Low");
       DrawHorizontalLine(Previous_MN1_High, objname2 + "MN1_High", PreviousCandleColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Previous_MN1_Low, objname2 + "MN1_Low", PreviousCandleColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
    }
