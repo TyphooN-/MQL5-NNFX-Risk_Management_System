@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.304"
+#property version   "1.305"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -583,11 +583,11 @@ void OnTick()
    {
       double floatingRisk = MathAbs(total_pl - total_risk);
       double floatingRiskPercent = MathAbs((total_pl - total_risk) / AccountBalance) * 100;
-      infoRisk = "Risk: $" + DoubleToString(floatingRisk, 2) + " (" + DoubleToString(floatingRiskPercent, 2) + "%)";
+      infoRisk = "Risk: $" + DoubleToString(floatingRisk, 2) + " (" + DoubleToString(floatingRiskPercent, 1) + "%)";
    }
    else
    {
-      infoRisk = "Risk: $" + DoubleToString(MathAbs(sl_risk), 2) + " (" + DoubleToString(MathAbs(percent_risk), 2) + "%)";
+      infoRisk = "Risk: $" + DoubleToString(MathAbs(sl_risk), 2) + " (" + DoubleToString(MathAbs(percent_risk), 1) + "%)";
    }
    if (total_pl < 0)
    {
@@ -1761,3 +1761,4 @@ bool TyWindow::OnDialogDragEnd(void)
    }
    return(CDialog::OnDialogDragEnd());
 }
+
