@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://www.marketwizardry.info/"
-#property version   "1.040"
+#property version   "1.041"
 #property description "TyphooN's PreviousCandleLevels"
 #property indicator_chart_window
 // Define input parameters
@@ -147,7 +147,7 @@ void DrawLines()
       DrawHorizontalLine(Current_W1_High, objname2 + "W1_High", JudasLevelColour, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Current_W1_Low, objname2 + "W1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_W1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
    }
-   if(_Period >= PERIOD_H1 && _Period <= PERIOD_H8)
+   if(_Period >= PERIOD_H2 && _Period <= PERIOD_H8)
    {
       DeleteHorizontalLine(objname1 + "H1_High");
       DeleteHorizontalLine(objname1 + "H1_Low");
@@ -246,4 +246,3 @@ bool IsNewH1Interval(const datetime& currentTime, const datetime& prevTime)
    }
    return false;
 }
-
