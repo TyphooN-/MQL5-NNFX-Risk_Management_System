@@ -1,4 +1,4 @@
-/**=   PreviousCandleLevels.mq5   (TyphooN's Previous Candlestick Level Indicator)
+/**=   PreviousCandleLevels.mq4   (TyphooN's Previous Candlestick Level Indicator)
  *      Copyright 2023, TyphooN (https://www.marketwizardry.org/)
  *
  * Disclaimer and Licence
