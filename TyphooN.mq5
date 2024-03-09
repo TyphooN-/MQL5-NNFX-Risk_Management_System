@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.305"
+#property version   "1.306"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -1122,10 +1122,25 @@ void TyWindow::OnClickTrade(void)
    double free_margin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
    AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
    usable_margin = (AccountBalance - (AccountBalance * (MarginBufferPercent / 100.0))) - AccountInfoDouble(ACCOUNT_MARGIN);
-   // Initial margin calculation before entering the loop
+   // Calculate required margin before currency conversion
    if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
    {
       Print("Failed to calculate required margin before the loop. Error:", GetLastError());
+      return;
+   }
+   // Calculate required margin in account base currency
+   double required_margin_account_currency = required_margin;
+   string account_currency = AccountInfoString(ACCOUNT_CURRENCY);
+   if (_Symbol != account_currency)
+   {
+      double exchange_rate = SymbolInfoDouble(_Symbol, SYMBOL_BID) / SymbolInfoDouble(account_currency, SYMBOL_ASK);
+      required_margin_account_currency *= exchange_rate;
+   }
+   // Check if there's enough free margin in account base currency to place the order
+   double free_margin_account_currency = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
+   if (required_margin_account_currency >= free_margin_account_currency)
+   {
+      Print("Insufficient margin in account base currency to place the order. Cannot proceed.");
       return;
    }
    //Print("Before the Loop - OrderLots: ", OrderLots, " Required Margin: ", required_margin, " Usable Margin: ", usable_margin);
