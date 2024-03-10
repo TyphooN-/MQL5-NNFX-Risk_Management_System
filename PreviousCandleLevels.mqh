@@ -216,13 +216,13 @@ void DrawHorizontalLine(double price, string label, color clr, datetime startTim
       ObjectDelete(ChartID(), label);
       if(GetLastError()>0)
       {
-         Print(IntegerToString(_LastError) +" Error deleting "+ label);
+ //        Print(IntegerToString(_LastError) +" Error deleting "+ label);
       }
    }
    ObjectCreate(0, label, OBJ_TREND, 0, startTime, price, endTime, price);
    if(GetLastError()>0)
    {
-      Print(IntegerToString(_LastError) +" Error creating "+ label);
+//      Print(IntegerToString(_LastError) +" Error creating "+ label);
    }
    ObjectSetInteger(0, label, OBJPROP_COLOR, clr);
    ObjectSetInteger(0, label, OBJPROP_STYLE, STYLE_SOLID);
