@@ -27,4 +27,3 @@
 #property version "1.038"
 #property strict
 #include "ATR_Projection.mqh"
-
