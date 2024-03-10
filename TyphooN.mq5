@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.306"
+#property version   "1.307"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -487,6 +487,19 @@ void OnTick()
          double risk = 0;
          double tpprofit = 0;
          double margin = 0;
+         double commission = 0;
+         int DealsTotal = HistoryDealsTotal();
+         for (int j = 0; j < DealsTotal; j++)
+         {
+            ulong DealTicket = HistoryDealGetTicket(j);
+            if (HistoryDealSelect(DealTicket))
+            {
+               if (HistoryDealGetString(DealTicket, DEAL_SYMBOL) == _Symbol && HistoryDealGetInteger(DealTicket, DEAL_POSITION_ID) == ticket)
+               {
+                  commission += HistoryDealGetDouble(DealTicket, DEAL_COMMISSION); // Add commission of the deal to total commission
+               }
+            }
+         }
          if (PositionGetDouble(POSITION_SL) == PositionGetDouble(POSITION_PRICE_OPEN) && PositionGetString(POSITION_SYMBOL) == _Symbol)
          {
             breakEvenFound = true;
@@ -537,18 +550,16 @@ void OnTick()
                }
             }
          }
-         if (risk <= 0)
-         {
-            sl_risk += risk; // Add risk
-         }
+         total_risk += risk; // Add risk regardless of its sign
          if (swap > 0)
          {
             total_risk += swap;
-         }
-         // Include swap in stop-loss risk calculation if swap is greater than zero
-         if (swap > 0 && risk <= 0)
-         {
             sl_risk += swap;
+         }
+         if (commission > 0)
+         {
+            total_risk += commission;
+            sl_risk += commission;
          }
          total_risk += risk; // Add profit to total risk
          total_pl += profit;
@@ -1776,4 +1787,3 @@ bool TyWindow::OnDialogDragEnd(void)
    }
    return(CDialog::OnDialogDragEnd());
 }
-
