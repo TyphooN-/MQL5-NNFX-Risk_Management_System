@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.306"
+#property version   "1.305"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -428,11 +428,6 @@ bool IsNewTick(const double LastTick)
 }
 void OnTick()
 {
-   double CurrentTick = SymbolInfoDouble(_Symbol, SYMBOL_LAST);
-   if (!IsNewTick(CurrentTick))
-   {
-      return;
-   }
    HasOpenPosition = false;
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
@@ -446,6 +441,7 @@ void OnTick()
    double sl_risk = 0;
    AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
    account_equity = AccountInfoDouble(ACCOUNT_EQUITY);
+   double CurrentTick = SymbolInfoDouble(_Symbol, SYMBOL_LAST);
    if (account_equity >= TargetEquityTP && EnableEquityTP == true && EquityTPCalled == false)
    {
       Print("Closing all positions across all symbols because Equity >= TargetEquityTP ($" + DoubleToString(TargetEquityTP, 2) + ").");
