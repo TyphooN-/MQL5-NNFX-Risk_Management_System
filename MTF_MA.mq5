@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.marketwizardry.info"
-#property version   "1.054"
+#property version   "1.055"
 #property indicator_chart_window
 #property indicator_buffers 40
 #property indicator_plots   8
@@ -75,6 +75,7 @@ const ENUM_BASE_CORNER Corner              = CORNER_RIGHT_UPPER;
 input int    HorizPos                      = 310;
 input int    VertPos                       = 130;
 bool W1_Empty_Warning = false;
+bool InitDataFetch = true;
 ENUM_APPLIED_PRICE MAPrice = PRICE_CLOSE;
 // Handles
 int HandleM1_200SMA, HandleM1_50SMA, HandleM1_20SMA, HandleM1_10SMA, HandleM5_200SMA, HandleM5_50SMA, HandleM5_20SMA, HandleM5_10SMA, HandleM15_200SMA, HandleM15_50SMA, HandleM15_20SMA;
@@ -274,6 +275,7 @@ int OnInit()
    ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_COLOR, clrWhite);
    ObjectSetString(0, objname + "InfoBearPowerHTF", OBJPROP_TEXT, BearPowerTextHTF);
+   InitDataFetch = true;
    return 0;
 }
 void OnDeinit(const int pReason)
@@ -475,12 +477,16 @@ int OnCalculate(const int rates_total,
       prevTime = currentTime;
       UpdateBuffers();
    }
-   static int waitCount = 3;
-   if (waitCount > 0)
+   if (InitDataFetch == true)
    {
-      UpdateBuffersOnCalculate(0, rates_total);
-      waitCount--;
-      return prev_calculated;
+      static int waitCount = 10;
+      if (waitCount > 0)
+      {
+         UpdateBuffersOnCalculate(0, rates_total);
+         waitCount--;
+         return prev_calculated;
+      }
+   InitDataFetch = false;
    }
    // Get the current price
    double currentPrice = close[rates_total - 1];
@@ -749,3 +755,4 @@ void EraseBufferValues(double& buffer[])
       buffer[i] = EMPTY_VALUE;
    }
 }
+
