@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.marketwizardry.info"
-#property version   "1.058"
+#property version   "1.059"
 #property indicator_chart_window
 #property indicator_buffers 40
 #property indicator_plots   8
@@ -276,11 +276,29 @@ int OnInit()
    ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_COLOR, clrWhite);
    ObjectSetString(0, objname + "InfoBearPowerHTF", OBJPROP_TEXT, BearPowerTextHTF);
    InitDataFetch = true;
+   SetZorderToOne();
    return 0;
 }
 void OnDeinit(const int pReason)
 {
    ObjectsDeleteAll(0, objname);
+}
+void SetZorderToOne()
+{
+   ObjectSetInteger(0, objname + "Info1", OBJPROP_ZORDER, 1);
+   ObjectSetInteger(0, objname + "Info2", OBJPROP_ZORDER, 1);
+   ObjectSetInteger(0, objname + "High D1", OBJPROP_ZORDER, 1);
+   ObjectSetInteger(0, objname + "Low D1", OBJPROP_ZORDER, 1);
+   ObjectSetInteger(0, objname + "High W1", OBJPROP_ZORDER, 1);
+   ObjectSetInteger(0, objname + "Low W1", OBJPROP_ZORDER, 1);
+   ObjectSetInteger(0, objname + "High MN1", OBJPROP_ZORDER, 1);
+   ObjectSetInteger(0, objname + "Low MN1", OBJPROP_ZORDER, 1);
+   ObjectSetInteger(0, objname + "High H4", OBJPROP_ZORDER, 1);
+   ObjectSetInteger(0, objname + "Low H4", OBJPROP_ZORDER, 1);
+   ObjectSetInteger(0, objname + "High H1", OBJPROP_ZORDER, 1);
+   ObjectSetInteger(0, objname + "Low H1", OBJPROP_ZORDER, 1);
+   ObjectSetInteger(0, objname + "High M15", OBJPROP_ZORDER, 1);
+   ObjectSetInteger(0, objname + "Low M15", OBJPROP_ZORDER, 1);
 }
 void UpdateInfoLabel(string timeframe, bool condition, string label)
 {
@@ -422,6 +440,7 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
       ObjectSetString(0, objname + "InfoBullPowerHTF", OBJPROP_TEXT, BullPowerTextHTF);
       ObjectSetString(0, objname + "InfoBearPowerHTF", OBJPROP_TEXT, BearPowerTextHTF);
    }
+   SetZorderToOne();
    GlobalVariableSet("GlobalBullPowerLTF", TotalBullPowerLTF);
    GlobalVariableSet("GlobalBearPowerLTF", TotalBearPowerLTF);
    GlobalVariableSet("GlobalBullPowerHTF", TotalBullPowerHTF);
