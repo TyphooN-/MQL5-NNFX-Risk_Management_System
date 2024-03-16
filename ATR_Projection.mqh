@@ -73,6 +73,24 @@ double currentOpenH1 = 0;
 double currentOpenM15 = 0;
 int lastCheckedCandle = -1;
 bool InitDataFetch = true;
+void SetZOrderToOne()
+{
+    // Set z-order to 1 for each object
+    ObjectSetInteger(0, objname + "Info1", OBJPROP_ZORDER, 1);
+    ObjectSetInteger(0, objname + "Info2", OBJPROP_ZORDER, 1);
+    ObjectSetInteger(0, objname + "High D1", OBJPROP_ZORDER, 1);
+    ObjectSetInteger(0, objname + "Low D1", OBJPROP_ZORDER, 1);
+    ObjectSetInteger(0, objname + "High W1", OBJPROP_ZORDER, 1);
+    ObjectSetInteger(0, objname + "Low W1", OBJPROP_ZORDER, 1);
+    ObjectSetInteger(0, objname + "High MN1", OBJPROP_ZORDER, 1);
+    ObjectSetInteger(0, objname + "Low MN1", OBJPROP_ZORDER, 1);
+    ObjectSetInteger(0, objname + "High H4", OBJPROP_ZORDER, 1);
+    ObjectSetInteger(0, objname + "Low H4", OBJPROP_ZORDER, 1);
+    ObjectSetInteger(0, objname + "High H1", OBJPROP_ZORDER, 1);
+    ObjectSetInteger(0, objname + "Low H1", OBJPROP_ZORDER, 1);
+    ObjectSetInteger(0, objname + "High M15", OBJPROP_ZORDER, 1);
+    ObjectSetInteger(0, objname + "Low M15", OBJPROP_ZORDER, 1);
+}
 int OnInit()
 {
    //--- indicator buffers mapping
@@ -128,6 +146,7 @@ int OnInit()
    ObjectSetInteger(0, objname + "Info1", OBJPROP_COLOR, clrWhite);
    ObjectSetString(0, objname + "Info2", OBJPROP_TEXT, infoText2);
    ObjectSetInteger(0, objname + "Info2", OBJPROP_COLOR, clrWhite);
+   SetZOrderToOne();
 #endif
    InitDataFetch = true;
    return INIT_SUCCEEDED;
@@ -206,6 +225,7 @@ int OnCalculate(const int        rates_total,
                const long&     volume[],
                const int&      spread[])
 {
+    SetZOrderToOne();
     static datetime prevTradeServerTime = 0;  // Initialize with 0 on the first run
     datetime currentTradeServerTime = 0;
 #ifdef __MQL5__
