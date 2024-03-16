@@ -317,9 +317,12 @@ int OnCalculate(const int        rates_total,
          UpdateATRData();
          UpdateCandlestickData();
          waitCount--;
-         return ( prev_calculated );
+         return prev_calculated;
       }
-      InitDataFetch = false;
+      else if (waitCount == 0)
+      {
+         InitDataFetch = false;
+      }
    }
    //PrintFormat( "ATR and candlestick Data is now available" );
    // Initialize vars
