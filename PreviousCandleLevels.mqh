@@ -40,16 +40,6 @@ void OnDeinit(const int reason)
    ObjectsDeleteAll(0, objname1);
    ObjectsDeleteAll(0, objname2);
 }
-bool IsNewTick(const double LastTick)
-{
-   static double PrevTick = 0;
-   if (LastTick != PrevTick)
-   {
-      PrevTick = LastTick;
-      return true;
-   }
-   return false;
-}
 int OnCalculate(const int rates_total,
                 const int prev_calculated,
                 const datetime &time[],
@@ -61,11 +51,6 @@ int OnCalculate(const int rates_total,
                 const long &volume[],
                 const int &spread[])
 {
-   double CurrentTick = SymbolInfoDouble(_Symbol, SYMBOL_LAST);
-   if (!IsNewTick(CurrentTick))
-   {
-      return (rates_total - prev_calculated);
-   }
    Ask_ = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid_ = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    static datetime PrevTradeServerTime = 0;  // Initialize with 0 on the first run
