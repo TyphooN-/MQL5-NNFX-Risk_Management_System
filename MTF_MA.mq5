@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.marketwizardry.info"
-#property version   "1.057"
+#property version   "1.058"
 #property indicator_chart_window
 #property indicator_buffers 40
 #property indicator_plots   8
@@ -486,7 +486,10 @@ int OnCalculate(const int rates_total,
          waitCount--;
          return prev_calculated;
       }
-      InitDataFetch = false;
+      else if (waitCount == 0)
+      {
+         InitDataFetch = false;
+      }
    }
    // Get the current price
    double currentPrice = close[rates_total - 1];
