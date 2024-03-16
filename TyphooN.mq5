@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.307"
+#property version   "1.305"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -487,19 +487,6 @@ void OnTick()
          double risk = 0;
          double tpprofit = 0;
          double margin = 0;
-         double commission = 0;
-         int DealsTotal = HistoryDealsTotal();
-         for (int j = 0; j < DealsTotal; j++)
-         {
-            ulong DealTicket = HistoryDealGetTicket(j);
-            if (HistoryDealSelect(DealTicket))
-            {
-               if (HistoryDealGetString(DealTicket, DEAL_SYMBOL) == _Symbol && HistoryDealGetInteger(DealTicket, DEAL_POSITION_ID) == ticket)
-               {
-                  commission += HistoryDealGetDouble(DealTicket, DEAL_COMMISSION); // Add commission of the deal to total commission
-               }
-            }
-         }
          if (PositionGetDouble(POSITION_SL) == PositionGetDouble(POSITION_PRICE_OPEN) && PositionGetString(POSITION_SYMBOL) == _Symbol)
          {
             breakEvenFound = true;
@@ -550,16 +537,18 @@ void OnTick()
                }
             }
          }
-         total_risk += risk; // Add risk regardless of its sign
+         if (risk <= 0)
+         {
+            sl_risk += risk; // Add risk
+         }
          if (swap > 0)
          {
             total_risk += swap;
-            sl_risk += swap;
          }
-         if (commission > 0)
+         // Include swap in stop-loss risk calculation if swap is greater than zero
+         if (swap > 0 && risk <= 0)
          {
-            total_risk += commission;
-            sl_risk += commission;
+            sl_risk += swap;
          }
          total_risk += risk; // Add profit to total risk
          total_pl += profit;
@@ -1133,25 +1122,10 @@ void TyWindow::OnClickTrade(void)
    double free_margin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
    AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
    usable_margin = (AccountBalance - (AccountBalance * (MarginBufferPercent / 100.0))) - AccountInfoDouble(ACCOUNT_MARGIN);
-   // Calculate required margin before currency conversion
+   // Initial margin calculation before entering the loop
    if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
    {
       Print("Failed to calculate required margin before the loop. Error:", GetLastError());
-      return;
-   }
-   // Calculate required margin in account base currency
-   double required_margin_account_currency = required_margin;
-   string account_currency = AccountInfoString(ACCOUNT_CURRENCY);
-   if (_Symbol != account_currency)
-   {
-      double exchange_rate = SymbolInfoDouble(_Symbol, SYMBOL_BID) / SymbolInfoDouble(account_currency, SYMBOL_ASK);
-      required_margin_account_currency *= exchange_rate;
-   }
-   // Check if there's enough free margin in account base currency to place the order
-   double free_margin_account_currency = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
-   if (required_margin_account_currency >= free_margin_account_currency)
-   {
-      Print("Insufficient margin in account base currency to place the order. Cannot proceed.");
       return;
    }
    //Print("Before the Loop - OrderLots: ", OrderLots, " Required Margin: ", required_margin, " Usable Margin: ", usable_margin);
@@ -1787,3 +1761,4 @@ bool TyWindow::OnDialogDragEnd(void)
    }
    return(CDialog::OnDialogDragEnd());
 }
+
