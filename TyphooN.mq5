@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.305"
+#property version   "1.306"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -416,8 +416,23 @@ bool CloseAllPositionsOnAllSymbols()
       return false;
    }
 }
+bool IsNewTick(const double LastTick)
+{
+   static double PrevTick = 0;
+   if (LastTick != PrevTick)
+   {
+      PrevTick = LastTick;
+      return true;
+   }
+   return false;
+}
 void OnTick()
 {
+   double CurrentTick = SymbolInfoDouble(_Symbol, SYMBOL_LAST);
+   if (!IsNewTick(CurrentTick))
+   {
+      return;
+   }
    HasOpenPosition = false;
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
@@ -1761,4 +1776,3 @@ bool TyWindow::OnDialogDragEnd(void)
    }
    return(CDialog::OnDialogDragEnd());
 }
-
