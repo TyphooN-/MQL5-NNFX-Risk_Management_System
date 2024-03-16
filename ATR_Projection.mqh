@@ -189,6 +189,16 @@ void UpdateATRData()
     #endif
 #endif
 }
+bool IsNewTick(const double LastTick)
+{
+   static double PrevTick = 0;
+   if (LastTick != PrevTick)
+   {
+      PrevTick = LastTick;
+      return true;
+   }
+   return false;
+}
 int OnCalculate(const int        rates_total,
                const int        prev_calculated,
                const datetime& time[],
@@ -200,6 +210,11 @@ int OnCalculate(const int        rates_total,
                const long&     volume[],
                const int&      spread[])
 {
+   double CurrentTick = SymbolInfoDouble(_Symbol, SYMBOL_LAST);
+   if (!IsNewTick(CurrentTick))
+   {
+      return false;
+   }
     static datetime prevTradeServerTime = 0;  // Initialize with 0 on the first run
     datetime currentTradeServerTime = 0;
 #ifdef __MQL5__
