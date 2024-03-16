@@ -452,7 +452,7 @@ int OnCalculate(const int rates_total,
    double CurrentTick = SymbolInfoDouble(_Symbol, SYMBOL_LAST);
    if (!IsNewTick(CurrentTick))
    {
-      return false;
+      return (rates_total - prev_calculated);
    }
    int start;
    if (prev_calculated == 0)
