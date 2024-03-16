@@ -486,7 +486,7 @@ int OnCalculate(const int rates_total,
          waitCount--;
          return prev_calculated;
       }
-   InitDataFetch = false;
+      InitDataFetch = false;
    }
    // Get the current price
    double currentPrice = close[rates_total - 1];

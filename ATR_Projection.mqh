@@ -72,6 +72,7 @@ double currentOpenH4 = 0;
 double currentOpenH1 = 0;
 double currentOpenM15 = 0;
 int lastCheckedCandle = -1;
+bool InitDataFetch = true;
 int OnInit()
 {
    //--- indicator buffers mapping
@@ -122,6 +123,7 @@ int OnInit()
       return INIT_FAILED;
    }
 #endif
+   InitDataFetch = true;
    return INIT_SUCCEEDED;
 }
 void OnDeinit(const int pReason)
@@ -301,13 +303,17 @@ int OnCalculate(const int        rates_total,
    ObjectSetInteger(0, objname + "Info1", OBJPROP_COLOR, FontColor1);
    ObjectSetString(0, objname + "Info2", OBJPROP_TEXT, infoText2);
    ObjectSetInteger(0, objname + "Info2", OBJPROP_COLOR, FontColor2);
-   static int waitCount = 4;
-   if ( waitCount > 0 )
+   if (InitDataFetch == true)
    {
-      UpdateATRData();
-      UpdateCandlestickData();
-      waitCount--;
-      return ( prev_calculated );
+      static int waitCount = 10;
+      if ( waitCount > 0 )
+      {
+         UpdateATRData();
+         UpdateCandlestickData();
+         waitCount--;
+         return ( prev_calculated );
+      }
+      InitDataFetch = false;
    }
    //PrintFormat( "ATR and candlestick Data is now available" );
    // Initialize vars
