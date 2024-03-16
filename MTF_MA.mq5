@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.marketwizardry.info"
-#property version   "1.055"
+#property version   "1.056"
 #property indicator_chart_window
 #property indicator_buffers 40
 #property indicator_plots   8
@@ -428,6 +428,16 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
    GlobalVariableSet("GlobalBearPowerHTF", TotalBearPowerHTF);
    GlobalVariableSet("PowerCalcComplete", true);
 }
+bool IsNewTick(const double LastTick)
+{
+   static double PrevTick = 0;
+   if (LastTick != PrevTick)
+   {
+      PrevTick = LastTick;
+      return true;
+   }
+   return false;
+}
 int OnCalculate(const int rates_total,
                 const int prev_calculated,
                 const datetime &time[],
@@ -439,6 +449,11 @@ int OnCalculate(const int rates_total,
                 const long &volume[],
                 const int &spread[])
 {
+   double CurrentTick = SymbolInfoDouble(_Symbol, SYMBOL_LAST);
+   if (!IsNewTick(CurrentTick))
+   {
+      return false;
+   }
    int start;
    if (prev_calculated == 0)
    {
