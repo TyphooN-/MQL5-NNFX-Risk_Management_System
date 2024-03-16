@@ -122,6 +122,12 @@ int OnInit()
       Print("handle_iATR_M15: ", handle_iATR_M15);
       return INIT_FAILED;
    }
+   string infoText1 = "ATR| M15: INIT  H1: INIT H4: INIT";
+   string infoText2 = "ATR| D1: INIT W1: INIT MN1: INIT";
+   ObjectSetString(0, objname + "Info1", OBJPROP_TEXT, infoText1);
+   ObjectSetInteger(0, objname + "Info1", OBJPROP_COLOR, clrWhite);
+   ObjectSetString(0, objname + "Info2", OBJPROP_TEXT, infoText2);
+   ObjectSetInteger(0, objname + "Info2", OBJPROP_COLOR, clrWhite);
 #endif
    InitDataFetch = true;
    return INIT_SUCCEEDED;
