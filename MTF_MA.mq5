@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.marketwizardry.info"
-#property version   "1.059"
+#property version   "1.060"
 #property indicator_chart_window
 #property indicator_buffers 40
 #property indicator_plots   8
@@ -75,7 +75,6 @@ const ENUM_BASE_CORNER Corner              = CORNER_RIGHT_UPPER;
 input int    HorizPos                      = 310;
 input int    VertPos                       = 130;
 bool W1_Empty_Warning = false;
-bool InitDataFetch = true;
 ENUM_APPLIED_PRICE MAPrice = PRICE_CLOSE;
 // Handles
 int HandleM1_200SMA, HandleM1_50SMA, HandleM1_20SMA, HandleM1_10SMA, HandleM5_200SMA, HandleM5_50SMA, HandleM5_20SMA, HandleM5_10SMA, HandleM15_200SMA, HandleM15_50SMA, HandleM15_20SMA;
@@ -140,142 +139,6 @@ int OnInit()
    SetIndexBuffer(37, MABufferH4_100SMA, INDICATOR_DATA);
    SetIndexBuffer(38, MABufferD1_100SMA, INDICATOR_DATA);
    SetIndexBuffer(39, MABufferW1_100SMA, INDICATOR_DATA);
-   string objnameInfo1 = objname + "Info1";
-   ObjectCreate(0, objnameInfo1, OBJ_LABEL, 0, 0, 0);
-   ObjectSetInteger(0, objnameInfo1, OBJPROP_XDISTANCE, HorizPos);
-   ObjectSetInteger(0, objnameInfo1, OBJPROP_YDISTANCE, VertPos);
-   ObjectSetInteger(0, objnameInfo1, OBJPROP_CORNER, Corner);
-   ObjectSetString(0, objnameInfo1, OBJPROP_FONT, FontName);
-   ObjectSetInteger(0, objnameInfo1, OBJPROP_FONTSIZE, FontSize);
-   ObjectSetInteger(0, objnameInfo1, OBJPROP_COLOR, clrWhite);
-   ObjectSetString(0, objnameInfo1, OBJPROP_TEXT, "200 SMA");
-   string objnameInfo2 = objname + "Info2";
-   ObjectCreate(0, objnameInfo2, OBJ_LABEL, 0, 0, 0);
-   ObjectSetInteger(0, objnameInfo2, OBJPROP_XDISTANCE, HorizPos);
-   ObjectSetInteger(0, objnameInfo2, OBJPROP_YDISTANCE, VertPos + 13);
-   ObjectSetInteger(0, objnameInfo2, OBJPROP_CORNER, Corner);
-   ObjectSetString(0, objnameInfo2, OBJPROP_FONT, FontName);
-   ObjectSetInteger(0, objnameInfo2, OBJPROP_FONTSIZE, FontSize);
-   ObjectSetInteger(0, objnameInfo2, OBJPROP_COLOR, clrWhite);
-   ObjectSetString(0, objnameInfo2, OBJPROP_TEXT, "DEATH X");
-   string objnameInfo3 = objname + "Info3";
-   ObjectCreate(0, objnameInfo3, OBJ_LABEL, 0, 0, 0);
-   ObjectSetInteger(0, objnameInfo3, OBJPROP_XDISTANCE, HorizPos);
-   ObjectSetInteger(0, objnameInfo3, OBJPROP_YDISTANCE, VertPos + 26);
-   ObjectSetInteger(0, objnameInfo3, OBJPROP_CORNER, Corner);
-   ObjectSetString(0, objnameInfo3, OBJPROP_FONT, FontName);
-   ObjectSetInteger(0, objnameInfo3, OBJPROP_FONTSIZE, FontSize);
-   ObjectSetInteger(0, objnameInfo3, OBJPROP_COLOR, clrWhite);
-   ObjectSetString(0, objnameInfo3, OBJPROP_TEXT, "100/200");
-   string objnameInfo4 = objname + "Info4";
-   ObjectCreate(0, objnameInfo4, OBJ_LABEL, 0, 0, 0);
-   ObjectSetInteger(0, objnameInfo4, OBJPROP_XDISTANCE, HorizPos);
-   ObjectSetInteger(0, objnameInfo4, OBJPROP_YDISTANCE, VertPos + 39);
-   ObjectSetInteger(0, objnameInfo4, OBJPROP_CORNER, Corner);
-   ObjectSetString(0, objnameInfo4, OBJPROP_FONT, FontName);
-   ObjectSetInteger(0, objnameInfo4, OBJPROP_FONTSIZE, FontSize);
-   ObjectSetInteger(0, objnameInfo4, OBJPROP_COLOR, clrWhite);
-   ObjectSetString(0, objnameInfo4, OBJPROP_TEXT, "20/50 X");
-   string objnameInfo5 = objname + "Info5";
-   ObjectCreate(0, objnameInfo5, OBJ_LABEL, 0, 0, 0);
-   ObjectSetInteger(0, objnameInfo5, OBJPROP_XDISTANCE, HorizPos);
-   ObjectSetInteger(0, objnameInfo5, OBJPROP_YDISTANCE, VertPos + 52);
-   ObjectSetInteger(0, objnameInfo5, OBJPROP_CORNER, Corner);
-   ObjectSetString(0, objnameInfo5, OBJPROP_FONT, FontName);
-   ObjectSetInteger(0, objnameInfo5, OBJPROP_FONTSIZE, FontSize);
-   ObjectSetInteger(0, objnameInfo5, OBJPROP_COLOR, clrWhite);
-   ObjectSetString(0, objnameInfo5, OBJPROP_TEXT, "10/20 X");
-   int additionalSpacing = 0; 
-   string timeFrames[] = {"M1", "M5", "M15", "M30", "H1", "H4", "D1", "W1"};
-   for (int i = 0; i < ArraySize(timeFrames); i++)
-   {
-      if ( timeFrames[i] == "M30" || timeFrames[i] == "H1")
-      {
-         additionalSpacing += 5;
-      }
-      string objnameInfo200SMA = objname + timeFrames[i] + "200SMA";
-      ObjectCreate(0, objnameInfo200SMA, OBJ_LABEL, 0, 0, 0);
-      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
-      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_YDISTANCE, VertPos);
-      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_CORNER, Corner);
-      ObjectSetString(0, objnameInfo200SMA, OBJPROP_FONT, FontName);
-      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_FONTSIZE, FontSize);
-      ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_COLOR, clrWhite);
-      ObjectSetString(0, objnameInfo200SMA, OBJPROP_TEXT, timeFrames[i]);
-      string objnameInfoDEATH = objname + timeFrames[i] + "DEATH";
-      ObjectCreate(0, objnameInfoDEATH, OBJ_LABEL, 0, 0, 0);
-      ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
-      ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_YDISTANCE, VertPos+13);
-      ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_CORNER, Corner);
-      ObjectSetString(0, objnameInfoDEATH, OBJPROP_FONT, FontName);
-      ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_FONTSIZE, FontSize);
-      ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_COLOR, clrWhite);
-      ObjectSetString(0, objnameInfoDEATH, OBJPROP_TEXT, timeFrames[i]);
-      string objnameInfo100_200 = objname + timeFrames[i] + "100_200";
-      ObjectCreate(0, objnameInfo100_200, OBJ_LABEL, 0, 0, 0);
-      ObjectSetInteger(0, objnameInfo100_200, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
-      ObjectSetInteger(0, objnameInfo100_200, OBJPROP_YDISTANCE, VertPos+26);
-      ObjectSetInteger(0, objnameInfo100_200, OBJPROP_CORNER, Corner);
-      ObjectSetString(0, objnameInfo100_200, OBJPROP_FONT, FontName);
-      ObjectSetInteger(0, objnameInfo100_200, OBJPROP_FONTSIZE, FontSize);
-      ObjectSetInteger(0, objnameInfo100_200, OBJPROP_COLOR, clrWhite);
-      ObjectSetString(0, objnameInfo100_200, OBJPROP_TEXT, timeFrames[i]);
-      string objname20_50 = objname + timeFrames[i] + "20_50";
-      ObjectCreate(0, objname20_50, OBJ_LABEL, 0, 0, 0);
-      ObjectSetInteger(0, objname20_50, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
-      ObjectSetInteger(0, objname20_50, OBJPROP_YDISTANCE, VertPos+39);
-      ObjectSetInteger(0, objname20_50, OBJPROP_CORNER, Corner);
-      ObjectSetString(0, objname20_50, OBJPROP_FONT, FontName);
-      ObjectSetInteger(0, objname20_50, OBJPROP_FONTSIZE, FontSize);
-      ObjectSetInteger(0, objname20_50, OBJPROP_COLOR, clrWhite);
-      ObjectSetString(0, objname20_50, OBJPROP_TEXT, timeFrames[i]);
-      string objname10_20 = objname + timeFrames[i] + "10_20";
-      ObjectCreate(0, objname10_20, OBJ_LABEL, 0, 0, 0);
-      ObjectSetInteger(0, objname10_20, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
-      ObjectSetInteger(0, objname10_20, OBJPROP_YDISTANCE, VertPos+52);
-      ObjectSetInteger(0, objname10_20, OBJPROP_CORNER, Corner);
-      ObjectSetString(0, objname10_20, OBJPROP_FONT, FontName);
-      ObjectSetInteger(0, objname10_20, OBJPROP_FONTSIZE, FontSize);
-      ObjectSetInteger(0, objname10_20, OBJPROP_COLOR, clrWhite);
-      ObjectSetString(0, objname10_20, OBJPROP_TEXT, timeFrames[i]);
-   }
-   string BullPowerTextLTF = "LTF Bull Power INIT";
-   string BearPowerTextLTF = "LTF Bear Power INIT";
-   string BullPowerTextHTF = "HTF Bull Power INIT";
-   string BearPowerTextHTF = "HTF Bear Power INIT";
-   ObjectCreate(0, objname + "InfoBullPowerLTF", OBJ_LABEL, 0, 0, 0);
-   ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_XDISTANCE, HorizPos);
-   ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_YDISTANCE, VertPos + 65);
-   ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_CORNER, Corner);
-   ObjectSetString(0, objname + "InfoBullPowerLTF", OBJPROP_FONT, FontName);
-   ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_FONTSIZE, FontSize);
-   ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_COLOR, clrWhite);
-   ObjectSetString(0, objname + "InfoBullPowerLTF", OBJPROP_TEXT, BullPowerTextLTF);
-   ObjectCreate(0, objname + "InfoBearPowerLTF", OBJ_LABEL, 0, 0, 0);
-   ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_XDISTANCE, HorizPos - 160);
-   ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_YDISTANCE, VertPos + 65);
-   ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_CORNER, Corner);
-   ObjectSetString(0, objname + "InfoBearPowerLTF", OBJPROP_FONT, FontName);
-   ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_FONTSIZE, FontSize);
-   ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_COLOR, clrWhite);
-   ObjectSetString(0, objname + "InfoBearPowerLTF", OBJPROP_TEXT, BearPowerTextLTF);
-   ObjectCreate(0, objname + "InfoBullPowerHTF", OBJ_LABEL, 0, 0, 0);
-   ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_XDISTANCE, HorizPos);
-   ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_YDISTANCE, VertPos + 77);
-   ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_CORNER, Corner);
-   ObjectSetString(0, objname + "InfoBullPowerHTF", OBJPROP_FONT, FontName);
-   ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_FONTSIZE, FontSize);
-   ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_COLOR, clrWhite);
-   ObjectSetString(0, objname + "InfoBullPowerHTF", OBJPROP_TEXT, BullPowerTextHTF);
-   ObjectCreate(0, objname + "InfoBearPowerHTF", OBJ_LABEL, 0, 0, 0);
-   ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_XDISTANCE, HorizPos - 160);
-   ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_YDISTANCE, VertPos + 77);
-   ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_CORNER, Corner);
-   ObjectSetString(0, objname + "InfoBearPowerHTF", OBJPROP_FONT, FontName);
-   ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_FONTSIZE, FontSize);
-   ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_COLOR, clrWhite);
-   ObjectSetString(0, objname + "InfoBearPowerHTF", OBJPROP_TEXT, BearPowerTextHTF);
-   InitDataFetch = true;
    SetZorderToOne();
    return 0;
 }
@@ -496,19 +359,189 @@ int OnCalculate(const int rates_total,
       prevTime = currentTime;
       UpdateBuffers();
    }
-   if (InitDataFetch == true)
+   static int waitCount = 10;
+   if (waitCount > 0)
    {
-      static int waitCount = 10;
-      if (waitCount > 0)
+      UpdateBuffersOnCalculate(0, rates_total);
+      waitCount--;
+      return prev_calculated;
+   }
+   string objnameInfo1 = objname + "Info1";
+   if (ObjectFind(0, objnameInfo1) == -1)
+   {
+      ObjectCreate(0, objnameInfo1, OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, objnameInfo1, OBJPROP_XDISTANCE, HorizPos);
+      ObjectSetInteger(0, objnameInfo1, OBJPROP_YDISTANCE, VertPos);
+      ObjectSetInteger(0, objnameInfo1, OBJPROP_CORNER, Corner);
+      ObjectSetString(0, objnameInfo1, OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, objnameInfo1, OBJPROP_FONTSIZE, FontSize);
+      ObjectSetInteger(0, objnameInfo1, OBJPROP_COLOR, clrWhite);
+      ObjectSetString(0, objnameInfo1, OBJPROP_TEXT, "200 SMA");
+   }
+   string objnameInfo2 = objname + "Info2";
+   if (ObjectFind(0, objnameInfo2) == -1)
+   {
+      ObjectCreate(0, objnameInfo2, OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, objnameInfo2, OBJPROP_XDISTANCE, HorizPos);
+      ObjectSetInteger(0, objnameInfo2, OBJPROP_YDISTANCE, VertPos + 13);
+      ObjectSetInteger(0, objnameInfo2, OBJPROP_CORNER, Corner);
+      ObjectSetString(0, objnameInfo2, OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, objnameInfo2, OBJPROP_FONTSIZE, FontSize);
+      ObjectSetInteger(0, objnameInfo2, OBJPROP_COLOR, clrWhite);
+      ObjectSetString(0, objnameInfo2, OBJPROP_TEXT, "DEATH X");
+   }
+   string objnameInfo3 = objname + "Info3";
+   if (ObjectFind(0, objnameInfo3) == -1)
+   {
+      ObjectCreate(0, objnameInfo3, OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, objnameInfo3, OBJPROP_XDISTANCE, HorizPos);
+      ObjectSetInteger(0, objnameInfo3, OBJPROP_YDISTANCE, VertPos + 26);
+      ObjectSetInteger(0, objnameInfo3, OBJPROP_CORNER, Corner);
+      ObjectSetString(0, objnameInfo3, OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, objnameInfo3, OBJPROP_FONTSIZE, FontSize);
+      ObjectSetInteger(0, objnameInfo3, OBJPROP_COLOR, clrWhite);
+      ObjectSetString(0, objnameInfo3, OBJPROP_TEXT, "100/200");
+   }
+   string objnameInfo4 = objname + "Info4";
+   if (ObjectFind(0, objnameInfo4) == -1)
+   {
+      ObjectCreate(0, objnameInfo4, OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, objnameInfo4, OBJPROP_XDISTANCE, HorizPos);
+      ObjectSetInteger(0, objnameInfo4, OBJPROP_YDISTANCE, VertPos + 39);
+      ObjectSetInteger(0, objnameInfo4, OBJPROP_CORNER, Corner);
+      ObjectSetString(0, objnameInfo4, OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, objnameInfo4, OBJPROP_FONTSIZE, FontSize);
+      ObjectSetInteger(0, objnameInfo4, OBJPROP_COLOR, clrWhite);
+      ObjectSetString(0, objnameInfo4, OBJPROP_TEXT, "20/50 X");
+   }
+   string objnameInfo5 = objname + "Info5";
+   if (ObjectFind(0, objnameInfo5) == -1)
+   {
+      ObjectCreate(0, objnameInfo5, OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, objnameInfo5, OBJPROP_XDISTANCE, HorizPos);
+      ObjectSetInteger(0, objnameInfo5, OBJPROP_YDISTANCE, VertPos + 52);
+      ObjectSetInteger(0, objnameInfo5, OBJPROP_CORNER, Corner);
+      ObjectSetString(0, objnameInfo5, OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, objnameInfo5, OBJPROP_FONTSIZE, FontSize);
+      ObjectSetInteger(0, objnameInfo5, OBJPROP_COLOR, clrWhite);
+      ObjectSetString(0, objnameInfo5, OBJPROP_TEXT, "10/20 X");
+   }
+   int additionalSpacing = 0; 
+   string timeFrames[] = {"M1", "M5", "M15", "M30", "H1", "H4", "D1", "W1"};
+   for (int i = 0; i < ArraySize(timeFrames); i++)
+   {
+      if ( timeFrames[i] == "M30" || timeFrames[i] == "H1")
       {
-         UpdateBuffersOnCalculate(0, rates_total);
-         waitCount--;
-         return prev_calculated;
+         additionalSpacing += 5;
       }
-      else if (waitCount == 0)
+      string objnameInfo200SMA = objname + timeFrames[i] + "200SMA";
+      if (ObjectFind(0, objnameInfo200SMA) == -1)
       {
-         InitDataFetch = false;
+         ObjectCreate(0, objnameInfo200SMA, OBJ_LABEL, 0, 0, 0);
+         ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
+         ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_YDISTANCE, VertPos);
+         ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_CORNER, Corner);
+         ObjectSetString(0, objnameInfo200SMA, OBJPROP_FONT, FontName);
+         ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_FONTSIZE, FontSize);
+         ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_COLOR, clrWhite);
+         ObjectSetString(0, objnameInfo200SMA, OBJPROP_TEXT, timeFrames[i]);
       }
+      string objnameInfoDEATH = objname + timeFrames[i] + "DEATH";
+      if (ObjectFind(0, objnameInfoDEATH) == -1)
+      {
+         ObjectCreate(0, objnameInfoDEATH, OBJ_LABEL, 0, 0, 0);
+         ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
+         ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_YDISTANCE, VertPos+13);
+         ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_CORNER, Corner);
+         ObjectSetString(0, objnameInfoDEATH, OBJPROP_FONT, FontName);
+         ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_FONTSIZE, FontSize);
+         ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_COLOR, clrWhite);
+         ObjectSetString(0, objnameInfoDEATH, OBJPROP_TEXT, timeFrames[i]);
+      }
+      string objnameInfo100_200 = objname + timeFrames[i] + "100_200";
+      if (ObjectFind(0, objnameInfo100_200) == -1)
+      {
+         ObjectCreate(0, objnameInfo100_200, OBJ_LABEL, 0, 0, 0);
+         ObjectSetInteger(0, objnameInfo100_200, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
+         ObjectSetInteger(0, objnameInfo100_200, OBJPROP_YDISTANCE, VertPos+26);
+         ObjectSetInteger(0, objnameInfo100_200, OBJPROP_CORNER, Corner);
+         ObjectSetString(0, objnameInfo100_200, OBJPROP_FONT, FontName);
+         ObjectSetInteger(0, objnameInfo100_200, OBJPROP_FONTSIZE, FontSize);
+         ObjectSetInteger(0, objnameInfo100_200, OBJPROP_COLOR, clrWhite);
+         ObjectSetString(0, objnameInfo100_200, OBJPROP_TEXT, timeFrames[i]);
+      }
+      string objname20_50 = objname + timeFrames[i] + "20_50";
+      if (ObjectFind(0, objname20_50) == -1)
+      {
+         ObjectCreate(0, objname20_50, OBJ_LABEL, 0, 0, 0);
+         ObjectSetInteger(0, objname20_50, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
+         ObjectSetInteger(0, objname20_50, OBJPROP_YDISTANCE, VertPos+39);
+         ObjectSetInteger(0, objname20_50, OBJPROP_CORNER, Corner);
+         ObjectSetString(0, objname20_50, OBJPROP_FONT, FontName);
+         ObjectSetInteger(0, objname20_50, OBJPROP_FONTSIZE, FontSize);
+         ObjectSetInteger(0, objname20_50, OBJPROP_COLOR, clrWhite);
+         ObjectSetString(0, objname20_50, OBJPROP_TEXT, timeFrames[i]);
+      }
+      string objname10_20 = objname + timeFrames[i] + "10_20";
+      if (ObjectFind(0, objname10_20) == -1)
+      {
+         ObjectCreate(0, objname10_20, OBJ_LABEL, 0, 0, 0);
+         ObjectSetInteger(0, objname10_20, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
+         ObjectSetInteger(0, objname10_20, OBJPROP_YDISTANCE, VertPos+52);
+         ObjectSetInteger(0, objname10_20, OBJPROP_CORNER, Corner);
+         ObjectSetString(0, objname10_20, OBJPROP_FONT, FontName);
+         ObjectSetInteger(0, objname10_20, OBJPROP_FONTSIZE, FontSize);
+         ObjectSetInteger(0, objname10_20, OBJPROP_COLOR, clrWhite);
+         ObjectSetString(0, objname10_20, OBJPROP_TEXT, timeFrames[i]);
+      }
+   }
+   string BullPowerTextLTF = "LTF Bull Power INIT";
+   string BearPowerTextLTF = "LTF Bear Power INIT";
+   string BullPowerTextHTF = "HTF Bull Power INIT";
+   string BearPowerTextHTF = "HTF Bear Power INIT";
+   if (ObjectFind(0, objname + "InfoBullPowerLTF") == -1)
+   {
+      ObjectCreate(0, objname + "InfoBullPowerLTF", OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_XDISTANCE, HorizPos);
+      ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_YDISTANCE, VertPos + 65);
+      ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_CORNER, Corner);
+      ObjectSetString(0, objname + "InfoBullPowerLTF", OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_FONTSIZE, FontSize);
+      ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_COLOR, clrWhite);
+      ObjectSetString(0, objname + "InfoBullPowerLTF", OBJPROP_TEXT, BullPowerTextLTF);
+   }
+   if (ObjectFind(0, objname + "InfoBearPowerLTF") == -1)
+   {
+      ObjectCreate(0, objname + "InfoBearPowerLTF", OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_XDISTANCE, HorizPos - 160);
+      ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_YDISTANCE, VertPos + 65);
+      ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_CORNER, Corner);
+      ObjectSetString(0, objname + "InfoBearPowerLTF", OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_FONTSIZE, FontSize);
+      ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_COLOR, clrWhite);
+      ObjectSetString(0, objname + "InfoBearPowerLTF", OBJPROP_TEXT, BearPowerTextLTF);
+   }
+   if (ObjectFind(0, objname + "InfoBullPowerHTF") == -1)
+   {
+      ObjectCreate(0, objname + "InfoBullPowerHTF", OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_XDISTANCE, HorizPos);
+      ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_YDISTANCE, VertPos + 77);
+      ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_CORNER, Corner);
+      ObjectSetString(0, objname + "InfoBullPowerHTF", OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_FONTSIZE, FontSize);
+      ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_COLOR, clrWhite);
+      ObjectSetString(0, objname + "InfoBullPowerHTF", OBJPROP_TEXT, BullPowerTextHTF);
+   }
+   if (ObjectFind(0, objname + "InfoBearPowerHTF") == -1)
+   {
+      ObjectCreate(0, objname + "InfoBearPowerHTF", OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_XDISTANCE, HorizPos - 160);
+      ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_YDISTANCE, VertPos + 77);
+      ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_CORNER, Corner);
+      ObjectSetString(0, objname + "InfoBearPowerHTF", OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_FONTSIZE, FontSize);
+      ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_COLOR, clrWhite);
+      ObjectSetString(0, objname + "InfoBearPowerHTF", OBJPROP_TEXT, BearPowerTextHTF);
    }
    // Get the current price
    double currentPrice = close[rates_total - 1];
