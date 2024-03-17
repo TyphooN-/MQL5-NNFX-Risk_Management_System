@@ -72,7 +72,6 @@ double currentOpenH4 = 0;
 double currentOpenH1 = 0;
 double currentOpenM15 = 0;
 int lastCheckedCandle = -1;
-bool InitDataFetch = true;
 void SetZOrderToOne()
 {
     // Set z-order to 1 for each object
@@ -100,20 +99,6 @@ int OnInit()
    SetIndexBuffer(3, iATR_H4, INDICATOR_DATA);
    SetIndexBuffer(4, iATR_H1, INDICATOR_DATA);
    SetIndexBuffer(5, iATR_M15, INDICATOR_DATA);
-   ObjectCreate(0, objname + "Info1", OBJ_LABEL, 0, 0, 0);
-   ObjectSetInteger(0, objname + "Info1", OBJPROP_XDISTANCE, HorizPos);
-   ObjectSetInteger(0, objname + "Info1", OBJPROP_YDISTANCE, VertPos);
-   ObjectSetInteger(0, objname + "Info1", OBJPROP_CORNER, Corner);
-   ObjectSetString(0, objname + "Info1", OBJPROP_FONT, FontName);
-   ObjectSetInteger(0, objname + "Info1", OBJPROP_FONTSIZE, FontSize);
-   ObjectSetInteger(0, objname + "Info1", OBJPROP_COLOR, FontColor);
-   ObjectCreate(0, objname + "Info2", OBJ_LABEL, 0, 0, 0);
-   ObjectSetInteger(0, objname + "Info2", OBJPROP_XDISTANCE, HorizPos);
-   ObjectSetInteger(0, objname + "Info2", OBJPROP_YDISTANCE, VertPos + 13);
-   ObjectSetInteger(0, objname + "Info2", OBJPROP_CORNER, Corner);
-   ObjectSetString(0, objname + "Info2", OBJPROP_FONT, FontName);
-   ObjectSetInteger(0, objname + "Info2", OBJPROP_FONTSIZE, FontSize);
-   ObjectSetInteger(0, objname + "Info2", OBJPROP_COLOR, FontColor);
 #ifdef __MQL5__
    ArraySetAsSeries(iATR_D1, true);
    ArraySetAsSeries(iATR_W1, true);
@@ -140,15 +125,8 @@ int OnInit()
       Print("handle_iATR_M15: ", handle_iATR_M15);
       return INIT_FAILED;
    }
-   string infoText1 = "ATR| M15: INIT  H1: INIT H4: INIT";
-   string infoText2 = "ATR| D1: INIT W1: INIT MN1: INIT";
-   ObjectSetString(0, objname + "Info1", OBJPROP_TEXT, infoText1);
-   ObjectSetInteger(0, objname + "Info1", OBJPROP_COLOR, clrWhite);
-   ObjectSetString(0, objname + "Info2", OBJPROP_TEXT, infoText2);
-   ObjectSetInteger(0, objname + "Info2", OBJPROP_COLOR, clrWhite);
    SetZOrderToOne();
 #endif
-   InitDataFetch = true;
    return INIT_SUCCEEDED;
 }
 void OnDeinit(const int pReason)
@@ -325,24 +303,37 @@ int OnCalculate(const int        rates_total,
    }
    string infoText1 = "ATR| M15: " + DoubleToString(M15info, ATRInfoDecimals) + " H1: " + DoubleToString(H1info, ATRInfoDecimals) + " H4: " + DoubleToString(H4info, ATRInfoDecimals);
    string infoText2 = "ATR| D1: " + DoubleToString(D1info, ATRInfoDecimals) + " W1: " + DoubleToString(W1info, ATRInfoDecimals) + " MN1: " + DoubleToString(MN1info, ATRInfoDecimals);
+   if (ObjectFind(0, objname + "Info1") == -1)
+   {
+      ObjectCreate(0, objname + "Info1", OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, objname + "Info1", OBJPROP_XDISTANCE, HorizPos);
+      ObjectSetInteger(0, objname + "Info1", OBJPROP_YDISTANCE, VertPos);
+      ObjectSetInteger(0, objname + "Info1", OBJPROP_CORNER, Corner);
+      ObjectSetString(0, objname + "Info1", OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, objname + "Info1", OBJPROP_FONTSIZE, FontSize);
+      ObjectSetInteger(0, objname + "Info1", OBJPROP_COLOR, FontColor);
+   }
+   if (ObjectFind(0, objname + "Info2") == -1)
+   {
+      ObjectCreate(0, objname + "Info2", OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, objname + "Info2", OBJPROP_XDISTANCE, HorizPos);
+      ObjectSetInteger(0, objname + "Info2", OBJPROP_YDISTANCE, VertPos + 13);
+      ObjectSetInteger(0, objname + "Info2", OBJPROP_CORNER, Corner);
+      ObjectSetString(0, objname + "Info2", OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, objname + "Info2", OBJPROP_FONTSIZE, FontSize);
+      ObjectSetInteger(0, objname + "Info2", OBJPROP_COLOR, FontColor);
+   }
    ObjectSetString(0, objname + "Info1", OBJPROP_TEXT, infoText1);
    ObjectSetInteger(0, objname + "Info1", OBJPROP_COLOR, FontColor1);
    ObjectSetString(0, objname + "Info2", OBJPROP_TEXT, infoText2);
    ObjectSetInteger(0, objname + "Info2", OBJPROP_COLOR, FontColor2);
-   if (InitDataFetch == true)
+   static int waitCount = 10;
+   if ( waitCount > 0 )
    {
-      static int waitCount = 10;
-      if ( waitCount > 0 )
-      {
-         UpdateATRData();
-         UpdateCandlestickData();
-         waitCount--;
-         return prev_calculated;
-      }
-      else if (waitCount == 0)
-      {
-         InitDataFetch = false;
-      }
+      UpdateATRData();
+      UpdateCandlestickData();
+      waitCount--;
+      return prev_calculated;
    }
    //PrintFormat( "ATR and candlestick Data is now available" );
    // Initialize vars
