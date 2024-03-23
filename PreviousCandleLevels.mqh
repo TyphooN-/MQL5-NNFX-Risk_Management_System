@@ -118,10 +118,10 @@ void UpdateJudasData()
 }
 void DeleteHorizontalLine(string object)
 {
-      if(ObjectCreate(0, object, OBJ_TREND, 0, 0, 0, 0, 0))
-      {
-         ObjectDelete(0, object);
-      }
+    if(ObjectFind(0, object) != -1) // Check if the object exists before deleting
+    {
+        ObjectDelete(0, object);
+    }
 }
 void DrawLines()
 {
@@ -208,7 +208,6 @@ void DrawLines()
       DrawHorizontalLine(Previous_MN1_High, objname1 + "MN1_High", PreviousCandleColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Previous_MN1_Low, objname1 + "MN1_Low", PreviousCandleColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
    }
-   ChartRedraw();
 }
 void DrawHorizontalLine(double price, string label, color clr, datetime startTime, datetime endTime)
 {
