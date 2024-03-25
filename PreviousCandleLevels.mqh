@@ -116,11 +116,11 @@ void UpdateJudasData()
    Current_W1_High = iHigh(_Symbol, PERIOD_W1, currentWeekEndShift);
    Current_W1_Low = iLow(_Symbol, PERIOD_W1, currentWeekStartShift);
 }
-void DeleteHorizontalLine(string object)
+void DeleteHorizontalLine(string label)
 {
-    if(ObjectFind(0, object) != -1) // Check if the object exists before deleting
+    if(ObjectFind(0, label) != -1)
     {
-        ObjectDelete(0, object);
+        ObjectDelete(0, label);
     }
 }
 void DrawLines()
@@ -211,19 +211,15 @@ void DrawLines()
 }
 void DrawHorizontalLine(double price, string label, color clr, datetime startTime, datetime endTime)
 {
-   if(ObjectFind(ChartID(), label)==0)
+   if(ObjectFind(0, label) != -1)
    {
-      ObjectDelete(ChartID(), label);
-      if(GetLastError()>0)
-      {
- //        Print(IntegerToString(_LastError) +" Error deleting "+ label);
-      }
+      DeleteHorizontalLine(label);
    }
    ObjectCreate(0, label, OBJ_TREND, 0, startTime, price, endTime, price);
-   if(GetLastError()>0)
-   {
+//   if(GetLastError()>0)
+//   {
 //      Print(IntegerToString(_LastError) +" Error creating "+ label);
-   }
+//  }
    ObjectSetInteger(0, label, OBJPROP_COLOR, clr);
    ObjectSetInteger(0, label, OBJPROP_STYLE, STYLE_SOLID);
    #ifdef __MQL5__ // In MT4 this will return error 4201
