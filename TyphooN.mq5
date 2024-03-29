@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.307"
+#property version   "1.308"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -958,6 +958,10 @@ double PerformOrderCheck(const MqlTradeRequest &request, MqlTradeCheckResult &ch
       {
          return -1.0;
       }
+      if (retcode == 10030)
+      {
+         return -1.0;
+      }
       else
       {
          Print("OrderCheck failed with retcode ", retcode);
@@ -1114,6 +1118,38 @@ void TyWindow::OnClickTrade(void)
    request.magic = MagicNumber;
    request.sl = SL;
    request.tp = TP;
+   // Get supported filling modes
+   long filling_modes = SymbolInfoInteger(_Symbol, SYMBOL_FILLING_MODE);
+   // Check if ORDER_FILLING_IOC filling mode is supported
+   if ((filling_modes & ORDER_FILLING_IOC) != 0)
+   {
+      //Print("ORDER_FILLING_IOC filling mode is supported. Adjusting...");
+      request.type_filling = ORDER_FILLING_IOC;
+   }
+   // Check if ORDER_FILLING_FOK filling mode is supported
+   else if ((filling_modes & ORDER_FILLING_FOK) != 0)
+   {
+      //Print("ORDER_FILLING_FOK filling mode is supported. Adjusting...");
+      request.type_filling = ORDER_FILLING_FOK;
+   }
+   // Check if ORDER_FILLING_BOC filling mode is supported
+   else if ((filling_modes & ORDER_FILLING_BOC) != 0)
+   {
+      //Print("ORDER_FILLING_BOC filling mode is supported. Adjusting...");
+      request.type_filling = ORDER_FILLING_BOC;
+   }
+   // Check if ORDER_FILLING_RETURN filling mode is supported
+   else if ((filling_modes & ORDER_FILLING_RETURN) != 0)
+   {
+      //Print("ORDER_FILLING_RETURN filling mode is supported. Adjusting...");
+      request.type_filling = ORDER_FILLING_RETURN;
+   }
+   // If none of the desired filling modes are supported, handle accordingly
+   else
+   {
+      Print("None of the desired filling modes are supported. Unable to adjust filling mode.");
+      return;
+   }
    // Explicitly set the order type
    if (TP > SL)
    {
