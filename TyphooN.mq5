@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.308"
+#property version   "1.309"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -1108,6 +1108,12 @@ void TyWindow::OnClickTrade(void)
    {
       //Print("Order size adjusted to maximum volume.");
       OrderLots = max_volume;
+   }
+   // Check if existing volume equals limit volume
+   if (existing_volume == limit_volume)
+   {
+      Print("Existing volume is equal to the limit volume. Not placing additional order.");
+      return;
    }
    OrderLots = NormalizeDouble(OrderLots, OrderDigits);
    MqlTradeRequest request;
