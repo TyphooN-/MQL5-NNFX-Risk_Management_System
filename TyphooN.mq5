@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.305"
+#property version   "1.306"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -365,7 +365,7 @@ double PointValue()
 }
 bool CloseAllPositionsOnAllSymbols()
 {
-   Trade.SetAsyncMode(true); // true: Async, false: Sync
+   Trade.SetAsyncMode(true);
    int totalPositions = PositionsTotal();
    if (totalPositions == 0)
    {
@@ -1417,29 +1417,43 @@ void BubbleSort(PositionInfo &arr[])
 }
 void Protect()
 {
-   for(int i=0; i<PositionsTotal(); i++)
+   Trade.SetAsyncMode(true);
+   for(int i = 0; i < PositionsTotal(); i++)
    {
       ulong ticket = PositionGetTicket(i);
-      if(PositionSelectByTicket(ticket))
+      if (ProcessPositionCheck(ticket, _Symbol, MagicNumber))
       {
-         bool ShouldProcessPosition = ProcessPositionCheck(ticket, _Symbol, MagicNumber);
-         if (!ShouldProcessPosition) continue;
          double EntryPrice = PositionGetDouble(POSITION_PRICE_OPEN);
          double OriginalSL = PositionGetDouble(POSITION_SL);
-         SL = EntryPrice;
          if (OriginalSL == EntryPrice)
          {
-            Print("SL for Position #", ticket, " is already at breakeven.");
+            Print("SL for Position #", (string)ticket, " is already at breakeven."); // Convert ticket to string for printing
          }
-         if(!Trade.PositionModify(ticket, SL, PositionGetDouble(POSITION_TP)))
+         if (!Trade.PositionModify(ticket, EntryPrice, PositionGetDouble(POSITION_TP)))
          {
-            Print("Failed to modify SL via PROTECT for Position #", ticket, ". Error code: ", GetLastError());
+            Print("Failed to modify SL via PROTECT for Position #", (string)ticket, ". Error code: ", GetLastError());
          }
          else
          {
-            Print("SL for Position #", ticket, " moved to breakeven.");
+            Print("SL for Position #", (string)ticket, " moved to breakeven.");
          }
       }
+   }
+   // Wait for the asynchronous operations to complete
+   int timeout = 10000; // Set a timeout (in milliseconds) to wait for order execution
+   uint startTime = GetTickCount();
+   while (PositionsTotal() > 0 && (GetTickCount() - startTime) < (uint) timeout)
+   {
+      //Print("Waiting for SL modification asynchronously...");
+      Sleep(100); // Sleep for a short duration
+   }
+   if (PositionsTotal() == 0)
+   {
+      Print("SL modification for all positions completed successfully.");
+   }
+   else
+   {
+      Print("Failed to modify SL for all positions within the specified timeout.");
    }
 }
 void TyWindow::OnClickProtect(void)
@@ -1456,12 +1470,12 @@ void TyWindow::OnClickCloseAll(void)
       {
          HasOpenLimitOrder = true;
          break;
-     }
+      }
    }
    // Check for open positions
    for(int i=0; i<PositionsTotal(); i++)
    {
-      if(PositionGetSymbol(i) == _Symbol && (ManageAllPositions || PositionGetInteger(POSITION_MAGIC) == MagicNumber))
+      if(ProcessPositionCheck(PositionGetTicket(i), _Symbol, MagicNumber))
       {
          HasOpenPosition = true;
          break;
@@ -1504,43 +1518,41 @@ void TyWindow::OnClickCloseAll(void)
       int result = MessageBox("Do you want to close all positions on " + _Symbol + "?", "Close Positions", MB_YESNO | MB_ICONQUESTION);
       if (result == IDYES)
       {
-         Trade.SetAsyncMode(true); // Set asynchronous mode
+         Trade.SetAsyncMode(true);
          double TotalPL = 0.0;
          for (int i = PositionsTotal() - 1; i >= 0; i--)
          {
-         if (PositionGetSymbol(i) == _Symbol && (ManageAllPositions || PositionGetInteger(POSITION_MAGIC) == MagicNumber))
-         {
-            double entryPrice = PositionGetDouble(POSITION_PRICE_OPEN);
-            double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
-            double positionProfit = PositionGetDouble(POSITION_PROFIT);
-            double swap = PositionGetDouble(POSITION_SWAP);
-            double totalProfitWithSwap = positionProfit + swap;
-            double lotSize = PositionGetDouble(POSITION_VOLUME);
-            if (Trade.PositionClose(PositionGetInteger(POSITION_TICKET)))
+            if (ProcessPositionCheck(PositionGetTicket(i), _Symbol, MagicNumber))
             {
-               TotalPL += totalProfitWithSwap;
-            if (totalProfitWithSwap >= 0)
-            {
-               Print("Closed Position #", PositionGetInteger(POSITION_TICKET), " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a profit of $", DoubleToString(totalProfitWithSwap, 2));
-            }
-            else
-            {
-               Print("Closed Position #", PositionGetInteger(POSITION_TICKET), " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a loss of -$", MathAbs(totalProfitWithSwap));
-            }
-            }
-            else
-            {
-               Print("Position #", PositionGetInteger(POSITION_TICKET), " close failed asynchronously with error ", GetLastError());
+               double entryPrice = PositionGetDouble(POSITION_PRICE_OPEN);
+               double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+               double positionProfit = PositionGetDouble(POSITION_PROFIT);
+               double swap = PositionGetDouble(POSITION_SWAP);
+               double totalProfitWithSwap = positionProfit + swap; // Include swap in total profit/loss
+               double lotSize = PositionGetDouble(POSITION_VOLUME);
+               if (Trade.PositionClose(PositionGetInteger(POSITION_TICKET)))
+               {
+                  TotalPL += totalProfitWithSwap;
+                  if (totalProfitWithSwap >= 0)
+                  {
+                     Print("Closed Position #", PositionGetInteger(POSITION_TICKET), " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a profit of $", DoubleToString(totalProfitWithSwap, 2));
+                  }
+                  else
+                  {
+                     Print("Closed Position #", PositionGetInteger(POSITION_TICKET), " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a loss of -$", MathAbs(totalProfitWithSwap));
+                  }
+               }
+               else
+               {
+                  Print("Position #", PositionGetInteger(POSITION_TICKET), " close failed asynchronously with error ", GetLastError());
+               }
             }
          }
-         }
-         // Wait for the asynchronous operations to complete
-         int timeout = 10000; // Set a timeout (in milliseconds) to wait for order execution
+         int timeout = 10000;
          uint startTime = GetTickCount();
          while (PositionsTotal() > 0 && (GetTickCount() - startTime) < (uint) timeout)
          {
-            //Print("Waiting for positions to close asynchronously...");
-            Sleep(100); // Sleep for a short duration
+            Sleep(100);
          }
          if (PositionsTotal() == 0)
          {
@@ -1558,11 +1570,11 @@ void TyWindow::OnClickCloseAll(void)
          {
             Print("Total loss of closed positions: -$", DoubleToString(MathAbs(TotalPL), 2));
          }
-         }
-         else if(result == IDNO)
-         {
-            Print("Positions not closed as user answered no.");
-         }
+      }
+      else if(result == IDNO)
+      {
+         Print("Positions not closed as user answered no.");
+      }
    }
 }
 void TyWindow::OnClickClosePartial(void)
@@ -1570,12 +1582,12 @@ void TyWindow::OnClickClosePartial(void)
    PositionInfo positions[];
    for (int i = 0; i < PositionsTotal(); i++)
    {
-      if (PositionGetSymbol(i) == _Symbol)
+      if (ProcessPositionCheck(PositionGetTicket(i), _Symbol, MagicNumber))
       {
          PositionInfo pos;
          pos.ticket = PositionGetInteger(POSITION_TICKET);
          pos.lotSize = PositionGetDouble(POSITION_VOLUME);
-         pos.diff = 0; // You can assign some other value here if needed
+         pos.diff = 0;
          ArrayResize(positions, ArraySize(positions) + 1);
          positions[ArraySize(positions) - 1] = pos;
       }
