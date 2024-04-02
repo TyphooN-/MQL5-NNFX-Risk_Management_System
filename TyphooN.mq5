@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.310"
+#property version   "1.311"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -372,6 +372,7 @@ bool CloseAllPositionsOnAllSymbols()
       Print("No open positions to close.");
       return true;  // No need to proceed if there are no positions
    }
+   int closedPositions = 0; // Variable to keep track of the number of closed positions
    for (int i = 0; i < totalPositions; i++)
    {
       ulong ticket = PositionGetTicket(i);
@@ -390,6 +391,7 @@ bool CloseAllPositionsOnAllSymbols()
          {
             Print("Closing [" + symbol + "] Position #", ticket, " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a loss of -$", MathAbs(positionProfit));
          }
+         closedPositions++; // Increment closedPositions when a position is successfully closed
       }
       else
       {
@@ -400,12 +402,11 @@ bool CloseAllPositionsOnAllSymbols()
    // Wait for the asynchronous operations to complete
    int timeout = 10000; // Set a timeout (in milliseconds) to wait for order execution
    uint startTime = GetTickCount();
-   while (PositionsTotal() > 0 && (GetTickCount() - startTime) < (uint) timeout)
+   while (closedPositions < totalPositions && (GetTickCount() - startTime) < (uint) timeout)
    {
-      //Print("Waiting for positions to close asynchronously...");
       Sleep(100); // Sleep for a short duration
    }
-   if (PositionsTotal() == 0)
+   if (closedPositions == totalPositions)
    {
       Print("All positions closed successfully.");
       return true;
@@ -1545,6 +1546,21 @@ void TyWindow::OnClickCloseAll(void)
                }
             }
          }
+         // Wait for the asynchronous operations to complete
+         int timeout = 10000; // Set a timeout (in milliseconds) to wait for order execution
+         uint startTime = GetTickCount();
+         while (OrdersTotal() > 0 && (GetTickCount() - startTime) < (uint) timeout)
+         {
+            Sleep(100); // Sleep for a short duration
+         }
+         if (OrdersTotal() == 0)
+         {
+            Print("All limit orders closed successfully.");
+         }
+         else
+         {
+            Print("Failed to close all limit orders within the specified timeout.");
+         }
       }
       else if(result == IDNO)
       {
@@ -1587,11 +1603,12 @@ void TyWindow::OnClickCloseAll(void)
                }
             }
          }
-         int timeout = 10000;
+         // Wait for the asynchronous operations to complete
+         int timeout = 10000; // Set a timeout (in milliseconds) to wait for order execution
          uint startTime = GetTickCount();
          while (PositionsTotal() > 0 && (GetTickCount() - startTime) < (uint) timeout)
          {
-            Sleep(100);
+            Sleep(100); // Sleep for a short duration
          }
          if (PositionsTotal() == 0)
          {
@@ -1673,6 +1690,7 @@ void TyWindow::OnClickSetTP(void)
    if (TP != 0)
    {
       Trade.SetAsyncMode(true);
+      int modifiedPositions = 0; // Variable to keep track of the number of modified positions
       for (int i = 0; i < PositionsTotal(); i++)
       {
          ulong ticket = PositionGetTicket(i);
@@ -1686,24 +1704,25 @@ void TyWindow::OnClickSetTP(void)
             else
             {
                Print("TP modified for Position #", ticket, ". Original TP: ", OriginalTP, " | New TP: ", TP);
+               modifiedPositions++; // Increment modifiedPositions when a position is successfully modified
             }
          }
       }
-   }
-   // Wait for the asynchronous operations to complete
-   int timeout = 10000; // Set a timeout (in milliseconds) to wait for order execution
-   uint startTime = GetTickCount();
-   while (PositionsTotal() > 0 && (GetTickCount() - startTime) < (uint) timeout)
-   {
-      Sleep(100); // Sleep for a short duration
-   }
-   if (PositionsTotal() == 0)
-   {
-      Print("TP modification for all positions completed successfully.");
-   }
-   else
-   {
-      Print("Failed to modify TP for all positions within the specified timeout.");
+      // Wait for the asynchronous operations to complete
+      int timeout = 10000; // Set a timeout (in milliseconds) to wait for order execution
+      uint startTime = GetTickCount();
+      while (modifiedPositions < PositionsTotal() && (GetTickCount() - startTime) < (uint) timeout)
+      {
+         Sleep(100); // Sleep for a short duration
+      }
+      if (modifiedPositions == PositionsTotal())
+      {
+         Print("TP modification for all positions completed successfully.");
+      }
+      else
+      {
+         Print("Failed to modify TP for all positions within the specified timeout.");
+      }
    }
 }
 void TyWindow::OnClickSetSL(void)
@@ -1712,6 +1731,7 @@ void TyWindow::OnClickSetSL(void)
    if (SL != 0)
    {
       Trade.SetAsyncMode(true);
+      int modifiedPositions = 0; // Variable to keep track of the number of modified positions
       for (int i = 0; i < PositionsTotal(); i++)
       {
          ulong ticket = PositionGetTicket(i);
@@ -1725,24 +1745,25 @@ void TyWindow::OnClickSetSL(void)
             else
             {
                Print("SL modified for Order #", ticket, ". Original SL: ", OriginalSL, " | New SL: ", SL);
+               modifiedPositions++; // Increment modifiedPositions when a position is successfully modified
             }
          }
       }
-   }
-   // Wait for the asynchronous operations to complete
-   int timeout = 10000; // Set a timeout (in milliseconds) to wait for order execution
-   uint startTime = GetTickCount();
-   while (PositionsTotal() > 0 && (GetTickCount() - startTime) < (uint) timeout)
-   {
-      Sleep(100); // Sleep for a short duration
-   }
-   if (PositionsTotal() == 0)
-   {
-      Print("SL modification for all positions completed successfully.");
-   }
-   else
-   {
-      Print("Failed to modify SL for all positions within the specified timeout.");
+      // Wait for the asynchronous operations to complete
+      int timeout = 10000; // Set a timeout (in milliseconds) to wait for order execution
+      uint startTime = GetTickCount();
+      while (modifiedPositions < PositionsTotal() && (GetTickCount() - startTime) < (uint)timeout)
+      {
+         Sleep(100); // Sleep for a short duration
+      }
+      if (modifiedPositions == PositionsTotal())
+      {
+         Print("SL modification for all positions completed successfully.");
+      }
+      else
+      {
+         Print("Failed to modify SL for all positions within the specified timeout.");
+      }
    }
    AutoProtectCalled = false;
 }
