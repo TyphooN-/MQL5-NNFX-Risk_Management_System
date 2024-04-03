@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.312"
+#property version   "1.313"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -988,6 +988,10 @@ void TyWindow::OnClickTrade(void)
 {
    SL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
    TP = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
+   double tickSize = TickSize(_Symbol);
+   // Round SL and TP values to the tick size
+   SL = MathRound(SL / tickSize) * tickSize;
+   TP = MathRound(TP / tickSize) * tickSize;
    double max_volume = NormalizeDouble(SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX), _Digits);
    double limit_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_LIMIT);
    double existing_volume = GetTotalVolumeForSymbol(_Symbol);
@@ -1689,6 +1693,10 @@ void TyWindow::OnClickSetTP(void)
    double newTP = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
    if (newTP != TP && newTP != 0) // Check if TP value is changed and not equal to 0
    {
+      // Get tick size of the symbol
+      double tickSize = TickSize(_Symbol);
+      // Round TP value to the tick size
+      newTP = MathRound(newTP / tickSize) * tickSize;
       TP = newTP;
       Trade.SetAsyncMode(true);
       int modifiedPositions = 0; // Variable to keep track of the number of modified positions
@@ -1734,6 +1742,10 @@ void TyWindow::OnClickSetSL(void)
    double newSL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
    if (newSL != SL && newSL != 0) // Check if SL value is changed and not equal to 0
    {
+      // Get tick size of the symbol
+      double tickSize = TickSize(_Symbol);
+      // Round SL value to the tick size
+      newSL = MathRound(newSL / tickSize) * tickSize;
       SL = newSL;
       Trade.SetAsyncMode(true);
       int modifiedPositions = 0; // Variable to keep track of the number of modified positions
