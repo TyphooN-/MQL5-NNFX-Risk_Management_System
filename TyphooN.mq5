@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.311"
+#property version   "1.312"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -1686,9 +1686,10 @@ void TyWindow::OnClickClosePartial(void)
 }
 void TyWindow::OnClickSetTP(void)
 {
-   TP = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
-   if (TP != 0)
+   double newTP = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
+   if (newTP != TP && newTP != 0) // Check if TP value is changed and not equal to 0
    {
+      TP = newTP;
       Trade.SetAsyncMode(true);
       int modifiedPositions = 0; // Variable to keep track of the number of modified positions
       for (int i = 0; i < PositionsTotal(); i++)
@@ -1697,14 +1698,17 @@ void TyWindow::OnClickSetTP(void)
          if (ProcessPositionCheck(ticket, _Symbol, MagicNumber))
          {
             double OriginalTP = PositionGetDouble(POSITION_TP);
-            if (!Trade.PositionModify(ticket, PositionGetDouble(POSITION_SL), TP))
+            if (OriginalTP != TP) // Check if TP value is different from the original value
             {
-               Print("Failed to modify TP. Error code: ", GetLastError());
-            }
-            else
-            {
-               Print("TP modified for Position #", ticket, ". Original TP: ", OriginalTP, " | New TP: ", TP);
-               modifiedPositions++; // Increment modifiedPositions when a position is successfully modified
+               if (!Trade.PositionModify(ticket, PositionGetDouble(POSITION_SL), TP))
+               {
+                  Print("Failed to modify TP. Error code: ", GetLastError());
+               }
+               else
+               {
+                  Print("TP modified for Position #", ticket, ". Original TP: ", OriginalTP, " | New TP: ", TP);
+                  modifiedPositions++; // Increment modifiedPositions when a position is successfully modified
+               }
             }
          }
       }
@@ -1727,9 +1731,10 @@ void TyWindow::OnClickSetTP(void)
 }
 void TyWindow::OnClickSetSL(void)
 {
-   SL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
-   if (SL != 0)
+   double newSL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
+   if (newSL != SL && newSL != 0) // Check if SL value is changed and not equal to 0
    {
+      SL = newSL;
       Trade.SetAsyncMode(true);
       int modifiedPositions = 0; // Variable to keep track of the number of modified positions
       for (int i = 0; i < PositionsTotal(); i++)
@@ -1738,14 +1743,17 @@ void TyWindow::OnClickSetSL(void)
          if (ProcessPositionCheck(ticket, _Symbol, MagicNumber))
          {
             double OriginalSL = PositionGetDouble(POSITION_SL);
-            if (!Trade.PositionModify(ticket, SL, PositionGetDouble(POSITION_TP)))
+            if (OriginalSL != SL) // Check if SL value is different from the original value
             {
-               Print("Failed to modify SL. Error code: ", GetLastError());
-            }
-            else
-            {
-               Print("SL modified for Order #", ticket, ". Original SL: ", OriginalSL, " | New SL: ", SL);
-               modifiedPositions++; // Increment modifiedPositions when a position is successfully modified
+               if (!Trade.PositionModify(ticket, SL, PositionGetDouble(POSITION_TP)))
+               {
+                  Print("Failed to modify SL. Error code: ", GetLastError());
+               }
+               else
+               {
+                  Print("SL modified for Order #", ticket, ". Original SL: ", OriginalSL, " | New SL: ", SL);
+                  modifiedPositions++; // Increment modifiedPositions when a position is successfully modified
+               }
             }
          }
       }
