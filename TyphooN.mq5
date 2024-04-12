@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.313"
+#property version   "1.314"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -400,7 +400,7 @@ bool CloseAllPositionsOnAllSymbols()
       }
    }
    // Wait for the asynchronous operations to complete
-   int timeout = 10000; // Set a timeout (in milliseconds) to wait for order execution
+   int timeout = 3000; // Set a timeout (in milliseconds) to wait for order execution
    uint startTime = GetTickCount();
    while (closedPositions < totalPositions && (GetTickCount() - startTime) < (uint) timeout)
    {
@@ -593,11 +593,11 @@ void OnTick()
    {
       double floatingRisk = MathAbs(total_pl - total_risk);
       double floatingRiskPercent = MathAbs((total_pl - total_risk) / AccountBalance) * 100;
-      infoRisk = "Risk: $" + DoubleToString(floatingRisk, 2) + " (" + DoubleToString(floatingRiskPercent, 1) + "%)";
+      infoRisk = "Risk: $" + DoubleToString(floatingRisk, 2) + "(" + DoubleToString(floatingRiskPercent, 1) + "%)";
    }
    else
    {
-      infoRisk = "Risk: $" + DoubleToString(MathAbs(sl_risk), 2) + " (" + DoubleToString(MathAbs(percent_risk), 1) + "%)";
+      infoRisk = "Risk: $" + DoubleToString(MathAbs(sl_risk), 2) + "(" + DoubleToString(MathAbs(percent_risk), 1) + "%)";
    }
    if (total_pl < 0)
    {
@@ -1484,7 +1484,7 @@ void Protect()
       }
    }
    // Wait for the asynchronous operations to complete
-   int timeout = 10000; // Set a timeout (in milliseconds) to wait for order execution
+   int timeout = 3000; // Set a timeout (in milliseconds) to wait for order execution
    uint startTime = GetTickCount();
    while (PositionsTotal() > 0 && (GetTickCount() - startTime) < (uint) timeout)
    {
@@ -1551,7 +1551,7 @@ void TyWindow::OnClickCloseAll(void)
             }
          }
          // Wait for the asynchronous operations to complete
-         int timeout = 10000; // Set a timeout (in milliseconds) to wait for order execution
+         int timeout = 3000; // Set a timeout (in milliseconds) to wait for order execution
          uint startTime = GetTickCount();
          while (OrdersTotal() > 0 && (GetTickCount() - startTime) < (uint) timeout)
          {
@@ -1608,7 +1608,7 @@ void TyWindow::OnClickCloseAll(void)
             }
          }
          // Wait for the asynchronous operations to complete
-         int timeout = 10000; // Set a timeout (in milliseconds) to wait for order execution
+         int timeout = 3000; // Set a timeout (in milliseconds) to wait for order execution
          uint startTime = GetTickCount();
          while (PositionsTotal() > 0 && (GetTickCount() - startTime) < (uint) timeout)
          {
@@ -1721,7 +1721,7 @@ void TyWindow::OnClickSetTP(void)
          }
       }
       // Wait for the asynchronous operations to complete
-      int timeout = 10000; // Set a timeout (in milliseconds) to wait for order execution
+      int timeout = 3000; // Set a timeout (in milliseconds) to wait for order execution
       uint startTime = GetTickCount();
       while (modifiedPositions < PositionsTotal() && (GetTickCount() - startTime) < (uint) timeout)
       {
@@ -1770,7 +1770,7 @@ void TyWindow::OnClickSetSL(void)
          }
       }
       // Wait for the asynchronous operations to complete
-      int timeout = 10000; // Set a timeout (in milliseconds) to wait for order execution
+      int timeout = 3000; // Set a timeout (in milliseconds) to wait for order execution
       uint startTime = GetTickCount();
       while (modifiedPositions < PositionsTotal() && (GetTickCount() - startTime) < (uint)timeout)
       {
