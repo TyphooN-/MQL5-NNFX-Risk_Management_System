@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.314"
+#property version   "1.315"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -1469,6 +1469,9 @@ void Protect()
       {
          double EntryPrice = PositionGetDouble(POSITION_PRICE_OPEN);
          double OriginalSL = PositionGetDouble(POSITION_SL);
+         // Round the OriginalSL to the tick size
+         double tickSize = TickSize(_Symbol);
+         OriginalSL = MathRound(OriginalSL / tickSize) * tickSize;
          if (OriginalSL == EntryPrice)
          {
             Print("SL for Position #", ticket, " is already at breakeven."); // Convert ticket to string for printing
