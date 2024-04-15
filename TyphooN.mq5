@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.315"
+#property version   "1.316"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -1330,23 +1330,19 @@ void TyWindow::OnClickLimit(void)
       LimitLineExists = false;
    }
 }
-void TyWindow::OnClickBuyLines(void)
+void OrderLines(bool isBuy)
 {
    ObjectDelete(0, "SL_Line");
    ObjectDelete(0, "TP_Line");
    ObjectDelete(0, "Limit_Line");
-   double slPrice, tpPrice;
-   // Calculate the number of visible candles
-   int VisibleCandles = (int) ChartGetInteger(0, CHART_VISIBLE_BARS);
-   // Create arrays to store historical low and high prices
+   double slPrice = 0.0, tpPrice = 0.0;
+   int VisibleCandles = (int)ChartGetInteger(0, CHART_VISIBLE_BARS);
    double LowArray[];
    double HighArray[];
-   // Copy historical low and high prices into the arrays
-   ArraySetAsSeries(LowArray, true);
-   ArraySetAsSeries(HighArray, true);
+   ArrayResize(LowArray, VisibleCandles);
+   ArrayResize(HighArray, VisibleCandles);
    CopyLow(Symbol(), Period(), 0, VisibleCandles, LowArray);
    CopyHigh(Symbol(), Period(), 0, VisibleCandles, HighArray);
-   // Calculate the lowest and highest prices within the visible range
    double LowestPrice = LowArray[0];
    double HighestPrice = HighArray[0];
    for (int i = 1; i < VisibleCandles; i++)
@@ -1356,69 +1352,26 @@ void TyWindow::OnClickBuyLines(void)
       if (HighArray[i] > HighestPrice)
          HighestPrice = HighArray[i];
    }
-   // Check if there's an active buy position on the symbol
-   if(PositionSelect(Symbol()))
+   if (PositionSelect(Symbol()))
    {
-      // Get the SL and TP prices of the existing position
-      slPrice = PositionGetDouble(POSITION_SL);
-      tpPrice = PositionGetDouble(POSITION_TP);
-   }
-   else 
-   {
-       // Use the lowest and highest prices within the visible range
-       slPrice = LowestPrice;
-       tpPrice = HighestPrice;
-   }
-   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, slPrice);
-   ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, tpPrice);
-   ObjectSetInteger(0, "SL_Line", OBJPROP_COLOR, clrRed);
-   ObjectSetInteger(0, "SL_Line", OBJPROP_WIDTH, HorizontalLineThickness);
-   ObjectSetInteger(0, "SL_Line", OBJPROP_SELECTABLE, 1);
-   ObjectSetInteger(0, "SL_Line", OBJPROP_BACK, true);
-   ObjectSetInteger(0, "TP_Line", OBJPROP_COLOR, clrLime);
-   ObjectSetInteger(0, "TP_Line", OBJPROP_WIDTH, HorizontalLineThickness);
-   ObjectSetInteger(0, "TP_Line", OBJPROP_SELECTABLE, 1);
-   ObjectSetInteger(0, "TP_Line", OBJPROP_BACK, true);
-}
-void TyWindow::OnClickSellLines(void)
-{
-   ObjectDelete(0, "SL_Line");
-   ObjectDelete(0, "TP_Line");
-   ObjectDelete(0, "Limit_Line");
-   double slPrice, tpPrice;
-   // Calculate the number of visible candles
-   int VisibleCandles = (int) ChartGetInteger(0, CHART_VISIBLE_BARS);
-   // Create arrays to store historical low and high prices
-   double LowArray[];
-   double HighArray[];
-   // Copy historical low and high prices into the arrays
-   ArraySetAsSeries(LowArray, true);
-   ArraySetAsSeries(HighArray, true);
-   CopyLow(Symbol(), Period(), 0, VisibleCandles, LowArray);
-   CopyHigh(Symbol(), Period(), 0, VisibleCandles, HighArray);
-   // Calculate the lowest and highest prices within the visible range
-   double LowestPrice = LowArray[0];
-   double HighestPrice = HighArray[0];
-   for (int i = 1; i < VisibleCandles; i++)
-   {
-      if (LowArray[i] < LowestPrice)
-         LowestPrice = LowArray[i];
-      if (HighArray[i] > HighestPrice)
-         HighestPrice = HighArray[i];
-   }
-   // Check if there's an active sell position on the symbol
-   if(PositionSelect(Symbol()))
-   {
-      // Get the SL and TP prices of the existing position
-      slPrice = PositionGetDouble(POSITION_SL);
-      tpPrice = PositionGetDouble(POSITION_TP);
+      double positionSL = PositionGetDouble(POSITION_SL);
+      double positionTP = PositionGetDouble(POSITION_TP);
+      if ((positionSL == 0.0 || !(positionSL == positionSL)) && (positionTP == 0.0 || !(positionTP == positionTP)))
+      {
+         slPrice = isBuy ? LowestPrice : HighestPrice;
+         tpPrice = isBuy ? HighestPrice : LowestPrice;
+      }
+      else
+      {
+         slPrice = positionSL;
+         tpPrice = positionTP;
+      }
    }
    else
    {
-      // Use the lowest and highest prices within the visible range
-      slPrice = HighestPrice;
-      tpPrice = LowestPrice;
-   }
+      slPrice = isBuy ? LowestPrice : HighestPrice;
+      tpPrice = isBuy ? HighestPrice : LowestPrice;
+    }
    ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, slPrice);
    ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, tpPrice);
    ObjectSetInteger(0, "SL_Line", OBJPROP_COLOR, clrRed);
@@ -1430,12 +1383,26 @@ void TyWindow::OnClickSellLines(void)
    ObjectSetInteger(0, "TP_Line", OBJPROP_SELECTABLE, 1);
    ObjectSetInteger(0, "TP_Line", OBJPROP_BACK, true);
 }
-void TyWindow::OnClickDestroyLines(void)
+
+void TyWindow::OnClickBuyLines()
+{
+    OrderLines(true);
+}
+
+void TyWindow::OnClickSellLines()
+{
+    OrderLines(false);
+}
+void DestroyLines()
 {
    ObjectDelete(0, "SL_Line");
    ObjectDelete(0, "TP_Line");
    ObjectDelete(0, "Limit_Line");
    LimitLineExists = false;
+}
+void TyWindow::OnClickDestroyLines(void)
+{
+   DestroyLines();
 }
 struct PositionInfo
 {
@@ -1890,7 +1857,6 @@ bool TyWindow::OnDialogDragEnd(void)
                ChartRedraw();
             }
       }
-         ChartRedraw();
       }
    }
    return(CDialog::OnDialogDragEnd());
