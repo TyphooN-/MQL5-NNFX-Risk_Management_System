@@ -1336,22 +1336,30 @@ void OrderLines(bool isBuy)
    ObjectDelete(0, "TP_Line");
    ObjectDelete(0, "Limit_Line");
    double slPrice = 0.0, tpPrice = 0.0;
+   // Calculate the number of visible candles
    int VisibleCandles = (int)ChartGetInteger(0, CHART_VISIBLE_BARS);
+   // Create arrays to store historical low and high prices
    double LowArray[];
    double HighArray[];
    ArrayResize(LowArray, VisibleCandles);
    ArrayResize(HighArray, VisibleCandles);
    CopyLow(Symbol(), Period(), 0, VisibleCandles, LowArray);
    CopyHigh(Symbol(), Period(), 0, VisibleCandles, HighArray);
+   // Calculate the lowest and highest prices within the visible range
    double LowestPrice = LowArray[0];
    double HighestPrice = HighArray[0];
    for (int i = 1; i < VisibleCandles; i++)
    {
       if (LowArray[i] < LowestPrice)
+      {
          LowestPrice = LowArray[i];
+      }
       if (HighArray[i] > HighestPrice)
+      {
          HighestPrice = HighArray[i];
+      }
    }
+   // Check if there's an active position on the symbol
    if (PositionSelect(Symbol()))
    {
       double positionSL = PositionGetDouble(POSITION_SL);
