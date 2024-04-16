@@ -1391,12 +1391,10 @@ void OrderLines(bool isBuy)
    ObjectSetInteger(0, "TP_Line", OBJPROP_SELECTABLE, 1);
    ObjectSetInteger(0, "TP_Line", OBJPROP_BACK, true);
 }
-
 void TyWindow::OnClickBuyLines()
 {
     OrderLines(true);
 }
-
 void TyWindow::OnClickSellLines()
 {
     OrderLines(false);
