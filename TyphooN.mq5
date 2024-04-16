@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.316"
+#property version   "1.317"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -109,8 +109,8 @@ class TyWindow : public CAppDialog
       CButton           buttonProtect;
       CButton           buttonCloseAll;
       CButton           buttonClosePartial;
-      CButton           buttonSetTP;
       CButton           buttonSetSL;
+      CButton           buttonSetTP;
    public:
       TyWindow(void);
       ~TyWindow(void);
@@ -135,8 +135,8 @@ class TyWindow : public CAppDialog
       bool              CreateButtonProtect(void);
       bool              CreateButtonCloseAll(void);
       bool              CreateButtonClosePartial(void);
-      bool              CreateButtonSetTP(void);
       bool              CreateButtonSetSL(void);
+      bool              CreateButtonSetTP(void);
       // handlers of the dependent controls events
       void              OnClickTrade(void);
       void              OnClickLimit(void);
@@ -146,8 +146,8 @@ class TyWindow : public CAppDialog
       void              OnClickProtect(void);
       void              OnClickCloseAll(void);
       void              OnClickClosePartial(void);
-      void              OnClickSetTP(void);
       void              OnClickSetSL(void);
+      void              OnClickSetTP(void);
 };
 // Event Handling
 EVENT_MAP_BEGIN(TyWindow)
@@ -159,8 +159,8 @@ ON_EVENT(ON_CLICK, buttonDestroyLines, OnClickDestroyLines)
 ON_EVENT(ON_CLICK, buttonProtect, OnClickProtect)
 ON_EVENT(ON_CLICK, buttonCloseAll, OnClickCloseAll)
 ON_EVENT(ON_CLICK, buttonClosePartial, OnClickClosePartial)
-ON_EVENT(ON_CLICK, buttonSetTP, OnClickSetTP)
 ON_EVENT(ON_CLICK, buttonSetSL, OnClickSetSL)
+ON_EVENT(ON_CLICK, buttonSetTP, OnClickSetTP)
 EVENT_MAP_END(CAppDialog)
 // Constructor
 TyWindow::TyWindow(void)
@@ -191,10 +191,10 @@ bool TyWindow::Create(const long chart,const string name,const int subwin,const 
       return(false);
    if(!CreateButtonClosePartial())
       return(false);
-      if(!CreateButtonSetTP())
-   return(false);
-      if(!CreateButtonSetSL())
-   return(false);
+   if(!CreateButtonSetSL())
+      return(false);
+   if(!CreateButtonSetTP())
+      return(false);
    return(true);
 }
 // Global Variable
@@ -761,31 +761,31 @@ bool TyWindow::CreateButtonClosePartial(void)
       return(false);
    return(true);
 }
-bool TyWindow::CreateButtonSetTP(void)
+bool TyWindow::CreateButtonSetSL(void)
 {
    int x1 = INDENT_LEFT;
    int y1 = INDENT_TOP + 4 * CONTROLS_GAP_Y;
    int x2 = x1 + BUTTON_WIDTH;
    int y2 = y1 +BUTTON_HEIGHT;
-   if(!buttonSetTP.Create(0,"Set TP",0,x1,y1,x2,y2))
-      return(false);
-   if(!buttonSetTP.Text("Set TP"))
-      return(false);
-   if(!Add(buttonSetTP))
-      return(false);
-   return(true);
-}
-bool TyWindow::CreateButtonSetSL(void)
-{
-   int x1 = INDENT_LEFT + (BUTTON_WIDTH + CONTROLS_GAP_X);
-   int y1 = INDENT_TOP + 4 * CONTROLS_GAP_Y;
-   int x2 = x1 + BUTTON_WIDTH;
-   int y2 = y1 + BUTTON_HEIGHT;
    if(!buttonSetSL.Create(0,"Set SL",0,x1,y1,x2,y2))
       return(false);
    if(!buttonSetSL.Text("Set SL"))
       return(false);
    if(!Add(buttonSetSL))
+      return(false);
+   return(true);
+}
+bool TyWindow::CreateButtonSetTP(void)
+{
+   int x1 = INDENT_LEFT + (BUTTON_WIDTH + CONTROLS_GAP_X);
+   int y1 = INDENT_TOP + 4 * CONTROLS_GAP_Y;
+   int x2 = x1 + BUTTON_WIDTH;
+   int y2 = y1 + BUTTON_HEIGHT;
+   if(!buttonSetTP.Create(0,"Set TP",0,x1,y1,x2,y2))
+      return(false);
+   if(!buttonSetTP.Text("Set TP"))
+      return(false);
+   if(!Add(buttonSetTP))
       return(false);
    return(true);
 }
