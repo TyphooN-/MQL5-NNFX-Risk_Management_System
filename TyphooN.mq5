@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.317"
+#property version   "1.318"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -46,32 +46,38 @@ string BaseCurrency() { return ( AccountInfoString( ACCOUNT_CURRENCY ) ); }
 double Point( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_POINT ) ); }
 double TickSize( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_SIZE ) ); }
 double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_VALUE ) ); }
+enum OrderModeEnum {
+    Standard,
+    Fixed,
+    Dynamic
+};
 // input vars
-input group    "[ORDER PLACEMENT SETTINGS]";
-input int      MarginBufferPercent        = 1;
-input double   AdditionalRiskRatio        = 0.25;
-input group    "[STANDARD RISK SETTINGS]";
-input bool     UseStandardRisk            = true;
-input double   MaxRisk                    = 1.0;
-input double   Risk                       = 0.5;
-input group    "[DYNAMIC RISK SETTINGS]";
-input bool     UseDynamicRisk             = false;
-input double   MinAccountBalance          = 96100;
-input int      LossesToMinBalance         = 10;
-input group    "[ACCOUNT PROTECTION SETTINGS]";
-input bool     EnableAutoProtect          = true;
-input double   APRRLevel                  = 1.0;
-input bool     EnableEquityTP             = false;
-input double   TargetEquityTP             = 110200;
-input bool     EnableEquitySL             = false;
-input double   TargetEquitySL             = 98000;
-input group    "[EXPERT ADVISOR SETTINGS]";
-input int      MagicNumber                = 13;
-input int      HorizontalLineThickness    = 3;
-input bool     ManageAllPositions         = false;
-input group    "[DISCORD ANNOUNCEMENT SETTINGS]"
-input string   DiscordAPIKey =  "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
-input bool     EnableBroadcast = false;
+input group          "[ORDER PLACEMENT SETTINGS]";
+input int            MarginBufferPercent        = 1;
+input double         AdditionalRiskRatio        = 0.25;
+input OrderModeEnum  OrderMode = Dynamic;
+input group          "[STANDARD RISK MODE]";
+input double         MaxRisk                    = 1.0;
+input double         Risk                       = 0.5;
+input group          "[FIXED LOTS MODE]";
+input double         FixedLots                  = 20;
+input group          "[DYNAMIC RISK MODE]";
+input double         MinAccountBalance          = 96100;
+input int            LossesToMinBalance         = 10;
+input group          "[ACCOUNT PROTECTION SETTINGS]";
+input bool           EnableAutoProtect          = true;
+input double         APRRLevel                  = 1.0;
+input bool           EnableEquityTP             = false;
+input double         TargetEquityTP             = 110200;
+input bool           EnableEquitySL             = false;
+input double         TargetEquitySL             = 98000;
+input group          "[EXPERT ADVISOR SETTINGS]";
+input int            MagicNumber                = 13;
+input int            HorizontalLineThickness    = 3;
+input bool           ManageAllPositions         = false;
+input group          "[DISCORD ANNOUNCEMENT SETTINGS]"
+input string         DiscordAPIKey =  "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
+input bool           EnableBroadcast = false;
 // global vars
 double TP = 0;
 double SL = 0;
@@ -463,7 +469,7 @@ void OnTick()
          Alert("EquitySL closed all positions on all symbols. New account balance: " + DoubleToString(AccountBalance, 2));
       }
    }
-   if (UseStandardRisk == true && UseDynamicRisk == false)
+   if (OrderMode == Standard)
    {
       if (breakEvenFound == true)
       {
@@ -474,7 +480,7 @@ void OnTick()
          order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (Risk / 100));
       }
    }
-   if (UseStandardRisk == false && UseDynamicRisk == true)
+   if (OrderMode == Dynamic)
    {
       if (breakEvenFound == true)
       {
@@ -998,7 +1004,7 @@ void TyWindow::OnClickTrade(void)
    double usable_margin = (AccountBalance - (AccountBalance * (MarginBufferPercent / 100.0))) - AccountInfoDouble(ACCOUNT_MARGIN);
    double potentialRisk = -1;
    double OrderRisk;
-   if (UseStandardRisk == true && UseDynamicRisk == false)
+   if (OrderMode == Standard)
    {
       if (breakEvenFound == true)
       {
@@ -1024,7 +1030,7 @@ void TyWindow::OnClickTrade(void)
          return;
       }
    }
-   if (UseStandardRisk == false && UseDynamicRisk == true)
+   if (OrderMode == Dynamic)
    {
       if (breakEvenFound == true)
       {
@@ -1048,10 +1054,6 @@ void TyWindow::OnClickTrade(void)
          Print("Break Even positions found, and a risk position already placed. Not placing additional order.");
          return;
       }
-   }
-   if (UseStandardRisk == true && UseDynamicRisk == true)
-   {
-      Print("Cannot open order as both Standard and Dynamic Risk are enabled.  Please enable only 1 risk mode.");
    }
    double available_volume;
    double min_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
@@ -1097,8 +1099,16 @@ void TyWindow::OnClickTrade(void)
       potentialRisk = OrderRisk + percent_risk;  // Recalculate potential risk after adjusting
       order_risk_money = (AccountBalance * (OrderRisk / 100));
    }
-   double OrderLots   = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, Ask - SL), OrderDigits)
-                              : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - Bid), OrderDigits);
+   double OrderLots = 0.0;
+   if (OrderMode == Fixed)
+   {
+      OrderLots = FixedLots;
+   }
+   if (OrderMode == Standard || OrderMode == Dynamic)
+   {
+      OrderLots = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, Ask - SL), OrderDigits)
+                                 : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - Bid), OrderDigits);
+   }
    // Ensure that the calculated volumes do not exceed the available volume
    if (OrderLots > available_volume)
    {
@@ -1391,10 +1401,12 @@ void OrderLines(bool isBuy)
    ObjectSetInteger(0, "TP_Line", OBJPROP_SELECTABLE, 1);
    ObjectSetInteger(0, "TP_Line", OBJPROP_BACK, true);
 }
+
 void TyWindow::OnClickBuyLines()
 {
     OrderLines(true);
 }
+
 void TyWindow::OnClickSellLines()
 {
     OrderLines(false);
