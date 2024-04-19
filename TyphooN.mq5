@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.318"
+#property version   "1.319"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -599,11 +599,11 @@ void OnTick()
    {
       double floatingRisk = MathAbs(total_pl - total_risk);
       double floatingRiskPercent = MathAbs((total_pl - total_risk) / AccountBalance) * 100;
-      infoRisk = "Risk: $" + DoubleToString(floatingRisk, 2) + "(" + DoubleToString(floatingRiskPercent, 1) + "%)";
+      infoRisk = "Risk: $" + DoubleToString(floatingRisk, 0) + " (" + DoubleToString(floatingRiskPercent, 1) + "%)";
    }
    else
    {
-      infoRisk = "Risk: $" + DoubleToString(MathAbs(sl_risk), 2) + "(" + DoubleToString(MathAbs(percent_risk), 1) + "%)";
+      infoRisk = "Risk: $" + DoubleToString(MathAbs(sl_risk), 0) + " (" + DoubleToString(MathAbs(percent_risk), 1) + "%)";
    }
    if (total_pl < 0)
    {
