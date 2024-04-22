@@ -23,10 +23,10 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.marketwizardry.info"
-#property version   "1.060"
+#property version   "1.061"
 #property indicator_chart_window
-#property indicator_buffers 40
-#property indicator_plots   8
+#property indicator_buffers 41
+#property indicator_plots   9
 #property indicator_label1  "M1 200SMA"
 #property indicator_type1   DRAW_LINE
 #property indicator_color1  clrOrange
@@ -67,6 +67,11 @@
 #property indicator_color8  clrMagenta
 #property indicator_style8  STYLE_SOLID
 #property indicator_width8  2
+#property indicator_label9  "MN1 100SMA"
+#property indicator_type9   DRAW_LINE
+#property indicator_color9  clrMagenta
+#property indicator_style9  STYLE_SOLID
+#property indicator_width9  2
 // Input variables
 input group  "[INFO TEXT SETTINGS]";
 input string FontName                      = "Courier New";
@@ -80,12 +85,12 @@ ENUM_APPLIED_PRICE MAPrice = PRICE_CLOSE;
 int HandleM1_200SMA, HandleM1_50SMA, HandleM1_20SMA, HandleM1_10SMA, HandleM5_200SMA, HandleM5_50SMA, HandleM5_20SMA, HandleM5_10SMA, HandleM15_200SMA, HandleM15_50SMA, HandleM15_20SMA;
 int HandleM15_10SMA, HandleM30_200SMA, HandleM30_50SMA, HandleM30_20SMA, HandleM30_10SMA, HandleH1_200SMA, HandleH1_50SMA, HandleH1_20SMA, HandleH1_10SMA, HandleH4_200SMA;
 int HandleH4_50SMA, HandleH4_20SMA, HandleH4_10SMA, HandleD1_200SMA, HandleD1_50SMA, HandleD1_20SMA, HandleD1_10SMA, HandleW1_200SMA, HandleW1_50SMA, HandleW1_20SMA, HandleW1_10SMA;
-int HandleM1_100SMA, HandleM5_100SMA, HandleM15_100SMA, HandleM30_100SMA, HandleH1_100SMA, HandleH4_100SMA, HandleD1_100SMA, HandleW1_100SMA;
+int HandleM1_100SMA, HandleM5_100SMA, HandleM15_100SMA, HandleM30_100SMA, HandleH1_100SMA, HandleH4_100SMA, HandleD1_100SMA, HandleW1_100SMA, HandleMN1_100SMA;
 // Buffers
 double MABufferM1_200SMA[], MABufferM1_50SMA[], MABufferM1_20SMA[], MABufferM1_10SMA[], MABufferM5_200SMA[], MABufferM5_50SMA[], MABufferM5_20SMA[], MABufferM5_10SMA[], MABufferM15_200SMA[], MABufferM15_50SMA[], MABufferM15_20SMA[];
 double MABufferM15_10SMA[], MABufferM30_200SMA[], MABufferM30_50SMA[], MABufferM30_20SMA[], MABufferM30_10SMA[], MABufferH1_200SMA[], MABufferH1_50SMA[], MABufferH1_20SMA[], MABufferH1_10SMA[], MABufferH4_200SMA[], MABufferH4_50SMA[];
 double MABufferH4_20SMA[], MABufferH4_10SMA[], MABufferD1_200SMA[], MABufferD1_50SMA[], MABufferD1_20SMA[], MABufferD1_10SMA[], MABufferW1_200SMA[], MABufferW1_50SMA[], MABufferW1_20SMA[], MABufferW1_10SMA[];
-double MABufferM1_100SMA[], MABufferM5_100SMA[], MABufferM15_100SMA[], MABufferM30_100SMA[], MABufferH1_100SMA[], MABufferH4_100SMA[], MABufferD1_100SMA[], MABufferW1_100SMA[];
+double MABufferM1_100SMA[], MABufferM5_100SMA[], MABufferM15_100SMA[], MABufferM30_100SMA[], MABufferH1_100SMA[], MABufferH4_100SMA[], MABufferD1_100SMA[], MABufferW1_100SMA[], MABufferMN1_100SMA[];
 int BullPowerLTF = 0;
 int BullPowerMTF = 0;
 int BullPowerHTF = 0;
@@ -139,29 +144,12 @@ int OnInit()
    SetIndexBuffer(37, MABufferH4_100SMA, INDICATOR_DATA);
    SetIndexBuffer(38, MABufferD1_100SMA, INDICATOR_DATA);
    SetIndexBuffer(39, MABufferW1_100SMA, INDICATOR_DATA);
-   SetZorderToOne();
+   SetIndexBuffer(40, MABufferMN1_100SMA, INDICATOR_DATA);
    return 0;
 }
 void OnDeinit(const int pReason)
 {
    ObjectsDeleteAll(0, objname);
-}
-void SetZorderToOne()
-{
-   ObjectSetInteger(0, objname + "Info1", OBJPROP_ZORDER, 1);
-   ObjectSetInteger(0, objname + "Info2", OBJPROP_ZORDER, 1);
-   ObjectSetInteger(0, objname + "High D1", OBJPROP_ZORDER, 1);
-   ObjectSetInteger(0, objname + "Low D1", OBJPROP_ZORDER, 1);
-   ObjectSetInteger(0, objname + "High W1", OBJPROP_ZORDER, 1);
-   ObjectSetInteger(0, objname + "Low W1", OBJPROP_ZORDER, 1);
-   ObjectSetInteger(0, objname + "High MN1", OBJPROP_ZORDER, 1);
-   ObjectSetInteger(0, objname + "Low MN1", OBJPROP_ZORDER, 1);
-   ObjectSetInteger(0, objname + "High H4", OBJPROP_ZORDER, 1);
-   ObjectSetInteger(0, objname + "Low H4", OBJPROP_ZORDER, 1);
-   ObjectSetInteger(0, objname + "High H1", OBJPROP_ZORDER, 1);
-   ObjectSetInteger(0, objname + "Low H1", OBJPROP_ZORDER, 1);
-   ObjectSetInteger(0, objname + "High M15", OBJPROP_ZORDER, 1);
-   ObjectSetInteger(0, objname + "Low M15", OBJPROP_ZORDER, 1);
 }
 void UpdateInfoLabel(string timeframe, bool condition, string label)
 {
@@ -303,7 +291,6 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
       ObjectSetString(0, objname + "InfoBullPowerHTF", OBJPROP_TEXT, BullPowerTextHTF);
       ObjectSetString(0, objname + "InfoBearPowerHTF", OBJPROP_TEXT, BearPowerTextHTF);
    }
-   SetZorderToOne();
    GlobalVariableSet("GlobalBullPowerLTF", TotalBullPowerLTF);
    GlobalVariableSet("GlobalBearPowerLTF", TotalBearPowerLTF);
    GlobalVariableSet("GlobalBullPowerHTF", TotalBullPowerHTF);
@@ -667,6 +654,7 @@ void UpdateBuffers()
    EraseBufferValues(MABufferH4_10SMA);
    EraseBufferValues(MABufferD1_10SMA);
    EraseBufferValues(MABufferW1_10SMA);
+   EraseBufferValues(MABufferMN1_100SMA);
    HandleM1_200SMA = iMA(NULL, PERIOD_M1, 200, 0, MODE_SMA, MAPrice);
    CopyBuffer(HandleM1_200SMA, 0, 0, BufferSize(MABufferM1_200SMA), MABufferM1_200SMA);
    HandleM5_200SMA = iMA(NULL, PERIOD_M5, 200, 0, MODE_SMA, MAPrice);
@@ -747,6 +735,8 @@ void UpdateBuffers()
    CopyBuffer(HandleD1_100SMA, 0, 0, BufferSize(MABufferD1_100SMA), MABufferD1_100SMA);
    HandleW1_100SMA = iMA(NULL, PERIOD_W1, 100, 0, MODE_SMA, MAPrice);
    CopyBuffer(HandleW1_100SMA, 0, 0, BufferSize(MABufferW1_100SMA), MABufferW1_100SMA);
+   HandleMN1_100SMA = iMA(NULL, PERIOD_MN1, 100, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleMN1_100SMA, 0, 0, BufferSize(MABufferMN1_100SMA), MABufferMN1_100SMA);
 }
 void UpdateBuffersOnCalculate(int start, int rates_total)
 {
@@ -790,6 +780,7 @@ void UpdateBuffersOnCalculate(int start, int rates_total)
    CopyBuffer(HandleH4_100SMA, 0, 0, BufferSize(MABufferH4_100SMA), MABufferH4_100SMA);
    CopyBuffer(HandleD1_100SMA, 0, 0, BufferSize(MABufferD1_100SMA), MABufferD1_100SMA);
    CopyBuffer(HandleW1_100SMA, 0, 0, BufferSize(MABufferW1_100SMA), MABufferW1_100SMA);
+   CopyBuffer(HandleMN1_100SMA, 0, 0, BufferSize(MABufferMN1_100SMA), MABufferMN1_100SMA);
 }
 bool IsNewMinute(const datetime &currentTime, const datetime &prevTime)
 {
@@ -810,4 +801,3 @@ void EraseBufferValues(double& buffer[])
       buffer[i] = EMPTY_VALUE;
    }
 }
-
