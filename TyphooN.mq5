@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.319"
+#property version   "1.320"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -83,6 +83,8 @@ double TP = 0;
 double SL = 0;
 double Bid = 0;
 double Ask = 0;
+double prevBidPrice = 0.0;
+double prevAskPrice = 0.0;
 double order_risk_money = 0;
 double DynamicRisk = 0;
 double AccountBalance = 0;
@@ -438,6 +440,13 @@ void OnTick()
    HasOpenPosition = false;
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+   // Check if both bid and ask prices have changed from the previous tick
+   if (Bid == prevBidPrice && Ask == prevAskPrice)
+   {
+      return;
+   }
+   prevBidPrice = Bid;
+   prevAskPrice = Ask;
    double total_risk = 0;
    double total_tpprofit = 0;
    double total_pl = 0;
