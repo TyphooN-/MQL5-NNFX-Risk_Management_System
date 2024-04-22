@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.marketwizardry.info"
-#property version   "1.061"
+#property version   "1.062"
 #property indicator_chart_window
 #property indicator_buffers 41
 #property indicator_plots   9
@@ -101,6 +101,8 @@ double TotalBearPower;
 double TotalBullPower;
 bool isTimerSet = false;
 int lastCheckedCandle = -1;
+double prevBidPrice = 0.0;
+double prevAskPrice = 0.0;
 string objname = "MTF_MA_";
 int OnInit()
 {
@@ -308,6 +310,18 @@ int OnCalculate(const int rates_total,
                 const long &volume[],
                 const int &spread[])
 {
+   // Get the current bid and ask prices
+   double currentBidPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+   double currentAskPrice = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+   // Check if both bid and ask prices have changed from the previous tick
+   if (currentBidPrice == prevBidPrice && currentAskPrice == prevAskPrice)
+   {
+      // If both bid and ask prices are the same as the previous tick, return prev_calculated
+      return prev_calculated;
+   }
+   // Update the previous bid and ask prices with the current prices
+   prevBidPrice = currentBidPrice;
+   prevAskPrice = currentAskPrice;
    int start;
    if (prev_calculated == 0)
    {
