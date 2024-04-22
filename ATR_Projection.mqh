@@ -204,8 +204,8 @@ int OnCalculate(const int        rates_total,
       //Print("Updating ATR Data and Candlestick data due to 15 min server time.");
     }
     // Get the current bid and ask prices
-    double currentBidPrice = Bid;
-    double currentAskPrice = Ask;
+    double currentBidPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+    double currentAskPrice = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
     // Check if both bid and ask prices have changed from the previous tick
     if (currentBidPrice == prevBidPrice && currentAskPrice == prevAskPrice)
     {
@@ -215,8 +215,6 @@ int OnCalculate(const int        rates_total,
     // Update the previous bid and ask prices with the current prices
     prevBidPrice = currentBidPrice;
     prevAskPrice = currentAskPrice;
-    // Update the previous tick price with the current tick price
-    prevTickPrice = close[0];
    // Calculate the number of bars to be processed
    int limit = rates_total - prev_calculated;
    // If there are no new bars, return
