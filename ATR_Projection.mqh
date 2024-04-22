@@ -72,6 +72,8 @@ double currentOpenH4 = 0;
 double currentOpenH1 = 0;
 double currentOpenM15 = 0;
 int lastCheckedCandle = -1;
+double prevBidPrice = 0.0;
+double prevAskPrice = 0.0;
 int OnInit()
 {
    //--- indicator buffers mapping
@@ -133,44 +135,44 @@ void UpdateATRData()
    copiedM15 = CopyBuffer(handle_iATR_M15, 0, 0, ATR_Period, iATR_M15);
    copiedH1 = CopyBuffer(handle_iATR_H1, 0, 0, ATR_Period, iATR_H1);
 #else
-    #ifdef __MQL4__
-    copiedD1=0;
-    for(int i=0; i<ATR_Period; i++)
-    {
-        iATR_D1[i] = iATR(_Symbol, PERIOD_D1, ATR_Period, i);
-        copiedD1++;
-    }
-    copiedW1=0;
-    for(int i=0; i<ATR_Period; i++)
-    {
-        iATR_W1[i] = iATR(_Symbol, PERIOD_W1, ATR_Period, i);
-        copiedW1++;
-    }
-    copiedMN1=0;
-    for(int i=0; i<ATR_Period; i++)
-    {
-        iATR_MN1[i] = iATR(_Symbol, PERIOD_MN1, ATR_Period, i);
-        copiedMN1++;
-    }
-    copiedH4=0;
-    for(int i=0; i<ATR_Period; i++)
-    {
-        iATR_H4[i] = iATR(_Symbol, PERIOD_H4, ATR_Period, i);
-        copiedH4++;
-    }
-    copiedM15=0;
-    for(int i=0; i<ATR_Period; i++)
-    {
-        iATR_M15[i] = iATR(_Symbol, PERIOD_M15, ATR_Period, i);
-        copiedM15++;
-    }
-    copiedH1=0;
-    for(int i=0; i<ATR_Period; i++)
-    {
+   #ifdef __MQL4__
+   copiedD1=0;
+   for(int i=0; i<ATR_Period; i++)
+   {
+     iATR_D1[i] = iATR(_Symbol, PERIOD_D1, ATR_Period, i);
+      copiedD1++;
+   }
+   copiedW1=0;
+   for(int i=0; i<ATR_Period; i++)
+   {
+      iATR_W1[i] = iATR(_Symbol, PERIOD_W1, ATR_Period, i);
+      copiedW1++;
+   }
+   copiedMN1=0;
+   for(int i=0; i<ATR_Period; i++)
+   {
+      iATR_MN1[i] = iATR(_Symbol, PERIOD_MN1, ATR_Period, i);
+      copiedMN1++;
+   }
+   copiedH4=0;
+   for(int i=0; i<ATR_Period; i++)
+   {
+      iATR_H4[i] = iATR(_Symbol, PERIOD_H4, ATR_Period, i);
+      copiedH4++;
+   }
+   copiedM15=0;
+   for(int i=0; i<ATR_Period; i++)
+   {
+      iATR_M15[i] = iATR(_Symbol, PERIOD_M15, ATR_Period, i);
+      copiedM15++;
+   }
+   copiedH1=0;
+   for(int i=0; i<ATR_Period; i++)
+   {
       iATR_H1[i] = iATR(_Symbol, PERIOD_H1, ATR_Period, i);
       copiedH1++;
-    }
-    #endif
+   }
+   #endif
 #endif
 }
 int OnCalculate(const int        rates_total,
@@ -184,8 +186,8 @@ int OnCalculate(const int        rates_total,
                const long&     volume[],
                const int&      spread[])
 {
-    static datetime prevTradeServerTime = 0;  // Initialize with 0 on the first run
-    datetime currentTradeServerTime = 0;
+   static datetime prevTradeServerTime = 0;  // Initialize with 0 on the first run
+   datetime currentTradeServerTime = 0;
 #ifdef __MQL5__
     currentTradeServerTime = TimeTradeServer();
 #else
@@ -201,6 +203,20 @@ int OnCalculate(const int        rates_total,
       prevTradeServerTime = currentTradeServerTime;
       //Print("Updating ATR Data and Candlestick data due to 15 min server time.");
     }
+    // Get the current bid and ask prices
+    double currentBidPrice = Bid;
+    double currentAskPrice = Ask;
+    // Check if both bid and ask prices have changed from the previous tick
+    if (currentBidPrice == prevBidPrice && currentAskPrice == prevAskPrice)
+    {
+      // If both bid and ask prices are the same as the previous tick, return prev_calculated
+      return prev_calculated;
+   }
+    // Update the previous bid and ask prices with the current prices
+    prevBidPrice = currentBidPrice;
+    prevAskPrice = currentAskPrice;
+    // Update the previous tick price with the current tick price
+    prevTickPrice = close[0];
    // Calculate the number of bars to be processed
    int limit = rates_total - prev_calculated;
    // If there are no new bars, return
@@ -262,11 +278,11 @@ int OnCalculate(const int        rates_total,
    color FontColor1 = FontColor;
    if (IsM15AboveH1 && IsM15AboveH4 && IsH1AboveH4 && IsH4AboveD1)
    {
-       FontColor1 = clrMagenta;
+      FontColor1 = clrMagenta;
    }
    else
    {
-       FontColor1 = FontColor;
+      FontColor1 = FontColor;
    }
    bool IsD1AboveW1 = (copiedD1 > copiedW1);
    bool IsD1AboveMN1 = (copiedD1 > copiedMN1);
