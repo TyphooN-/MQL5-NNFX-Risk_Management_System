@@ -31,6 +31,8 @@ string objname2 = "Current_";
 double Previous_H1_High, Previous_H1_Low, Previous_H4_High, Previous_H4_Low, Previous_D1_High, Previous_D1_Low, Previous_W1_High, Previous_W1_Low,
    Previous_MN1_High, Previous_MN1_Low, Current_D1_Low, Current_D1_High, Current_W1_Low, Current_W1_High, Current_MN1_Low, Current_MN1_High, Ask, Bid;
 int lastCheckedCandle = -1;
+double prevBidPrice = 0.0;
+double prevAskPrice = 0.0;
 int OnInit()
 {
     return(INIT_SUCCEEDED);
@@ -51,8 +53,18 @@ int OnCalculate(const int rates_total,
                 const long &volume[],
                 const int &spread[])
 {
+   // Get the current bid and ask prices
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+   // Check if both bid and ask prices have changed from the previous tick
+   if (Bid == prevBidPrice && Ask == prevAskPrice)
+   {
+      // If both bid and ask prices are the same as the previous tick, return prev_calculated
+      return prev_calculated;
+   }
+   // Update the previous bid and ask prices with the current prices
+   prevBidPrice = Bid;
+   prevAskPrice = Ask;
    static datetime PrevTradeServerTime = 0;  // Initialize with 0 on the first run
    datetime CurrentTradeServerTime = 0;
    CurrentTradeServerTime = TimeCurrent();
