@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.321"
+#property version   "1.322"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -1453,51 +1453,6 @@ void BubbleSort(PositionInfo &arr[])
       }
    }
 }
-void Protect()
-{
-   Trade.SetAsyncMode(true);
-   for(int i = 0; i < PositionsTotal(); i++)
-   {
-      ulong ticket = PositionGetTicket(i);
-      if (ProcessPositionCheck(ticket, _Symbol, MagicNumber))
-      {
-         double EntryPrice = PositionGetDouble(POSITION_PRICE_OPEN);
-         double OriginalSL = PositionGetDouble(POSITION_SL);
-         // Round the OriginalSL to the tick size
-         double tickSize = TickSize(_Symbol);
-         OriginalSL = MathRound(OriginalSL / tickSize) * tickSize;
-         if (OriginalSL == EntryPrice)
-         {
-            //Print("SL for Position #", ticket, " is already at breakeven.");
-            continue; // Skip modifying SL if it's already at breakeven
-         }
-         if (!Trade.PositionModify(ticket, EntryPrice, PositionGetDouble(POSITION_TP)))
-         {
-            Print("Failed to modify SL via PROTECT for Position #", ticket, ". Error code: ", GetLastError());
-         }
-         else
-         {
-            Print("SL for Position #", ticket, " moved to breakeven.");
-         }
-      }
-   }
-   // Wait for the asynchronous operations to complete
-   int timeout = 3000; // Set a timeout (in milliseconds) to wait for order execution
-   uint startTime = GetTickCount();
-   while (PositionsTotal() > 0 && (GetTickCount() - startTime) < (uint) timeout)
-   {
-      //Print("Waiting for SL modification asynchronously...");
-      Sleep(100); // Sleep for a short duration
-   }
-   if (PositionsTotal() == 0)
-   {
-      Print("SL modification for all positions completed successfully.");
-   }
-   else
-   {
-      Print("Failed to modify SL for all positions within the specified timeout.");
-   }
-}
 void TyWindow::OnClickProtect(void)
 {
    Protect();
@@ -1686,104 +1641,101 @@ void TyWindow::OnClickClosePartial(void)
       Print("User chose not to close the smallest lot order.");
    }
 }
+void ModifyPosition(double newLevel, int modificationType)
+{
+    Trade.SetAsyncMode(true);
+    int modifiedPositions = 0; // Variable to keep track of the number of modified positions
+    for (int i = 0; i < PositionsTotal(); i++)
+    {
+        ulong ticket = PositionGetTicket(i);
+        if (ProcessPositionCheck(ticket, _Symbol, MagicNumber))
+        {
+            double originalLevel = (modificationType == POSITION_SL) ? PositionGetDouble(POSITION_SL) : PositionGetDouble(POSITION_TP);
+            // Round the original level to the tick size
+            double tickSize = TickSize(_Symbol);
+            originalLevel = MathRound(originalLevel / tickSize) * tickSize;
+            // If newLevel is the same as originalLevel, skip modification
+            if (originalLevel == newLevel)
+            {
+                Print((modificationType == POSITION_SL) ? "SL" : "TP", " for Position #", ticket, " is already at the desired level.");
+                continue;
+            }
+            if (!Trade.PositionModify(ticket, (modificationType == POSITION_SL) ? newLevel : PositionGetDouble(POSITION_SL), (modificationType == POSITION_TP) ? newLevel : PositionGetDouble(POSITION_TP)))
+            {
+                Print("Failed to modify ", (modificationType == POSITION_SL) ? "SL" : "TP", ". Error code: ", GetLastError());
+                return;
+            }
+            else
+            {
+                Print((modificationType == POSITION_SL) ? "SL" : "TP", " modified for Position #", ticket, ". Original level: ", originalLevel, " | New level: ", newLevel);
+                modifiedPositions++; // Increment modifiedPositions when a position is successfully modified
+            }
+        }
+    }
+    // Wait for the asynchronous operations to complete
+    int timeout = 3000; // Set a timeout (in milliseconds) to wait for order execution
+    uint startTime = GetTickCount();
+    while (modifiedPositions < PositionsTotal() && (GetTickCount() - startTime) < (uint)timeout)
+    {
+        Sleep(100); // Sleep for a short duration
+    }
+    if (modifiedPositions == PositionsTotal())
+    {
+        Print((modificationType == POSITION_SL) ? "SL" : "TP", " modification for all positions completed successfully.");
+    }
+    else
+    {
+        Print("Failed to modify ", (modificationType == POSITION_SL) ? "SL" : "TP", " for all positions within the specified timeout.");
+    }
+}
+void TyWindow::OnClickSetSL(void)
+{
+    double newSL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
+    if (newSL != SL && newSL != 0) // Check if SL value is changed and not equal to 0
+    {
+        // Get tick size of the symbol
+        double tickSize = TickSize(_Symbol);
+        // Round SL value to the tick size
+        newSL = MathRound(newSL / tickSize) * tickSize;
+        SL = newSL;
+        ModifyPosition(SL, POSITION_SL);
+    }
+    AutoProtectCalled = false;
+}
 void TyWindow::OnClickSetTP(void)
 {
    double newTP = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
    if (newTP != TP && newTP != 0) // Check if TP value is changed and not equal to 0
    {
-      // Get tick size of the symbol
       double tickSize = TickSize(_Symbol);
       // Round TP value to the tick size
       newTP = MathRound(newTP / tickSize) * tickSize;
       TP = newTP;
-      Trade.SetAsyncMode(true);
-      int modifiedPositions = 0; // Variable to keep track of the number of modified positions
-      for (int i = 0; i < PositionsTotal(); i++)
-      {
-         ulong ticket = PositionGetTicket(i);
-         if (ProcessPositionCheck(ticket, _Symbol, MagicNumber))
-         {
-            double OriginalTP = PositionGetDouble(POSITION_TP);
-            if (OriginalTP != TP) // Check if TP value is different from the original value
-            {
-               if (!Trade.PositionModify(ticket, PositionGetDouble(POSITION_SL), TP))
-               {
-                  Print("Failed to modify TP. Error code: ", GetLastError());
-               }
-               else
-               {
-                  Print("TP modified for Position #", ticket, ". Original TP: ", OriginalTP, " | New TP: ", TP);
-                  modifiedPositions++; // Increment modifiedPositions when a position is successfully modified
-               }
-            }
-         }
-      }
-      // Wait for the asynchronous operations to complete
-      int timeout = 3000; // Set a timeout (in milliseconds) to wait for order execution
-      uint startTime = GetTickCount();
-      while (modifiedPositions < PositionsTotal() && (GetTickCount() - startTime) < (uint)timeout)
-      {
-         Sleep(100); // Sleep for a short duration
-      }
-      if (modifiedPositions == PositionsTotal())
-      {
-         Print("TP modification for all positions completed successfully.");
-      }
-      else
-      {
-         Print("Failed to modify TP for all positions within the specified timeout.");
-      }
+      ModifyPosition(TP, POSITION_TP);
    }
 }
-void TyWindow::OnClickSetSL(void)
+void Protect()
 {
-   double newSL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
-   if (newSL != SL && newSL != 0) // Check if SL value is changed and not equal to 0
+   for(int i = 0; i < PositionsTotal(); i++)
    {
-      // Get tick size of the symbol
-      double tickSize = TickSize(_Symbol);
-      // Round SL value to the tick size
-      newSL = MathRound(newSL / tickSize) * tickSize;
-      SL = newSL;
-      Trade.SetAsyncMode(true);
-      int modifiedPositions = 0; // Variable to keep track of the number of modified positions
-      for (int i = 0; i < PositionsTotal(); i++)
+      ulong ticket = PositionGetTicket(i);
+      if (ProcessPositionCheck(ticket, _Symbol, MagicNumber))
       {
-         ulong ticket = PositionGetTicket(i);
-         if (ProcessPositionCheck(ticket, _Symbol, MagicNumber))
-         {
-            double OriginalSL = PositionGetDouble(POSITION_SL);
-            if (OriginalSL != SL) // Check if SL value is different from the original value
+         double entryPrice = PositionGetDouble(POSITION_PRICE_OPEN);
+            double originalSL = PositionGetDouble(POSITION_SL);
+            // Round the original SL to the tick size
+            double tickSize = TickSize(_Symbol);
+            originalSL = MathRound(originalSL / tickSize) * tickSize;
+            if (originalSL != entryPrice)
             {
-               if (!Trade.PositionModify(ticket, SL, PositionGetDouble(POSITION_TP)))
-               {
-                  Print("Failed to modify SL. Error code: ", GetLastError());
-               }
-               else
-               {
-                  Print("SL modified for Order #", ticket, ". Original SL: ", OriginalSL, " | New SL: ", SL);
-                  modifiedPositions++; // Increment modifiedPositions when a position is successfully modified
-               }
+                ModifyPosition(entryPrice, POSITION_SL);
             }
-         }
-      }
-      // Wait for the asynchronous operations to complete
-      int timeout = 3000; // Set a timeout (in milliseconds) to wait for order execution
-      uint startTime = GetTickCount();
-      while (modifiedPositions < PositionsTotal() && (GetTickCount() - startTime) < (uint)timeout)
-      {
-         Sleep(100); // Sleep for a short duration
-      }
-      if (modifiedPositions == PositionsTotal())
-      {
-         Print("SL modification for all positions completed successfully.");
-      }
-      else
-      {
-         Print("Failed to modify SL for all positions within the specified timeout.");
-      }
-   }
-   AutoProtectCalled = false;
+            else
+            {
+                Print("SL for Position #", ticket, " is already at breakeven.");
+            }
+        }
+    }
 }
 bool TyWindow::OnDialogDragStart(void)
 {
