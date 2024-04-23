@@ -23,10 +23,11 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://marketwizardry.info/"
-#property version   "1.01"
+#property version   "1.02"
 #property indicator_chart_window
 input double FakeHigh = 1.0;
 input double FakeLow = 0.5;
+input double FakeOpen = 0.8;
 input double FakeClose = 0.75;
 int OnInit()
 {
@@ -44,32 +45,25 @@ int OnCalculate(const int rates_total,
                 const int &spread[])
 {
    datetime fake_time = time[rates_total - 1] + PeriodSeconds();
-   double fake_open = close[rates_total - 1];
-   double fake_high = FakeHigh;
-   double fake_low = FakeLow;
-   double fake_close = FakeClose;
-   // Calculate the width of the candlestick body
-   double body_width = MathAbs(fake_open - fake_close);
    // Determine the coordinates of the rectangle for the body
-   datetime body_left = (datetime)(fake_time); // Adjusting for candle width
-   datetime body_top = (datetime)MathMax(fake_open, fake_close);
-   datetime body_right = (datetime)(fake_time + PeriodSeconds()/1.5); // Adjusting for candle width
-   datetime body_bottom = (datetime)MathMin(fake_open, fake_close);
-   // Determine the coordinates of the wicks
-   double wick_top = fake_high;
-   double wick_bottom = fake_low;
-   datetime wick_x = body_left + PeriodSeconds()/3;
+   datetime body_left = (datetime)fake_time;
+   double body_top = MathMax(FakeOpen, FakeClose);
+   datetime body_right = (datetime)(fake_time + PeriodSeconds() / 1.5);
+   double body_bottom = MathMin(FakeOpen, FakeClose);
    // Draw fake candlestick body
    ObjectCreate(0, "FakeCandleBody", OBJ_RECTANGLE, 0, body_left, body_top, body_right, body_bottom);
    ObjectSetInteger(0, "FakeCandleBody", OBJPROP_COLOR, clrGray);
    ObjectSetInteger(0, "FakeCandleBody", OBJPROP_STYLE, STYLE_SOLID);
-   // Draw fake candlestick wicks
-   ObjectCreate(0, "FakeCandleWickTop", OBJ_TREND, 0, wick_x, wick_top, wick_x, body_top);
-   ObjectSetInteger(0, "FakeCandleWickTop", OBJPROP_COLOR, clrGray);
-   ObjectSetInteger(0, "FakeCandleWickTop", OBJPROP_STYLE, STYLE_SOLID);
-   ObjectCreate(0, "FakeCandleWickBottom", OBJ_TREND, 0, wick_x, body_bottom, wick_x, wick_bottom);
+   ObjectSetInteger(0, "FakeCandleBody", OBJPROP_FILL, clrGray);
+   datetime wick_x = body_left + PeriodSeconds() / 3;
+   // Draw fake candlestick wick at the bottom
+   ObjectCreate(0, "FakeCandleWickBottom", OBJ_TREND, 0, wick_x, body_bottom, wick_x, FakeLow);
    ObjectSetInteger(0, "FakeCandleWickBottom", OBJPROP_COLOR, clrGray);
    ObjectSetInteger(0, "FakeCandleWickBottom", OBJPROP_STYLE, STYLE_SOLID);
+   // Draw fake candlestick wick at the top
+   ObjectCreate(0, "FakeCandleWickTop", OBJ_TREND, 0, wick_x, FakeHigh, wick_x, body_top);
+   ObjectSetInteger(0, "FakeCandleWickTop", OBJPROP_COLOR, clrGray);
+   ObjectSetInteger(0, "FakeCandleWickTop", OBJPROP_STYLE, STYLE_SOLID);
    return(rates_total);
 }
 void OnDeinit(const int reason)
