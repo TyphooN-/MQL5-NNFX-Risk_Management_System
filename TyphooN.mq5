@@ -1735,7 +1735,6 @@ void TyWindow::OnClickSetTP(void)
       }
    }
 }
-
 void TyWindow::OnClickSetSL(void)
 {
    double newSL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
