@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.320"
+#property version   "1.321"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -1468,7 +1468,8 @@ void Protect()
          OriginalSL = MathRound(OriginalSL / tickSize) * tickSize;
          if (OriginalSL == EntryPrice)
          {
-            Print("SL for Position #", ticket, " is already at breakeven."); // Convert ticket to string for printing
+            //Print("SL for Position #", ticket, " is already at breakeven.");
+            continue; // Skip modifying SL if it's already at breakeven
          }
          if (!Trade.PositionModify(ticket, EntryPrice, PositionGetDouble(POSITION_TP)))
          {
@@ -1720,7 +1721,7 @@ void TyWindow::OnClickSetTP(void)
       // Wait for the asynchronous operations to complete
       int timeout = 3000; // Set a timeout (in milliseconds) to wait for order execution
       uint startTime = GetTickCount();
-      while (modifiedPositions < PositionsTotal() && (GetTickCount() - startTime) < (uint) timeout)
+      while (modifiedPositions < PositionsTotal() && (GetTickCount() - startTime) < (uint)timeout)
       {
          Sleep(100); // Sleep for a short duration
       }
@@ -1734,6 +1735,7 @@ void TyWindow::OnClickSetTP(void)
       }
    }
 }
+
 void TyWindow::OnClickSetSL(void)
 {
    double newSL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
