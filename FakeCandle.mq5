@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://marketwizardry.info/"
-#property version   "1.02"
+#property version   "1.03"
 #property indicator_chart_window
 input double FakeHigh = 1.0;
 input double FakeLow = 0.5;
@@ -64,6 +64,10 @@ int OnCalculate(const int rates_total,
    ObjectCreate(0, "FakeCandleWickTop", OBJ_TREND, 0, wick_x, FakeHigh, wick_x, body_top);
    ObjectSetInteger(0, "FakeCandleWickTop", OBJPROP_COLOR, clrGray);
    ObjectSetInteger(0, "FakeCandleWickTop", OBJPROP_STYLE, STYLE_SOLID);
+   // Draw horizontal line at FakeClose price
+   ObjectCreate(0, "FakeCloseLine", OBJ_HLINE, 0, time[rates_total - 1], FakeClose);
+   ObjectSetInteger(0, "FakeCloseLine", OBJPROP_COLOR, clrGray);
+   ObjectSetInteger(0, "FakeCloseLine", OBJPROP_STYLE, STYLE_SOLID);
    return(rates_total);
 }
 void OnDeinit(const int reason)
@@ -71,4 +75,5 @@ void OnDeinit(const int reason)
    ObjectsDeleteAll(0, "FakeCandleBody");
    ObjectsDeleteAll(0, "FakeCandleWickTop");
    ObjectsDeleteAll(0, "FakeCandleWickBottom");
+   ObjectsDeleteAll(0, "FakeCloseLine");
 }
