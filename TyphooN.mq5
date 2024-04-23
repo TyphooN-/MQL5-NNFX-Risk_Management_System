@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.322"
+#property version   "1.323"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -1722,20 +1722,20 @@ void Protect()
       if (ProcessPositionCheck(ticket, _Symbol, MagicNumber))
       {
          double entryPrice = PositionGetDouble(POSITION_PRICE_OPEN);
-            double originalSL = PositionGetDouble(POSITION_SL);
-            // Round the original SL to the tick size
-            double tickSize = TickSize(_Symbol);
-            originalSL = MathRound(originalSL / tickSize) * tickSize;
-            if (originalSL != entryPrice)
-            {
-                ModifyPosition(entryPrice, POSITION_SL);
-            }
-            else
-            {
-                Print("SL for Position #", ticket, " is already at breakeven.");
-            }
-        }
-    }
+         double originalSL = PositionGetDouble(POSITION_SL);
+         // Round the original SL to the tick size
+         double tickSize = TickSize(_Symbol);
+         originalSL = MathRound(originalSL / tickSize) * tickSize;
+         if (originalSL != entryPrice)
+         {
+            ModifyPosition(entryPrice, POSITION_SL);
+         }
+         else
+         {
+            Print("SL for Position #", ticket, " is already at breakeven.");
+         }
+      }
+   }
 }
 bool TyWindow::OnDialogDragStart(void)
 {
