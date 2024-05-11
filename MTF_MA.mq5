@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.marketwizardry.info"
-#property version   "1.063"
+#property version   "1.064"
 #property indicator_chart_window
 #property indicator_buffers 41
 #property indicator_plots   12
@@ -74,19 +74,19 @@
 #property indicator_width9  2
 #property indicator_label10  "D1 100SMA"
 #property indicator_type10   DRAW_LINE
+#property indicator_color10  clrMagenta
+#property indicator_style10  STYLE_SOLID
+#property indicator_width10  2
+#property indicator_label11  "W1 100SMA"
+#property indicator_type11   DRAW_LINE
 #property indicator_color11  clrMagenta
 #property indicator_style11  STYLE_SOLID
 #property indicator_width11  2
-#property indicator_label11  "W1 100SMA"
+#property indicator_label12  "MN1 100SMA"
 #property indicator_type12   DRAW_LINE
 #property indicator_color12  clrMagenta
 #property indicator_style12  STYLE_SOLID
 #property indicator_width12  2
-#property indicator_label13  "MN1 100SMA"
-#property indicator_type13   DRAW_LINE
-#property indicator_color13  clrMagenta
-#property indicator_style13  STYLE_SOLID
-#property indicator_width13  2
 // Input variables
 input group  "[INFO TEXT SETTINGS]";
 input string FontName                      = "Courier New";
