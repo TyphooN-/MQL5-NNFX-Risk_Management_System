@@ -23,10 +23,10 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.marketwizardry.info"
-#property version   "1.062"
+#property version   "1.063"
 #property indicator_chart_window
 #property indicator_buffers 41
-#property indicator_plots   9
+#property indicator_plots   12
 #property indicator_label1  "M1 200SMA"
 #property indicator_type1   DRAW_LINE
 #property indicator_color1  clrOrange
@@ -67,11 +67,26 @@
 #property indicator_color8  clrMagenta
 #property indicator_style8  STYLE_SOLID
 #property indicator_width8  2
-#property indicator_label9  "MN1 100SMA"
+#property indicator_label9  "H4 100SMA"
 #property indicator_type9   DRAW_LINE
 #property indicator_color9  clrMagenta
 #property indicator_style9  STYLE_SOLID
 #property indicator_width9  2
+#property indicator_label10  "D1 100SMA"
+#property indicator_type10   DRAW_LINE
+#property indicator_color11  clrMagenta
+#property indicator_style11  STYLE_SOLID
+#property indicator_width11  2
+#property indicator_label11  "W1 100SMA"
+#property indicator_type12   DRAW_LINE
+#property indicator_color12  clrMagenta
+#property indicator_style12  STYLE_SOLID
+#property indicator_width12  2
+#property indicator_label13  "MN1 100SMA"
+#property indicator_type13   DRAW_LINE
+#property indicator_color13  clrMagenta
+#property indicator_style13  STYLE_SOLID
+#property indicator_width13  2
 // Input variables
 input group  "[INFO TEXT SETTINGS]";
 input string FontName                      = "Courier New";
@@ -114,39 +129,39 @@ int OnInit()
    SetIndexBuffer(5, MABufferH4_200SMA, INDICATOR_DATA);
    SetIndexBuffer(6, MABufferD1_200SMA, INDICATOR_DATA);
    SetIndexBuffer(7, MABufferW1_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(8, MABufferM1_50SMA, INDICATOR_DATA);
-   SetIndexBuffer(9, MABufferM5_50SMA, INDICATOR_DATA);
-   SetIndexBuffer(10, MABufferM15_50SMA, INDICATOR_DATA);
-   SetIndexBuffer(11, MABufferM30_50SMA, INDICATOR_DATA);
-   SetIndexBuffer(12, MABufferH1_50SMA, INDICATOR_DATA);
-   SetIndexBuffer(13, MABufferH4_50SMA, INDICATOR_DATA);
-   SetIndexBuffer(14, MABufferD1_50SMA, INDICATOR_DATA);
-   SetIndexBuffer(15, MABufferW1_50SMA, INDICATOR_DATA);
-   SetIndexBuffer(16, MABufferM1_10SMA, INDICATOR_DATA);
-   SetIndexBuffer(17, MABufferM5_10SMA, INDICATOR_DATA);
-   SetIndexBuffer(18, MABufferM15_10SMA, INDICATOR_DATA);
-   SetIndexBuffer(19, MABufferM30_10SMA, INDICATOR_DATA);
-   SetIndexBuffer(20, MABufferH1_10SMA, INDICATOR_DATA);
-   SetIndexBuffer(21, MABufferH4_10SMA, INDICATOR_DATA);
-   SetIndexBuffer(22, MABufferD1_10SMA, INDICATOR_DATA);
-   SetIndexBuffer(23, MABufferW1_10SMA, INDICATOR_DATA);
-   SetIndexBuffer(24, MABufferM1_20SMA, INDICATOR_DATA);
-   SetIndexBuffer(25, MABufferM5_20SMA, INDICATOR_DATA);
-   SetIndexBuffer(26, MABufferM15_20SMA, INDICATOR_DATA);
-   SetIndexBuffer(27, MABufferM30_20SMA, INDICATOR_DATA);
-   SetIndexBuffer(28, MABufferH1_20SMA, INDICATOR_DATA);
-   SetIndexBuffer(29, MABufferH4_20SMA, INDICATOR_DATA);
-   SetIndexBuffer(30, MABufferD1_20SMA, INDICATOR_DATA);
-   SetIndexBuffer(31, MABufferW1_20SMA, INDICATOR_DATA);
-   SetIndexBuffer(32, MABufferM1_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(33, MABufferM5_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(34, MABufferM15_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(35, MABufferM30_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(36, MABufferH1_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(37, MABufferH4_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(38, MABufferD1_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(39, MABufferW1_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(40, MABufferMN1_100SMA, INDICATOR_DATA);
+   SetIndexBuffer(8, MABufferH4_100SMA, INDICATOR_DATA);
+   SetIndexBuffer(9, MABufferD1_100SMA, INDICATOR_DATA);
+   SetIndexBuffer(10, MABufferW1_100SMA, INDICATOR_DATA);
+   SetIndexBuffer(11, MABufferMN1_100SMA, INDICATOR_DATA);
+   SetIndexBuffer(12, MABufferM1_50SMA, INDICATOR_DATA);
+   SetIndexBuffer(13, MABufferM5_50SMA, INDICATOR_DATA);
+   SetIndexBuffer(14, MABufferM15_50SMA, INDICATOR_DATA);
+   SetIndexBuffer(15, MABufferM30_50SMA, INDICATOR_DATA);
+   SetIndexBuffer(16, MABufferH1_50SMA, INDICATOR_DATA);
+   SetIndexBuffer(17, MABufferH4_50SMA, INDICATOR_DATA);
+   SetIndexBuffer(18, MABufferD1_50SMA, INDICATOR_DATA);
+   SetIndexBuffer(19, MABufferW1_50SMA, INDICATOR_DATA);
+   SetIndexBuffer(20, MABufferM1_10SMA, INDICATOR_DATA);
+   SetIndexBuffer(21, MABufferM5_10SMA, INDICATOR_DATA);
+   SetIndexBuffer(22, MABufferM15_10SMA, INDICATOR_DATA);
+   SetIndexBuffer(23, MABufferM30_10SMA, INDICATOR_DATA);
+   SetIndexBuffer(24, MABufferH1_10SMA, INDICATOR_DATA);
+   SetIndexBuffer(25, MABufferH4_10SMA, INDICATOR_DATA);
+   SetIndexBuffer(26, MABufferD1_10SMA, INDICATOR_DATA);
+   SetIndexBuffer(27, MABufferW1_10SMA, INDICATOR_DATA);
+   SetIndexBuffer(28, MABufferM1_20SMA, INDICATOR_DATA);
+   SetIndexBuffer(29, MABufferM5_20SMA, INDICATOR_DATA);
+   SetIndexBuffer(30, MABufferM15_20SMA, INDICATOR_DATA);
+   SetIndexBuffer(31, MABufferM30_20SMA, INDICATOR_DATA);
+   SetIndexBuffer(32, MABufferH1_20SMA, INDICATOR_DATA);
+   SetIndexBuffer(33, MABufferH4_20SMA, INDICATOR_DATA);
+   SetIndexBuffer(34, MABufferD1_20SMA, INDICATOR_DATA);
+   SetIndexBuffer(35, MABufferW1_20SMA, INDICATOR_DATA);
+   SetIndexBuffer(36, MABufferM1_100SMA, INDICATOR_DATA);
+   SetIndexBuffer(37, MABufferM5_100SMA, INDICATOR_DATA);
+   SetIndexBuffer(38, MABufferM15_100SMA, INDICATOR_DATA);
+   SetIndexBuffer(39, MABufferM30_100SMA, INDICATOR_DATA);
+   SetIndexBuffer(40, MABufferH1_100SMA, INDICATOR_DATA);
    return 0;
 }
 void OnDeinit(const int pReason)
