@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.marketwizardry.info"
-#property version   "1.000"
+#property version   "1.001"
 #property indicator_chart_window
 #property strict
 double GetTotalLongVolumeForSymbol(string symbol)
@@ -53,13 +53,23 @@ double GetTotalShortVolumeForSymbol(string symbol)
    }
    return totalVolume;
 }
+void CalculatePriceChangePerTick(string symbol)
+{
+
+}
 int OnInit()
 {
-   string symbol = Symbol();
-   double totalLotsLong = GetTotalLongVolumeForSymbol(symbol);
-   double totalLotsShort = GetTotalShortVolumeForSymbol(symbol);
-   Print("Total Lots Long for ", symbol, ": ", totalLotsLong);
-   Print("Total Lots Short for ", symbol, ": ", totalLotsShort);
+   double totalLotsLong = GetTotalLongVolumeForSymbol(_Symbol);
+   double totalLotsShort = GetTotalShortVolumeForSymbol(_Symbol);
+   Print("Total Lots Long for ", _Symbol, ": ", totalLotsLong);
+   Print("Total Lots Short for ", _Symbol, ": ", totalLotsShort);
+   double tickSize = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
+   double priceChangeLong = totalLotsLong * tickSize;
+   double priceChangeShort = totalLotsShort * tickSize;
+   double totalPriceChange = priceChangeLong - priceChangeShort;
+   Print("Price Change per Tick (Long): ", priceChangeLong);
+   Print("Price Change per Tick (Short): ", priceChangeShort);
+   Print("Total Price Change per Tick (Long - Short): ", totalPriceChange);
    return(INIT_SUCCEEDED);
 }
 int OnCalculate(const int rates_total,
@@ -73,5 +83,5 @@ int OnCalculate(const int rates_total,
                 const long &volume[],
                 const int &spread[])
 {
-   return(rates_total);
+    return(rates_total);
 }
