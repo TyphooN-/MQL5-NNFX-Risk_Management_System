@@ -23,7 +23,7 @@
  **/
 #property copyright   "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link        "https://www.marketwizardry.info"
-#property version     "1.00"
+#property version     "1.01"
 #property description "Multi-Timeframe Kaufman's Adaptive Moving Average"
 #property indicator_chart_window
 #property indicator_buffers 8
@@ -68,7 +68,7 @@
 #property indicator_color8  clrWhite
 #property indicator_style8  STYLE_SOLID
 #property indicator_width8  2
-input int InpPeriodAMA = 5;      // AMA period
+input int InpPeriodAMA = 10;      // AMA period
 input int InpFastPeriodEMA = 2;  // Fast EMA period
 input int InpSlowPeriodEMA = 30; // Slow EMA period
 double ExtAMABuffer_M5[];
