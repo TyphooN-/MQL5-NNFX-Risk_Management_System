@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.323"
+#property version   "1.324"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -435,6 +435,23 @@ bool IsNewTick(const double LastTick)
    }
    return false;
 }
+void GetSLTPFromAnotherPosition(ulong ticket, double &sl, double &tp)
+{
+   for (int j = 0; j < PositionsTotal(); j++)
+   {
+      ulong other_ticket = PositionGetTicket(j);
+      if (other_ticket != ticket && PositionGetString(POSITION_SYMBOL) == _Symbol)
+      {
+         sl = PositionGetDouble(POSITION_SL);
+         tp = PositionGetDouble(POSITION_TP);
+         if (sl != 0 || tp != 0)
+         {
+            Print("SL/TP modified for ticket ", ticket, ": SL=", sl, ", TP=", tp, " based on another position ticket ", other_ticket);
+            break; // Stop if a valid SL or TP is found
+         }
+      }
+   }
+}
 void OnTick()
 {
    HasOpenPosition = false;
@@ -512,51 +529,67 @@ void OnTick()
          double risk = 0;
          double tpprofit = 0;
          double margin = 0;
-         if (PositionGetDouble(POSITION_SL) == PositionGetDouble(POSITION_PRICE_OPEN) && PositionGetString(POSITION_SYMBOL) == _Symbol)
+
+         double sl = PositionGetDouble(POSITION_SL);
+         double tp = PositionGetDouble(POSITION_TP);
+         
+         if (sl == 0 && tp == 0) // If no SL and TP are set
+         {
+            GetSLTPFromAnotherPosition(ticket, sl, tp);
+            if (sl != 0 || tp != 0)
+            {
+               if (!Trade.PositionModify(ticket, sl, tp))
+               {
+                  Print("Failed to modify position SL/TP: ", GetLastError());
+               }
+            }
+         }
+
+         if (sl == PositionGetDouble(POSITION_PRICE_OPEN) && PositionGetString(POSITION_SYMBOL) == _Symbol)
          {
             breakEvenFound = true;
          }
          else
-         {  // Make sure to set breakEvenFound to false if no SL BE is found
+         {  
             breakEvenFound = false;
          }
-         if (PositionGetDouble(POSITION_TP) > PositionGetDouble(POSITION_SL))
+         if (tp > sl)
          {
             if (!OrderCalcMargin(ORDER_TYPE_BUY, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), margin))
             {
                Print("Error in OrderCalcMargin: ", GetLastError());
             }
-            if (PositionGetDouble(POSITION_TP) != 0)
+            if (tp != 0)
             {
-               if (!OrderCalcProfit(ORDER_TYPE_BUY, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), PositionGetDouble(POSITION_TP), tpprofit))
+               if (!OrderCalcProfit(ORDER_TYPE_BUY, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), tp, tpprofit))
                {
                   Print("Error in OrderCalcProfit (TP): ", GetLastError());
                }
             }
-            if (PositionGetDouble(POSITION_SL) != 0)
+            if (sl != 0)
             {
-               if (!OrderCalcProfit(ORDER_TYPE_BUY, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), PositionGetDouble(POSITION_SL), risk))
+               if (!OrderCalcProfit(ORDER_TYPE_BUY, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), sl, risk))
                {
                   Print("Error in OrderCalcProfit (SL): ", GetLastError());
                }
             }
          }
-         if (PositionGetDouble(POSITION_SL) > PositionGetDouble(POSITION_TP))
+         if (sl > tp)
          {
             if (!OrderCalcMargin(ORDER_TYPE_SELL, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), margin))
             {
                Print("Error in OrderCalcMargin: ", GetLastError());
             }
-            if (PositionGetDouble(POSITION_TP) != 0)
+            if (tp != 0)
             {
-               if (!OrderCalcProfit(ORDER_TYPE_SELL, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), PositionGetDouble(POSITION_TP), tpprofit))
+               if (!OrderCalcProfit(ORDER_TYPE_SELL, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), tp, tpprofit))
                {
                   Print("Error in OrderCalcProfit (TP): ", GetLastError());
                }
             }
-            if (PositionGetDouble(POSITION_SL) != 0)
+            if (sl != 0)
             {
-               if (!OrderCalcProfit(ORDER_TYPE_SELL, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), PositionGetDouble(POSITION_SL), risk))
+               if (!OrderCalcProfit(ORDER_TYPE_SELL, _Symbol, PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), sl, risk))
                {
                   Print("Error in OrderCalcProfit (SL): ", GetLastError());
                }
