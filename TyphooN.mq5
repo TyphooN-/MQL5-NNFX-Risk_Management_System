@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.325"
+#property version   "1.326"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -80,7 +80,7 @@ input string         DiscordAPIKey =  "https://discord.com/api/webhooks/your_web
 input bool           EnableBroadcast = false;
 input group          "[PYRAMID MODE SETTINGS]"
 input bool           EnablePyramid = false;
-input double         PyramidLotSize = 1.0;
+input double         PyramidLotSize = 5.0;
 input double         PyramidEquityEnd = 1100000;
 input int            PyramidCooldown = 31337;
 // global vars
@@ -226,7 +226,6 @@ int OnInit()
    ObjectCreate(0,"infoPosition", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoTPRR", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoRR", OBJ_LABEL,0,0,0);
-   ObjectCreate(0,"infoLots", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoRisk", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoH4", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoD1", OBJ_LABEL,0,0,0);
@@ -311,8 +310,6 @@ int OnInit()
    ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
    string infoRisk = "Risk: $0.00";
    ObjectSetString(0,"infoRisk",OBJPROP_TEXT,infoRisk);
-   string infoLots = "Lots: 0.00";
-   ObjectSetString(0,"infoLots",OBJPROP_TEXT,infoLots);
    string infoTPRR = "TP RR: N/A";
    ObjectSetString(0,"infoTPRR",OBJPROP_TEXT,infoTPRR);
    string infoH4 = "H4 : " + TimeTilNextBar(PERIOD_H4);
@@ -463,25 +460,28 @@ LotsInfo TallyPositionLots()
    LotsInfo lotsInfo;
    lotsInfo.longLots = 0.0;
    lotsInfo.shortLots = 0.0;
+   string currentSymbol = Symbol(); // Get the symbol of the chart the EA is attached to
    // Loop through all open positions
    for(int i = 0; i < PositionsTotal(); i++)
    {
       ulong ticket = PositionGetTicket(i);
       if(PositionSelectByTicket(ticket))
       {
-         // Get the type of the position
-         int posType = (int)PositionGetInteger(POSITION_TYPE);
-         // Get the lot size of the position
-         double lotSize = PositionGetDouble(POSITION_VOLUME);
-         // Check if it's a buy position
-         if(posType == POSITION_TYPE_BUY)
+         if(PositionGetString(POSITION_SYMBOL) == _Symbol) // Check if the position's symbol matches the current chart symbol
          {
-            lotsInfo.longLots += lotSize;
-         }
-         // Check if it's a sell position
-         else if(posType == POSITION_TYPE_SELL)
-         {
-            lotsInfo.shortLots += lotSize;
+            // Get the type of the position
+            int posType = (int)PositionGetInteger(POSITION_TYPE);
+            // Get the lot size of the position
+            double lotSize = PositionGetDouble(POSITION_VOLUME);
+            // Check if it's a buy position
+            if(posType == POSITION_TYPE_BUY)
+            {
+               lotsInfo.longLots += lotSize;
+            }
+            else if(posType == POSITION_TYPE_SELL)
+            {
+               lotsInfo.shortLots += lotSize;
+            }
          }
       }
    }
@@ -489,6 +489,22 @@ LotsInfo TallyPositionLots()
 }
 void OnTick()
 {
+//   double kama_M5 = GlobalVariableGet("recent_KAMA_M5");
+//   double kama_M15 = GlobalVariableGet("recent_KAMA_M15");
+//   double kama_M30 = GlobalVariableGet("recent_KAMA_M30");
+//   double kama_H1 = GlobalVariableGet("recent_KAMA_H1");
+//   double kama_H4 = GlobalVariableGet("recent_KAMA_H4");
+//   double kama_D1 = GlobalVariableGet("recent_KAMA_D1");
+//   double kama_W1 = GlobalVariableGet("recent_KAMA_W1");
+//   double kama_MN1 = GlobalVariableGet("recent_KAMA_MN1");
+//   Print("Recent KAMA (M5): ", kama_M5);
+//   Print("Recent KAMA (M15): ", kama_M15);
+//   Print("Recent KAMA (M30): ", kama_M30);
+//   Print("Recent KAMA (H1): ", kama_H1);
+//   Print("Recent KAMA (H4): ", kama_H4);
+//   Print("Recent KAMA (D1): ", kama_D1);
+//   Print("Recent KAMA (W1): ", kama_W1);
+//   Print("Recent KAMA (MN1): ", kama_MN1);
    HasOpenPosition = false;
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
@@ -712,8 +728,6 @@ void OnTick()
    string infoMargin = "Margin: $" + DoubleToString(total_margin, 2);
    ObjectSetString(0,"infoMargin",OBJPROP_TEXT,infoMargin);
    ObjectSetString(0,"infoRisk",OBJPROP_TEXT,infoRisk);
-   string infoLots = "Lots: " + DoubleToString(GetTotalVolumeForSymbol(_Symbol), 3);
-   ObjectSetString(0,"infoLots",OBJPROP_TEXT,infoLots);
    string infoTPRR = "TP RR: " + DoubleToString(tprr, 2);
    ObjectSetString(0,"infoTPRR",OBJPROP_TEXT,infoTPRR);
    string infoH4 = "H4 : " + TimeTilNextBar(PERIOD_H4);
@@ -726,22 +740,31 @@ void OnTick()
    ObjectSetString(0,"infoMN1",OBJPROP_TEXT,infoMN1);
    LotsInfo lots = TallyPositionLots();
    string infoPosition;
-   if (lots.longLots > 0 && lots.shortLots == 0)
+   if(HasOpenPosition(_Symbol, POSITION_TYPE_BUY) || HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
    {
-      infoPosition = "Long " + DoubleToString(lots.longLots, Digits()) + " Lots" +  "         Margin: $" +  DoubleToString(total_margin, 2);
-      ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrLime);
+      if (lots.longLots > 0 && lots.shortLots == 0)
+      {
+         infoPosition = "Long " + DoubleToString(lots.longLots, Digits()) + " Lots" +  "         Margin: $" +  DoubleToString(total_margin, 2);
+         ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrLime);
+         ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
+      }
+      if (lots.shortLots > 0 && lots.longLots == 0)
+      {
+         infoPosition = "Short " + DoubleToString(lots.shortLots, Digits()) + " Lots" +  "         Margin: $" +  DoubleToString(total_margin, 2);
+         ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrRed);
+         ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
+      }
+      if (lots.shortLots > 0 && lots.longLots > 0)
+      {
+         infoPosition = DoubleToString(lots.longLots, Digits()) + " Long / " + DoubleToString(lots.shortLots, Digits()) + " Short" +  "    [Margin: $" +  DoubleToString(total_margin, 0) + "]";
+         ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrWhite);
+         ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
+      }
    }
-   if (lots.shortLots > 0 && lots.longLots == 0)
+   if (GetTotalVolumeForSymbol(_Symbol) == 0)
    {
-      infoPosition = "Short " + DoubleToString(lots.shortLots, Digits()) + " Lots" +  "         Margin: $" +  DoubleToString(total_margin, 2);
-      ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrRed);
+      infoPosition = "No Positions Detected";
    }
-   if (lots.shortLots > 0 && lots.longLots > 0)
-   {
-      infoPosition = DoubleToString(lots.longLots, Digits()) + " Long / " + DoubleToString(lots.shortLots, Digits()) + " Short" +  "    [Margin: $" +  DoubleToString(total_margin, 0) + "]";
-      ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrWhite);
-   }
-   ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
 }
 void OnChartEvent(const int id,         // event ID  
                   const long& lparam,   // event parameter of the long type
