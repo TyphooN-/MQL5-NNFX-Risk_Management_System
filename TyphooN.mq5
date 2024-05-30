@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.327"
+#property version   "1.328"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -84,9 +84,9 @@ input double         PyramidLotSize = 5.0;
 input double         PyramidFreeMarginTrigger = 60000;
 input double         PyramidFreeMarginBuffer = 50000;
 input double         PyramidEquityEnd = 1100000;
-input int            PyramidCooldown = 31337420;
+input int            PyramidCooldown = 420;
 datetime             LastPyramidTime = 0;
-double               PyramidLotsAdded = 0;
+double               PyramidLotsOpened = 0;
 // global vars
 double TP = 0;
 double SL = 0;
@@ -532,8 +532,8 @@ bool PlacePyramidOrders()
       if ((orderType == ORDER_TYPE_BUY && Trade.Buy(PyramidLotSize, _Symbol, 0, stopLoss, takeProfit, "Pyramid")) ||
           (orderType == ORDER_TYPE_SELL && Trade.Sell(PyramidLotSize, _Symbol, 0, stopLoss, takeProfit, "Pyramid")))
       {
-         PyramidLotsAdded += PyramidLotSize; // Update the total lots added
-         Print("Order placed successfully. Total lots added: ", PyramidLotsAdded);
+         PyramidLotsOpened += PyramidLotSize; // Update the total lots added
+         Print("Order details: Lots: ", PyramidLotSize, ", SL: ", stopLoss, ", TP: ", takeProfit, ", Total Pyramid lots opened: ", PyramidLotsOpened);
       }
       else
       {
