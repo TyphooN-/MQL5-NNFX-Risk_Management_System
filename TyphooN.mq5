@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.324"
+#property version   "1.325"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -78,6 +78,11 @@ input bool           ManageAllPositions         = false;
 input group          "[DISCORD ANNOUNCEMENT SETTINGS]"
 input string         DiscordAPIKey =  "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
 input bool           EnableBroadcast = false;
+input group          "[PYRAMID MODE SETTINGS]"
+input bool           EnablePyramid = false;
+input double         PyramidLotSize = 1.0;
+input double         PyramidEquityEnd = 1100000;
+input int            PyramidCooldown = 31337;
 // global vars
 double TP = 0;
 double SL = 0;
@@ -218,7 +223,7 @@ int OnInit()
    int YRowWidth = 13;
    ObjectCreate(0,"infoSLPL", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoTP", OBJ_LABEL,0,0,0);
-   ObjectCreate(0,"infoMargin", OBJ_LABEL,0,0,0);
+   ObjectCreate(0,"infoPosition", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoTPRR", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoRR", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoLots", OBJ_LABEL,0,0,0);
@@ -228,42 +233,36 @@ int OnInit()
    ObjectCreate(0,"infoW1", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoMN1", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoPL", OBJ_LABEL,0,0,0);
+   ObjectSetString(0,"infoPosition",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoPosition",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetInteger(0,"infoPosition", OBJPROP_XDISTANCE, LeftColumnX);
+   ObjectSetInteger(0,"infoPosition",OBJPROP_YDISTANCE,(YRowWidth * 2));
+   ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoPosition",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   ObjectSetString(0,"infoRisk",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoRisk",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetInteger(0,"infoRisk", OBJPROP_XDISTANCE, RightColumnX);
+   ObjectSetInteger(0,"infoRisk",OBJPROP_YDISTANCE,(YRowWidth * 3));
+   ObjectSetInteger(0,"infoRisk",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoRisk",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    ObjectSetString(0,"infoPL",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoPL",OBJPROP_FONTSIZE,FontSize);
    ObjectSetInteger(0,"infoPL", OBJPROP_XDISTANCE, LeftColumnX);
-   ObjectSetInteger(0,"infoPL",OBJPROP_YDISTANCE,(YRowWidth * 2));
+   ObjectSetInteger(0,"infoPL",OBJPROP_YDISTANCE,(YRowWidth * 3));
    ObjectSetInteger(0,"infoPL",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoPL",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    ObjectSetString(0,"infoSLPL",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoSLPL",OBJPROP_FONTSIZE,FontSize);
    ObjectSetInteger(0,"infoSLPL", OBJPROP_XDISTANCE, RightColumnX);
-   ObjectSetInteger(0,"infoSLPL",OBJPROP_YDISTANCE,(YRowWidth * 2));
+   ObjectSetInteger(0,"infoSLPL",OBJPROP_YDISTANCE,(YRowWidth * 4));
    ObjectSetInteger(0,"infoSLPL",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoSLPL",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    ObjectSetString(0,"infoTP",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoTP",OBJPROP_FONTSIZE,FontSize);
    ObjectSetInteger(0,"infoTP", OBJPROP_XDISTANCE, LeftColumnX);
-   ObjectSetInteger(0,"infoTP",OBJPROP_YDISTANCE,(YRowWidth * 3));
+   ObjectSetInteger(0,"infoTP",OBJPROP_YDISTANCE,(YRowWidth * 4));
    ObjectSetInteger(0,"infoTP",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoTP",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   ObjectSetString(0,"infoMargin",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoMargin",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetInteger(0,"infoMargin", OBJPROP_XDISTANCE, RightColumnX);
-   ObjectSetInteger(0,"infoMargin",OBJPROP_YDISTANCE,(YRowWidth * 3));
-   ObjectSetInteger(0,"infoMargin",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoMargin",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   ObjectSetString(0,"infoRisk",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoRisk",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetInteger(0,"infoRisk", OBJPROP_XDISTANCE, LeftColumnX);
-   ObjectSetInteger(0,"infoRisk",OBJPROP_YDISTANCE,(YRowWidth * 4));
-   ObjectSetInteger(0,"infoRisk",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoRisk",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   ObjectSetString(0,"infoLots",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoLots",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetInteger(0,"infoLots", OBJPROP_XDISTANCE, RightColumnX);
-   ObjectSetInteger(0,"infoLots",OBJPROP_YDISTANCE,(YRowWidth * 4));
-   ObjectSetInteger(0,"infoLots",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoLots",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    ObjectSetString(0,"infoTPRR",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoTPRR",OBJPROP_FONTSIZE,FontSize);
    ObjectSetInteger(0,"infoTPRR", OBJPROP_XDISTANCE, RightColumnX);
@@ -308,8 +307,8 @@ int OnInit()
    ObjectSetString(0,"infoSLPL",OBJPROP_TEXT,infoSLPL);
    string infoTP = "TP P/L : $0.00";
    ObjectSetString(0,"infoTP",OBJPROP_TEXT,infoTP);
-   string infoMargin = "Margin: $0.00";
-   ObjectSetString(0,"infoMargin",OBJPROP_TEXT,infoMargin);
+   string infoPosition = "No Positions Detected";
+   ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
    string infoRisk = "Risk: $0.00";
    ObjectSetString(0,"infoRisk",OBJPROP_TEXT,infoRisk);
    string infoLots = "Lots: 0.00";
@@ -451,6 +450,42 @@ void GetSLTPFromAnotherPosition(ulong ticket, double &sl, double &tp)
          }
       }
    }
+}
+// Define a structure to hold the lots information
+struct LotsInfo
+{
+   double longLots;
+   double shortLots;
+};
+// Function to tally up the lots on all open positions and return the results
+LotsInfo TallyPositionLots()
+{
+   LotsInfo lotsInfo;
+   lotsInfo.longLots = 0.0;
+   lotsInfo.shortLots = 0.0;
+   // Loop through all open positions
+   for(int i = 0; i < PositionsTotal(); i++)
+   {
+      ulong ticket = PositionGetTicket(i);
+      if(PositionSelectByTicket(ticket))
+      {
+         // Get the type of the position
+         int posType = (int)PositionGetInteger(POSITION_TYPE);
+         // Get the lot size of the position
+         double lotSize = PositionGetDouble(POSITION_VOLUME);
+         // Check if it's a buy position
+         if(posType == POSITION_TYPE_BUY)
+         {
+            lotsInfo.longLots += lotSize;
+         }
+         // Check if it's a sell position
+         else if(posType == POSITION_TYPE_SELL)
+         {
+            lotsInfo.shortLots += lotSize;
+         }
+      }
+   }
+   return lotsInfo;
 }
 void OnTick()
 {
@@ -689,6 +724,24 @@ void OnTick()
    ObjectSetString(0,"infoD1",OBJPROP_TEXT,infoD1);
    string infoMN1 = "MN1: " + TimeTilNextBar(PERIOD_MN1);
    ObjectSetString(0,"infoMN1",OBJPROP_TEXT,infoMN1);
+   LotsInfo lots = TallyPositionLots();
+   string infoPosition;
+   if (lots.longLots > 0 && lots.shortLots == 0)
+   {
+      infoPosition = "Long " + DoubleToString(lots.longLots, Digits()) + " Lots" +  "         Margin: $" +  DoubleToString(total_margin, 2);
+      ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrLime);
+   }
+   if (lots.shortLots > 0 && lots.longLots == 0)
+   {
+      infoPosition = "Short " + DoubleToString(lots.shortLots, Digits()) + " Lots" +  "         Margin: $" +  DoubleToString(total_margin, 2);
+      ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrRed);
+   }
+   if (lots.shortLots > 0 && lots.longLots > 0)
+   {
+      infoPosition = DoubleToString(lots.longLots, Digits()) + " Long / " + DoubleToString(lots.shortLots, Digits()) + " Short" +  "    [Margin: $" +  DoubleToString(total_margin, 0) + "]";
+      ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrWhite);
+   }
+   ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
 }
 void OnChartEvent(const int id,         // event ID  
                   const long& lparam,   // event parameter of the long type
