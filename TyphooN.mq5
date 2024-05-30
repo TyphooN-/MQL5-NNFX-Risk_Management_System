@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.326"
+#property version   "1.327"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -81,8 +81,12 @@ input bool           EnableBroadcast = false;
 input group          "[PYRAMID MODE SETTINGS]"
 input bool           EnablePyramid = false;
 input double         PyramidLotSize = 5.0;
+input double         PyramidFreeMarginTrigger = 60000;
+input double         PyramidFreeMarginBuffer = 50000;
 input double         PyramidEquityEnd = 1100000;
-input int            PyramidCooldown = 31337;
+input int            PyramidCooldown = 31337420;
+datetime             LastPyramidTime = 0;
+double               PyramidLotsAdded = 0;
 // global vars
 double TP = 0;
 double SL = 0;
@@ -487,6 +491,62 @@ LotsInfo TallyPositionLots()
    }
    return lotsInfo;
 }
+bool PlacePyramidOrders()
+{
+   // Check if pyramid orders are enabled
+   if (!EnablePyramid)
+   {
+   //   Print("Pyramid orders are not enabled.");
+      return false;
+   }
+   // Check if enough time has passed since the last pyramid order
+   if (TimeCurrent() - LastPyramidTime < PyramidCooldown)
+   {
+   //    Print("Pyramid order cooldown period not met.");
+      return false;
+   }
+   // Check if free margin exceeds the trigger
+   double freeMargin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
+   if (freeMargin < PyramidFreeMarginTrigger)
+   {
+      //     Print("Free margin is less than the trigger.");
+      return false;
+   }
+   // Determine whether it's a buy or sell order based on current position
+   ENUM_ORDER_TYPE orderType = (PositionSelect(_Symbol) && PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL) ? ORDER_TYPE_SELL : ORDER_TYPE_BUY;
+   // Get current bid or ask price
+   double price = (orderType == ORDER_TYPE_BUY) ? SymbolInfoDouble(_Symbol, SYMBOL_ASK) : SymbolInfoDouble(_Symbol, SYMBOL_BID);
+   // Stop loss and take profit
+   double stopLoss = 0; // Initialize stop loss
+   double takeProfit = 0; // Initialize take profit
+   // If there's a valid position on the symbol, get its stop loss and take profit
+   if (PositionSelect(_Symbol))
+   {
+      stopLoss = PositionGetDouble(POSITION_SL);
+      takeProfit = PositionGetDouble(POSITION_TP);
+   }
+   // Loop until free margin drops below the buffer level
+   while (freeMargin >= (PyramidFreeMarginTrigger - PyramidFreeMarginBuffer))
+   {
+      // Attempt to place a buy or sell order with retrieved stop loss and take profit
+      if ((orderType == ORDER_TYPE_BUY && Trade.Buy(PyramidLotSize, _Symbol, 0, stopLoss, takeProfit, "Pyramid")) ||
+          (orderType == ORDER_TYPE_SELL && Trade.Sell(PyramidLotSize, _Symbol, 0, stopLoss, takeProfit, "Pyramid")))
+      {
+         PyramidLotsAdded += PyramidLotSize; // Update the total lots added
+         Print("Order placed successfully. Total lots added: ", PyramidLotsAdded);
+      }
+      else
+      {
+         Print("Failed to place order. Error: ", GetLastError());
+         break; // Exit loop if failed to place order
+      }
+      // Update free margin after placing the order
+      freeMargin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
+   }
+   // Update the last pyramid order time
+   LastPyramidTime = TimeCurrent();
+   return true;
+}
 void OnTick()
 {
 //   double kama_M5 = GlobalVariableGet("recent_KAMA_M5");
@@ -505,6 +565,7 @@ void OnTick()
 //   Print("Recent KAMA (D1): ", kama_D1);
 //   Print("Recent KAMA (W1): ", kama_W1);
 //   Print("Recent KAMA (MN1): ", kama_MN1);
+   PlacePyramidOrders();
    HasOpenPosition = false;
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
