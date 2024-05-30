@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.328"
+#property version   "1.329"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -528,12 +528,48 @@ bool PlacePyramidOrders()
    // Loop until free margin drops below the buffer level
    while (freeMargin >= (PyramidFreeMarginTrigger - PyramidFreeMarginBuffer))
    {
+      MqlTradeRequest request;
+      ZeroMemory(request);
+      request.action = TRADE_ACTION_DEAL;
+      request.symbol = _Symbol;
+      request.volume = PyramidLotSize;
+      request.price = price;
+      request.sl = stopLoss;
+      request.tp = takeProfit;
+      request.magic = 0;
+      request.type = orderType;
+      request.type_filling = ORDER_FILLING_FOK;
+      request.comment = "Pyramid";
+      MqlTradeCheckResult check_result;
+      double OrderLots = PyramidLotSize;
+      required_margin = PerformOrderCheck(request, check_result, OrderLots, (int)SymbolInfoInteger(_Symbol, SYMBOL_DIGITS));
+      if (required_margin < 0)
+      {
+         Print("Order check failed. Cannot proceed with placing the order.");
+         return false; // Exit if order check failed
+      }
       // Attempt to place a buy or sell order with retrieved stop loss and take profit
-      if ((orderType == ORDER_TYPE_BUY && Trade.Buy(PyramidLotSize, _Symbol, 0, stopLoss, takeProfit, "Pyramid")) ||
-          (orderType == ORDER_TYPE_SELL && Trade.Sell(PyramidLotSize, _Symbol, 0, stopLoss, takeProfit, "Pyramid")))
+      bool orderPlaced = false;
+      if (orderType == ORDER_TYPE_BUY)
+      {
+         orderPlaced = Trade.Buy(PyramidLotSize, _Symbol, price, stopLoss, takeProfit, "Buy lots");
+      }
+      else if (orderType == ORDER_TYPE_SELL)
+      {
+         orderPlaced = Trade.Sell(PyramidLotSize, _Symbol, price, stopLoss, takeProfit, "Sell lots");
+      }
+      if (orderPlaced)
       {
          PyramidLotsOpened += PyramidLotSize; // Update the total lots added
-         Print("Order details: Lots: ", PyramidLotSize, ", SL: ", stopLoss, ", TP: ", takeProfit, ", Total Pyramid lots opened: ", PyramidLotsOpened);
+         if (orderType == ORDER_TYPE_BUY)
+         {
+            Print("Order details: Lots: ", PyramidLotSize, " (Long), SL: ", stopLoss, ", TP: ", takeProfit, ", Total Pyramid lots opened: ", PyramidLotsOpened);
+         }
+         if (orderType == ORDER_TYPE_SELL)
+         {
+            Print("Order details: Lots: ", PyramidLotSize, " (Short), SL: ", stopLoss, ", TP: ", takeProfit, ", Total Pyramid lots opened: ", PyramidLotsOpened);
+         } 
+      //   Print("Time until next pyramid position: ", PyramidCooldown, " seconds.");
       }
       else
       {
