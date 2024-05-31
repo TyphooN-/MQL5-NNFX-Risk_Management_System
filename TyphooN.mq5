@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.330"
+#property version   "1.331"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -80,13 +80,19 @@ input string         DiscordAPIKey =  "https://discord.com/api/webhooks/your_web
 input bool           EnableBroadcast = false;
 input group          "[PYRAMID MODE SETTINGS]"
 input bool           EnablePyramid = false;
-input double         PyramidLotSize = 5.0;
-input double         PyramidFreeMarginTrigger = 60000;
-input double         PyramidFreeMarginBuffer = 50000;
+input double         PyramidLotSize = 1.0;
+input double         PyramidFreeMarginTrigger = 20000;
+input double         PyramidFreeMarginBuffer = 10000;
 input double         PyramidEquityEnd = 1100000;
-input int            PyramidCooldown = 420;
+input int            PyramidCooldown = 1337;
+input string         PyramidComment = "1337 Pyramid";
 datetime             LastPyramidTime = 0;
 double               PyramidLotsOpened = 0;
+double kama_M5 = -1;
+double kama_M15 = -1;
+double kama_M30 = -1;
+double kama_H1 = -1;
+double kama_H4 = -1;
 // global vars
 double TP = 0;
 double SL = 0;
@@ -557,11 +563,11 @@ bool PlacePyramidOrders()
       }
       // Attempt to place a buy or sell order with retrieved stop loss and take profit
       bool orderPlaced = false;
-      if (orderType == ORDER_TYPE_BUY)
+      if (orderType == ORDER_TYPE_BUY && Ask > kama_M5 && Ask > kama_M15 && Ask > kama_M30 && Ask > kama_H1 && Ask > kama_H4)
       {
          orderPlaced = Trade.Buy(PyramidLotSize, _Symbol, price, stopLoss, takeProfit, "Pyramid");
       }
-      else if (orderType == ORDER_TYPE_SELL)
+      else if (orderType == ORDER_TYPE_SELL && Bid < kama_M5 && Bid < kama_M15 && Bid < kama_M30 && Bid < kama_H1 && Bid < kama_H4 )
       {
          orderPlaced = Trade.Sell(PyramidLotSize, _Symbol, price, stopLoss, takeProfit, "Pyramid");
       }
@@ -570,7 +576,7 @@ bool PlacePyramidOrders()
          PyramidLotsOpened += PyramidLotSize; // Update the total lots added
          if (orderType == ORDER_TYPE_BUY)
          {
-            Print("Order details: Lots: ", PyramidLotSize, " (Long), SL: ", stopLoss, ", TP: ", takeProfit, ", Total Pyramid lots opened: ", PyramidLotsOpened);
+            Print("Order details: Lots: ", PyramidLotSize, " (Long), SL: ", stopLoss, ", TP: ", takeProfit, ", Pyramid Lots opened: ", PyramidLotsOpened, ", Current Lots Open: ", GetTotalVolumeForSymbol(_Symbol));
          }
          if (orderType == ORDER_TYPE_SELL)
          {
@@ -592,22 +598,16 @@ bool PlacePyramidOrders()
 }
 void OnTick()
 {
-//   double kama_M5 = GlobalVariableGet("recent_KAMA_M5");
-//   double kama_M15 = GlobalVariableGet("recent_KAMA_M15");
-//   double kama_M30 = GlobalVariableGet("recent_KAMA_M30");
-//   double kama_H1 = GlobalVariableGet("recent_KAMA_H1");
-//   double kama_H4 = GlobalVariableGet("recent_KAMA_H4");
-//   double kama_D1 = GlobalVariableGet("recent_KAMA_D1");
-//   double kama_W1 = GlobalVariableGet("recent_KAMA_W1");
-//   double kama_MN1 = GlobalVariableGet("recent_KAMA_MN1");
+   kama_M5 = GlobalVariableGet("recent_KAMA_M5");
+   kama_M15 = GlobalVariableGet("recent_KAMA_M15");
+   kama_M30 = GlobalVariableGet("recent_KAMA_M30");
+   kama_H1 = GlobalVariableGet("recent_KAMA_H1");
+   kama_H4 = GlobalVariableGet("recent_KAMA_H4");
 //   Print("Recent KAMA (M5): ", kama_M5);
 //   Print("Recent KAMA (M15): ", kama_M15);
 //   Print("Recent KAMA (M30): ", kama_M30);
 //   Print("Recent KAMA (H1): ", kama_H1);
 //   Print("Recent KAMA (H4): ", kama_H4);
-//   Print("Recent KAMA (D1): ", kama_D1);
-//   Print("Recent KAMA (W1): ", kama_W1);
-//   Print("Recent KAMA (MN1): ", kama_MN1);
    PlacePyramidOrders();
    HasOpenPosition = false;
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
