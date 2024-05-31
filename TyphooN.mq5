@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.332"
+#property version   "1.333"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -510,6 +510,11 @@ bool PlacePyramidOrders()
    if (!EnablePyramid)
    {
    //   Print("Pyramid orders are not enabled.");
+      return false;
+   }
+   // Check if the current equity is above the PyramidEquityEnd threshold
+   if (account_equity < PyramidEquityEnd)
+   {
       return false;
    }
    // Check if enough time has passed since the last pyramid order
