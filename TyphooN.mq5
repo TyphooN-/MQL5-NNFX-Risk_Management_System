@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.331"
+#property version   "1.332"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -563,11 +563,11 @@ bool PlacePyramidOrders()
       }
       // Attempt to place a buy or sell order with retrieved stop loss and take profit
       bool orderPlaced = false;
-      if (orderType == ORDER_TYPE_BUY && Ask > kama_M5 && Ask > kama_M15 && Ask > kama_M30 && Ask > kama_H1 && Ask > kama_H4)
+      if (orderType == ORDER_TYPE_BUY && Ask >= kama_M5 && Ask >= kama_M15 && Ask >= kama_M30 && Ask >= kama_H1 && Ask >= kama_H4)
       {
          orderPlaced = Trade.Buy(PyramidLotSize, _Symbol, price, stopLoss, takeProfit, "Pyramid");
       }
-      else if (orderType == ORDER_TYPE_SELL && Bid < kama_M5 && Bid < kama_M15 && Bid < kama_M30 && Bid < kama_H1 && Bid < kama_H4 )
+      else if (orderType == ORDER_TYPE_SELL && Bid <= kama_M5 && Bid <= kama_M15 && Bid <= kama_M30 && Bid <= kama_H1 && Bid <= kama_H4)
       {
          orderPlaced = Trade.Sell(PyramidLotSize, _Symbol, price, stopLoss, takeProfit, "Pyramid");
       }
