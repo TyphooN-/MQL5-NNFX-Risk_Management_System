@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.329"
+#property version   "1.330"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -228,6 +228,7 @@ int OnInit()
    ObjectCreate(0,"infoSLPL", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoTP", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoPosition", OBJ_LABEL,0,0,0);
+   ObjectCreate(0,"infoMargin", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoTPRR", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoRR", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoRisk", OBJ_LABEL,0,0,0);
@@ -242,6 +243,12 @@ int OnInit()
    ObjectSetInteger(0,"infoPosition",OBJPROP_YDISTANCE,(YRowWidth * 2));
    ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoPosition",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   ObjectSetString(0,"infoMargin",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoMargin",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetInteger(0,"infoMargin", OBJPROP_XDISTANCE, RightColumnX);
+   ObjectSetInteger(0,"infoMargin",OBJPROP_YDISTANCE,(YRowWidth * 2));
+   ObjectSetInteger(0,"infoMargin",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoMargin",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    ObjectSetString(0,"infoRisk",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoRisk",OBJPROP_FONTSIZE,FontSize);
    ObjectSetInteger(0,"infoRisk", OBJPROP_XDISTANCE, RightColumnX);
@@ -552,11 +559,11 @@ bool PlacePyramidOrders()
       bool orderPlaced = false;
       if (orderType == ORDER_TYPE_BUY)
       {
-         orderPlaced = Trade.Buy(PyramidLotSize, _Symbol, price, stopLoss, takeProfit, "Buy lots");
+         orderPlaced = Trade.Buy(PyramidLotSize, _Symbol, price, stopLoss, takeProfit, "Pyramid");
       }
       else if (orderType == ORDER_TYPE_SELL)
       {
-         orderPlaced = Trade.Sell(PyramidLotSize, _Symbol, price, stopLoss, takeProfit, "Sell lots");
+         orderPlaced = Trade.Sell(PyramidLotSize, _Symbol, price, stopLoss, takeProfit, "Pyramid");
       }
       if (orderPlaced)
       {
@@ -841,14 +848,16 @@ void OnTick()
    {
       if (lots.longLots > 0 && lots.shortLots == 0)
       {
-         infoPosition = "Long " + DoubleToString(lots.longLots, Digits()) + " Lots" +  "         Margin: $" +  DoubleToString(total_margin, 2);
+         infoPosition = "Long " + DoubleToString(lots.longLots, Digits()) + " Lots";
          ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrLime);
+         ObjectSetInteger(0,"infoMargin",OBJPROP_COLOR,clrLime);
          ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
       }
       if (lots.shortLots > 0 && lots.longLots == 0)
       {
-         infoPosition = "Short " + DoubleToString(lots.shortLots, Digits()) + " Lots" +  "         Margin: $" +  DoubleToString(total_margin, 2);
+         infoPosition = "Short " + DoubleToString(lots.shortLots, Digits()) + " Lots";
          ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrRed);
+         ObjectSetInteger(0,"infoMargin",OBJPROP_COLOR,clrRed);
          ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
       }
       if (lots.shortLots > 0 && lots.longLots > 0)
