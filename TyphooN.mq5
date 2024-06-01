@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.334"
+#property version   "1.335"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -572,11 +572,11 @@ bool PlacePyramidOrders()
       // Find the highest and lowest values
       double highestKama = ArrayMaximum(kamaArray, 0, WHOLE_ARRAY);
       double lowestKama = ArrayMinimum(kamaArray, 0, WHOLE_ARRAY);
-      if (orderType == ORDER_TYPE_BUY && Ask >= kama_M5 && Ask >= kama_M15 && Ask >= kama_M30 && Ask >= kama_H1 && Ask >= kama_H4)
+      if (orderType == ORDER_TYPE_BUY && Ask >= highestKama)
       {
          orderPlaced = Trade.Buy(PyramidLotSize, _Symbol, price, stopLoss, takeProfit, PyramidComment);
       }
-      else if (orderType == ORDER_TYPE_SELL && Bid <= kama_M5 && Bid <= kama_M15 && Bid <= kama_M30 && Bid <= kama_H1 && Bid <= kama_H4)
+      else if (orderType == ORDER_TYPE_SELL && Bid <= lowestKama)
       {
          orderPlaced = Trade.Sell(PyramidLotSize, _Symbol, price, stopLoss, takeProfit, PyramidComment);
       }
