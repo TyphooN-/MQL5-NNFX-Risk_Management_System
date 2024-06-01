@@ -46,7 +46,8 @@ string BaseCurrency() { return ( AccountInfoString( ACCOUNT_CURRENCY ) ); }
 double Point( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_POINT ) ); }
 double TickSize( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_SIZE ) ); }
 double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_VALUE ) ); }
-enum OrderModeEnum {
+enum OrderModeEnum
+{
     Standard,
     Fixed,
     Dynamic
@@ -186,13 +187,9 @@ ON_EVENT(ON_CLICK, buttonSetSL, OnClickSetSL)
 ON_EVENT(ON_CLICK, buttonSetTP, OnClickSetTP)
 EVENT_MAP_END(CAppDialog)
 // Constructor
-TyWindow::TyWindow(void)
-{
-}
+TyWindow::TyWindow(void){}
 // Destructor
-TyWindow::~TyWindow(void)
-{
-}
+TyWindow::~TyWindow(void){}
 bool TyWindow::Create(const long chart,const string name,const int subwin,const int x1,const int y1,const int x2,const int y2)
 {
    if(!CAppDialog::Create(chart,name,subwin,x1,y1,x2,y2))
@@ -1568,7 +1565,8 @@ void TyWindow::OnClickLimit(void)
       ObjectSetInteger(0, "Limit_Line", OBJPROP_BACK, true);
       LimitLineExists = true;
    }
-   else {
+   else
+   {
       ObjectDelete(0, "Limit_Line");
       LimitLineExists = false;
    }
