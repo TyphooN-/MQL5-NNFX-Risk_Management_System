@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.338"
+#property version   "1.339"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -570,12 +570,17 @@ bool PlacePyramidOrders()
       // Attempt to place a buy or sell order with retrieved stop loss and take profit
       bool orderPlaced = false;
       double kamaArray[] = {kama_M5, kama_M15, kama_M30, kama_H1, kama_H4, kama_D1};
-      // Find the highest and lowest values
-      double highestKama = ArrayMaximum(kamaArray, 0, WHOLE_ARRAY);
-      double lowestKama = ArrayMinimum(kamaArray, 0, WHOLE_ARRAY);
-      Print ("highestKama: ", highestKama);
-      
-      Print("Before order logic");
+      // Print the array values to verify
+      //for (int i = 0; i < ArraySize(kamaArray); i++) {
+      //    Print("kamaArray[", i, "]: ", kamaArray[i]);}
+      // Find the indices of the highest and lowest values
+      int highestKamaIndex = ArrayMaximum(kamaArray, 0, WHOLE_ARRAY);
+      int lowestKamaIndex = ArrayMinimum(kamaArray, 0, WHOLE_ARRAY);
+      // Use the indices to get the actual values
+      double highestKama = kamaArray[highestKamaIndex];
+      double lowestKama = kamaArray[lowestKamaIndex];
+      //Print("highestKama: ", highestKama);
+      //Print("lowestKama: ", lowestKama);
       if (orderType == ORDER_TYPE_BUY && Ask >= highestKama)
       {
          //Print("In buy KAMA logic");
