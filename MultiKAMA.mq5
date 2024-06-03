@@ -23,7 +23,7 @@
  **/
 #property copyright   "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link        "https://www.marketwizardry.info"
-#property version     "1.04"
+#property version     "1.05"
 #property description "Multi-Timeframe Kaufman's Adaptive Moving Average"
 #property indicator_chart_window
 #property indicator_buffers 8
@@ -133,18 +133,19 @@ int OnCalculate(const int rates_total, const int prev_calculated, const int begi
    WaitForIndicatorData(handle_KAMA_D1, ExtAMABuffer_D1, rates_total, "KAMA_D1");
    WaitForIndicatorData(handle_KAMA_W1, ExtAMABuffer_W1, rates_total, "KAMA_W1");
    WaitForIndicatorData(handle_KAMA_MN1, ExtAMABuffer_MN1, rates_total, "KAMA_MN1");
-   //--- update global recent KAMA values using GlobalVariableSet
-   if (prev_calculated)
-   {
-      GlobalVariableSet("recent_KAMA_M5", ExtAMABuffer_M5[0]);
-      GlobalVariableSet("recent_KAMA_M15", ExtAMABuffer_M15[0]);
-      GlobalVariableSet("recent_KAMA_M30", ExtAMABuffer_M30[0]);
-      GlobalVariableSet("recent_KAMA_H1", ExtAMABuffer_H1[0]);
-      GlobalVariableSet("recent_KAMA_H4", ExtAMABuffer_H4[0]);
-      GlobalVariableSet("recent_KAMA_D1", ExtAMABuffer_D1[0]);
-      GlobalVariableSet("recent_KAMA_W1", ExtAMABuffer_W1[0]);
-      GlobalVariableSet("recent_KAMA_MN1", ExtAMABuffer_MN1[0]);
-   }
+    // Check if the buffers are correctly filled
+    if (rates_total > 0)
+    {
+        int latestIndex = rates_total - 1; // Index of the latest bar
+        GlobalVariableSet("recent_KAMA_M5", ExtAMABuffer_M5[latestIndex]);
+        GlobalVariableSet("recent_KAMA_M15", ExtAMABuffer_M15[latestIndex]);
+        GlobalVariableSet("recent_KAMA_M30", ExtAMABuffer_M30[latestIndex]);
+        GlobalVariableSet("recent_KAMA_H1", ExtAMABuffer_H1[latestIndex]);
+        GlobalVariableSet("recent_KAMA_H4", ExtAMABuffer_H4[latestIndex]);
+        GlobalVariableSet("recent_KAMA_D1", ExtAMABuffer_D1[latestIndex]);
+        GlobalVariableSet("recent_KAMA_W1", ExtAMABuffer_W1[latestIndex]);
+        GlobalVariableSet("recent_KAMA_MN1", ExtAMABuffer_MN1[latestIndex]);
+    }
    //--- return value of prev_calculated for next call
    return (rates_total);
 }
