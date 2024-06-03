@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.341"
+#property version   "1.342"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -619,6 +619,18 @@ bool PlacePyramidOrders()
 }
 void OnTick()
 {
+   double FisherBias = GlobalVariableGet("BullishOrBearish");
+    if (FisherBias == 1)
+    {
+  //    Print("Fisher Transform is Bullish");
+    }
+    else if (FisherBias == -1)
+    {
+ //       Print("Fisher Transform is Bearish");
+    } else
+    {
+   //     Print("Fisher Transform Neutral");
+    }
    kama_M5 = GlobalVariableGet("recent_KAMA_M5");
    kama_M15 = GlobalVariableGet("recent_KAMA_M15");
    kama_M30 = GlobalVariableGet("recent_KAMA_M30");
