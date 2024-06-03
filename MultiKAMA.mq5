@@ -23,7 +23,7 @@
  **/
 #property copyright   "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link        "https://www.marketwizardry.info"
-#property version     "1.03"
+#property version     "1.04"
 #property description "Multi-Timeframe Kaufman's Adaptive Moving Average"
 #property indicator_chart_window
 #property indicator_buffers 8
@@ -124,7 +124,6 @@ int OnCalculate(const int rates_total, const int prev_calculated, const int begi
    {
       calculated = 0;
    }
-   ArraySetAsSeries(price, true);
    //--- calculate KAMA for each timeframe
    WaitForIndicatorData(handle_KAMA_M5, ExtAMABuffer_M5, rates_total, "KAMA_M5");
    WaitForIndicatorData(handle_KAMA_M15, ExtAMABuffer_M15, rates_total, "KAMA_M15");
@@ -135,7 +134,7 @@ int OnCalculate(const int rates_total, const int prev_calculated, const int begi
    WaitForIndicatorData(handle_KAMA_W1, ExtAMABuffer_W1, rates_total, "KAMA_W1");
    WaitForIndicatorData(handle_KAMA_MN1, ExtAMABuffer_MN1, rates_total, "KAMA_MN1");
    //--- update global recent KAMA values using GlobalVariableSet
-   if (rates_total > 0)
+   if (prev_calculated)
    {
       GlobalVariableSet("recent_KAMA_M5", ExtAMABuffer_M5[0]);
       GlobalVariableSet("recent_KAMA_M15", ExtAMABuffer_M15[0]);
