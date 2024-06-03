@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.339"
+#property version   "1.340"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -547,6 +547,7 @@ bool PlacePyramidOrders()
    // Loop until free margin drops below the buffer level
    while (freeMargin >= (PyramidFreeMarginTrigger - PyramidFreeMarginBuffer))
    {
+      Trade.SetAsyncMode(false);
       MqlTradeRequest request;
       ZeroMemory(request);
       request.action = TRADE_ACTION_DEAL;
@@ -569,7 +570,7 @@ bool PlacePyramidOrders()
       }
       // Attempt to place a buy or sell order with retrieved stop loss and take profit
       bool orderPlaced = false;
-      double kamaArray[] = {kama_M5, kama_M15, kama_M30, kama_H1, kama_H4, kama_D1};
+      double kamaArray[] = {kama_M15, kama_M30, kama_H1, kama_H4, kama_D1};
       // Print the array values to verify
       //for (int i = 0; i < ArraySize(kamaArray); i++) {
       //    Print("kamaArray[", i, "]: ", kamaArray[i]);}
