@@ -578,12 +578,12 @@ bool PlacePyramidOrders()
       Print("Before order logic");
       if (orderType == ORDER_TYPE_BUY && Ask >= highestKama)
       {
-         Print("In buy KAMA logic");
+         //Print("In buy KAMA logic");
          orderPlaced = Trade.Buy(PyramidLotSize, _Symbol, price, stopLoss, takeProfit, PyramidComment);
       }
       else if (orderType == ORDER_TYPE_SELL && Bid <= lowestKama)
       {
-         Print("In sell KAMA logic");
+         //Print("In sell KAMA logic");
          orderPlaced = Trade.Sell(PyramidLotSize, _Symbol, price, stopLoss, takeProfit, PyramidComment);
       }
       if (orderPlaced)
