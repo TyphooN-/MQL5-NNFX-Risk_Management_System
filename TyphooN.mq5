@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.336"
+#property version   "1.337"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -95,8 +95,8 @@ double kama_M30 = -1;
 double kama_H1 = -1;
 double kama_H4 = -1;
 double kama_D1 = -1;
-//double kama_W1 = -1;
-//double kama_MN1 = -1;
+double kama_W1 = -1;
+double kama_MN1 = -1;
 // global vars
 double TP = 0;
 double SL = 0;
@@ -568,7 +568,7 @@ bool PlacePyramidOrders()
       }
       // Attempt to place a buy or sell order with retrieved stop loss and take profit
       bool orderPlaced = false;
-      double kamaArray[] = {kama_M5, kama_M15, kama_M30, kama_H1, kama_H4};
+      double kamaArray[] = {kama_M5, kama_M15, kama_M30, kama_H1, kama_H4, kama_D1};
       // Find the highest and lowest values
       double highestKama = ArrayMaximum(kamaArray, 0, WHOLE_ARRAY);
       double lowestKama = ArrayMinimum(kamaArray, 0, WHOLE_ARRAY);
@@ -613,16 +613,17 @@ void OnTick()
    kama_H1 = GlobalVariableGet("recent_KAMA_H1");
    kama_H4 = GlobalVariableGet("recent_KAMA_H4");
    kama_D1 = GlobalVariableGet("recent_KAMA_D1");
-//   kama_W1 = GlobalVariableGet("recent_KAMA_W1");
-//   kama_MN1 = GlobalVariableGet("recent_KAMA_MN1");
-//   Print("Recent KAMA (M5): ", kama_M5);
-//   Print("Recent KAMA (M15): ", kama_M15);
-//   Print("Recent KAMA (M30): ", kama_M30);
-//   Print("Recent KAMA (H1): ", kama_H1);
-//   Print("Recent KAMA (H4): ", kama_H4);
-//   Print("Recent KAMA (D1): ", kama_D1);
-//   Print("Recent KAMA (W1): ", kama_W1);
-//   Print("Recent KAMA (MN1): ", kama_MN1);
+   kama_W1 = GlobalVariableGet("recent_KAMA_W1");
+   kama_MN1 = GlobalVariableGet("recent_KAMA_MN1");
+   Print("Ask:", Ask, ", Bid: ", Bid);
+   Print("Recent KAMA (M5): ", kama_M5);
+   Print("Recent KAMA (M15): ", kama_M15);
+   Print("Recent KAMA (M30): ", kama_M30);
+   Print("Recent KAMA (H1): ", kama_H1);
+   Print("Recent KAMA (H4): ", kama_H4);
+   Print("Recent KAMA (D1): ", kama_D1);
+   Print("Recent KAMA (W1): ", kama_W1);
+   Print("Recent KAMA (MN1): ", kama_MN1);
    PlacePyramidOrders();
    HasOpenPosition = false;
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
