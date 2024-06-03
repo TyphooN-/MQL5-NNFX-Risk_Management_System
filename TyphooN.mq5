@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.337"
+#property version   "1.338"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -85,8 +85,8 @@ input double         PyramidLotSize = 1.0;
 input double         PyramidFreeMarginTrigger = 20000;
 input double         PyramidFreeMarginBuffer = 10000;
 input double         PyramidEquityEnd = 1100000;
-input int            PyramidCooldown = 1337;
-input string         PyramidComment = "1337 Pyramid";
+input int            PyramidCooldown = 420;
+input string         PyramidComment = "420 Pyramid";
 datetime             LastPyramidTime = 0;
 double               PyramidLotsOpened = 0;
 double kama_M5 = -1;
@@ -513,8 +513,9 @@ bool PlacePyramidOrders()
       return false;
    }
    // Check if the current equity is above the PyramidEquityEnd threshold
-   if (account_equity < PyramidEquityEnd)
+   if (account_equity >= PyramidEquityEnd)
    {
+      Print("Account Equity: ", account_equity, "<= PyramidEquityEnd (",PyramidEquityEnd,")");
       return false;
    }
    // Check if enough time has passed since the last pyramid order
@@ -527,7 +528,7 @@ bool PlacePyramidOrders()
    double freeMargin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
    if (freeMargin < PyramidFreeMarginTrigger)
    {
-      //     Print("Free margin is less than the trigger.");
+  //    Print("Free margin is less than the trigger.");
       return false;
    }
    // Determine whether it's a buy or sell order based on current position
@@ -572,12 +573,17 @@ bool PlacePyramidOrders()
       // Find the highest and lowest values
       double highestKama = ArrayMaximum(kamaArray, 0, WHOLE_ARRAY);
       double lowestKama = ArrayMinimum(kamaArray, 0, WHOLE_ARRAY);
+      Print ("highestKama: ", highestKama);
+      
+      Print("Before order logic");
       if (orderType == ORDER_TYPE_BUY && Ask >= highestKama)
       {
+         Print("In buy KAMA logic");
          orderPlaced = Trade.Buy(PyramidLotSize, _Symbol, price, stopLoss, takeProfit, PyramidComment);
       }
       else if (orderType == ORDER_TYPE_SELL && Bid <= lowestKama)
       {
+         Print("In sell KAMA logic");
          orderPlaced = Trade.Sell(PyramidLotSize, _Symbol, price, stopLoss, takeProfit, PyramidComment);
       }
       if (orderPlaced)
@@ -615,24 +621,26 @@ void OnTick()
    kama_D1 = GlobalVariableGet("recent_KAMA_D1");
    kama_W1 = GlobalVariableGet("recent_KAMA_W1");
    kama_MN1 = GlobalVariableGet("recent_KAMA_MN1");
-   Print("Ask:", Ask, ", Bid: ", Bid);
-   Print("Recent KAMA (M5): ", kama_M5);
-   Print("Recent KAMA (M15): ", kama_M15);
-   Print("Recent KAMA (M30): ", kama_M30);
-   Print("Recent KAMA (H1): ", kama_H1);
-   Print("Recent KAMA (H4): ", kama_H4);
-   Print("Recent KAMA (D1): ", kama_D1);
-   Print("Recent KAMA (W1): ", kama_W1);
-   Print("Recent KAMA (MN1): ", kama_MN1);
-   PlacePyramidOrders();
+   //Print("Ask:", Ask, ", Bid: ", Bid);
+   //Print("Recent KAMA (M5): ", kama_M5);
+   //Print("Recent KAMA (M15): ", kama_M15);
+   //Print("Recent KAMA (M30): ", kama_M30);
+   //Print("Recent KAMA (H1): ", kama_H1);
+   //Print("Recent KAMA (H4): ", kama_H4);
+   //Print("Recent KAMA (D1): ", kama_D1);
+   //Print("Recent KAMA (W1): ", kama_W1);
+   //Print("Recent KAMA (MN1): ", kama_MN1);
    HasOpenPosition = false;
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+   AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
+   account_equity = AccountInfoDouble(ACCOUNT_EQUITY);
    // Check if both bid and ask prices have changed from the previous tick
    if (Bid == prevBidPrice && Ask == prevAskPrice)
    {
       return;
    }
+   PlacePyramidOrders();
    prevBidPrice = Bid;
    prevAskPrice = Ask;
    double total_risk = 0;
@@ -643,8 +651,6 @@ void OnTick()
    double rr = 0;
    double tprr = 0;
    double sl_risk = 0;
-   AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
-   account_equity = AccountInfoDouble(ACCOUNT_EQUITY);
    double CurrentTick = SymbolInfoDouble(_Symbol, SYMBOL_LAST);
    if (account_equity >= TargetEquityTP && EnableEquityTP == true && EquityTPCalled == false)
    {
