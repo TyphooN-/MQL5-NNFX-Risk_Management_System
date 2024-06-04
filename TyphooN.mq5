@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.342"
+#property version   "1.343"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -89,6 +89,7 @@ input int            PyramidCooldown = 420;
 input string         PyramidComment = "420 Pyramid";
 datetime             LastPyramidTime = 0;
 double               PyramidLotsOpened = 0;
+double FisherBias = -9;
 double kama_M5 = -1;
 double kama_M15 = -1;
 double kama_M30 = -1;
@@ -582,12 +583,23 @@ bool PlacePyramidOrders()
       double lowestKama = kamaArray[lowestKamaIndex];
       //Print("highestKama: ", highestKama);
       //Print("lowestKama: ", lowestKama);
-      if (orderType == ORDER_TYPE_BUY && Ask >= highestKama)
+   //       if (FisherBias == 1)
+//    {
+  //    Print("Fisher Transform is Bullish");
+ //   }
+    //else if (FisherBias == -1)
+    //{
+ //       Print("Fisher Transform is Bearish");
+    //} else
+ //   {
+   //     Print("Fisher Transform Neutral");
+    //}
+      if (orderType == ORDER_TYPE_BUY && Ask >= highestKama && FisherBias == 1)
       {
          //Print("In buy KAMA logic");
          orderPlaced = Trade.Buy(PyramidLotSize, _Symbol, price, stopLoss, takeProfit, PyramidComment);
       }
-      else if (orderType == ORDER_TYPE_SELL && Bid <= lowestKama)
+      else if (orderType == ORDER_TYPE_SELL && Bid <= lowestKama && FisherBias == -1)
       {
          //Print("In sell KAMA logic");
          orderPlaced = Trade.Sell(PyramidLotSize, _Symbol, price, stopLoss, takeProfit, PyramidComment);
@@ -619,18 +631,7 @@ bool PlacePyramidOrders()
 }
 void OnTick()
 {
-   double FisherBias = GlobalVariableGet("BullishOrBearish");
-    if (FisherBias == 1)
-    {
-  //    Print("Fisher Transform is Bullish");
-    }
-    else if (FisherBias == -1)
-    {
- //       Print("Fisher Transform is Bearish");
-    } else
-    {
-   //     Print("Fisher Transform Neutral");
-    }
+   FisherBias = GlobalVariableGet("FisherBias");
    kama_M5 = GlobalVariableGet("recent_KAMA_M5");
    kama_M15 = GlobalVariableGet("recent_KAMA_M15");
    kama_M30 = GlobalVariableGet("recent_KAMA_M30");
