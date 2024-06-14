@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.344"
+#property version   "1.345"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -510,7 +510,7 @@ bool PlacePyramidOrders()
    // Check if pyramid orders are enabled
    if (!EnablePyramid)
    {
-    //  Print("Pyramid orders are not enabled.");
+   //   Print("Pyramid orders are not enabled.");
       return false;
    }
    // Check if the current equity is above the PyramidEquityEnd threshold
@@ -522,7 +522,7 @@ bool PlacePyramidOrders()
    // Check if enough time has passed since the last pyramid order
    if (TimeCurrent() - LastPyramidTime < PyramidCooldown)
    {
-    //  Print("Pyramid order cooldown period not met.");
+   //   Print("Pyramid order cooldown period not met.");
       return false;
    }
    // Check if free margin exceeds the trigger
@@ -547,6 +547,18 @@ bool PlacePyramidOrders()
    {
       stopLoss = PositionGetDouble(POSITION_SL);
       takeProfit = PositionGetDouble(POSITION_TP);
+   }
+   // Pre-check for enough margin before placing the order
+   double requiredMargin = 0.0;
+   if (!OrderCalcMargin(orderType, _Symbol, PyramidLotSize, price, requiredMargin))
+   {
+      Print("Failed to calculate required margin for the order. Error: ", GetLastError());
+      return false;
+   }
+   if (freeMargin < requiredMargin)
+   {
+      Print("Not enough free margin to place the order. Required: ", requiredMargin, " Available: ", freeMargin);
+      return false;
    }
    while (freeMargin >= (PyramidFreeMarginTrigger - PyramidFreeMarginBuffer))
    {
@@ -593,13 +605,10 @@ bool PlacePyramidOrders()
       {
          int error = GetLastError();
          Print("Failed to place order. Error: ", error);
-         // Log all request details
          Print("Request Details - Action: ", request.action, ", Symbol: ", request.symbol, ", Volume: ", request.volume, 
                ", Price: ", request.price, ", SL: ", request.sl, ", TP: ", request.tp, ", Deviation: ", request.deviation, 
                ", Magic: ", request.magic, ", Type: ", request.type, ", Comment: ", request.comment);
-         // Additional broker and symbol information
          Print("Account Trade Allowed: ", AccountInfoInteger(ACCOUNT_TRADE_ALLOWED));
-         // Check if trading is allowed for the symbol
          long tradeMode;
          if (SymbolInfoInteger(_Symbol, SYMBOL_TRADE_MODE, tradeMode))
          {
@@ -609,7 +618,6 @@ bool PlacePyramidOrders()
          {
             Print("Failed to get trade mode for symbol: ", _Symbol);
          }
-         // Log detailed account information
          double margin = AccountInfoDouble(ACCOUNT_MARGIN);
          double balance = AccountInfoDouble(ACCOUNT_BALANCE);
          Print("Account Margin: ", margin, " Account Balance: ", balance);
