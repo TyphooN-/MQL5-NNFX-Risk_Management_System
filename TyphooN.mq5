@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.345"
+#property version   "1.346"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -529,16 +529,26 @@ bool PlacePyramidOrders()
    double freeMargin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
    if (freeMargin < PyramidFreeMarginTrigger)
    {
-      Print("Free margin is less than the trigger.");
+   //   Print("Free margin is less than the trigger.");
       return false;
    }
    // Determine whether it's a buy or sell order based on current position
    ENUM_ORDER_TYPE orderType = (PositionSelect(_Symbol) && PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL) ? ORDER_TYPE_SELL : ORDER_TYPE_BUY;
+   // Get current bid or ask price
    double price = (orderType == ORDER_TYPE_BUY) ? SymbolInfoDouble(_Symbol, SYMBOL_ASK) : SymbolInfoDouble(_Symbol, SYMBOL_BID);
    // Check if SymbolInfoDouble returns a valid price
    if (price <= 0)
    {
       Print("Invalid price for symbol: ", _Symbol, " Price: ", price);
+      return false;
+   }
+   // Validate the price with market info
+   double MarketPriceDeviation = 20;
+   double minPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID) * (1 - MarketPriceDeviation);
+   double maxPrice = SymbolInfoDouble(_Symbol, SYMBOL_ASK) * (1 + MarketPriceDeviation);
+   if (price < minPrice || price > maxPrice)
+   {
+      Print("Price out of acceptable range. Price: ", price, " Min: ", minPrice, " Max: ", maxPrice);
       return false;
    }
    double stopLoss = 0;
@@ -571,7 +581,7 @@ bool PlacePyramidOrders()
       request.price = price;
       request.sl = stopLoss;
       request.tp = takeProfit;
-      request.deviation = 20;
+      request.deviation = (ulong)MarketPriceDeviation;
       request.magic = MagicNumber;
       request.type = orderType;
       request.comment = PyramidComment;
@@ -579,9 +589,9 @@ bool PlacePyramidOrders()
       double OrderLots = PyramidLotSize;
       OrderLots = NormalizeDouble(OrderLots, _Digits);
       // Additional logging before attempting to place an order
-      Print("Attempting to place order. Type: ", orderType, " Symbol: ", _Symbol, " Volume: ", PyramidLotSize, " Price: ", price);
-      Print("Free Margin: ", freeMargin, " PyramidFreeMarginTrigger: ", PyramidFreeMarginTrigger);
-      Print("Stop Loss: ", stopLoss, " Take Profit: ", takeProfit);
+      //Print("Attempting to place order. Type: ", orderType, " Symbol: ", _Symbol, " Volume: ", PyramidLotSize, " Price: ", price);
+      //Print("Free Margin: ", freeMargin, " PyramidFreeMarginTrigger: ", PyramidFreeMarginTrigger);
+      //Print("Stop Loss: ", stopLoss, " Take Profit: ", takeProfit);
       bool orderPlaced = false;
       double kamaArray[] = {kama_M15, kama_M30, kama_H1};
       int highestKamaIndex = ArrayMaximum(kamaArray, 0, WHOLE_ARRAY);
