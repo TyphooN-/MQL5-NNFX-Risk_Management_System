@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.348"
+#property version   "1.349"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -505,8 +505,27 @@ LotsInfo TallyPositionLots()
    }
    return lotsInfo;
 }
+bool IsTradeAllowed(const string symbol)
+{
+   if (!AccountInfoInteger(ACCOUNT_TRADE_ALLOWED))
+   {
+      Print("Trading is not allowed on this account.");
+      return false;
+   }
+   if (!SymbolInfoInteger(symbol, SYMBOL_TRADE_MODE))
+   {
+      Print("Trading is not allowed for symbol: ", symbol);
+      return false;
+   }
+   return true;
+}
 bool PlacePyramidOrders()
 {
+   if (!IsTradeAllowed(_Symbol))
+   {
+      Print("Trade not allowed for symbol: ", _Symbol);
+      return false;
+   }
    // Check if pyramid orders are enabled
    if (!EnablePyramid)
    {
@@ -589,7 +608,7 @@ bool PlacePyramidOrders()
       request.comment = PyramidComment;
       MqlTradeCheckResult check_result;
       // Additional logging before attempting to place an order
-      //Print("Attempting to place order. Type: ", orderType, " Symbol: ", _Symbol, " Volume: ", PyramidLotSize, " Price: ", price);
+      //Print("Attempting to place order. Type: ", orderType, " Symbol: ", _Symbol, " Volume: ", OrderLots, " Price: ", price);
       //Print("Free Margin: ", freeMargin, " PyramidFreeMarginTrigger: ", PyramidFreeMarginTrigger);
       //Print("Stop Loss: ", stopLoss, " Take Profit: ", takeProfit);
       bool orderPlaced = false;
@@ -615,10 +634,12 @@ bool PlacePyramidOrders()
       {
          int error = GetLastError();
          Print("Failed to place order. Error: ", error);
-         Print("Request Details - Action: ", request.action, ", Symbol: ", request.symbol, ", Volume: ", request.volume, 
-               ", Price: ", request.price, ", SL: ", request.sl, ", TP: ", request.tp, ", Deviation: ", request.deviation, 
-               ", Magic: ", request.magic, ", Type: ", request.type, ", Comment: ", request.comment);
+         // Detailed logging for troubleshooting
+         Print("Request Details - Action: ", request.action, ", Symbol: ", request.symbol, ", Volume: ", request.volume, ", Price: ", request.price, ", SL: ", request.sl, ", TP: ", request.tp, ", Deviation: ", request.deviation, ", Magic: ", request.magic, ", Type: ", request.type, ", Comment: ", request.comment);
          Print("Account Trade Allowed: ", AccountInfoInteger(ACCOUNT_TRADE_ALLOWED));
+         Print("Symbol Trade Mode: ", SymbolInfoInteger(request.symbol, SYMBOL_TRADE_MODE));
+         Print("Account Margin: ", AccountInfoDouble(ACCOUNT_MARGIN));
+         Print("Account Balance: ", AccountInfoDouble(ACCOUNT_BALANCE));
          long tradeMode;
          if (SymbolInfoInteger(_Symbol, SYMBOL_TRADE_MODE, tradeMode))
          {
