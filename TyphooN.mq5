@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.343"
+#property version   "1.344"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -510,42 +510,44 @@ bool PlacePyramidOrders()
    // Check if pyramid orders are enabled
    if (!EnablePyramid)
    {
-   //   Print("Pyramid orders are not enabled.");
+    //  Print("Pyramid orders are not enabled.");
       return false;
    }
    // Check if the current equity is above the PyramidEquityEnd threshold
    if (account_equity >= PyramidEquityEnd)
    {
-      Print("Account Equity: ", account_equity, "<= PyramidEquityEnd (",PyramidEquityEnd,")");
+      Print("Account Equity: ", account_equity, " <= PyramidEquityEnd (", PyramidEquityEnd, ")");
       return false;
    }
    // Check if enough time has passed since the last pyramid order
    if (TimeCurrent() - LastPyramidTime < PyramidCooldown)
    {
-   //    Print("Pyramid order cooldown period not met.");
+    //  Print("Pyramid order cooldown period not met.");
       return false;
    }
    // Check if free margin exceeds the trigger
    double freeMargin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
    if (freeMargin < PyramidFreeMarginTrigger)
    {
-  //    Print("Free margin is less than the trigger.");
+      Print("Free margin is less than the trigger.");
       return false;
    }
    // Determine whether it's a buy or sell order based on current position
    ENUM_ORDER_TYPE orderType = (PositionSelect(_Symbol) && PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL) ? ORDER_TYPE_SELL : ORDER_TYPE_BUY;
-   // Get current bid or ask price
    double price = (orderType == ORDER_TYPE_BUY) ? SymbolInfoDouble(_Symbol, SYMBOL_ASK) : SymbolInfoDouble(_Symbol, SYMBOL_BID);
-   // Stop loss and take profit
-   double stopLoss = 0; // Initialize stop loss
-   double takeProfit = 0; // Initialize take profit
-   // If there's a valid position on the symbol, get its stop loss and take profit
+   // Check if SymbolInfoDouble returns a valid price
+   if (price <= 0)
+   {
+      Print("Invalid price for symbol: ", _Symbol, " Price: ", price);
+      return false;
+   }
+   double stopLoss = 0;
+   double takeProfit = 0;
    if (PositionSelect(_Symbol))
    {
       stopLoss = PositionGetDouble(POSITION_SL);
       takeProfit = PositionGetDouble(POSITION_TP);
    }
-   // Loop until free margin drops below the buffer level
    while (freeMargin >= (PyramidFreeMarginTrigger - PyramidFreeMarginBuffer))
    {
       Trade.SetAsyncMode(false);
@@ -557,75 +559,64 @@ bool PlacePyramidOrders()
       request.price = price;
       request.sl = stopLoss;
       request.tp = takeProfit;
-      request.magic = 0;
+      request.deviation = 20;
+      request.magic = MagicNumber;
       request.type = orderType;
-      request.type_filling = ORDER_FILLING_FOK;
-      request.comment = "Pyramid";
+      request.comment = PyramidComment;
       MqlTradeCheckResult check_result;
       double OrderLots = PyramidLotSize;
-      required_margin = PerformOrderCheck(request, check_result, OrderLots, (int)SymbolInfoInteger(_Symbol, SYMBOL_DIGITS));
-      if (required_margin < 0)
-      {
-         Print("Order check failed. Cannot proceed with placing the order.");
-         return false; // Exit if order check failed
-      }
-      // Attempt to place a buy or sell order with retrieved stop loss and take profit
+      OrderLots = NormalizeDouble(OrderLots, _Digits);
+      // Additional logging before attempting to place an order
+      Print("Attempting to place order. Type: ", orderType, " Symbol: ", _Symbol, " Volume: ", PyramidLotSize, " Price: ", price);
+      Print("Free Margin: ", freeMargin, " PyramidFreeMarginTrigger: ", PyramidFreeMarginTrigger);
+      Print("Stop Loss: ", stopLoss, " Take Profit: ", takeProfit);
       bool orderPlaced = false;
-      double kamaArray[] = {kama_M15, kama_M30, kama_H1, kama_H4, kama_D1};
-      // Print the array values to verify
-      //for (int i = 0; i < ArraySize(kamaArray); i++) {
-      //    Print("kamaArray[", i, "]: ", kamaArray[i]);}
-      // Find the indices of the highest and lowest values
+      double kamaArray[] = {kama_M15, kama_M30, kama_H1};
       int highestKamaIndex = ArrayMaximum(kamaArray, 0, WHOLE_ARRAY);
       int lowestKamaIndex = ArrayMinimum(kamaArray, 0, WHOLE_ARRAY);
-      // Use the indices to get the actual values
       double highestKama = kamaArray[highestKamaIndex];
       double lowestKama = kamaArray[lowestKamaIndex];
-      //Print("highestKama: ", highestKama);
-      //Print("lowestKama: ", lowestKama);
-   //       if (FisherBias == 1)
-//    {
-  //    Print("Fisher Transform is Bullish");
- //   }
-    //else if (FisherBias == -1)
-    //{
- //       Print("Fisher Transform is Bearish");
-    //} else
- //   {
-   //     Print("Fisher Transform Neutral");
-    //}
       if (orderType == ORDER_TYPE_BUY && Ask >= highestKama && FisherBias == 1)
       {
-         //Print("In buy KAMA logic");
-         orderPlaced = Trade.Buy(PyramidLotSize, _Symbol, price, stopLoss, takeProfit, PyramidComment);
+         orderPlaced = Trade.Buy(PyramidLotSize, _Symbol, 0, stopLoss, takeProfit, PyramidComment);
       }
       else if (orderType == ORDER_TYPE_SELL && Bid <= lowestKama && FisherBias == -1)
       {
-         //Print("In sell KAMA logic");
-         orderPlaced = Trade.Sell(PyramidLotSize, _Symbol, price, stopLoss, takeProfit, PyramidComment);
+         orderPlaced = Trade.Sell(PyramidLotSize, _Symbol, 0, stopLoss, takeProfit, PyramidComment);
       }
       if (orderPlaced)
       {
-         PyramidLotsOpened += PyramidLotSize; // Update the total lots added
-         if (orderType == ORDER_TYPE_BUY)
-         {
-            Print("Order details: Lots: ", PyramidLotSize, " (Long), SL: ", stopLoss, ", TP: ", takeProfit, ", Pyramid Lots opened: ", PyramidLotsOpened, ", Current Lots Open: ", GetTotalVolumeForSymbol(_Symbol));
-         }
-         if (orderType == ORDER_TYPE_SELL)
-         {
-            Print("Order details: Lots: ", PyramidLotSize, " (Short), SL: ", stopLoss, ", TP: ", takeProfit, ", Total Pyramid lots opened: ", PyramidLotsOpened);
-         } 
-      //   Print("Time until next pyramid position: ", PyramidCooldown, " seconds.");
+         PyramidLotsOpened += PyramidLotSize;
+         Print("Order placed successfully. Type: ", orderType, " Lots: ", PyramidLotSize, " SL: ", stopLoss, " TP: ", takeProfit);
       }
       else
       {
-         Print("Failed to place order. Error: ", GetLastError());
-         break; // Exit loop if failed to place order
+         int error = GetLastError();
+         Print("Failed to place order. Error: ", error);
+         // Log all request details
+         Print("Request Details - Action: ", request.action, ", Symbol: ", request.symbol, ", Volume: ", request.volume, 
+               ", Price: ", request.price, ", SL: ", request.sl, ", TP: ", request.tp, ", Deviation: ", request.deviation, 
+               ", Magic: ", request.magic, ", Type: ", request.type, ", Comment: ", request.comment);
+         // Additional broker and symbol information
+         Print("Account Trade Allowed: ", AccountInfoInteger(ACCOUNT_TRADE_ALLOWED));
+         // Check if trading is allowed for the symbol
+         long tradeMode;
+         if (SymbolInfoInteger(_Symbol, SYMBOL_TRADE_MODE, tradeMode))
+         {
+            Print("Symbol Trade Mode: ", tradeMode);
+         }
+         else
+         {
+            Print("Failed to get trade mode for symbol: ", _Symbol);
+         }
+         // Log detailed account information
+         double margin = AccountInfoDouble(ACCOUNT_MARGIN);
+         double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+         Print("Account Margin: ", margin, " Account Balance: ", balance);
+         break;
       }
-      // Update free margin after placing the order
       freeMargin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
    }
-   // Update the last pyramid order time
    LastPyramidTime = TimeCurrent();
    return true;
 }
@@ -1322,23 +1313,7 @@ void TyWindow::OnClickTrade(void)
    }
    double available_volume;
    double min_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
-   int OrderDigits = 0;
-   if (min_volume == 0.001)
-   {
-      OrderDigits = 3;
-   }
-   if (min_volume == 0.01)
-   {
-      OrderDigits = 2;
-   }
-   if (min_volume == 0.1)
-   {
-      OrderDigits = 1;
-   }
-   if (min_volume == 1 || min_volume == 1000)
-   {
-      OrderDigits = 0;
-   }
+   int OrderDigits = _Digits;
    if (limit_volume == 0)
    {
       available_volume = max_volume;
