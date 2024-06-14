@@ -579,7 +579,7 @@ bool PlacePyramidOrders()
       ZeroMemory(request);
       request.action = TRADE_ACTION_DEAL;
       request.symbol = _Symbol;
-      request.volume = PyramidLotSize;
+      request.volume = OrderLots;
       request.price = price;
       request.sl = stopLoss;
       request.tp = takeProfit;
@@ -609,7 +609,7 @@ bool PlacePyramidOrders()
       if (orderPlaced)
       {
          PyramidLotsOpened += OrderLots;
-         Print("Order placed successfully. Type: ", orderType, " Lots: ", PyramidLotSize, " SL: ", stopLoss, " TP: ", takeProfit);
+         Print("Order placed successfully. Type: ", orderType, " Lots: ", OrderLots, " SL: ", stopLoss, " TP: ", takeProfit);
       }
       else
       {
