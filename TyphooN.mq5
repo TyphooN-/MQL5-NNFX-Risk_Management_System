@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.349"
+#property version   "1.350"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -627,8 +627,15 @@ bool PlacePyramidOrders()
       }
       if (orderPlaced)
       {
-         PyramidLotsOpened += OrderLots;
-         Print("Order placed successfully. Type: ", orderType, " Lots: ", OrderLots, " SL: ", stopLoss, " TP: ", takeProfit);
+         PyramidLotsOpened += OrderLots; // Update the total lots added
+         if (orderType == ORDER_TYPE_BUY)
+         {
+            Print("Order details: Lots: ", OrderLots, " (Long), SL: ", stopLoss, ", TP: ", takeProfit, ", Pyramid Lots opened: ", PyramidLotsOpened, ", Current Lots Open: ", GetTotalVolumeForSymbol(_Symbol));
+         }
+         if (orderType == ORDER_TYPE_SELL)
+         {
+            Print("Order details: Lots: ", OrderLots, " (Short), SL: ", stopLoss, ", TP: ", takeProfit, ", Total Pyramid lots opened: ", PyramidLotsOpened);
+         } 
       }
       else
       {
