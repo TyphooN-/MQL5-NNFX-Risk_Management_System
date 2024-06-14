@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.347"
+#property version   "1.348"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -600,15 +600,15 @@ bool PlacePyramidOrders()
       double lowestKama = kamaArray[lowestKamaIndex];
       if (orderType == ORDER_TYPE_BUY && Ask >= highestKama && FisherBias == 1)
       {
-         orderPlaced = Trade.Buy(PyramidLotSize, _Symbol, 0, stopLoss, takeProfit, PyramidComment);
+         orderPlaced = Trade.Buy(OrderLots, _Symbol, 0, stopLoss, takeProfit, PyramidComment);
       }
       else if (orderType == ORDER_TYPE_SELL && Bid <= lowestKama && FisherBias == -1)
       {
-         orderPlaced = Trade.Sell(PyramidLotSize, _Symbol, 0, stopLoss, takeProfit, PyramidComment);
+         orderPlaced = Trade.Sell(OrderLots, _Symbol, 0, stopLoss, takeProfit, PyramidComment);
       }
       if (orderPlaced)
       {
-         PyramidLotsOpened += PyramidLotSize;
+         PyramidLotsOpened += OrderLots;
          Print("Order placed successfully. Type: ", orderType, " Lots: ", PyramidLotSize, " SL: ", stopLoss, " TP: ", takeProfit);
       }
       else
@@ -628,10 +628,6 @@ bool PlacePyramidOrders()
          {
             Print("Symbol trading is disabled.");
             return false;
-         }
-         else
-         {
-            Print("Failed to get trade mode for symbol: ", _Symbol);
          }
          double margin = AccountInfoDouble(ACCOUNT_MARGIN);
          double balance = AccountInfoDouble(ACCOUNT_BALANCE);
