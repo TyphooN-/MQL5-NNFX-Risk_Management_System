@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.346"
+#property version   "1.347"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -560,7 +560,9 @@ bool PlacePyramidOrders()
    }
    // Pre-check for enough margin before placing the order
    double requiredMargin = 0.0;
-   if (!OrderCalcMargin(orderType, _Symbol, PyramidLotSize, price, requiredMargin))
+   double OrderLots = PyramidLotSize;
+   OrderLots = NormalizeDouble(OrderLots, _Digits);
+   if (!OrderCalcMargin(orderType, _Symbol, OrderLots, price, requiredMargin))
    {
       Print("Failed to calculate required margin for the order. Error: ", GetLastError());
       return false;
@@ -586,8 +588,6 @@ bool PlacePyramidOrders()
       request.type = orderType;
       request.comment = PyramidComment;
       MqlTradeCheckResult check_result;
-      double OrderLots = PyramidLotSize;
-      OrderLots = NormalizeDouble(OrderLots, _Digits);
       // Additional logging before attempting to place an order
       //Print("Attempting to place order. Type: ", orderType, " Symbol: ", _Symbol, " Volume: ", PyramidLotSize, " Price: ", price);
       //Print("Free Margin: ", freeMargin, " PyramidFreeMarginTrigger: ", PyramidFreeMarginTrigger);
@@ -623,6 +623,11 @@ bool PlacePyramidOrders()
          if (SymbolInfoInteger(_Symbol, SYMBOL_TRADE_MODE, tradeMode))
          {
             Print("Symbol Trade Mode: ", tradeMode);
+         }
+         if (tradeMode == SYMBOL_TRADE_MODE_DISABLED)
+         {
+            Print("Symbol trading is disabled.");
+            return false;
          }
          else
          {
