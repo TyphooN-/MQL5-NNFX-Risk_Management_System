@@ -1,5 +1,6 @@
-# Discord Market Wizardry Community
+# Discord Market Wizardry Community / Darwinex Zero Coupon Code
 - Join my Discord community for support with my EA and indicators, and also share trading ideas at http://marketwizardry.info/
+- Use the coupon code DWZ2314896MGM at checkout for Darwinex Zero for a €10 discount!
 
 # TyphooN's MQL5-Risk_Management_System (Expert)
 ![Expert_Panel](Images/Expert_Panel.png)
