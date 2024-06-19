@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.351"
+#property version   "1.352"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -613,18 +613,21 @@ bool PlacePyramidOrders()
       //Print("Free Margin: ", freeMargin, " PyramidFreeMarginTrigger: ", PyramidFreeMarginTrigger);
       //Print("Stop Loss: ", stopLoss, " Take Profit: ", takeProfit);
       bool orderPlaced = false;
-      double kamaArray[] = {kama_M15, kama_M30, kama_H1};
+      double kamaArray[] = {kama_M5, kama_M15, kama_M30, kama_H1};
       int highestKamaIndex = ArrayMaximum(kamaArray, 0, WHOLE_ARRAY);
       int lowestKamaIndex = ArrayMinimum(kamaArray, 0, WHOLE_ARRAY);
       double highestKama = kamaArray[highestKamaIndex];
       double lowestKama = kamaArray[lowestKamaIndex];
       bool orderIntended = false; // Track if an order is intended to clean up debug logging
-      if (orderType == ORDER_TYPE_BUY && Ask >= highestKama && FisherBias == 1)
+      Trade.SetExpertMagicNumber(MagicNumber);
+      if (orderType == ORDER_TYPE_BUY && FisherBias == 1)
+      //if (orderType == ORDER_TYPE_BUY && Ask >= highestKama && FisherBias == 1)
       {
          orderIntended = true;
          orderPlaced = Trade.Buy(OrderLots, _Symbol, 0, stopLoss, takeProfit, PyramidComment);
       }
-      if (orderType == ORDER_TYPE_SELL && Bid <= lowestKama && FisherBias == -1)
+      if (orderType == ORDER_TYPE_SELL && FisherBias == -1)
+      //if (orderType == ORDER_TYPE_SELL && Bid <= lowestKama && FisherBias == -1)
       {
          orderIntended = true;
          orderPlaced = Trade.Sell(OrderLots, _Symbol, 0, stopLoss, takeProfit, PyramidComment);
@@ -640,7 +643,7 @@ bool PlacePyramidOrders()
             }
             if (orderType == ORDER_TYPE_SELL)
             {
-               Print("Order details: Lots: ", OrderLots, " (Short), SL: ", stopLoss, ", TP: ", takeProfit, ", Total Pyramid lots opened: ", PyramidLotsOpened);
+               Print("Order details: Lots: ", OrderLots, " (Short), SL: ", stopLoss, ", TP: ", takeProfit, ", Total Pyramid lots opened: ", PyramidLotsOpened, ", Current Lots Open: ", GetTotalVolumeForSymbol(_Symbol));
             }
          }
          else
@@ -649,20 +652,20 @@ bool PlacePyramidOrders()
             int error = GetLastError();
             Print("Failed to place order. Error: ", error);
             // Detailed logging for troubleshooting
-            Print("Request Details - Action: ", request.action, ", Symbol: ", request.symbol, ", Volume: ", request.volume, ", Price: ", request.price, ", SL: ", request.sl, ", TP: ", request.tp, ", Deviation: ", request.deviation, ", Magic: ", request.magic, ", Type: ", request.type, ", Comment: ", request.comment);
-            Print("Account Trade Allowed: ", AccountInfoInteger(ACCOUNT_TRADE_ALLOWED));
+          //  Print("Request Details - Action: ", request.action, ", Symbol: ", request.symbol, ", Volume: ", request.volume, ", Price: ", request.price, ", SL: ", request.sl, ", TP: ", request.tp, ", Deviation: ", request.deviation, ", Magic: ", request.magic, ", Type: ", request.type, ", Comment: ", request.comment);
+          //  Print("Account Trade Allowed: ", AccountInfoInteger(ACCOUNT_TRADE_ALLOWED));
             long tradeMode;
             if (SymbolInfoInteger(_Symbol, SYMBOL_TRADE_MODE, tradeMode))
             {
-               Print("Symbol Trade Mode: ", tradeMode);
+           //    Print("Symbol Trade Mode: ", tradeMode);
             }
             if (tradeMode == SYMBOL_TRADE_MODE_DISABLED)
             {
-               Print("Symbol trading is disabled.");
+            //   Print("Symbol trading is disabled.");
                return false;
             }
             double margin = AccountInfoDouble(ACCOUNT_MARGIN);
-            Print("Account Margin: ", margin, " Account Equity: ", account_equity, " Required Margin: ", PyramidRequiredMargin," Free Margin:", freeMargin);
+          //  Print("Account Margin: ", margin, " Account Equity: ", account_equity, " Required Margin: ", PyramidRequiredMargin," Free Margin:", freeMargin);
             break;
          }
       }
