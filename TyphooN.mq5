@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.353"
+#property version   "1.354"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -530,26 +530,26 @@ bool PlacePyramidOrders()
    // Check if pyramid orders are enabled
    if (!EnablePyramid)
    {
-   //   Print("Pyramid orders are not enabled.");
+      // Print("Pyramid orders are not enabled.");
       return false;
    }
    // Check if the currently open lots is above the PyramidTargetLots
    if (GetTotalVolumeForSymbol(_Symbol) >= PyramidTargetLots)
    {
-      Print("No need to open more Pyramid orders ( Lots open:", GetTotalVolumeForSymbol(_Symbol), " <= PyramidTargetLots :", PyramidTargetLots, ")");
+      Print("No need to open more Pyramid orders (Lots open:", GetTotalVolumeForSymbol(_Symbol), " <= PyramidTargetLots:", PyramidTargetLots, ")");
       return false;
    }
    // Check if enough time has passed since the last pyramid order
    if (TimeCurrent() - LastPyramidTime < PyramidCooldown)
    {
-   //   Print("Pyramid order cooldown period not met.");
+      // Print("Pyramid order cooldown period not met.");
       return false;
    }
    // Check if free margin exceeds the trigger
    double freeMargin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
    if (freeMargin < PyramidFreeMarginTrigger)
    {
-   //   Print("Free margin is less than the trigger.");
+      // Print("Free margin is less than the trigger.");
       return false;
    }
    // Determine whether it's a buy or sell order based on current position
@@ -582,36 +582,32 @@ bool PlacePyramidOrders()
    double PyramidRequiredMargin = 0.0;
    double OrderLots = PyramidLotSize;
    OrderLots = NormalizeDouble(OrderLots, _Digits);
-   if (!OrderCalcMargin(orderType, _Symbol, OrderLots, price, PyramidRequiredMargin))
+   MqlTradeRequest request;
+   ZeroMemory(request);
+   request.action = TRADE_ACTION_DEAL;
+   request.symbol = _Symbol;
+   request.volume = OrderLots;
+   request.price = price;
+   request.sl = stopLoss;
+   request.tp = takeProfit;
+   request.deviation = (ulong)MarketPriceDeviation;
+   request.magic = MagicNumber;
+   request.type = orderType;
+   request.comment = PyramidComment;
+   MqlTradeCheckResult check_result;
+   required_margin = PerformOrderCheck(request, check_result, OrderLots, _Digits);
+   if (required_margin < 0)
    {
-      Print("Failed to calculate required margin for the order. Error: ", GetLastError());
+      Print("Order check failed, skipping order placement.");
       return false;
    }
-   if (freeMargin < PyramidRequiredMargin)
+   if (freeMargin < required_margin)
    {
-      Print("Not enough free margin to place the order. Required: ", PyramidRequiredMargin, " Available: ", freeMargin);
+      Print("Not enough free margin to place the order. Required: ", required_margin, " Available: ", freeMargin);
       return false;
    }
    while (freeMargin >= (PyramidFreeMarginTrigger - PyramidFreeMarginBuffer))
    {
-      Trade.SetAsyncMode(false);
-      MqlTradeRequest request;
-      ZeroMemory(request);
-      request.action = TRADE_ACTION_DEAL;
-      request.symbol = _Symbol;
-      request.volume = OrderLots;
-      request.price = price;
-      request.sl = stopLoss;
-      request.tp = takeProfit;
-      request.deviation = (ulong)MarketPriceDeviation;
-      request.magic = MagicNumber;
-      request.type = orderType;
-      request.comment = PyramidComment;
-      MqlTradeCheckResult check_result;
-      // Additional logging before attempting to place an order
-      //Print("Attempting to place order. Type: ", orderType, " Symbol: ", _Symbol, " Volume: ", OrderLots, " Price: ", price);
-      //Print("Free Margin: ", freeMargin, " PyramidFreeMarginTrigger: ", PyramidFreeMarginTrigger);
-      //Print("Stop Loss: ", stopLoss, " Take Profit: ", takeProfit);
       bool orderPlaced = false;
       double kamaArray[] = {kama_M5, kama_M15, kama_M30, kama_H1};
       int highestKamaIndex = ArrayMaximum(kamaArray, 0, WHOLE_ARRAY);
@@ -620,20 +616,35 @@ bool PlacePyramidOrders()
       double lowestKama = kamaArray[lowestKamaIndex];
       bool orderIntended = false; // Track if an order is intended to clean up debug logging
       Trade.SetExpertMagicNumber(MagicNumber);
+      // Additional checks before placing the order
+      if (GetTotalVolumeForSymbol(_Symbol) >= PyramidTargetLots)
+      {
+         Print("No need to open more Pyramid orders (Lots open:", GetTotalVolumeForSymbol(_Symbol), " <= PyramidTargetLots:", PyramidTargetLots, ")");
+         break;
+      }
+      if (TimeCurrent() - LastPyramidTime < PyramidCooldown)
+      {
+       //  Print("Pyramid order cooldown period not met.");
+         break;
+      }
+      freeMargin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
+      if (freeMargin < required_margin)
+      {
+       //  Print("Not enough free margin to place the order. Required: ", required_margin, " Available: ", freeMargin);
+         break;
+      }
       if (orderType == ORDER_TYPE_BUY && FisherBias == 1)
-      //if (orderType == ORDER_TYPE_BUY && Ask >= highestKama && FisherBias == 1)
       {
          orderIntended = true;
          orderPlaced = Trade.Buy(OrderLots, _Symbol, 0, stopLoss, takeProfit, PyramidComment);
       }
       if (orderType == ORDER_TYPE_SELL && FisherBias == -1)
-      //if (orderType == ORDER_TYPE_SELL && Bid <= lowestKama && FisherBias == -1)
       {
          orderIntended = true;
          orderPlaced = Trade.Sell(OrderLots, _Symbol, 0, stopLoss, takeProfit, PyramidComment);
       }
       if (orderIntended) // Check if an order was intended before proceeding
-      { 
+      {
          if (orderPlaced)
          {
             PyramidLotsOpened += OrderLots; // Update the total lots added 
@@ -648,24 +659,20 @@ bool PlacePyramidOrders()
          }
          else
          {
-            account_equity = AccountInfoDouble(ACCOUNT_EQUITY);
             int error = GetLastError();
             Print("Failed to place order. Error: ", error);
             // Detailed logging for troubleshooting
-          //  Print("Request Details - Action: ", request.action, ", Symbol: ", request.symbol, ", Volume: ", request.volume, ", Price: ", request.price, ", SL: ", request.sl, ", TP: ", request.tp, ", Deviation: ", request.deviation, ", Magic: ", request.magic, ", Type: ", request.type, ", Comment: ", request.comment);
-          //  Print("Account Trade Allowed: ", AccountInfoInteger(ACCOUNT_TRADE_ALLOWED));
+            //  Print("Request Details - Action: ", request.action, ", Symbol: ", request.symbol, ", Volume: ", request.volume, ", Price: ", request.price, ", SL: ", request.sl, ", TP: ", request.tp, ", Deviation: ", request.deviation, ", Magic: ", request.magic, ", Type: ", request.type, ", Comment: ", request.comment);
+            //  Print("Account Trade Allowed: ", AccountInfoInteger(ACCOUNT_TRADE_ALLOWED));
             long tradeMode;
             if (SymbolInfoInteger(_Symbol, SYMBOL_TRADE_MODE, tradeMode))
             {
-           //    Print("Symbol Trade Mode: ", tradeMode);
+               if (tradeMode == SYMBOL_TRADE_MODE_DISABLED)
+               {
+                  Print("Symbol trading is disabled.");
+                  return false;
+               }
             }
-            if (tradeMode == SYMBOL_TRADE_MODE_DISABLED)
-            {
-            //   Print("Symbol trading is disabled.");
-               return false;
-            }
-            double margin = AccountInfoDouble(ACCOUNT_MARGIN);
-          //  Print("Account Margin: ", margin, " Account Equity: ", account_equity, " Required Margin: ", PyramidRequiredMargin," Free Margin:", freeMargin);
             break;
          }
       }
