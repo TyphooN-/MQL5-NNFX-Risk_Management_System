@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.352"
+#property version   "1.353"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -85,7 +85,7 @@ input bool           EnablePyramid = false;
 input double         PyramidLotSize = 1.0;
 input double         PyramidFreeMarginTrigger = 20000;
 input double         PyramidFreeMarginBuffer = 10000;
-input double         PyramidEquityEnd = 1100000;
+input double         PyramidTargetLots = 333;
 input int            PyramidCooldown = 420;
 input string         PyramidComment = "420 Pyramid";
 datetime             LastPyramidTime = 0;
@@ -533,10 +533,10 @@ bool PlacePyramidOrders()
    //   Print("Pyramid orders are not enabled.");
       return false;
    }
-   // Check if the current equity is above the PyramidEquityEnd threshold
-   if (account_equity >= PyramidEquityEnd)
+   // Check if the currently open lots is above the PyramidTargetLots
+   if (GetTotalVolumeForSymbol(_Symbol) >= PyramidTargetLots)
    {
-      Print("Account Equity: ", account_equity, " <= PyramidEquityEnd (", PyramidEquityEnd, ")");
+      Print("No need to open more Pyramid orders ( Lots open:", GetTotalVolumeForSymbol(_Symbol), " <= PyramidTargetLots :", PyramidTargetLots, ")");
       return false;
    }
    // Check if enough time has passed since the last pyramid order
@@ -639,11 +639,11 @@ bool PlacePyramidOrders()
             PyramidLotsOpened += OrderLots; // Update the total lots added 
             if (orderType == ORDER_TYPE_BUY)
             {
-               Print("Order details: Lots: ", OrderLots, " (Long), SL: ", stopLoss, ", TP: ", takeProfit, ", Pyramid Lots opened: ", PyramidLotsOpened, ", Current Lots Open: ", GetTotalVolumeForSymbol(_Symbol));
+               Print("Order details: Lots: ", OrderLots, " (Long), SL: ", stopLoss, ", TP: ", takeProfit, ", Pyramid Lots opened: ", PyramidLotsOpened, ", Current Lots Open: ", GetTotalVolumeForSymbol(_Symbol), " Pyramid Target Lots: ", PyramidTargetLots);
             }
             if (orderType == ORDER_TYPE_SELL)
             {
-               Print("Order details: Lots: ", OrderLots, " (Short), SL: ", stopLoss, ", TP: ", takeProfit, ", Total Pyramid lots opened: ", PyramidLotsOpened, ", Current Lots Open: ", GetTotalVolumeForSymbol(_Symbol));
+               Print("Order details: Lots: ", OrderLots, " (Short), SL: ", stopLoss, ", TP: ", takeProfit, ", Total Pyramid lots opened: ", PyramidLotsOpened, ", Current Lots Open: ", GetTotalVolumeForSymbol(_Symbol), " Pyramid Target Lots: ", PyramidTargetLots);
             }
          }
          else
