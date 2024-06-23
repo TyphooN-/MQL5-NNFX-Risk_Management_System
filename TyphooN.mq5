@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.354"
+#property version   "1.355"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -119,6 +119,7 @@ double percent_risk = 0;
 bool HasOpenPosition = false;
 bool breakEvenFound = false;
 bool asyncOrderStatus[];
+int OrderDigits = 0;
 // defines
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
 #define INDENT_TOP        (10)      // indent from top (with allowance for border width)
@@ -226,6 +227,24 @@ bool TyWindow::Create(const long chart,const string name,const int subwin,const 
 TyWindow ExtDialog;
 int OnInit()
 {
+   // Get the volume step for the current symbol
+   double volumeStep = SymbolInfoDouble(Symbol(), SYMBOL_VOLUME_STEP);
+   // Convert the volume step to a string
+   string volumeStepStr = DoubleToString(volumeStep, 8); // 8 decimal places should be enough
+   // Find the position of the decimal point
+   int decimalPos = StringFind(volumeStepStr, ".");
+   // If there is a decimal point, calculate the number of digits after it
+   if (decimalPos >= 0)
+   {
+      // Calculate the number of digits after the decimal point
+      OrderDigits = StringLen(volumeStepStr) - decimalPos - 1;
+      // Trim trailing zeros to get the exact number of digits
+      while (StringSubstr(volumeStepStr, StringLen(volumeStepStr) - 1, 1) == "0")
+      {
+         volumeStepStr = StringSubstr(volumeStepStr, 0, StringLen(volumeStepStr) - 1);
+         OrderDigits--;
+      }
+   }
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    string FontName="Courier New";
@@ -595,7 +614,7 @@ bool PlacePyramidOrders()
    request.type = orderType;
    request.comment = PyramidComment;
    MqlTradeCheckResult check_result;
-   required_margin = PerformOrderCheck(request, check_result, OrderLots, _Digits);
+   required_margin = PerformOrderCheck(request, check_result, OrderLots);
    if (required_margin < 0)
    {
       Print("Order check failed, skipping order placement.");
@@ -1263,7 +1282,7 @@ double GetTotalVolumeForSymbol(string symbol)
    }
    return totalVolume;
 }
-double PerformOrderCheck(const MqlTradeRequest &request, MqlTradeCheckResult &check_result, double &OrderLots, int OrderDigits)
+double PerformOrderCheck(const MqlTradeRequest &request, MqlTradeCheckResult &check_result, double &OrderLots)
 {
    // Check if the original order passes the order check
    if (!Trade.OrderCheck(request, check_result))
@@ -1371,7 +1390,6 @@ void TyWindow::OnClickTrade(void)
    }
    double available_volume;
    double min_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
-   int OrderDigits = _Digits;
    if (limit_volume == 0)
    {
       available_volume = max_volume;
@@ -1499,7 +1517,7 @@ void TyWindow::OnClickTrade(void)
       // Update usable_margin after adjusting OrderLots
       usable_margin = (AccountBalance - (AccountBalance * (MarginBufferPercent / 100.0))) - AccountInfoDouble(ACCOUNT_MARGIN);
       // Perform OrderCheck
-      if (!PerformOrderCheck(request, check_result, OrderLots, OrderDigits))
+      if (!PerformOrderCheck(request, check_result, OrderLots))
       {
          Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
          return;
@@ -1517,7 +1535,7 @@ void TyWindow::OnClickTrade(void)
       //Print("After adjustment - OrderLots: ", OrderLots, " Required Margin: ", required_margin, " Usable Margin: ", usable_margin);
    }
    usable_margin = (AccountBalance - (AccountBalance * (MarginBufferPercent / 100.0))) - AccountInfoDouble(ACCOUNT_MARGIN);
-   if (!PerformOrderCheck(request, check_result, OrderLots, OrderDigits))
+   if (!PerformOrderCheck(request, check_result, OrderLots))
    {
       Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
       return;
@@ -1550,7 +1568,7 @@ void TyWindow::OnClickTrade(void)
             request.action = TRADE_ACTION_PENDING;
             request.type = ORDER_TYPE_BUY_LIMIT;
             request.price = Limit_Price;
-            if (!PerformOrderCheck(request, check_result, OrderLots, OrderDigits))
+            if (!PerformOrderCheck(request, check_result, OrderLots))
             {
                Print("Buy Limit OrderCheck failed, retcode=", check_result.retcode);
                return;
@@ -1567,7 +1585,7 @@ void TyWindow::OnClickTrade(void)
             request.action = TRADE_ACTION_PENDING;
             request.type = ORDER_TYPE_SELL_LIMIT;
             request.price = Limit_Price;
-            if (!PerformOrderCheck(request, check_result, OrderLots, OrderDigits))
+            if (!PerformOrderCheck(request, check_result, OrderLots))
             {
                Print("Sell Limit OrderCheck failed, retcode=", check_result.retcode);
                return;
@@ -1589,7 +1607,7 @@ void TyWindow::OnClickTrade(void)
                request.action = TRADE_ACTION_DEAL;
                request.type = ORDER_TYPE_BUY;
             }
-            if (!PerformOrderCheck(request, check_result, OrderLots, OrderDigits))
+            if (!PerformOrderCheck(request, check_result, OrderLots))
             {
                Print("Buy OrderCheck failed, retcode=", check_result.retcode);
                return;
@@ -1608,7 +1626,7 @@ void TyWindow::OnClickTrade(void)
                request.action = TRADE_ACTION_DEAL;
                request.type = ORDER_TYPE_SELL;
             }
-            if (!PerformOrderCheck(request, check_result, OrderLots, OrderDigits))
+            if (!PerformOrderCheck(request, check_result, OrderLots))
             {
                Print("Sell OrderCheck failed, retcode=", check_result.retcode);
                return;
