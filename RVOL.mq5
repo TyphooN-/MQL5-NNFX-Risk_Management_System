@@ -1,8 +1,9 @@
-#property copyright "Darwinex & Trade Like A Machine Ltd"
+#property copyright "Darwinex & Trade Like A Machine Ltd / TyphooN"
 #property link      "http://www.darwinex.com"
 #property strict
+#property version   "v1.001"
 
-//Indicator settings
+// Indicator Settings
 #property indicator_separate_window
 #property indicator_buffers 2
 #property indicator_plots   1
@@ -11,48 +12,49 @@
 #property indicator_style1  0
 #property indicator_width1  3
 
-//Level of above average (1.25) and below average (0.8) volume (for time of day) - (ratio of 1.0 indicates current volume is the same as average)
-#property indicator_level1 1.25 //Above Average Volume Level
-#property indicator_level2 0.8  //Below Average Volume Level
+// Level of above average (1.25) and below average (0.8) volume (for time of day) - (ratio of 1.0 indicates current volume is the same as average)
+#property indicator_level1 1.25 // Above Average Volume Level
+#property indicator_level2 0.8  // Below Average Volume Level
 
-//Input Parmans
-input int                 InpAveragingDays  =  10;               //Number of Days for Comparison 
-input ENUM_APPLIED_VOLUME InpVolumeType     =  VOLUME_TICK;     //Volume Type
+// Input Parameters
+input int InpAveragingDays = 10; // Number of Days for Comparison 
+input ENUM_APPLIED_VOLUME InpVolumeType = VOLUME_TICK; // Volume Type
 
-//Indicator Buffers
+// Indicator Buffers
 double ExtRelVolumesBuffer[];
 double ExtColorsBuffer[];
-int    BarsIn24Hours = 0;
-int    AveragingDays;
+int AveragingDays;
+int OrderDigits;
 
 void OnInit()
 {
-   //Set Buffers
-   SetIndexBuffer(0,ExtRelVolumesBuffer, INDICATOR_DATA);
-   SetIndexBuffer(1,ExtColorsBuffer, INDICATOR_COLOR_INDEX);
+   // Set Buffers
+   SetIndexBuffer(0, ExtRelVolumesBuffer, INDICATOR_DATA);
+   SetIndexBuffer(1, ExtColorsBuffer, INDICATOR_COLOR_INDEX);
    
-   //Define how many bars required to begin drawing 
+   // Define how many bars required to begin drawing 
    PlotIndexSetInteger(0, PLOT_DRAW_BEGIN, 100);
    PlotIndexSetInteger(1, PLOT_DRAW_BEGIN, 100);
 
-   //Set indicator digits
+   // Set indicator digits
    IndicatorSetInteger(INDICATOR_DIGITS, 2);
    
-   //Ensure valid InpAveragingDays
-   if(InpAveragingDays >= 1)
+   // Ensure valid InpAveragingDays
+   if (InpAveragingDays >= 1)
       AveragingDays = InpAveragingDays;
    else 
       AveragingDays = 5;
       
-   //Set name of indicator
+   // Set name of indicator
    string short_name = StringFormat("RVOL (Relative Volume) (%d)", AveragingDays);
    IndicatorSetString(INDICATOR_SHORTNAME, short_name);
    
-   //Mean Level
+   // Mean Level
    IndicatorSetInteger(INDICATOR_LEVELCOLOR, 0, clrWhite);
-   //IndicatorSetString(INDICATOR_LEVELTEXT, 0, "Above Average Volume");   
    IndicatorSetInteger(INDICATOR_LEVELCOLOR, 1, clrWhite);
-  // IndicatorSetString(INDICATOR_LEVELTEXT, 1, "Below Average Volume");   
+
+   // Determine OrderDigits
+   OrderDigits = VolumeStepDigits();
 }
 
 int OnCalculate(const int rates_total,
@@ -66,33 +68,27 @@ int OnCalculate(const int rates_total,
                 const long &volume[],
                 const int &spread[])
 {
-   //rates_total is the number of bars available for calculations
-   if(rates_total < 1)
+   // Ensure enough bars are available
+   if (rates_total < 1)
       return(0);
-   
-   if(BarsIn24Hours == 0) //Set to 0 by default above
-   {
-      SetBarsIn24Hours();
-      if(BarsIn24Hours == 0) //Bars not yet available in chart for calculation to succeed
-         return(0);
-   }
-   //Set starting point for the processing
+
+   // Set starting point for the processing
    int startBar = prev_calculated - 1;
 
-   //Adjust Start position
-   if(startBar < 1)
+   // Adjust Start position
+   if (startBar < 1)
    {
       ExtRelVolumesBuffer[0] = 0;
       startBar = 1;
    }
      
-   //Main cycle
-   if(InpVolumeType==VOLUME_TICK)
+   // Main cycle
+   if (InpVolumeType == VOLUME_TICK)
       CalculateRelVolume(startBar, rates_total, tick_volume);
    else
       CalculateRelVolume(startBar, rates_total, volume);
 
-   //OnCalculate done. Return new prev_calculated.
+   // OnCalculate done. Return new prev_calculated.
    return(rates_total);
 }
 
@@ -101,26 +97,26 @@ void CalculateRelVolume(const int startBar, const int rates_total, const long& v
    ExtRelVolumesBuffer[0] = (double)volume[0];
    ExtColorsBuffer[0] = 0.0;
    
-   for(int i = startBar; i < rates_total && !IsStopped(); i++)
+   for (int i = startBar; i < rates_total && !IsStopped(); i++)
    {
-      if(i > AveragingDays * BarsIn24Hours)
+      if (i >= AveragingDays)
       {
          double curr_volume = (double)volume[i];
          
          double mean_volume = 0.0;
          
-         for(int j = 1; j <= AveragingDays; j++)
-            mean_volume += (double)volume[i - (j * BarsIn24Hours)];  
+         for (int j = 1; j <= AveragingDays; j++)
+            mean_volume += (double)volume[i - j];  
             
          mean_volume /= (double)AveragingDays;
          
-         ExtRelVolumesBuffer[i] = curr_volume / mean_volume;   //N.B. Value of 1.0 represents current vol is equal to average volume, 0.0-1.0 is below average, >1.0 is above average
+         ExtRelVolumesBuffer[i] = curr_volume / mean_volume; // Value of 1.0 represents current vol is equal to average volume, 0.0-1.0 is below average, >1.0 is above average
          
-         if(ExtRelVolumesBuffer[i] > indicator_level1)         //If current vol higher than average     
+         if (ExtRelVolumesBuffer[i] > 1.25) // Above Average Volume
             ExtColorsBuffer[i] = 0.0;
-         else if (ExtRelVolumesBuffer[i] > indicator_level2)   //If current vol lower than average     
+         else if (ExtRelVolumesBuffer[i] > 0.8) // Average Volume
             ExtColorsBuffer[i] = 1.0;
-         else 
+         else // Below Average Volume
             ExtColorsBuffer[i] = 2.0;
       }
       else
@@ -131,14 +127,17 @@ void CalculateRelVolume(const int startBar, const int rates_total, const long& v
    }
 }
 
-int SetBarsIn24Hours()
+int VolumeStepDigits()
 {
-   datetime prevDateTime = iTime(NULL, PERIOD_CURRENT, 0) - (86400 * 7); //Need to base calculation on 7 days so that weekends don't interfere 
+   double step;
+   SymbolInfoDouble(Symbol(), SYMBOL_VOLUME_STEP, step);
+   int digits = 0;
    
-   int numBarsIn7Days = iBarShift(NULL, PERIOD_CURRENT, prevDateTime, false);
+   while (step < 1)
+   {
+      step *= 10;
+      digits++;
+   }
    
-   //Num bars in 7 days actually represents 5 trading days. N.B. This Indicator only works for assets that trade 5 days per week. It will not work with 24x7 Crypto for example
-   BarsIn24Hours = numBarsIn7Days / 5; 
-      
-   return BarsIn24Hours;
+   return digits;
 }
