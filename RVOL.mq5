@@ -1,7 +1,7 @@
 #property copyright "Darwinex & Trade Like A Machine Ltd / TyphooN"
 #property link      "http://www.darwinex.com"
 #property strict
-#property version   "v1.001"
+#property version   "1.001"
 
 // Indicator Settings
 #property indicator_separate_window
