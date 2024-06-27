@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.355"
+#property version   "1.356"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -62,6 +62,7 @@ input double         MaxRisk                    = 1.0;
 input double         Risk                       = 0.5;
 input group          "[FIXED LOTS MODE]";
 input double         FixedLots                  = 20;
+input int            FixedOrdersToPlace         = 2;
 input group          "[DYNAMIC RISK MODE]";
 input double         MinAccountBalance          = 96100;
 input int            LossesToMinBalance         = 10;
@@ -1328,7 +1329,6 @@ void TyWindow::OnClickTrade(void)
    SL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
    TP = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
    double tickSize = TickSize(_Symbol);
-   // Round SL and TP values to the tick size
    SL = MathRound(SL / tickSize) * tickSize;
    TP = MathRound(TP / tickSize) * tickSize;
    double max_volume = NormalizeDouble(SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX), _Digits);
@@ -1341,20 +1341,18 @@ void TyWindow::OnClickTrade(void)
    {
       if (breakEvenFound == true)
       {
-         // Use AdditionalRiskRatio instead of the normal Risk if a position is found to have SL at BE
          potentialRisk = (Risk * AdditionalRiskRatio);
          OrderRisk = (Risk * AdditionalRiskRatio);
       }
       else
       {
-         // Use the normal Risk in every other situation
          potentialRisk = Risk + percent_risk;
          OrderRisk = Risk;
       }
       if (potentialRisk > MaxRisk)
       {
-         OrderRisk = (MaxRisk - percent_risk);  // Adjust the risk for the next order
-         potentialRisk = OrderRisk + percent_risk;  // Recalculate potential risk after adjusting
+         OrderRisk = (MaxRisk - percent_risk);
+         potentialRisk = OrderRisk + percent_risk;
          order_risk_money = (AccountBalance * (OrderRisk / 100));
       }
       if (breakEvenFound == true && percent_risk > 0)
@@ -1375,7 +1373,6 @@ void TyWindow::OnClickTrade(void)
       }
       if (!breakEvenFound)
       {
-         // Check if another position with the same order type is already open on the symbol
          if (HasOpenPosition(_Symbol, (TP > SL) ? POSITION_TYPE_BUY : POSITION_TYPE_SELL))
          {
             Print("Another position is already open with the same order type on the symbol. Not placing additional order.");
@@ -1411,8 +1408,8 @@ void TyWindow::OnClickTrade(void)
    }
    if (potentialRisk > MaxRisk)
    {
-      OrderRisk = (MaxRisk - percent_risk);  // Adjust the risk for the next order
-      potentialRisk = OrderRisk + percent_risk;  // Recalculate potential risk after adjusting
+      OrderRisk = (MaxRisk - percent_risk);
+      potentialRisk = OrderRisk + percent_risk;
       order_risk_money = (AccountBalance * (OrderRisk / 100));
    }
    double OrderLots = 0.0;
@@ -1425,24 +1422,20 @@ void TyWindow::OnClickTrade(void)
       OrderLots = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, Ask - SL), OrderDigits)
                                  : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - Bid), OrderDigits);
    }
-   // Ensure that the calculated volumes do not exceed the available volume
    if (OrderLots > available_volume)
    {
       OrderLots = available_volume;
    }
-   // Ensure that each order is max_volume if available_volume > max_volume
    if (available_volume > max_volume && OrderLots > max_volume)
    {
       OrderLots = max_volume;
    }
    if (OrderLots < min_volume)
    {
-      //Print("Order size adjusted to minimum volume.");
       OrderLots = min_volume;
    }
    else if (OrderLots > max_volume)
    {
-      //Print("Order size adjusted to maximum volume.");
       OrderLots = max_volume;
    }
    OrderLots = NormalizeDouble(OrderLots, OrderDigits);
@@ -1454,39 +1447,28 @@ void TyWindow::OnClickTrade(void)
    request.magic = MagicNumber;
    request.sl = SL;
    request.tp = TP;
-   // Get supported filling modes
    long filling_modes = SymbolInfoInteger(_Symbol, SYMBOL_FILLING_MODE);
-   // Check if ORDER_FILLING_IOC filling mode is supported
    if ((filling_modes & ORDER_FILLING_IOC) != 0)
    {
-      //Print("ORDER_FILLING_IOC filling mode is supported. Adjusting...");
       request.type_filling = ORDER_FILLING_IOC;
    }
-   // Check if ORDER_FILLING_FOK filling mode is supported
    else if ((filling_modes & ORDER_FILLING_FOK) != 0)
    {
-      //Print("ORDER_FILLING_FOK filling mode is supported. Adjusting...");
       request.type_filling = ORDER_FILLING_FOK;
    }
-   // Check if ORDER_FILLING_BOC filling mode is supported
    else if ((filling_modes & ORDER_FILLING_BOC) != 0)
    {
-      //Print("ORDER_FILLING_BOC filling mode is supported. Adjusting...");
       request.type_filling = ORDER_FILLING_BOC;
    }
-   // Check if ORDER_FILLING_RETURN filling mode is supported
    else if ((filling_modes & ORDER_FILLING_RETURN) != 0)
    {
-      //Print("ORDER_FILLING_RETURN filling mode is supported. Adjusting...");
       request.type_filling = ORDER_FILLING_RETURN;
    }
-   // If none of the desired filling modes are supported, handle accordingly
    else
    {
       Print("None of the desired filling modes are supported. Unable to adjust filling mode.");
       return;
    }
-   // Explicitly set the order type
    if (TP > SL)
    {
       request.action = TRADE_ACTION_DEAL;
@@ -1494,8 +1476,8 @@ void TyWindow::OnClickTrade(void)
    }
    else if (SL > TP)
    {
-   request.action = TRADE_ACTION_DEAL;
-   request.type = ORDER_TYPE_SELL;
+      request.action = TRADE_ACTION_DEAL;
+      request.type = ORDER_TYPE_SELL;
    }
    MqlTradeCheckResult check_result;
    MqlTick latest_tick;
@@ -1503,36 +1485,29 @@ void TyWindow::OnClickTrade(void)
    double free_margin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
    AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
    usable_margin = (AccountBalance - (AccountBalance * (MarginBufferPercent / 100.0))) - AccountInfoDouble(ACCOUNT_MARGIN);
-   // Initial margin calculation before entering the loop
    if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
    {
       Print("Failed to calculate required margin before the loop. Error:", GetLastError());
       return;
    }
-   //Print("Before the Loop - OrderLots: ", OrderLots, " Required Margin: ", required_margin, " Usable Margin: ", usable_margin);
    while (required_margin > usable_margin && OrderLots > min_volume)
    {
       OrderLots -= min_volume;
-      //Print("After adjustment - OrderLots: ", OrderLots, " Required Margin: ", required_margin, " Usable Margin: ", usable_margin);
-      // Update usable_margin after adjusting OrderLots
       usable_margin = (AccountBalance - (AccountBalance * (MarginBufferPercent / 100.0))) - AccountInfoDouble(ACCOUNT_MARGIN);
-      // Perform OrderCheck
       if (!PerformOrderCheck(request, check_result, OrderLots))
       {
          Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
          return;
       }
-    if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
-    {
-    Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
-    return;
+      if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
+      {
+         Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
+         return;
       }
-    // Ensure a minimum value for OrderLots
-    if (OrderLots < min_volume)
-    {
-        OrderLots = min_volume;
-    }
-      //Print("After adjustment - OrderLots: ", OrderLots, " Required Margin: ", required_margin, " Usable Margin: ", usable_margin);
+      if (OrderLots < min_volume)
+      {
+         OrderLots = min_volume;
+      }
    }
    usable_margin = (AccountBalance - (AccountBalance * (MarginBufferPercent / 100.0))) - AccountInfoDouble(ACCOUNT_MARGIN);
    if (!PerformOrderCheck(request, check_result, OrderLots))
@@ -1540,15 +1515,11 @@ void TyWindow::OnClickTrade(void)
       Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
       return;
    }
-   // Print statements to check required_margin and usable_margin after each iteration
-   //Print("After adjustment - OrderLots: ", OrderLots, " Required Margin: ", required_margin, " Usable Margin: ", usable_margin);
-   // Check if there's enough free margin to place the order
    if (required_margin >= usable_margin)
    {
       Print("Insufficient margin to place the order. Cannot proceed.");
       return;
    }
-   // Check if the adjusted order size is too small
    if (OrderLots < min_volume)
    {
       Print("Order size adjusted to zero due to insufficient margin. Cannot place order.");
@@ -1556,82 +1527,94 @@ void TyWindow::OnClickTrade(void)
    }
    if (potentialRisk <= (MaxRisk))
    {
-      if (LimitLineExists == true)
+      if (FixedOrdersToPlace >= 2)
       {
-         if (TP > SL)
-         {
-            if (HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
-            {
-               Print("Sell position is already open. Cannot place Buy Limit order.");
-               return;
-            }
-            request.action = TRADE_ACTION_PENDING;
-            request.type = ORDER_TYPE_BUY_LIMIT;
-            request.price = Limit_Price;
-            if (!PerformOrderCheck(request, check_result, OrderLots))
-            {
-               Print("Buy Limit OrderCheck failed, retcode=", check_result.retcode);
-               return;
-            }
-            ExecuteBuyLimitOrder(OrderLots, Limit_Price);
-         }
-         else if (SL > TP)
-         {
-            if (HasOpenPosition(_Symbol, POSITION_TYPE_BUY))
-            {
-               Print("Buy position is already open. Cannot place Sell Limit order.");
-               return;
-            }
-            request.action = TRADE_ACTION_PENDING;
-            request.type = ORDER_TYPE_SELL_LIMIT;
-            request.price = Limit_Price;
-            if (!PerformOrderCheck(request, check_result, OrderLots))
-            {
-               Print("Sell Limit OrderCheck failed, retcode=", check_result.retcode);
-               return;
-            }
-            ExecuteSellLimitOrder(OrderLots, Limit_Price);
-         }
+         Trade.SetAsyncMode(true);
       }
       else
       {
-         if (TP > SL)
+         Trade.SetAsyncMode(false);
+      }
+      int numOrders = (OrderMode == Fixed && FixedOrdersToPlace >= 2) ? FixedOrdersToPlace : 1;
+      for (int i = 0; i < numOrders; i++)
+      {
+         if (LimitLineExists == true)
          {
-            if (HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
+            if (TP > SL)
             {
-               Print("Sell position is already open. Cannot place Buy order.");
-               return;
+               if (HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
+               {
+                  Print("Sell position is already open. Cannot place Buy Limit order.");
+                  return;
+               }
+               request.action = TRADE_ACTION_PENDING;
+               request.type = ORDER_TYPE_BUY_LIMIT;
+               request.price = Limit_Price;
+               if (!PerformOrderCheck(request, check_result, OrderLots))
+               {
+                  Print("Buy Limit OrderCheck failed, retcode=", check_result.retcode);
+                  return;
+               }
+               ExecuteBuyLimitOrder(OrderLots, Limit_Price);
             }
-            if (SymbolInfoTick(_Symbol, latest_tick))
+            else if (SL > TP)
             {
-               request.action = TRADE_ACTION_DEAL;
-               request.type = ORDER_TYPE_BUY;
+               if (HasOpenPosition(_Symbol, POSITION_TYPE_BUY))
+               {
+                  Print("Buy position is already open. Cannot place Sell Limit order.");
+                  return;
+               }
+               request.action = TRADE_ACTION_PENDING;
+               request.type = ORDER_TYPE_SELL_LIMIT;
+               request.price = Limit_Price;
+               if (!PerformOrderCheck(request, check_result, OrderLots))
+               {
+                  Print("Sell Limit OrderCheck failed, retcode=", check_result.retcode);
+                  return;
+               }
+               ExecuteSellLimitOrder(OrderLots, Limit_Price);
             }
-            if (!PerformOrderCheck(request, check_result, OrderLots))
-            {
-               Print("Buy OrderCheck failed, retcode=", check_result.retcode);
-               return;
-            }
-            ExecuteBuyOrder(OrderLots);
          }
-         else if (SL > TP)
+         else
          {
-            if (HasOpenPosition(_Symbol, POSITION_TYPE_BUY))
+            if (TP > SL)
             {
-               Print("Buy position is already open. Cannot place Sell order.");
-               return;
+               if (HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
+               {
+                  Print("Sell position is already open. Cannot place Buy order.");
+                  return;
+               }
+               if (SymbolInfoTick(_Symbol, latest_tick))
+               {
+                  request.action = TRADE_ACTION_DEAL;
+                  request.type = ORDER_TYPE_BUY;
+               }
+               if (!PerformOrderCheck(request, check_result, OrderLots))
+               {
+                  Print("Buy OrderCheck failed, retcode=", check_result.retcode);
+                  return;
+               }
+               ExecuteBuyOrder(OrderLots);
             }
-            if (SymbolInfoTick(_Symbol, latest_tick))
+            else if (SL > TP)
             {
-               request.action = TRADE_ACTION_DEAL;
-               request.type = ORDER_TYPE_SELL;
+               if (HasOpenPosition(_Symbol, POSITION_TYPE_BUY))
+               {
+                  Print("Buy position is already open. Cannot place Sell order.");
+                  return;
+               }
+               if (SymbolInfoTick(_Symbol, latest_tick))
+               {
+                  request.action = TRADE_ACTION_DEAL;
+                  request.type = ORDER_TYPE_SELL;
+               }
+               if (!PerformOrderCheck(request, check_result, OrderLots))
+               {
+                  Print("Sell OrderCheck failed, retcode=", check_result.retcode);
+                  return;
+               }
+               ExecuteSellOrder(OrderLots);
             }
-            if (!PerformOrderCheck(request, check_result, OrderLots))
-            {
-               Print("Sell OrderCheck failed, retcode=", check_result.retcode);
-               return;
-            }
-            ExecuteSellOrder(OrderLots);
          }
       }
    }
