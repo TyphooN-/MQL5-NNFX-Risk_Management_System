@@ -23,7 +23,7 @@
  **/
 #property copyright   "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link        "https://www.marketwizardry.info"
-#property version     "1.05"
+#property version     "1.06"
 #property description "Multi-Timeframe Kaufman's Adaptive Moving Average"
 #property indicator_chart_window
 #property indicator_buffers 8
@@ -146,6 +146,36 @@ int OnCalculate(const int rates_total, const int prev_calculated, const int begi
         GlobalVariableSet("recent_KAMA_W1", ExtAMABuffer_W1[latestIndex]);
         GlobalVariableSet("recent_KAMA_MN1", ExtAMABuffer_MN1[latestIndex]);
     }
+   // Get the current price
+   double currentPrice = price[rates_total - 1];
+   // Check if the current price is above or below each KAMA
+   bool isAbove_KAMA_M5 = currentPrice > ExtAMABuffer_M5[rates_total - 1];
+   bool isAbove_KAMA_M15 = currentPrice > ExtAMABuffer_M15[rates_total - 1];
+   bool isAbove_KAMA_M30 = currentPrice > ExtAMABuffer_M30[rates_total - 1];
+   bool isAbove_KAMA_H1 = currentPrice > ExtAMABuffer_H1[rates_total - 1];
+   bool isAbove_KAMA_H4 = currentPrice > ExtAMABuffer_H4[rates_total - 1];
+   bool isAbove_KAMA_D1 = currentPrice > ExtAMABuffer_D1[rates_total - 1];
+   bool isAbove_KAMA_W1 = currentPrice > ExtAMABuffer_W1[rates_total - 1];
+   bool isAbove_KAMA_MN1 = currentPrice > ExtAMABuffer_MN1[rates_total - 1];
+   // Set global variables for each timeframe's KAMA comparison
+   GlobalVariableSet("IsAbove_KAMA_M5", isAbove_KAMA_M5);
+   GlobalVariableSet("IsAbove_KAMA_M15", isAbove_KAMA_M15);
+   GlobalVariableSet("IsAbove_KAMA_M30", isAbove_KAMA_M30);
+   GlobalVariableSet("IsAbove_KAMA_H1", isAbove_KAMA_H1);
+   GlobalVariableSet("IsAbove_KAMA_H4", isAbove_KAMA_H4);
+   GlobalVariableSet("IsAbove_KAMA_D1", isAbove_KAMA_D1);
+   GlobalVariableSet("IsAbove_KAMA_W1", isAbove_KAMA_W1);
+   GlobalVariableSet("IsAbove_KAMA_MN1", isAbove_KAMA_MN1);
+   // Print the values to confirm
+   //Print("Current Price: ", currentPrice);
+   //Print("Is Above KAMA_M5: ", isAbove_KAMA_M5);
+   //Print("Is Above KAMA_M15: ", isAbove_KAMA_M15);
+   //Print("Is Above KAMA_M30: ", isAbove_KAMA_M30);
+   //Print("Is Above KAMA_H1: ", isAbove_KAMA_H1);
+   //Print("Is Above KAMA_H4: ", isAbove_KAMA_H4);
+   //Print("Is Above KAMA_D1: ", isAbove_KAMA_D1);
+   //Print("Is Above KAMA_W1: ", isAbove_KAMA_W1);
+   //Print("Is Above KAMA_MN1: ", isAbove_KAMA_MN1);
    //--- return value of prev_calculated for next call
    return (rates_total);
 }
