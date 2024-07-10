@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.359"
+#property version   "1.360"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -1446,8 +1446,7 @@ void TyWindow::OnClickTrade(void)
       CPortfolioRiskMan PortfolioRisk(VaRTimeframe, StdDevPeriods);
       if (PortfolioRisk.CalculateLotSizeBasedOnVaR(_Symbol, VaRConfidence, account_equity, RiskVaR, OrderLots))
       {
-        // NormalizeDouble(OrderLots, OrderDigits);
-         Print("PortfolioRisk.CalculateLotSizeBasedOnVaR OrderLots: " + DoubleToString(OrderLots));
+         OrderLots = NormalizeDouble(OrderLots, OrderDigits);
       }
    }
    if (OrderLots > available_volume)
