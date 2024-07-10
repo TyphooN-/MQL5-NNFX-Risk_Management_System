@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.357"
+#property version   "1.358"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -350,7 +350,7 @@ int OnInit()
    ObjectSetString(0,"infoTP",OBJPROP_TEXT,infoTP);
    string infoPosition = "No Positions Detected";
    ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
-   string infoVaR = "VaR: 0.00";
+   string infoVaR = "VaR %: 0.00";
    ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
    string infoRisk = "Risk: $0.00";
    ObjectSetString(0,"infoRisk",OBJPROP_TEXT,infoRisk);
@@ -968,7 +968,7 @@ void OnTick()
          ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
          if(PortfolioRisk.CalculateVaR(_Symbol, lots.longLots))
          {
-            string infoVaR = "VaR: " + DoubleToString(PortfolioRisk.SinglePositionVaR, 2);
+            string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/account_equity  * 100), 2);
             ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
          }
       }
@@ -980,7 +980,7 @@ void OnTick()
          ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
          if(PortfolioRisk.CalculateVaR(_Symbol, lots.shortLots))
          {
-            string infoVaR = "VaR: " + DoubleToString(PortfolioRisk.SinglePositionVaR, 2);
+            string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/account_equity  * 100), 2);
             ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
          }
       }
@@ -991,7 +991,7 @@ void OnTick()
          ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
          if(PortfolioRisk.CalculateVaR(_Symbol, (lots.longLots + lots.shortLots)))
          {
-            string infoVaR = "VaR: $" + DoubleToString(PortfolioRisk.SinglePositionVaR, 2);
+            string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/account_equity * 100), 2);
             ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
          }
       }
