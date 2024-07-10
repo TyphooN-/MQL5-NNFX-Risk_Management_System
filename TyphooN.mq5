@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.356"
+#property version   "1.357"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -33,6 +33,7 @@
 #include <Trade\AccountInfo.mqh>
 #include <Trade\SymbolInfo.mqh>
 #include <Orchard\RiskCalc.mqh>
+#include <Darwinex\DWEX Portfolio Risk Man.mqh>
 #define XRGB(r,g,b)    (0xFF000000|(uchar(r)<<16)|(uchar(g)<<8)|uchar(b))
 #define GETRGB(clr)    ((clr)&0xFFFFFF)
 // Classes
@@ -81,6 +82,9 @@ input bool           ManageAllPositions         = false;
 input group          "[DISCORD ANNOUNCEMENT SETTINGS]"
 input string         DiscordAPIKey =  "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
 input bool           EnableBroadcast = false;
+input group          "[VALUE AT RISK (VaR) SETTINGS]"
+input ENUM_TIMEFRAMES VaRTimeframe  = PERIOD_D1;   //Value at Risk Timeframe
+input int             StdDevPeriods = 21;          //Std Deviation Periods
 input group          "[PYRAMID MODE SETTINGS]"
 input bool           EnablePyramid = false;
 input double         PyramidLotSize = 1.0;
@@ -121,7 +125,6 @@ bool HasOpenPosition = false;
 bool breakEvenFound = false;
 bool asyncOrderStatus[];
 int OrderDigits = 0;
-// defines
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
 #define INDENT_TOP        (10)      // indent from top (with allowance for border width)
 #define CONTROLS_GAP_X    (5)       // gap by X coordinate
@@ -256,7 +259,7 @@ int OnInit()
    ObjectCreate(0,"infoSLPL", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoTP", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoPosition", OBJ_LABEL,0,0,0);
-   ObjectCreate(0,"infoMargin", OBJ_LABEL,0,0,0);
+   ObjectCreate(0,"infoVaR", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoTPRR", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoRR", OBJ_LABEL,0,0,0);
    ObjectCreate(0,"infoRisk", OBJ_LABEL,0,0,0);
@@ -271,12 +274,12 @@ int OnInit()
    ObjectSetInteger(0,"infoPosition",OBJPROP_YDISTANCE,(YRowWidth * 2));
    ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrWhite);
    ObjectSetInteger(0,"infoPosition",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   ObjectSetString(0,"infoMargin",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoMargin",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetInteger(0,"infoMargin", OBJPROP_XDISTANCE, RightColumnX);
-   ObjectSetInteger(0,"infoMargin",OBJPROP_YDISTANCE,(YRowWidth * 2));
-   ObjectSetInteger(0,"infoMargin",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoMargin",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
+   ObjectSetString(0,"infoVaR",OBJPROP_FONT,FontName);
+   ObjectSetInteger(0,"infoVaR",OBJPROP_FONTSIZE,FontSize);
+   ObjectSetInteger(0,"infoVaR", OBJPROP_XDISTANCE, RightColumnX);
+   ObjectSetInteger(0,"infoVaR",OBJPROP_YDISTANCE,(YRowWidth * 2));
+   ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrWhite);
+   ObjectSetInteger(0,"infoVaR",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
    ObjectSetString(0,"infoRisk",OBJPROP_FONT,FontName);
    ObjectSetInteger(0,"infoRisk",OBJPROP_FONTSIZE,FontSize);
    ObjectSetInteger(0,"infoRisk", OBJPROP_XDISTANCE, RightColumnX);
@@ -347,6 +350,8 @@ int OnInit()
    ObjectSetString(0,"infoTP",OBJPROP_TEXT,infoTP);
    string infoPosition = "No Positions Detected";
    ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
+   string infoVaR = "VaR: 0.00";
+   ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
    string infoRisk = "Risk: $0.00";
    ObjectSetString(0,"infoRisk",OBJPROP_TEXT,infoRisk);
    string infoTPRR = "TP RR: N/A";
@@ -939,8 +944,6 @@ void OnTick()
    ObjectSetString(0,"infoSLPL",OBJPROP_TEXT,infoSLPL);
    string infoTP = "TP P/L : $" + DoubleToString(total_tp, 2);
    ObjectSetString(0,"infoTP",OBJPROP_TEXT,infoTP);
-   string infoMargin = "Margin: $" + DoubleToString(total_margin, 2);
-   ObjectSetString(0,"infoMargin",OBJPROP_TEXT,infoMargin);
    ObjectSetString(0,"infoRisk",OBJPROP_TEXT,infoRisk);
    string infoTPRR = "TP RR: " + DoubleToString(tprr, 2);
    ObjectSetString(0,"infoTPRR",OBJPROP_TEXT,infoTPRR);
@@ -954,27 +957,43 @@ void OnTick()
    ObjectSetString(0,"infoMN1",OBJPROP_TEXT,infoMN1);
    LotsInfo lots = TallyPositionLots();
    string infoPosition;
+   CPortfolioRiskMan PortfolioRisk(VaRTimeframe, StdDevPeriods);
    if(HasOpenPosition(_Symbol, POSITION_TYPE_BUY) || HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
    {
       if (lots.longLots > 0 && lots.shortLots == 0)
       {
          infoPosition = "Long " + DoubleToString(lots.longLots, Digits()) + " Lots";
          ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrLime);
-         ObjectSetInteger(0,"infoMargin",OBJPROP_COLOR,clrLime);
+         ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrLime);
          ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
+         if(PortfolioRisk.CalculateVaR(_Symbol, lots.longLots))
+         {
+            string infoVaR = "VaR: " + DoubleToString(PortfolioRisk.SinglePositionVaR, 2);
+            ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
+         }
       }
       if (lots.shortLots > 0 && lots.longLots == 0)
       {
          infoPosition = "Short " + DoubleToString(lots.shortLots, Digits()) + " Lots";
          ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrRed);
-         ObjectSetInteger(0,"infoMargin",OBJPROP_COLOR,clrRed);
+         ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrRed);
          ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
+         if(PortfolioRisk.CalculateVaR(_Symbol, lots.shortLots))
+         {
+            string infoVaR = "VaR: " + DoubleToString(PortfolioRisk.SinglePositionVaR, 2);
+            ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
+         }
       }
       if (lots.shortLots > 0 && lots.longLots > 0)
       {
-         infoPosition = DoubleToString(lots.longLots, Digits()) + " Long / " + DoubleToString(lots.shortLots, Digits()) + " Short" +  "    [Margin: $" +  DoubleToString(total_margin, 0) + "]";
+         infoPosition = DoubleToString(lots.longLots, Digits()) + " Long / " + DoubleToString(lots.shortLots, Digits()) + " Short";
          ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrWhite);
          ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
+         if(PortfolioRisk.CalculateVaR(_Symbol, (lots.longLots + lots.shortLots)))
+         {
+            string infoVaR = "VaR: $" + DoubleToString(PortfolioRisk.SinglePositionVaR, 2);
+            ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
+         }
       }
    }
    if (GetTotalVolumeForSymbol(_Symbol) == 0)
