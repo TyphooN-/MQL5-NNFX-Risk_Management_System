@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.358"
+#property version   "1.359"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -51,50 +51,55 @@ enum OrderModeEnum
 {
     Standard,
     Fixed,
-    Dynamic
+    Dynamic,
+    VaR
 };
 // input vars
-input group          "[ORDER PLACEMENT SETTINGS]";
-input int            MarginBufferPercent        = 1;
-input double         AdditionalRiskRatio        = 0.25;
-input OrderModeEnum  OrderMode = Dynamic;
-input group          "[STANDARD RISK MODE]";
-input double         MaxRisk                    = 1.0;
-input double         Risk                       = 0.5;
-input group          "[FIXED LOTS MODE]";
-input double         FixedLots                  = 20;
-input int            FixedOrdersToPlace         = 2;
-input group          "[DYNAMIC RISK MODE]";
-input double         MinAccountBalance          = 96100;
-input int            LossesToMinBalance         = 10;
-input group          "[ACCOUNT PROTECTION SETTINGS]";
-input bool           EnableUpdateEmptySLTP      = true;
-input bool           EnableAutoProtect          = false;
-input double         APRRLevel                  = 1.0;
-input bool           EnableEquityTP             = false;
-input double         TargetEquityTP             = 110200;
-input bool           EnableEquitySL             = false;
-input double         TargetEquitySL             = 98000;
-input group          "[EXPERT ADVISOR SETTINGS]";
-input int            MagicNumber                = 13;
-input int            HorizontalLineThickness    = 3;
-input bool           ManageAllPositions         = false;
-input group          "[DISCORD ANNOUNCEMENT SETTINGS]"
-input string         DiscordAPIKey =  "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
-input bool           EnableBroadcast = false;
-input group          "[VALUE AT RISK (VaR) SETTINGS]"
+input group           "[ORDER PLACEMENT SETTINGS]";
+input int             MarginBufferPercent        = 1;
+input double          AdditionalRiskRatio        = 0.25;
+input OrderModeEnum   OrderMode = VaR;
+input group           "[VaR RISK MODE]"
+input double          RiskVaR                    = 1.0;
+input group           "[VALUE AT RISK (VaR) SETTINGS]"
 input ENUM_TIMEFRAMES VaRTimeframe  = PERIOD_D1;   //Value at Risk Timeframe
 input int             StdDevPeriods = 21;          //Std Deviation Periods
-input group          "[PYRAMID MODE SETTINGS]"
-input bool           EnablePyramid = false;
-input double         PyramidLotSize = 1.0;
-input double         PyramidFreeMarginTrigger = 20000;
-input double         PyramidFreeMarginBuffer = 10000;
-input double         PyramidTargetLots = 333;
-input int            PyramidCooldown = 420;
-input string         PyramidComment = "420 Pyramid";
-datetime             LastPyramidTime = 0;
-double               PyramidLotsOpened = 0;
+input double          VaRConfidence = 0.95;
+input group           "[STANDARD RISK MODE]";
+input double          MaxRisk                    = 1.0;
+input double          Risk                       = 0.5;
+input group           "[FIXED LOTS MODE]";
+input double          FixedLots                  = 20;
+input int             FixedOrdersToPlace         = 2;
+input group           "[DYNAMIC RISK MODE]";
+input double          MinAccountBalance          = 96100;
+input int             LossesToMinBalance         = 10;
+input group           "[ACCOUNT PROTECTION SETTINGS]";
+input bool            EnableUpdateEmptySLTP      = true;
+input bool            EnableAutoProtect          = false;
+input double          APRRLevel                  = 1.0;
+input bool            EnableEquityTP             = false;
+input double          TargetEquityTP             = 110200;
+input bool            EnableEquitySL             = false;
+input double          TargetEquitySL             = 98000;
+input group           "[EXPERT ADVISOR SETTINGS]";
+input int             MagicNumber                = 13;
+input int             HorizontalLineThickness    = 3;
+input bool            ManageAllPositions         = false;
+input group           "[DISCORD ANNOUNCEMENT SETTINGS]"
+input string          DiscordAPIKey =  "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
+input bool            EnableBroadcast = false;
+input group           "[PYRAMID MODE SETTINGS]"
+input bool            EnablePyramid = false;
+input double          PyramidLotSize = 1.0;
+input double          PyramidFreeMarginTrigger = 20000;
+input double          PyramidFreeMarginBuffer = 10000;
+input double          PyramidTargetLots = 333;
+input int             PyramidCooldown = 420;
+input string          PyramidComment = "420 Pyramid";
+// global vars
+datetime              LastPyramidTime = 0;
+double                PyramidLotsOpened = 0;
 double FisherBias = -9;
 double kama_M5 = -1;
 double kama_M15 = -1;
@@ -104,7 +109,6 @@ double kama_H4 = -1;
 double kama_D1 = -1;
 double kama_W1 = -1;
 double kama_MN1 = -1;
-// global vars
 double TP = 0;
 double SL = 0;
 double Bid = 0;
@@ -251,6 +255,8 @@ int OnInit()
    }
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+   AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
+   account_equity = AccountInfoDouble(ACCOUNT_EQUITY);
    string FontName="Courier New";
    int FontSize=8;
    int LeftColumnX=310;
@@ -1425,12 +1431,6 @@ void TyWindow::OnClickTrade(void)
    {
       Limit_Price = ObjectGetDouble(0, "Limit_Line", OBJPROP_PRICE, 0);
    }
-   if (potentialRisk > MaxRisk)
-   {
-      OrderRisk = (MaxRisk - percent_risk);
-      potentialRisk = OrderRisk + percent_risk;
-      order_risk_money = (AccountBalance * (OrderRisk / 100));
-   }
    double OrderLots = 0.0;
    if (OrderMode == Fixed)
    {
@@ -1440,6 +1440,15 @@ void TyWindow::OnClickTrade(void)
    {
       OrderLots = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, Ask - SL), OrderDigits)
                                  : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - Bid), OrderDigits);
+   }
+   if (OrderMode == VaR)
+   {
+      CPortfolioRiskMan PortfolioRisk(VaRTimeframe, StdDevPeriods);
+      if (PortfolioRisk.CalculateLotSizeBasedOnVaR(_Symbol, VaRConfidence, account_equity, RiskVaR, OrderLots))
+      {
+        // NormalizeDouble(OrderLots, OrderDigits);
+         Print("PortfolioRisk.CalculateLotSizeBasedOnVaR OrderLots: " + DoubleToString(OrderLots));
+      }
    }
    if (OrderLots > available_volume)
    {
