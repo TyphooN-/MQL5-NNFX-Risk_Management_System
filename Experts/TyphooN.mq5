@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.360"
+#property version   "1.361"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -100,15 +100,6 @@ input string          PyramidComment = "420 Pyramid";
 // global vars
 datetime              LastPyramidTime = 0;
 double                PyramidLotsOpened = 0;
-double FisherBias = -9;
-double kama_M5 = -1;
-double kama_M15 = -1;
-double kama_M30 = -1;
-double kama_H1 = -1;
-double kama_H4 = -1;
-double kama_D1 = -1;
-double kama_W1 = -1;
-double kama_MN1 = -1;
 double TP = 0;
 double SL = 0;
 double Bid = 0;
@@ -640,11 +631,6 @@ bool PlacePyramidOrders()
    while (freeMargin >= (PyramidFreeMarginTrigger - PyramidFreeMarginBuffer))
    {
       bool orderPlaced = false;
-      double kamaArray[] = {kama_M5, kama_M15, kama_M30, kama_H1};
-      int highestKamaIndex = ArrayMaximum(kamaArray, 0, WHOLE_ARRAY);
-      int lowestKamaIndex = ArrayMinimum(kamaArray, 0, WHOLE_ARRAY);
-      double highestKama = kamaArray[highestKamaIndex];
-      double lowestKama = kamaArray[lowestKamaIndex];
       bool orderIntended = false; // Track if an order is intended to clean up debug logging
       Trade.SetExpertMagicNumber(MagicNumber);
       // Additional checks before placing the order
@@ -664,12 +650,12 @@ bool PlacePyramidOrders()
        //  Print("Not enough free margin to place the order. Required: ", required_margin, " Available: ", freeMargin);
          break;
       }
-      if (orderType == ORDER_TYPE_BUY && FisherBias == 1)
+      if (orderType == ORDER_TYPE_BUY)
       {
          orderIntended = true;
          orderPlaced = Trade.Buy(OrderLots, _Symbol, 0, stopLoss, takeProfit, PyramidComment);
       }
-      if (orderType == ORDER_TYPE_SELL && FisherBias == -1)
+      if (orderType == ORDER_TYPE_SELL)
       {
          orderIntended = true;
          orderPlaced = Trade.Sell(OrderLots, _Symbol, 0, stopLoss, takeProfit, PyramidComment);
@@ -714,24 +700,6 @@ bool PlacePyramidOrders()
 }
 void OnTick()
 {
-   FisherBias = GlobalVariableGet("FisherBias");
-   kama_M5 = GlobalVariableGet("recent_KAMA_M5");
-   kama_M15 = GlobalVariableGet("recent_KAMA_M15");
-   kama_M30 = GlobalVariableGet("recent_KAMA_M30");
-   kama_H1 = GlobalVariableGet("recent_KAMA_H1");
-   kama_H4 = GlobalVariableGet("recent_KAMA_H4");
-   kama_D1 = GlobalVariableGet("recent_KAMA_D1");
-   kama_W1 = GlobalVariableGet("recent_KAMA_W1");
-   kama_MN1 = GlobalVariableGet("recent_KAMA_MN1");
-   //Print("Ask:", Ask, ", Bid: ", Bid);
-   //Print("Recent KAMA (M5): ", kama_M5);
-   //Print("Recent KAMA (M15): ", kama_M15);
-   //Print("Recent KAMA (M30): ", kama_M30);
-   //Print("Recent KAMA (H1): ", kama_H1);
-   //Print("Recent KAMA (H4): ", kama_H4);
-   //Print("Recent KAMA (D1): ", kama_D1);
-   //Print("Recent KAMA (W1): ", kama_W1);
-   //Print("Recent KAMA (MN1): ", kama_MN1);
    HasOpenPosition = false;
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
