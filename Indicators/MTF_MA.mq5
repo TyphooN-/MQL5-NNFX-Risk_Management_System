@@ -23,70 +23,50 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.marketwizardry.info"
-#property version   "1.064"
+#property version   "1.065"
 #property indicator_chart_window
 #property indicator_buffers 41
 #property indicator_plots   12
-#property indicator_label1  "M1 200SMA"
+#property indicator_label1  "H1 200SMA"
 #property indicator_type1   DRAW_LINE
-#property indicator_color1  clrOrange
+#property indicator_color1  clrMagenta
 #property indicator_style1  STYLE_SOLID
 #property indicator_width1  2
-#property indicator_label2  "M5 200SMA"
+#property indicator_label2  "H4 200SMA"
 #property indicator_type2   DRAW_LINE
-#property indicator_color2  clrOrange
+#property indicator_color2  clrMagenta
 #property indicator_style2  STYLE_SOLID
 #property indicator_width2  2
-#property indicator_label3  "M15 200SMA"
+#property indicator_label3  "D1 200SMA"
 #property indicator_type3   DRAW_LINE
-#property indicator_color3  clrTomato
+#property indicator_color3  clrMagenta
 #property indicator_style3  STYLE_SOLID
 #property indicator_width3  2
-#property indicator_label4  "M30 200SMA"
+#property indicator_label4  "W1 200SMA"
 #property indicator_type4   DRAW_LINE
-#property indicator_color4  clrTomato
+#property indicator_color4  clrMagenta
 #property indicator_style4  STYLE_SOLID
 #property indicator_width4  2
-#property indicator_label5  "H1 200SMA"
+#property indicator_label5  "H4 100SMA"
 #property indicator_type5   DRAW_LINE
 #property indicator_color5  clrMagenta
 #property indicator_style5  STYLE_SOLID
 #property indicator_width5  2
-#property indicator_label6  "H4 200SMA"
+#property indicator_label6  "D1 100SMA"
 #property indicator_type6   DRAW_LINE
 #property indicator_color6  clrMagenta
 #property indicator_style6  STYLE_SOLID
 #property indicator_width6  2
-#property indicator_label7  "D1 200SMA"
+#property indicator_label7  "W1 100SMA"
 #property indicator_type7   DRAW_LINE
 #property indicator_color7  clrMagenta
 #property indicator_style7  STYLE_SOLID
 #property indicator_width7  2
-#property indicator_label8  "W1 200SMA"
+#property indicator_label8  "MN1 100SMA"
 #property indicator_type8   DRAW_LINE
 #property indicator_color8  clrMagenta
 #property indicator_style8  STYLE_SOLID
 #property indicator_width8  2
-#property indicator_label9  "H4 100SMA"
-#property indicator_type9   DRAW_LINE
-#property indicator_color9  clrMagenta
-#property indicator_style9  STYLE_SOLID
-#property indicator_width9  2
-#property indicator_label10  "D1 100SMA"
-#property indicator_type10   DRAW_LINE
-#property indicator_color10  clrMagenta
-#property indicator_style10  STYLE_SOLID
-#property indicator_width10  2
-#property indicator_label11  "W1 100SMA"
-#property indicator_type11   DRAW_LINE
-#property indicator_color11  clrMagenta
-#property indicator_style11  STYLE_SOLID
-#property indicator_width11  2
-#property indicator_label12  "MN1 100SMA"
-#property indicator_type12   DRAW_LINE
-#property indicator_color12  clrMagenta
-#property indicator_style12  STYLE_SOLID
-#property indicator_width12  2
 // Input variables
 input group  "[INFO TEXT SETTINGS]";
 input string FontName                      = "Courier New";
@@ -121,18 +101,18 @@ double prevAskPrice = 0.0;
 string objname = "MTF_MA_";
 int OnInit()
 {
-   SetIndexBuffer(0, MABufferM1_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(1, MABufferM5_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(2, MABufferM15_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(3, MABufferM30_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(4, MABufferH1_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(5, MABufferH4_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(6, MABufferD1_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(7, MABufferW1_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(8, MABufferH4_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(9, MABufferD1_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(10, MABufferW1_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(11, MABufferMN1_100SMA, INDICATOR_DATA);
+   SetIndexBuffer(0, MABufferH1_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(1, MABufferH4_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(2, MABufferD1_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(3, MABufferW1_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(4, MABufferH4_100SMA, INDICATOR_DATA);
+   SetIndexBuffer(5, MABufferD1_100SMA, INDICATOR_DATA);
+   SetIndexBuffer(6, MABufferW1_100SMA, INDICATOR_DATA);
+   SetIndexBuffer(7, MABufferMN1_100SMA, INDICATOR_DATA);
+   SetIndexBuffer(8, MABufferM1_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(9, MABufferM5_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(10, MABufferM15_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(11, MABufferM30_200SMA, INDICATOR_DATA);
    SetIndexBuffer(12, MABufferM1_50SMA, INDICATOR_DATA);
    SetIndexBuffer(13, MABufferM5_50SMA, INDICATOR_DATA);
    SetIndexBuffer(14, MABufferM15_50SMA, INDICATOR_DATA);
