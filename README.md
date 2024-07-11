@@ -14,7 +14,6 @@
 
 ### ORDER PLACEMENT SETTINGS
 - MarginBufferPercent: The percent of buffer in margin that will not be used for placing orders.
-- MagicNumber: Can be set to anything the user wants, but this expert will only modify trades/positions that match the MagicNumber on the chart.
 - AdditionalRiskRatio: The multiplier to risk when adding additional lots when  SL Break Even is detected.
 
 ### STANDARD RISK SETTINGS
@@ -36,6 +35,7 @@
 - TargetEquitySL: The Equity value of the account that EquitySL will be triggered by.
 
 ### EXPERT ADVISOR SETTINGS
+- MagicNumber: Can be set to anything the user wants, but this expert will only modify trades/positions that match the MagicNumber on the chart.
 - HorizontalLineThickness: The width in pixels that the SL, TP, and Limit lines are drawn with.
 - ManageAllPositions: This is set to false by default, which will only manage positions that have been opened by the EA's MagicNumber.  If ManageAllPositions is set to true, will manage all positions on a symbol regardless of MagicNumber.
 
@@ -63,29 +63,6 @@
 - RR: Current trade Reward/Risk ratio.
 - TP RR: Reward/Risk ratio if price hits TP.
 - H4 - MN1: The amount of time until the next candlestick of that time period will print.
-
-# NNFX Trading System
-
-### Baseline
-- C1: [KAMA (Kauffman's Adaptive Moving Average)](https://forex-station.com/download/file.php?id=3314561&sid=563944d8cfb302d8a712d2f9028ccbe4) / MultiKAMA
-
-### Confirmation
-- C1: [Ehlers' Fisher Transform](https://forex-station.com/post1295528062.html#p1295528062)
-- C2: LTF Bull or Bear power Dominance (MTF_MA)
-
-### Exit (opposite condition as the  entry reason)
-- [Ehlers' Fisher Transform](https://forex-station.com/post1295528062.html#p1295528062)
-	- [shved_supply_and_demand_v1.5](https://www.mql5.com/en/code/29395) (price is hitting resistance or finding support at a zone)
-	- PreviousCandleLevels (price is hitting resistance or support at a previous candle high or low)
-	- ATR_Projection (price is hitting resistance or support at a level)
-	- MTF_MA (price is hitting resistance or support at 200SMA level)
-	- C1/C2 condition flips the opposite direction
-
-### Volume
-- RVOL (Relative Volume)
-
-### Volatility
-- ATR_Projection (price has pierced through a projected level well before candle close time)
 
 # TyphooN's Multi Timeframe MA Bull/Bear Power Indicator (MTF_MA)
 - Plots 200 SMA lines across all timeframes M1 -> W1 onto the chart.  M1 -> M5 are Orange coloured lines. M15 -> M30 are Tomato coloured lines.  H1 -> W1 timeframes are Magenta coloured lines.  The colours used are easily visible in contrast to the colours used in the supporting indicators.
@@ -124,7 +101,7 @@
 - The ATR Projection Indicator plots a yellow line +/- the ATR value (Projection) whenever a new candlestick forms on the enabled timeframe(s).  The length of the line indicates a longer timeframe.  Some timeframes are disabled when viewing higher timeframes as they are barely visible.
 - The user can hover the mouse over the plotted lines to see what the timeframe is, and if it is the Projected ATR High or Low.
 - InfoText is displayed on the chart which contains the M15, H1, H4, D1, W1, and MN1 ATR values for easy evaluation.
-- InfoText will turn Magenta if a lower timeframe ATR > a higher timeframe ATR.
+- InfoText will turn Magenta if a lower timeframe ATR >= a higher timeframe ATR.
 ![ATR_Projection_InfoText](Images/ATR_Projection_InfoText.png)
 
 ![ATR_Projection_Levels](Images/ATR_Projection_Levels.png)
@@ -140,6 +117,7 @@
 - D1_ATR_Projections: Enables D1 ATR Projections if true (default true).
 - W1_ATR_Projections: Enables W1 ATR Projections if true (default true).
 - MN1_ATR_Projections: Enables MN1 ATR Projections if true (default true).
+
 
 ### LINE SETTINGS
 - ATR_linestyle: The style of line to draw (default Dot).
