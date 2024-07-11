@@ -268,10 +268,10 @@ int OnCalculate(const int        rates_total,
       H1info = avgH1;
    if (copiedM15 == ATR_Period)
       M15info = avgM15;
-   bool IsM15AboveH1 = (copiedM15 > copiedH1);
-   bool IsM15AboveH4 = (copiedM15 > copiedH4);
-   bool IsH1AboveH4 = (copiedH1 > copiedH4);
-   bool IsH4AboveD1 = (copiedH4 > copiedD1);
+   bool IsM15AboveH1 = (avgM15 >= avgH1);
+   bool IsM15AboveH4 = (avgM15 >= avgH4);
+   bool IsH1AboveH4 = (avgH1 >= avgH4);
+   bool IsH4AboveD1 = (avgH4 >= avgD1);
    // Change InfoText1 font color if any lower timeframe ATR values are higher than higher timeframe ATR values
    color FontColor1 = FontColor;
    if (IsM15AboveH1 && IsM15AboveH4 && IsH1AboveH4 && IsH4AboveD1)
@@ -282,9 +282,9 @@ int OnCalculate(const int        rates_total,
    {
       FontColor1 = FontColor;
    }
-   bool IsD1AboveW1 = (copiedD1 > copiedW1);
-   bool IsD1AboveMN1 = (copiedD1 > copiedMN1);
-   bool IsW1AboveMN1 = (copiedW1 > copiedMN1);
+   bool IsD1AboveW1 = (avgD1 > avgW1);
+   bool IsD1AboveMN1 = (avgD1 > avgMN1);
+   bool IsW1AboveMN1 = (avgW1 > avgMN1);
    // Change InfoText2 font color if any lower timeframe ATR values are higher than higher timeframe ATR values
    color FontColor2 = FontColor;
    if (IsD1AboveW1 && IsD1AboveMN1 && IsW1AboveMN1)
