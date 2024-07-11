@@ -23,18 +23,18 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.marketwizardry.info"
-#property version   "1.065"
+#property version   "1.066"
 #property indicator_chart_window
 #property indicator_buffers 41
-#property indicator_plots   12
+#property indicator_plots   8
 #property indicator_label1  "H1 200SMA"
 #property indicator_type1   DRAW_LINE
-#property indicator_color1  clrMagenta
+#property indicator_color1  clrTomato
 #property indicator_style1  STYLE_SOLID
 #property indicator_width1  2
 #property indicator_label2  "H4 200SMA"
 #property indicator_type2   DRAW_LINE
-#property indicator_color2  clrMagenta
+#property indicator_color2  clrTomato
 #property indicator_style2  STYLE_SOLID
 #property indicator_width2  2
 #property indicator_label3  "D1 200SMA"
@@ -49,7 +49,7 @@
 #property indicator_width4  2
 #property indicator_label5  "H4 100SMA"
 #property indicator_type5   DRAW_LINE
-#property indicator_color5  clrMagenta
+#property indicator_color5  clrTomato
 #property indicator_style5  STYLE_SOLID
 #property indicator_width5  2
 #property indicator_label6  "D1 100SMA"
