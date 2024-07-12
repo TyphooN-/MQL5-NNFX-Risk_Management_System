@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.marketwizardry.info"
-#property version   "1.066"
+#property version   "1.067"
 #property indicator_chart_window
 #property indicator_buffers 41
 #property indicator_plots   8
@@ -34,7 +34,7 @@
 #property indicator_width1  2
 #property indicator_label2  "H4 200SMA"
 #property indicator_type2   DRAW_LINE
-#property indicator_color2  clrTomato
+#property indicator_color2  clrMagenta
 #property indicator_style2  STYLE_SOLID
 #property indicator_width2  2
 #property indicator_label3  "D1 200SMA"
