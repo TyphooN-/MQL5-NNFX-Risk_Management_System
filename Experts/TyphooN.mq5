@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.361"
+#property version   "1.362"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -59,9 +59,8 @@ input group           "[ORDER PLACEMENT SETTINGS]";
 input int             MarginBufferPercent        = 1;
 input double          AdditionalRiskRatio        = 0.25;
 input OrderModeEnum   OrderMode = VaR;
-input group           "[VaR RISK MODE]"
+input group           "[VALUE AT RISK (VaR) RISK MODE]"
 input double          RiskVaR                    = 1.0;
-input group           "[VALUE AT RISK (VaR) SETTINGS]"
 input ENUM_TIMEFRAMES VaRTimeframe  = PERIOD_D1;   //Value at Risk Timeframe
 input int             StdDevPeriods = 21;          //Std Deviation Periods
 input double          VaRConfidence = 0.95;
@@ -75,7 +74,7 @@ input group           "[DYNAMIC RISK MODE]";
 input double          MinAccountBalance          = 96100;
 input int             LossesToMinBalance         = 10;
 input group           "[ACCOUNT PROTECTION SETTINGS]";
-input bool            EnableUpdateEmptySLTP      = true;
+input bool            EnableUpdateEmptySLTP      = false;
 input bool            EnableAutoProtect          = false;
 input double          APRRLevel                  = 1.0;
 input bool            EnableEquityTP             = false;
@@ -346,6 +345,13 @@ int OnInit()
    string infoTP = "TP P/L : $0.00";
    ObjectSetString(0,"infoTP",OBJPROP_TEXT,infoTP);
    string infoPosition = "No Positions Detected";
+   double var_1_lot = 0.0;
+   CPortfolioRiskMan PortfolioRisk(VaRTimeframe, StdDevPeriods);
+   if(PortfolioRisk.CalculateVaR(_Symbol, 1.0))
+   {
+      var_1_lot = PortfolioRisk.SinglePositionVaR;
+      infoPosition = "VaR 1 lot: " + DoubleToString(var_1_lot, 2);
+   }
    ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
    string infoVaR = "VaR %: 0.00";
    ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
@@ -972,7 +978,12 @@ void OnTick()
    }
    if (GetTotalVolumeForSymbol(_Symbol) == 0)
    {
-      infoPosition = "No Positions Detected";
+      double var_1_lot = 0.0;
+      if(PortfolioRisk.CalculateVaR(_Symbol, 1.0))
+      {
+         var_1_lot = PortfolioRisk.SinglePositionVaR;
+         infoPosition = "VaR 1 lot: " + DoubleToString(var_1_lot, 2);
+      }
    }
 }
 void OnChartEvent(const int id,         // event ID  
