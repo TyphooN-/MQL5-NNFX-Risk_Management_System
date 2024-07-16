@@ -71,7 +71,7 @@ input OrderModeEnum   OrderMode = VaR;
 input group           "[VALUE AT RISK (VaR) RISK MODE]"
 input VaRModeEnum     VaRRiskMode = PercentVaR;
 input double          RiskVaRPercent  = 1.0;
-input double          RiskVaRNotional = 1000;
+input double          RiskVaRNotional = 10000;
 input ENUM_TIMEFRAMES VaRTimeframe   = PERIOD_D1;
 input int             StdDevPeriods  = 21;
 input double          VaRConfidence  = 0.95;
@@ -1439,20 +1439,14 @@ void TyWindow::OnClickTrade(void)
    {
       CPortfolioRiskMan PortfolioRisk(VaRTimeframe, StdDevPeriods);
       double zScore = PortfolioRisk.PublicInverseCumulativeNormal(VaRConfidence);
-      Print("zScore: ", zScore);
       double nominalValuePerUnitPerLot = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_VALUE) / SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
-      Print("nominalValuePerUnitPerLot: ", nominalValuePerUnitPerLot);
       double currentPrice = iClose(_Symbol, PERIOD_M1, 0);
-      Print("currentPrice: ", currentPrice);
       double stdDevReturns;
       if (PortfolioRisk.PublicGetAssetStdDevReturns(_Symbol, stdDevReturns))
       {
-         Print("stdDevReturns: ", stdDevReturns);
          double unitVaR = zScore * stdDevReturns * nominalValuePerUnitPerLot * currentPrice;
-         Print("unitVaR: ", unitVaR);
          OrderLots = RiskVaRNotional / unitVaR;
          OrderLots = NormalizeDouble(OrderLots, OrderDigits);
-         Print("OrderLots: ", OrderLots);
       }
       else
       {
