@@ -29,7 +29,7 @@
 #property copyright     "Copyright 2022, Darwinex / TyphooN (v1.01+)"
 #property link          "https://www.darwinex.com"
 #property description   "Portfolio Risk Management Module"
-#property version       "1.01"
+#property version       "1.02"
 #property strict
 #include <Math\Stat\Math.mqh>
 
@@ -40,6 +40,14 @@ class CPortfolioRiskMan
       void   CPortfolioRiskMan(ENUM_TIMEFRAMES VaRTimeframe, int StdDevPeriods); //CONSTRUCTOR
       bool   CalculateVaR(string Asset, double AssetPosSize);
       bool   CalculateLotSizeBasedOnVaR(string Asset, double confidenceLevel, double accountEquity, double VaRPercent, double &lotSize);
+      double PublicInverseCumulativeNormal(double confidenceLevel)
+      {
+         return InverseCumulativeNormal(confidenceLevel);
+      }
+      bool PublicGetAssetStdDevReturns(const string &symbol, double &stdDevReturns)
+      {
+         return GetAssetStdDevReturns(symbol, stdDevReturns);
+      }
    private:
       ENUM_TIMEFRAMES ValueAtRiskTimeframe;
       int   StandardDeviationPeriods;

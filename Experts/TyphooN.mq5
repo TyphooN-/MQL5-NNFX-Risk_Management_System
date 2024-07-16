@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.362"
+#property version   "1.363"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -49,21 +49,32 @@ double TickSize( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRA
 double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_VALUE ) ); }
 enum OrderModeEnum
 {
-    Standard,
-    Fixed,
-    Dynamic,
-    VaR
+   Standard,
+   Fixed,
+   Dynamic,
+   VaR
+};
+enum VaRModeEnum
+{
+   PercentVaR,
+   NotionalVaR
 };
 // input vars
+input group           "[EXPERT ADVISOR SETTINGS]";
+input int             MagicNumber                = 13;
+input int             HorizontalLineThickness    = 3;
+input bool            ManageAllPositions         = false;
 input group           "[ORDER PLACEMENT SETTINGS]";
 input int             MarginBufferPercent        = 1;
 input double          AdditionalRiskRatio        = 0.25;
 input OrderModeEnum   OrderMode = VaR;
 input group           "[VALUE AT RISK (VaR) RISK MODE]"
-input double          RiskVaR                    = 1.0;
-input ENUM_TIMEFRAMES VaRTimeframe  = PERIOD_D1;   //Value at Risk Timeframe
-input int             StdDevPeriods = 21;          //Std Deviation Periods
-input double          VaRConfidence = 0.95;
+input VaRModeEnum     VaRRiskMode = PercentVaR;
+input double          RiskVaRPercent  = 1.0;
+input double          RiskVaRNotional = 1000;
+input ENUM_TIMEFRAMES VaRTimeframe   = PERIOD_D1;
+input int             StdDevPeriods  = 21;
+input double          VaRConfidence  = 0.95;
 input group           "[STANDARD RISK MODE]";
 input double          MaxRisk                    = 1.0;
 input double          Risk                       = 0.5;
@@ -81,13 +92,6 @@ input bool            EnableEquityTP             = false;
 input double          TargetEquityTP             = 110200;
 input bool            EnableEquitySL             = false;
 input double          TargetEquitySL             = 98000;
-input group           "[EXPERT ADVISOR SETTINGS]";
-input int             MagicNumber                = 13;
-input int             HorizontalLineThickness    = 3;
-input bool            ManageAllPositions         = false;
-input group           "[DISCORD ANNOUNCEMENT SETTINGS]"
-input string          DiscordAPIKey =  "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
-input bool            EnableBroadcast = false;
 input group           "[PYRAMID MODE SETTINGS]"
 input bool            EnablePyramid = false;
 input double          PyramidLotSize = 1.0;
@@ -96,6 +100,9 @@ input double          PyramidFreeMarginBuffer = 10000;
 input double          PyramidTargetLots = 333;
 input int             PyramidCooldown = 420;
 input string          PyramidComment = "420 Pyramid";
+input group           "[DISCORD ANNOUNCEMENT SETTINGS]"
+input string          DiscordAPIKey =  "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
+input bool            EnableBroadcast = false;
 // global vars
 datetime              LastPyramidTime = 0;
 double                PyramidLotsOpened = 0;
@@ -1418,14 +1425,38 @@ void TyWindow::OnClickTrade(void)
    if (OrderMode == Standard || OrderMode == Dynamic)
    {
       OrderLots = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, Ask - SL), OrderDigits)
-                                 : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - Bid), OrderDigits);
+                          : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - Bid), OrderDigits);
    }
-   if (OrderMode == VaR)
+   if (OrderMode == VaR && VaRRiskMode == PercentVaR)
    {
       CPortfolioRiskMan PortfolioRisk(VaRTimeframe, StdDevPeriods);
-      if (PortfolioRisk.CalculateLotSizeBasedOnVaR(_Symbol, VaRConfidence, account_equity, RiskVaR, OrderLots))
+      if (PortfolioRisk.CalculateLotSizeBasedOnVaR(_Symbol, VaRConfidence, account_equity, RiskVaRPercent, OrderLots))
       {
          OrderLots = NormalizeDouble(OrderLots, OrderDigits);
+      }
+   }
+   if (OrderMode == VaR && VaRRiskMode == NotionalVaR)
+   {
+      CPortfolioRiskMan PortfolioRisk(VaRTimeframe, StdDevPeriods);
+      double zScore = PortfolioRisk.PublicInverseCumulativeNormal(VaRConfidence);
+      Print("zScore: ", zScore);
+      double nominalValuePerUnitPerLot = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_VALUE) / SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
+      Print("nominalValuePerUnitPerLot: ", nominalValuePerUnitPerLot);
+      double currentPrice = iClose(_Symbol, PERIOD_M1, 0);
+      Print("currentPrice: ", currentPrice);
+      double stdDevReturns;
+      if (PortfolioRisk.PublicGetAssetStdDevReturns(_Symbol, stdDevReturns))
+      {
+         Print("stdDevReturns: ", stdDevReturns);
+         double unitVaR = zScore * stdDevReturns * nominalValuePerUnitPerLot * currentPrice;
+         Print("unitVaR: ", unitVaR);
+         OrderLots = RiskVaRNotional / unitVaR;
+         OrderLots = NormalizeDouble(OrderLots, OrderDigits);
+         Print("OrderLots: ", OrderLots);
+      }
+      else
+      {
+         Print("Failed to get asset standard deviation of returns.");
       }
    }
    if (OrderLots > available_volume)
