@@ -30,12 +30,16 @@
 - VaRConfidence: 0.95 (Percent Confidence for VaR)
 - Note: All Default VaR values are based on Darwinex 95% confidence over 21 days.
 
-### STANDARD RISK SETTINGS
+### STANDARD RISK MODE
 - UseStandardRisk: Use standard Risk mode (user defined MaxRisk / Risk)
 - MaxRisk (Standard Mode): Maximum percentage of risk across the symbol, once this level is hit no more orders will be placed.
 - Risk(Standard Mode): The % of the account that is being risked every time "Open Trade" is clicked.
 
-### DYNAMIC RISK SETTINGS
+### FIXED LOTS MODE
+- FixedLots: The number of lots to place per order.
+- FixedOrdersToPlace: The number of orders to open every time Open Trade is clicked.
+
+### DYNAMIC RISK MODE
 - UseDynamicRisk: Use Dynamic Risk Mode.  In Dynamic Risk Mode, Risk = (Balance - MinimumAccountBalance) / LossesToMinBalance.
 - MinAccountBalance: The Minimum account balance used to calculate Dynamic Risk.
 - LossesToMinBalance: The number of losses required to reach the MinAccountBalance.
