@@ -108,7 +108,7 @@
 - HorizPos: Horizontal position in pixels where the InfoText will appear.
 - VertPos : Vertical position in pixels where the InfoText will appear.
 
-### TyphooN's Previous Candle Levels Indicator
+# TyphooN's Previous Candle Levels Indicator
 - Draws white horizontal lines for Previous H1 -> MN1 candlesticks and updates them as new candlesticks print.
 - The lines begin at the previous candlestick high and low, and end at the current candlestick.
 - LTF levels are disabled on higher timeframes because they are not visible.
@@ -149,6 +149,9 @@
 - HorizPos: Horizontal position in pixels where the InfoText will appear.
 - VertPos : Vertical position in pixels where the InfoText will appear.
 - ATRInfoDecimals: The number of decimals to display in the ATR InfoText.
+
+# TyphooN's MultiKAMA Indicator
+- Displays KAMA (Kaufman Adaptive Moving Average) for all timeframes M5 -> MN1 on the chart.
 
 # Usage
 This project is intended and may be freely used for education and entertainment purposes.
