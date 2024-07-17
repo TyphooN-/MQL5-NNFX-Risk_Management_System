@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.363"
+#property version   "1.364"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -103,6 +103,7 @@ input string          PyramidComment = "420 Pyramid";
 input group           "[DISCORD ANNOUNCEMENT SETTINGS]"
 input string          DiscordAPIKey =  "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
 input bool            EnableBroadcast = false;
+CPortfolioRiskMan PortfolioRisk(VaRTimeframe, StdDevPeriods); // Darwinex VaR wrapper
 // global vars
 datetime              LastPyramidTime = 0;
 double                PyramidLotsOpened = 0;
@@ -353,7 +354,6 @@ int OnInit()
    ObjectSetString(0,"infoTP",OBJPROP_TEXT,infoTP);
    string infoPosition = "No Positions Detected";
    double var_1_lot = 0.0;
-   CPortfolioRiskMan PortfolioRisk(VaRTimeframe, StdDevPeriods);
    if(PortfolioRisk.CalculateVaR(_Symbol, 1.0))
    {
       var_1_lot = PortfolioRisk.SinglePositionVaR;
@@ -944,7 +944,6 @@ void OnTick()
    ObjectSetString(0,"infoMN1",OBJPROP_TEXT,infoMN1);
    LotsInfo lots = TallyPositionLots();
    string infoPosition;
-   CPortfolioRiskMan PortfolioRisk(VaRTimeframe, StdDevPeriods);
    if(HasOpenPosition(_Symbol, POSITION_TYPE_BUY) || HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
    {
       if (lots.longLots > 0 && lots.shortLots == 0)
@@ -1429,7 +1428,6 @@ void TyWindow::OnClickTrade(void)
    }
    if (OrderMode == VaR && VaRRiskMode == PercentVaR)
    {
-      CPortfolioRiskMan PortfolioRisk(VaRTimeframe, StdDevPeriods);
       if (PortfolioRisk.CalculateLotSizeBasedOnVaR(_Symbol, VaRConfidence, account_equity, RiskVaRPercent, OrderLots))
       {
          OrderLots = NormalizeDouble(OrderLots, OrderDigits);
@@ -1437,7 +1435,6 @@ void TyWindow::OnClickTrade(void)
    }
    if (OrderMode == VaR && VaRRiskMode == NotionalVaR)
    {
-      CPortfolioRiskMan PortfolioRisk(VaRTimeframe, StdDevPeriods);
       double zScore = PortfolioRisk.PublicInverseCumulativeNormal(VaRConfidence);
       double nominalValuePerUnitPerLot = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_VALUE) / SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
       double currentPrice = iClose(_Symbol, PERIOD_M1, 0);
