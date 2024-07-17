@@ -12,9 +12,23 @@
 ### Common Tab
 - Allow Algo Trading must be checked for the expert to place trades.
 
+### EXPERT ADVISOR SETTINGS
+- MagicNumber: Can be set to anything the user wants, but this expert will only modify trades/positions that match the MagicNumber on the chart.
+- HorizontalLineThickness: The width in pixels that the SL, TP, and Limit lines are drawn with.
+- ManageAllPositions: This is set to false by default, which will only manage positions that have been opened by the EA's MagicNumber.  If ManageAllPositions is set to true, will manage all positions on a symbol regardless of MagicNumber.
+
 ### ORDER PLACEMENT SETTINGS
 - MarginBufferPercent: The percent of buffer in margin that will not be used for placing orders.
-- AdditionalRiskRatio: The multiplier to risk when adding additional lots when  SL Break Even is detected.
+- AdditionalRiskRatio: The multiplier to risk when adding additional lots when  SL Break Even is detected (Standard / Dynamic risk modes only).
+
+### VALUE AT RISK (VaR) RISK MODE
+- VaRRiskMode: PercentVaR or NotionalVaR
+- RiskVaRPercent: Percent of Account Equity to use for target VaR % when VarRiskMode is set to PercentVaR.
+- RiskVaRNotional: Notional VaR (Value at Risk) to use for order placement when VaRRiskMode is set to NotionalVaR.
+- VaRTimeframe: Timeframe to use for VaR (Default D1)
+- StdDevPeriods: # of periods to use for StdDev (Default 21)
+- VaRConfidence: 0.95 (Percent Confidence for VaR)
+- Note: All Default VaR values are based on Darwinex 95% confidence over 21 days.
 
 ### STANDARD RISK SETTINGS
 - UseStandardRisk: Use standard Risk mode (user defined MaxRisk / Risk)
@@ -34,10 +48,14 @@
 - EnableEquitySL: Will close all open positions on the account when Equity < TargetEquitySL.
 - TargetEquitySL: The Equity value of the account that EquitySL will be triggered by.
 
-### EXPERT ADVISOR SETTINGS
-- MagicNumber: Can be set to anything the user wants, but this expert will only modify trades/positions that match the MagicNumber on the chart.
-- HorizontalLineThickness: The width in pixels that the SL, TP, and Limit lines are drawn with.
-- ManageAllPositions: This is set to false by default, which will only manage positions that have been opened by the EA's MagicNumber.  If ManageAllPositions is set to true, will manage all positions on a symbol regardless of MagicNumber.
+### PYRAMID MODE SETTINGS
+- EnablePyramid: Enable or disable Pyramid Mode.  When enabled, it will buy PyramidLotSize when FreeMargin >= PyramidFreeMarginTrigger until PyramidFreeMarginBuffer is hit.
+- PyramidLotSize:  How many lots to buy when Pyramid mode is triggered.
+- PyramidFreeMarginTrigger: Free Margin Trigger.
+- PyramidFreeMarginBuffer: Amount of Margin to leave as buffer after placing orders with Pyramid mode.
+- PyramidTargetLots:  Pyramid mode will open new lots until PyramidTargetLots is hit.
+- PyramidCooldown: Number of seconds to cooldown before placing Pyramid orders again.
+- PyramidComment:  Comment to add to Pyramid placed orders.
 
 ### DISCORD ANNOUNCEMENT SETTINGS
 - DiscordAPIKey: Must be set to a user's discord API key (webhook) prior to use.
