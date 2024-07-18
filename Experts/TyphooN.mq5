@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.366"
+#property version   "1.367"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -527,6 +527,7 @@ bool PlacePyramidOrders()
    request.magic = MagicNumber;
    request.type = orderType;
    request.comment = PyramidComment;
+   request.type_filling = SelectFillingMode();
    MqlTradeCheckResult check_result;
    required_margin = PerformOrderCheck(request, check_result, OrderLots);
    if (required_margin < 0)
