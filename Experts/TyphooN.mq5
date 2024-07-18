@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.364"
+#property version   "1.365"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -47,18 +47,8 @@ string BaseCurrency() { return ( AccountInfoString( ACCOUNT_CURRENCY ) ); }
 double Point( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_POINT ) ); }
 double TickSize( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_SIZE ) ); }
 double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_VALUE ) ); }
-enum OrderModeEnum
-{
-   Standard,
-   Fixed,
-   Dynamic,
-   VaR
-};
-enum VaRModeEnum
-{
-   PercentVaR,
-   NotionalVaR
-};
+enum OrderModeEnum { Standard, Fixed, Dynamic, VaR };
+enum VaRModeEnum { PercentVaR, NotionalVaR };
 // input vars
 input group           "[EXPERT ADVISOR SETTINGS]";
 input int             MagicNumber                = 13;
@@ -105,27 +95,12 @@ input string          DiscordAPIKey =  "https://discord.com/api/webhooks/your_we
 input bool            EnableBroadcast = false;
 CPortfolioRiskMan PortfolioRisk(VaRTimeframe, StdDevPeriods); // Darwinex VaR wrapper
 // global vars
-datetime              LastPyramidTime = 0;
-double                PyramidLotsOpened = 0;
-double TP = 0;
-double SL = 0;
-double Bid = 0;
-double Ask = 0;
-double prevBidPrice = 0.0;
-double prevAskPrice = 0.0;
-double order_risk_money = 0;
-double DynamicRisk = 0;
-double AccountBalance = 0;
-double required_margin = 0;
-double account_equity = 0;
-bool AutoProtectCalled = false;
-bool LimitLineExists = false;
-bool EquityTPCalled = false;
-bool EquitySLCalled = false;
-double percent_risk = 0;
-bool HasOpenPosition = false;
-bool breakEvenFound = false;
-bool asyncOrderStatus[];
+datetime LastPyramidTime = 0;
+double PyramidLotsOpened = 0, TP = 0, SL = 0, Bid = 0, Ask = 0, prevBidPrice = 0.0,
+       prevAskPrice = 0.0, order_risk_money = 0, DynamicRisk = 0, AccountBalance = 0,
+       required_margin = 0, account_equity = 0, percent_risk = 0;
+bool AutoProtectCalled = false, LimitLineExists = false, EquityTPCalled = false,
+     EquitySLCalled = false, HasOpenPosition = false, breakEvenFound = false;
 int OrderDigits = 0;
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
 #define INDENT_TOP        (10)      // indent from top (with allowance for border width)
@@ -231,6 +206,16 @@ bool TyWindow::Create(const long chart,const string name,const int subwin,const 
 }
 // Global Variable
 TyWindow ExtDialog;
+void CreateAndSetObjectProperties(string name, int xDistance, int yDistance, int corner = CORNER_RIGHT_UPPER, color textColor = clrWhite)
+{
+   ObjectCreate(0, name, OBJ_LABEL, 0, 0, 0);
+   ObjectSetString(0, name, OBJPROP_FONT, "Courier New");
+   ObjectSetInteger(0, name, OBJPROP_FONTSIZE, 8);
+   ObjectSetInteger(0, name, OBJPROP_XDISTANCE, xDistance);
+   ObjectSetInteger(0, name, OBJPROP_YDISTANCE, yDistance);
+   ObjectSetInteger(0, name, OBJPROP_COLOR, textColor);
+   ObjectSetInteger(0, name, OBJPROP_CORNER, corner);
+}
 int OnInit()
 {
    // Get the volume step for the current symbol
@@ -255,125 +240,41 @@ int OnInit()
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
    account_equity = AccountInfoDouble(ACCOUNT_EQUITY);
-   string FontName="Courier New";
-   int FontSize=8;
-   int LeftColumnX=310;
-   int RightColumnX=150;
+   int LeftColumnX = 310;
+   int RightColumnX = 150;
    int YRowWidth = 13;
-   ObjectCreate(0,"infoSLPL", OBJ_LABEL,0,0,0);
-   ObjectCreate(0,"infoTP", OBJ_LABEL,0,0,0);
-   ObjectCreate(0,"infoPosition", OBJ_LABEL,0,0,0);
-   ObjectCreate(0,"infoVaR", OBJ_LABEL,0,0,0);
-   ObjectCreate(0,"infoTPRR", OBJ_LABEL,0,0,0);
-   ObjectCreate(0,"infoRR", OBJ_LABEL,0,0,0);
-   ObjectCreate(0,"infoRisk", OBJ_LABEL,0,0,0);
-   ObjectCreate(0,"infoH4", OBJ_LABEL,0,0,0);
-   ObjectCreate(0,"infoD1", OBJ_LABEL,0,0,0);
-   ObjectCreate(0,"infoW1", OBJ_LABEL,0,0,0);
-   ObjectCreate(0,"infoMN1", OBJ_LABEL,0,0,0);
-   ObjectCreate(0,"infoPL", OBJ_LABEL,0,0,0);
-   ObjectSetString(0,"infoPosition",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoPosition",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetInteger(0,"infoPosition", OBJPROP_XDISTANCE, LeftColumnX);
-   ObjectSetInteger(0,"infoPosition",OBJPROP_YDISTANCE,(YRowWidth * 2));
-   ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoPosition",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   ObjectSetString(0,"infoVaR",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoVaR",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetInteger(0,"infoVaR", OBJPROP_XDISTANCE, RightColumnX);
-   ObjectSetInteger(0,"infoVaR",OBJPROP_YDISTANCE,(YRowWidth * 2));
-   ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoVaR",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   ObjectSetString(0,"infoRisk",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoRisk",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetInteger(0,"infoRisk", OBJPROP_XDISTANCE, RightColumnX);
-   ObjectSetInteger(0,"infoRisk",OBJPROP_YDISTANCE,(YRowWidth * 3));
-   ObjectSetInteger(0,"infoRisk",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoRisk",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   ObjectSetString(0,"infoPL",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoPL",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetInteger(0,"infoPL", OBJPROP_XDISTANCE, LeftColumnX);
-   ObjectSetInteger(0,"infoPL",OBJPROP_YDISTANCE,(YRowWidth * 3));
-   ObjectSetInteger(0,"infoPL",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoPL",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   ObjectSetString(0,"infoSLPL",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoSLPL",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetInteger(0,"infoSLPL", OBJPROP_XDISTANCE, RightColumnX);
-   ObjectSetInteger(0,"infoSLPL",OBJPROP_YDISTANCE,(YRowWidth * 4));
-   ObjectSetInteger(0,"infoSLPL",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoSLPL",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   ObjectSetString(0,"infoTP",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoTP",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetInteger(0,"infoTP", OBJPROP_XDISTANCE, LeftColumnX);
-   ObjectSetInteger(0,"infoTP",OBJPROP_YDISTANCE,(YRowWidth * 4));
-   ObjectSetInteger(0,"infoTP",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoTP",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   ObjectSetString(0,"infoTPRR",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoTPRR",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetInteger(0,"infoTPRR", OBJPROP_XDISTANCE, RightColumnX);
-   ObjectSetInteger(0,"infoTPRR",OBJPROP_YDISTANCE,(YRowWidth * 5));
-   ObjectSetInteger(0,"infoTPRR",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoTPRR",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   ObjectSetString(0,"infoRR",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoRR",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetInteger(0,"infoRR", OBJPROP_XDISTANCE, LeftColumnX);
-   ObjectSetInteger(0,"infoRR",OBJPROP_YDISTANCE,(YRowWidth * 5));
-   ObjectSetInteger(0,"infoRR",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoRR",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   ObjectSetString(0,"infoH4",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoH4",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetInteger(0,"infoH4", OBJPROP_XDISTANCE, LeftColumnX);
-   ObjectSetInteger(0,"infoH4",OBJPROP_YDISTANCE,(YRowWidth * 6));
-   ObjectSetInteger(0,"infoH4",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoH4",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   ObjectSetString(0,"infoW1",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoW1",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetInteger(0,"infoW1", OBJPROP_XDISTANCE, LeftColumnX);
-   ObjectSetInteger(0,"infoW1",OBJPROP_YDISTANCE,(YRowWidth * 7));
-   ObjectSetInteger(0,"infoW1",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoW1",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   ObjectSetString(0,"infoD1",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoD1",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetInteger(0,"infoD1", OBJPROP_XDISTANCE, RightColumnX);
-   ObjectSetInteger(0,"infoD1",OBJPROP_YDISTANCE,(YRowWidth * 6));
-   ObjectSetInteger(0,"infoD1",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoD1",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   ObjectSetString(0,"infoMN1",OBJPROP_FONT,FontName);
-   ObjectSetInteger(0,"infoMN1",OBJPROP_FONTSIZE,FontSize);
-   ObjectSetInteger(0,"infoMN1", OBJPROP_XDISTANCE, RightColumnX);
-   ObjectSetInteger(0,"infoMN1",OBJPROP_YDISTANCE,(YRowWidth * 7));
-   ObjectSetInteger(0,"infoMN1",OBJPROP_COLOR,clrWhite);
-   ObjectSetInteger(0,"infoMN1",OBJPROP_CORNER,CORNER_RIGHT_UPPER);
-   string infoPL = "Total P/L: $0.00";
-   string infoRR = "RR : N/A";
-   string infoSLPL = "SL P/L: $0.00";
-   ObjectSetString(0,"infoRR",OBJPROP_TEXT,infoRR);
-   ObjectSetString(0,"infoPL",OBJPROP_TEXT,infoPL);
-   ObjectSetString(0,"infoSLPL",OBJPROP_TEXT,infoSLPL);
-   string infoTP = "TP P/L : $0.00";
-   ObjectSetString(0,"infoTP",OBJPROP_TEXT,infoTP);
+   CreateAndSetObjectProperties("infoPosition", LeftColumnX, YRowWidth * 2);
+   CreateAndSetObjectProperties("infoVaR", RightColumnX, YRowWidth * 2);
+   CreateAndSetObjectProperties("infoRisk", RightColumnX, YRowWidth * 3);
+   CreateAndSetObjectProperties("infoPL", LeftColumnX, YRowWidth * 3);
+   CreateAndSetObjectProperties("infoSLPL", RightColumnX, YRowWidth * 4);
+   CreateAndSetObjectProperties("infoTP", LeftColumnX, YRowWidth * 4);
+   CreateAndSetObjectProperties("infoTPRR", RightColumnX, YRowWidth * 5);
+   CreateAndSetObjectProperties("infoRR", LeftColumnX, YRowWidth * 5);
+   CreateAndSetObjectProperties("infoH4", LeftColumnX, YRowWidth * 6);
+   CreateAndSetObjectProperties("infoW1", LeftColumnX, YRowWidth * 7);
+   CreateAndSetObjectProperties("infoD1", RightColumnX, YRowWidth * 6);
+   CreateAndSetObjectProperties("infoMN1", RightColumnX, YRowWidth * 7);
+   // Initial text settings
    string infoPosition = "No Positions Detected";
+   ObjectSetString(0, "infoPosition", OBJPROP_TEXT, infoPosition);
+   ObjectSetString(0, "infoVaR", OBJPROP_TEXT, "VaR %: 0.00");
+   ObjectSetString(0, "infoRisk", OBJPROP_TEXT, "Risk: $0.00");
+   ObjectSetString(0, "infoPL", OBJPROP_TEXT, "Total P/L: $0.00");
+   ObjectSetString(0, "infoSLPL", OBJPROP_TEXT, "SL P/L: $0.00");
+   ObjectSetString(0, "infoTP", OBJPROP_TEXT, "TP P/L : $0.00");
+   ObjectSetString(0, "infoTPRR", OBJPROP_TEXT, "TP RR: N/A");
+   ObjectSetString(0, "infoRR", OBJPROP_TEXT, "RR : N/A");
+   ObjectSetString(0, "infoH4", OBJPROP_TEXT, "H4 : " + TimeTilNextBar(PERIOD_H4));
+   ObjectSetString(0, "infoW1", OBJPROP_TEXT, "W1 : " + TimeTilNextBar(PERIOD_W1));
+   ObjectSetString(0, "infoD1", OBJPROP_TEXT, "D1 : " + TimeTilNextBar(PERIOD_D1));
+   ObjectSetString(0, "infoMN1", OBJPROP_TEXT, "MN1: " + TimeTilNextBar(PERIOD_MN1));
    double var_1_lot = 0.0;
    if(PortfolioRisk.CalculateVaR(_Symbol, 1.0))
    {
       var_1_lot = PortfolioRisk.SinglePositionVaR;
       infoPosition = "VaR 1 lot: " + DoubleToString(var_1_lot, 2);
    }
-   ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
-   string infoVaR = "VaR %: 0.00";
-   ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
-   string infoRisk = "Risk: $0.00";
-   ObjectSetString(0,"infoRisk",OBJPROP_TEXT,infoRisk);
-   string infoTPRR = "TP RR: N/A";
-   ObjectSetString(0,"infoTPRR",OBJPROP_TEXT,infoTPRR);
-   string infoH4 = "H4 : " + TimeTilNextBar(PERIOD_H4);
-   ObjectSetString(0,"infoH4",OBJPROP_TEXT,infoH4);
-   string infoW1 = "W1 : " + TimeTilNextBar(PERIOD_W1);
-   ObjectSetString(0,"infoW1",OBJPROP_TEXT,infoW1);
-   string infoD1 = "D1 : " + TimeTilNextBar(PERIOD_D1);
-   ObjectSetString(0,"infoD1",OBJPROP_TEXT,infoD1);
-   string infoMN1 = "MN1: " + TimeTilNextBar(PERIOD_MN1);
-   ObjectSetString(0,"infoMN1",OBJPROP_TEXT,infoMN1);
    if(!ExtDialog.Create(0,"TyphooN Risk Management",0,40,40,272,200))
       return(INIT_FAILED);
    ExtDialog.Run();
