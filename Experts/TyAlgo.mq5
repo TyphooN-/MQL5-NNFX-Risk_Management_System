@@ -10,8 +10,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -23,7 +22,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.001"
+#property version   "1.002"
 #property description "TyphooN's MQL5 Algo EA"
 #include <Trade\Trade.mqh>
 #include <Darwinex\DWEX Portfolio Risk Man.mqh>
@@ -38,30 +37,19 @@ int OrderDigits = 0;
 bool HasOpenPosition = false;
 CTrade Trade;
 CPortfolioRiskMan PortfolioRisk(VaRTimeframe, StdDevPeriods);
-ENUM_ORDER_TYPE_FILLING SelectFillingMode()
+// Function declarations
+ENUM_ORDER_TYPE_FILLING SelectFillingMode();
+void CreateAndSetObject(string name, int x_dist, int y_dist, color clr, int corner, string font = "Courier New", int size = 8);
+string FormatInfoString(string label, double value, int digits = 2, string prefix = "$");
+// Structure to store lots information
+struct LotsInfo
 {
-   long filling_modes = SymbolInfoInteger(_Symbol, SYMBOL_FILLING_MODE);
-   if ((filling_modes & ORDER_FILLING_IOC) != 0) return ORDER_FILLING_IOC;
-   if ((filling_modes & ORDER_FILLING_FOK) != 0) return ORDER_FILLING_FOK;
-   if ((filling_modes & ORDER_FILLING_BOC) != 0) return ORDER_FILLING_BOC;
-   if ((filling_modes & ORDER_FILLING_RETURN) != 0) return ORDER_FILLING_RETURN;
-   Print("None of the desired filling modes are supported. Unable to adjust filling mode.");
-   return -1;
-}
-void CreateAndSetObject(string name, int x_dist, int y_dist, color clr, int corner, string font = "Courier New", int size = 8)
-{
-   ObjectCreate(0, name, OBJ_LABEL, 0, 0, 0);
-   ObjectSetString(0, name, OBJPROP_FONT, font);
-   ObjectSetInteger(0, name, OBJPROP_FONTSIZE, size);
-   ObjectSetInteger(0, name, OBJPROP_XDISTANCE, x_dist);
-   ObjectSetInteger(0, name, OBJPROP_YDISTANCE, y_dist);
-   ObjectSetInteger(0, name, OBJPROP_COLOR, clr);
-   ObjectSetInteger(0, name, OBJPROP_CORNER, corner);
-}
-string FormatInfoString(string label, double value, int digits = 2, string prefix = "$")
-{
-   return label + ": " + (value >= 0 ? "" : "-") + prefix + DoubleToString(MathAbs(value), digits);
-}
+   double longLots;
+   double shortLots;
+};
+LotsInfo TallyPositionLots();
+bool HasOpenPosition(string sym, int orderType);
+// OnInit function
 void OnInit()
 {
    double volumeStep = SymbolInfoDouble(Symbol(), SYMBOL_VOLUME_STEP);
@@ -101,11 +89,14 @@ void OnInit()
    ObjectSetString(0, "infoTPRR", OBJPROP_TEXT, "TP RR: N/A");
    ObjectSetString(0, "infoRR", OBJPROP_TEXT, "RR : N/A");
 }
+// OnTick function
 void OnTick()
 {
    AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
    AccountEquity = AccountInfoDouble(ACCOUNT_EQUITY);
    double total_risk = 0, total_tpprofit = 0, total_pl = 0, total_tp = 0, total_margin = 0, rr = 0, tprr = 0, sl_risk = 0;
+   // Check Fisher Transform Bias
+   double fisherBias = GlobalVariableGet("FisherBias");
    for (int i = 0; i < PositionsTotal(); i++)
    {
       ulong ticket = PositionGetTicket(i);
@@ -163,52 +154,143 @@ void OnTick()
    ObjectSetString(0, "infoTP", OBJPROP_TEXT, FormatInfoString("TP P/L", total_tp));
    ObjectSetString(0, "infoTPRR", OBJPROP_TEXT, FormatInfoString("TP RR", tprr, 2, ""));
    ObjectSetString(0, "infoRR", OBJPROP_TEXT, infoRR);
+   // Position Handling based on Fisher Transform
    LotsInfo lots = TallyPositionLots();
    string infoPosition;
-   if(HasOpenPosition(_Symbol, POSITION_TYPE_BUY) || HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
+   if (HasOpenPosition(_Symbol, POSITION_TYPE_BUY) || HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
    {
       if (lots.longLots > 0 && lots.shortLots == 0)
       {
          infoPosition = "Long " + DoubleToString(lots.longLots, Digits()) + " Lots";
-         ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrLime);
-         ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrLime);
-         ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
-         if(PortfolioRisk.CalculateVaR(_Symbol, lots.longLots))
+         ObjectSetInteger(0, "infoPosition", OBJPROP_COLOR, clrLime);
+         ObjectSetInteger(0, "infoVaR", OBJPROP_COLOR, clrLime);
+         ObjectSetString(0, "infoPosition", OBJPROP_TEXT, infoPosition);
+         if (PortfolioRisk.CalculateVaR(_Symbol, lots.longLots))
          {
-            string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity  * 100), 2);
-            ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
+            string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR / AccountEquity * 100), 2);
+            ObjectSetString(0, "infoVaR", OBJPROP_TEXT, infoVaR);
          }
       }
       if (lots.shortLots > 0 && lots.longLots == 0)
       {
          infoPosition = "Short " + DoubleToString(lots.shortLots, Digits()) + " Lots";
-         ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrRed);
-         ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrRed);
-         ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
-         if(PortfolioRisk.CalculateVaR(_Symbol, lots.shortLots))
+         ObjectSetInteger(0, "infoPosition", OBJPROP_COLOR, clrRed);
+         ObjectSetInteger(0, "infoVaR", OBJPROP_COLOR, clrRed);
+         ObjectSetString(0, "infoPosition", OBJPROP_TEXT, infoPosition);
+         if (PortfolioRisk.CalculateVaR(_Symbol, lots.shortLots))
          {
-            string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity  * 100), 2);
-            ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
+            string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR / AccountEquity * 100), 2);
+            ObjectSetString(0, "infoVaR", OBJPROP_TEXT, infoVaR);
          }
       }
       if (lots.shortLots > 0 && lots.longLots > 0)
       {
          infoPosition = DoubleToString(lots.longLots, Digits()) + " Long / " + DoubleToString(lots.shortLots, Digits()) + " Short";
-         ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrWhite);
-         ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
-         if(PortfolioRisk.CalculateVaR(_Symbol, (lots.longLots + lots.shortLots)))
+         ObjectSetInteger(0, "infoPosition", OBJPROP_COLOR, clrWhite);
+         ObjectSetString(0, "infoPosition", OBJPROP_TEXT, infoPosition);
+         if (PortfolioRisk.CalculateVaR(_Symbol, (lots.longLots + lots.shortLots)))
          {
-            string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2);
-            ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
+            string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR / AccountEquity * 100), 2);
+            ObjectSetString(0, "infoVaR", OBJPROP_TEXT, infoVaR);
+         }
+      }
+   }
+   // Fisher Transform Entry and Exit Logic
+   double lotSize = 0;
+   if (PortfolioRisk.CalculateLotSizeBasedOnVaR(_Symbol, VaRConfidence, AccountEquity, RiskVaRPercent, lotSize))
+   {
+      lotSize = NormalizeDouble(lotSize, OrderDigits);
+   }
+   // Enter Buy Position
+   if (fisherBias > 0 && !HasOpenPosition(_Symbol, POSITION_TYPE_BUY))
+   {
+      if (Trade.Buy(lotSize))
+      {
+         Print("Buy position opened with lot size: ", lotSize);
+      }
+      else
+      {
+         Print("Error opening Buy position: ", GetLastError());
+      }
+   }
+   // Enter Sell Position
+   if (fisherBias < 0 && !HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
+   {
+      if (Trade.Sell(lotSize))
+      {
+         Print("Sell position opened with lot size: ", lotSize);
+      }
+      else
+      {
+         Print("Error opening Sell position: ", GetLastError());
+      }
+   }
+   // Exit Buy Position
+   if (fisherBias < 0 && HasOpenPosition(_Symbol, POSITION_TYPE_BUY))
+   {
+      for (int i = PositionsTotal() - 1; i >= 0; i--)
+      {
+         ulong ticket = PositionGetTicket(i);
+         if (PositionSelectByTicket(ticket) && PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
+         {
+            if (Trade.PositionClose(PositionGetTicket(i)))
+            {
+               Print("Closed Buy position with ticket: ", PositionGetTicket(i));
+            }
+            else
+            {
+               Print("Error closing Buy position: ", GetLastError());
+            }
+         }
+      }
+   }
+   // Exit Sell Position
+   if (fisherBias > 0 && HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
+   {
+      for (int i = PositionsTotal() - 1; i >= 0; i--)
+      {
+         ulong ticket = PositionGetTicket(i);
+         if (PositionSelectByTicket(i) && PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL)
+         {
+            if (Trade.PositionClose(PositionGetTicket(i)))
+            {
+               Print("Closed Sell position with ticket: ", PositionGetTicket(i));
+            }
+            else
+            {
+               Print("Error closing Sell position: ", GetLastError());
+            }
          }
       }
    }
 }
-struct LotsInfo
+// Function to select the filling mode
+ENUM_ORDER_TYPE_FILLING SelectFillingMode()
 {
-   double longLots;
-   double shortLots;
-};
+   long filling_modes = SymbolInfoInteger(_Symbol, SYMBOL_FILLING_MODE);
+   if ((filling_modes & ORDER_FILLING_IOC) != 0) return ORDER_FILLING_IOC;
+   if ((filling_modes & ORDER_FILLING_FOK) != 0) return ORDER_FILLING_FOK;
+   if ((filling_modes & ORDER_FILLING_BOC) != 0) return ORDER_FILLING_BOC;
+   if ((filling_modes & ORDER_FILLING_RETURN) != 0) return ORDER_FILLING_RETURN;
+   Print("None of the desired filling modes are supported. Unable to adjust filling mode.");
+   return -1;
+}
+// Function to create and set properties of an object
+void CreateAndSetObject(string name, int x_dist, int y_dist, color clr, int corner, string font = "Courier New", int size = 8)
+{
+   ObjectCreate(0, name, OBJ_LABEL, 0, 0, 0);
+   ObjectSetString(0, name, OBJPROP_FONT, font);
+   ObjectSetInteger(0, name, OBJPROP_FONTSIZE, size);
+   ObjectSetInteger(0, name, OBJPROP_XDISTANCE, x_dist);
+   ObjectSetInteger(0, name, OBJPROP_YDISTANCE, y_dist);
+   ObjectSetInteger(0, name, OBJPROP_COLOR, clr);
+   ObjectSetInteger(0, name, OBJPROP_CORNER, corner);
+}
+// Function to format information string
+string FormatInfoString(string label, double value, int digits = 2, string prefix = "$")
+{
+   return label + ": " + (value >= 0 ? "" : "-") + prefix + DoubleToString(MathAbs(value), digits);
+}
 // Function to tally up the lots on all open positions and return the results
 LotsInfo TallyPositionLots()
 {
@@ -217,23 +299,23 @@ LotsInfo TallyPositionLots()
    lotsInfo.shortLots = 0.0;
    string currentSymbol = Symbol(); // Get the symbol of the chart the EA is attached to
    // Loop through all open positions
-   for(int i = 0; i < PositionsTotal(); i++)
+   for (int i = 0; i < PositionsTotal(); i++)
    {
       ulong ticket = PositionGetTicket(i);
-      if(PositionSelectByTicket(ticket))
+      if (PositionSelectByTicket(ticket))
       {
-         if(PositionGetString(POSITION_SYMBOL) == _Symbol) // Check if the position's symbol matches the current chart symbol
+         if (PositionGetString(POSITION_SYMBOL) == _Symbol) // Check if the position's symbol matches the current chart symbol
          {
             // Get the type of the position
             int posType = (int)PositionGetInteger(POSITION_TYPE);
             // Get the lot size of the position
             double lotSize = PositionGetDouble(POSITION_VOLUME);
             // Check if it's a buy position
-            if(posType == POSITION_TYPE_BUY)
+            if (posType == POSITION_TYPE_BUY)
             {
                lotsInfo.longLots += lotSize;
             }
-            else if(posType == POSITION_TYPE_SELL)
+            else if (posType == POSITION_TYPE_SELL)
             {
                lotsInfo.shortLots += lotSize;
             }
@@ -242,11 +324,12 @@ LotsInfo TallyPositionLots()
    }
    return lotsInfo;
 }
-bool HasOpenPosition(string sym, int orderType) 
+// Function to check if there is an open position of the specified type for the given symbol
+bool HasOpenPosition(string sym, int orderType)
 {
-   for(int i = 0; i < PositionsTotal(); i++) 
+   for (int i = 0; i < PositionsTotal(); i++)
    {
-      if(PositionGetSymbol(i) == sym && PositionGetInteger(POSITION_TYPE) == orderType)
+      if (PositionGetSymbol(i) == sym && PositionGetInteger(POSITION_TYPE) == orderType)
       {
          return true;
       }
