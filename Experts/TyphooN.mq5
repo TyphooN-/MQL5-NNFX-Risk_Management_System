@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.365"
+#property version   "1.366"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -49,6 +49,16 @@ double TickSize( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRA
 double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_VALUE ) ); }
 enum OrderModeEnum { Standard, Fixed, Dynamic, VaR };
 enum VaRModeEnum { PercentVaR, NotionalVaR };
+ENUM_ORDER_TYPE_FILLING SelectFillingMode()
+{
+   long filling_modes = SymbolInfoInteger(_Symbol, SYMBOL_FILLING_MODE);
+   if ((filling_modes & ORDER_FILLING_IOC) != 0) return ORDER_FILLING_IOC;
+   if ((filling_modes & ORDER_FILLING_FOK) != 0) return ORDER_FILLING_FOK;
+   if ((filling_modes & ORDER_FILLING_BOC) != 0) return ORDER_FILLING_BOC;
+   if ((filling_modes & ORDER_FILLING_RETURN) != 0) return ORDER_FILLING_RETURN;
+   Print("None of the desired filling modes are supported. Unable to adjust filling mode.");
+   return -1;
+}
 // input vars
 input group           "[EXPERT ADVISOR SETTINGS]";
 input int             MagicNumber                = 13;
@@ -60,17 +70,17 @@ input double          AdditionalRiskRatio        = 0.25;
 input OrderModeEnum   OrderMode = VaR;
 input group           "[VALUE AT RISK (VaR) RISK MODE]"
 input VaRModeEnum     VaRRiskMode = PercentVaR;
-input double          RiskVaRPercent  = 1.0;
-input double          RiskVaRNotional = 10000;
+input double          RiskVaRPercent  = 0.9;
+input double          RiskVaRNotional = 9001;
 input ENUM_TIMEFRAMES VaRTimeframe   = PERIOD_D1;
 input int             StdDevPeriods  = 21;
 input double          VaRConfidence  = 0.95;
-input group           "[STANDARD RISK MODE]";
-input double          MaxRisk                    = 1.0;
-input double          Risk                       = 0.5;
 input group           "[FIXED LOTS MODE]";
 input double          FixedLots                  = 20;
 input int             FixedOrdersToPlace         = 2;
+input group           "[STANDARD RISK MODE]";
+input double          MaxRisk                    = 1.0;
+input double          Risk                       = 0.5;
 input group           "[DYNAMIC RISK MODE]";
 input double          MinAccountBalance          = 96100;
 input int             LossesToMinBalance         = 10;
@@ -85,9 +95,9 @@ input double          TargetEquitySL             = 98000;
 input group           "[PYRAMID MODE SETTINGS]"
 input bool            EnablePyramid = false;
 input double          PyramidLotSize = 1.0;
-input double          PyramidFreeMarginTrigger = 20000;
-input double          PyramidFreeMarginBuffer = 10000;
-input double          PyramidTargetLots = 333;
+input double          PyramidFreeMarginTrigger = 31337;
+input double          PyramidFreeMarginBuffer = 9001;
+input double          PyramidTargetLots = 69;
 input int             PyramidCooldown = 420;
 input string          PyramidComment = "420 Pyramid";
 input group           "[DISCORD ANNOUNCEMENT SETTINGS]"
@@ -98,7 +108,7 @@ CPortfolioRiskMan PortfolioRisk(VaRTimeframe, StdDevPeriods); // Darwinex VaR wr
 datetime LastPyramidTime = 0;
 double PyramidLotsOpened = 0, TP = 0, SL = 0, Bid = 0, Ask = 0, prevBidPrice = 0.0,
        prevAskPrice = 0.0, order_risk_money = 0, DynamicRisk = 0, AccountBalance = 0,
-       required_margin = 0, account_equity = 0, percent_risk = 0;
+       required_margin = 0, AccountEquity = 0, percent_risk = 0;
 bool AutoProtectCalled = false, LimitLineExists = false, EquityTPCalled = false,
      EquitySLCalled = false, HasOpenPosition = false, breakEvenFound = false;
 int OrderDigits = 0;
@@ -179,29 +189,18 @@ TyWindow::TyWindow(void){}
 TyWindow::~TyWindow(void){}
 bool TyWindow::Create(const long chart,const string name,const int subwin,const int x1,const int y1,const int x2,const int y2)
 {
-   if(!CAppDialog::Create(chart,name,subwin,x1,y1,x2,y2))
-      return(false);
+   if(!CAppDialog::Create(chart,name,subwin,x1,y1,x2,y2)){ return(false); }
    // create dependent controls
-   if(!CreateButtonTrade())
-      return(false);
-   if(!CreateButtonLimit())
-      return(false);
-   if(!CreateButtonBuyLines())
-      return(false);
-   if(!CreateButtonSellLines())
-      return(false);
-   if(!CreateButtonDestroyLines())
-      return(false);
-   if(!CreateButtonProtect())
-      return(false);
-   if(!CreateButtonCloseAll())
-      return(false);
-   if(!CreateButtonClosePartial())
-      return(false);
-   if(!CreateButtonSetSL())
-      return(false);
-   if(!CreateButtonSetTP())
-      return(false);
+   if(!CreateButtonTrade()) { return(false); }
+   if(!CreateButtonLimit()){ return(false); }
+   if(!CreateButtonBuyLines()){ return(false); }
+   if(!CreateButtonSellLines()){ return(false); }
+   if(!CreateButtonDestroyLines()){ return(false); }
+   if(!CreateButtonProtect()) { return(false); }
+   if(!CreateButtonCloseAll()){ return(false); }
+   if(!CreateButtonClosePartial()){ return(false); }
+   if(!CreateButtonSetSL()){ return(false); }
+   if(!CreateButtonSetTP()){ return(false); }
    return(true);
 }
 // Global Variable
@@ -218,6 +217,10 @@ void CreateAndSetObjectProperties(string name, int xDistance, int yDistance, int
 }
 int OnInit()
 {
+   if (!IsTradeAllowed(_Symbol))
+   {
+      return INIT_FAILED; // Exit if trading is not allowed
+   }
    // Get the volume step for the current symbol
    double volumeStep = SymbolInfoDouble(Symbol(), SYMBOL_VOLUME_STEP);
    // Convert the volume step to a string
@@ -239,7 +242,7 @@ int OnInit()
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
-   account_equity = AccountInfoDouble(ACCOUNT_EQUITY);
+   AccountEquity = AccountInfoDouble(ACCOUNT_EQUITY);
    int LeftColumnX = 310;
    int RightColumnX = 150;
    int YRowWidth = 13;
@@ -255,7 +258,6 @@ int OnInit()
    CreateAndSetObjectProperties("infoW1", LeftColumnX, YRowWidth * 7);
    CreateAndSetObjectProperties("infoD1", RightColumnX, YRowWidth * 6);
    CreateAndSetObjectProperties("infoMN1", RightColumnX, YRowWidth * 7);
-   // Initial text settings
    string infoPosition = "No Positions Detected";
    ObjectSetString(0, "infoPosition", OBJPROP_TEXT, infoPosition);
    ObjectSetString(0, "infoVaR", OBJPROP_TEXT, "VaR %: 0.00");
@@ -458,11 +460,6 @@ bool IsTradeAllowed(const string symbol)
 }
 bool PlacePyramidOrders()
 {
-   if (!IsTradeAllowed(_Symbol))
-   {
-      Print("Trade not allowed for symbol: ", _Symbol);
-      return false;
-   }
    // Check if pyramid orders are enabled
    if (!EnablePyramid)
    {
@@ -618,7 +615,7 @@ void OnTick()
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
-   account_equity = AccountInfoDouble(ACCOUNT_EQUITY);
+   AccountEquity = AccountInfoDouble(ACCOUNT_EQUITY);
    // Check if both bid and ask prices have changed from the previous tick
    if (Bid == prevBidPrice && Ask == prevAskPrice)
    {
@@ -636,7 +633,7 @@ void OnTick()
    double tprr = 0;
    double sl_risk = 0;
    double CurrentTick = SymbolInfoDouble(_Symbol, SYMBOL_LAST);
-   if (account_equity >= TargetEquityTP && EnableEquityTP == true && EquityTPCalled == false)
+   if (AccountEquity >= TargetEquityTP && EnableEquityTP == true && EquityTPCalled == false)
    {
       Print("Closing all positions across all symbols because Equity >= TargetEquityTP ($" + DoubleToString(TargetEquityTP, 2) + ").");
       if (CloseAllPositionsOnAllSymbols())
@@ -646,7 +643,7 @@ void OnTick()
         Alert("EquityTP closed all positions on all symbols. New account balance: " + DoubleToString(AccountBalance, 2));
       }
    }
-   if (account_equity < TargetEquitySL && EnableEquitySL == true && EquitySLCalled == false)
+   if (AccountEquity < TargetEquitySL && EnableEquitySL == true && EquitySLCalled == false)
    {
       Print("Closing all positions across all symbols because Equity < TargetEquitySL ($" + DoubleToString(TargetEquitySL, 2) + ").");
       if (CloseAllPositionsOnAllSymbols())
@@ -855,7 +852,7 @@ void OnTick()
          ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
          if(PortfolioRisk.CalculateVaR(_Symbol, lots.longLots))
          {
-            string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/account_equity  * 100), 2);
+            string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity  * 100), 2);
             ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
          }
       }
@@ -867,7 +864,7 @@ void OnTick()
          ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
          if(PortfolioRisk.CalculateVaR(_Symbol, lots.shortLots))
          {
-            string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/account_equity  * 100), 2);
+            string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity  * 100), 2);
             ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
          }
       }
@@ -878,7 +875,7 @@ void OnTick()
          ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
          if(PortfolioRisk.CalculateVaR(_Symbol, (lots.longLots + lots.shortLots)))
          {
-            string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/account_equity * 100), 2);
+            string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2);
             ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
          }
       }
@@ -1329,7 +1326,7 @@ void TyWindow::OnClickTrade(void)
    }
    if (OrderMode == VaR && VaRRiskMode == PercentVaR)
    {
-      if (PortfolioRisk.CalculateLotSizeBasedOnVaR(_Symbol, VaRConfidence, account_equity, RiskVaRPercent, OrderLots))
+      if (PortfolioRisk.CalculateLotSizeBasedOnVaR(_Symbol, VaRConfidence, AccountEquity, RiskVaRPercent, OrderLots))
       {
          OrderLots = NormalizeDouble(OrderLots, OrderDigits);
       }
@@ -1376,28 +1373,7 @@ void TyWindow::OnClickTrade(void)
    request.magic = MagicNumber;
    request.sl = SL;
    request.tp = TP;
-   long filling_modes = SymbolInfoInteger(_Symbol, SYMBOL_FILLING_MODE);
-   if ((filling_modes & ORDER_FILLING_IOC) != 0)
-   {
-      request.type_filling = ORDER_FILLING_IOC;
-   }
-   else if ((filling_modes & ORDER_FILLING_FOK) != 0)
-   {
-      request.type_filling = ORDER_FILLING_FOK;
-   }
-   else if ((filling_modes & ORDER_FILLING_BOC) != 0)
-   {
-      request.type_filling = ORDER_FILLING_BOC;
-   }
-   else if ((filling_modes & ORDER_FILLING_RETURN) != 0)
-   {
-      request.type_filling = ORDER_FILLING_RETURN;
-   }
-   else
-   {
-      Print("None of the desired filling modes are supported. Unable to adjust filling mode.");
-      return;
-   }
+   request.type_filling = SelectFillingMode();
    if (TP > SL)
    {
       request.action = TRADE_ACTION_DEAL;
