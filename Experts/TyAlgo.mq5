@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.000"
+#property version   "1.001"
 #property description "TyphooN's MQL5 Algo EA"
 #include <Trade\Trade.mqh>
 #include <Darwinex\DWEX Portfolio Risk Man.mqh>
@@ -157,12 +157,99 @@ void OnTick()
       infoRisk = "Risk: $" + DoubleToString(MathAbs(total_risk), 0) + " (" + DoubleToString(percent_risk, 2) + "%)";
       infoPL = "Total P/L: $" + DoubleToString(total_pl, 0) + " (" + DoubleToString((total_pl / AccountBalance) * 100, 2) + "%)";
    }
-   string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity  * 100), 2);
-   ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
    ObjectSetString(0, "infoRisk", OBJPROP_TEXT, infoRisk);
    ObjectSetString(0, "infoPL", OBJPROP_TEXT, infoPL);
    ObjectSetString(0, "infoSLPL", OBJPROP_TEXT, FormatInfoString("SL P/L", total_risk));
    ObjectSetString(0, "infoTP", OBJPROP_TEXT, FormatInfoString("TP P/L", total_tp));
    ObjectSetString(0, "infoTPRR", OBJPROP_TEXT, FormatInfoString("TP RR", tprr, 2, ""));
    ObjectSetString(0, "infoRR", OBJPROP_TEXT, infoRR);
+   LotsInfo lots = TallyPositionLots();
+   string infoPosition;
+   if(HasOpenPosition(_Symbol, POSITION_TYPE_BUY) || HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
+   {
+      if (lots.longLots > 0 && lots.shortLots == 0)
+      {
+         infoPosition = "Long " + DoubleToString(lots.longLots, Digits()) + " Lots";
+         ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrLime);
+         ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrLime);
+         ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
+         if(PortfolioRisk.CalculateVaR(_Symbol, lots.longLots))
+         {
+            string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity  * 100), 2);
+            ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
+         }
+      }
+      if (lots.shortLots > 0 && lots.longLots == 0)
+      {
+         infoPosition = "Short " + DoubleToString(lots.shortLots, Digits()) + " Lots";
+         ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrRed);
+         ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrRed);
+         ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
+         if(PortfolioRisk.CalculateVaR(_Symbol, lots.shortLots))
+         {
+            string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity  * 100), 2);
+            ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
+         }
+      }
+      if (lots.shortLots > 0 && lots.longLots > 0)
+      {
+         infoPosition = DoubleToString(lots.longLots, Digits()) + " Long / " + DoubleToString(lots.shortLots, Digits()) + " Short";
+         ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrWhite);
+         ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
+         if(PortfolioRisk.CalculateVaR(_Symbol, (lots.longLots + lots.shortLots)))
+         {
+            string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2);
+            ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
+         }
+      }
+   }
+}
+struct LotsInfo
+{
+   double longLots;
+   double shortLots;
+};
+// Function to tally up the lots on all open positions and return the results
+LotsInfo TallyPositionLots()
+{
+   LotsInfo lotsInfo;
+   lotsInfo.longLots = 0.0;
+   lotsInfo.shortLots = 0.0;
+   string currentSymbol = Symbol(); // Get the symbol of the chart the EA is attached to
+   // Loop through all open positions
+   for(int i = 0; i < PositionsTotal(); i++)
+   {
+      ulong ticket = PositionGetTicket(i);
+      if(PositionSelectByTicket(ticket))
+      {
+         if(PositionGetString(POSITION_SYMBOL) == _Symbol) // Check if the position's symbol matches the current chart symbol
+         {
+            // Get the type of the position
+            int posType = (int)PositionGetInteger(POSITION_TYPE);
+            // Get the lot size of the position
+            double lotSize = PositionGetDouble(POSITION_VOLUME);
+            // Check if it's a buy position
+            if(posType == POSITION_TYPE_BUY)
+            {
+               lotsInfo.longLots += lotSize;
+            }
+            else if(posType == POSITION_TYPE_SELL)
+            {
+               lotsInfo.shortLots += lotSize;
+            }
+         }
+      }
+   }
+   return lotsInfo;
+}
+bool HasOpenPosition(string sym, int orderType) 
+{
+   for(int i = 0; i < PositionsTotal(); i++) 
+   {
+      if(PositionGetSymbol(i) == sym && PositionGetInteger(POSITION_TYPE) == orderType)
+      {
+         return true;
+      }
+   }
+   return false;
 }
