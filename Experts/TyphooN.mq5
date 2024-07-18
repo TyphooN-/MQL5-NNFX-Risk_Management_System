@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.367"
+#property version   "1.368"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -276,6 +276,7 @@ int OnInit()
    {
       var_1_lot = PortfolioRisk.SinglePositionVaR;
       infoPosition = "VaR 1 lot: " + DoubleToString(var_1_lot, 2);
+      ObjectSetString(0, "infoPosition", OBJPROP_TEXT, infoPosition);
    }
    if(!ExtDialog.Create(0,"TyphooN Risk Management",0,40,40,272,200))
       return(INIT_FAILED);
