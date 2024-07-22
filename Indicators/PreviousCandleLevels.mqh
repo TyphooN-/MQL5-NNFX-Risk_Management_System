@@ -142,7 +142,7 @@ void DeleteHorizontalLine(string label)
 }
 void DrawLines()
 {
-   if (_Period <= PERIOD_H1)
+   if (_Period < PERIOD_H1)
    {      
       DrawHorizontalLine(Previous_H1_High, objname1 + "H1_High", PreviousCandleColour, iTime(_Symbol, PERIOD_H1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Previous_H1_Low, objname1 + "H1_Low", PreviousCandleColour, iTime(_Symbol, PERIOD_H1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
@@ -161,7 +161,7 @@ void DrawLines()
       DrawHorizontalLine(Current_MN1_High, objname2 + "MN1_High", JudasLevelColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
       DrawHorizontalLine(Current_MN1_Low, objname2 + "MN1_Low", JudasLevelColour, iTime(_Symbol, PERIOD_MN1, 1), iTime(_Symbol, PERIOD_CURRENT, 0));
    }
-   if(_Period >= PERIOD_H2 && _Period <= PERIOD_H8)
+   if(_Period >= PERIOD_H1 && _Period <= PERIOD_H8)
    {
       DeleteHorizontalLine(objname1 + "H1_High");
       DeleteHorizontalLine(objname1 + "H1_Low");
