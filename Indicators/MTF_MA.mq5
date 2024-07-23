@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.marketwizardry.info"
-#property version   "1.069"
+#property version   "1.068"
 #property indicator_chart_window
 #property indicator_buffers 41
 #property indicator_plots   8
@@ -183,7 +183,6 @@ int OnInit()
    HandleD1_100SMA = iMA(NULL, PERIOD_D1, 100, 0, MODE_SMA, MAPrice);
    HandleW1_100SMA = iMA(NULL, PERIOD_W1, 100, 0, MODE_SMA, MAPrice);
    HandleMN1_100SMA = iMA(NULL, PERIOD_MN1, 100, 0, MODE_SMA, MAPrice);
-   UpdateBuffers(0);
    return 0;
 }
 void OnDeinit(const int pReason)
@@ -376,7 +375,7 @@ int OnCalculate(const int rates_total,
     //  Print("New candle has formed, updating MA Data");
       // Update the last checked candle index
       lastCheckedCandle = rates_total - 1;
-      UpdateBuffers(rates_total);
+      UpdateBuffers();
       // Restart the timer
       isTimerStarted = false;
    }
@@ -395,7 +394,14 @@ int OnCalculate(const int rates_total,
    {
       //Print("One minute has passed, updating MA Data");
       prevTime = currentTime;
-      UpdateBuffers(rates_total);
+      UpdateBuffers();
+   }
+   static int waitCount = 10;
+   if (waitCount > 0)
+   {
+      UpdateBuffers();
+      waitCount--;
+      return prev_calculated;
    }
    string objnameInfo1 = objname + "Info1";
    if (ObjectFind(0, objnameInfo1) == -1)
@@ -663,49 +669,49 @@ int OnCalculate(const int rates_total,
    UpdateInfoLabel("W1", is10_20cross_W1, "10_20");
    return rates_total;
 }
-void UpdateBuffers(int rates_total)
+void UpdateBuffers()
 {
-   WaitForIndicatorData(HandleM1_200SMA, MABufferM1_200SMA, rates_total, "M1_200SMA");
-   WaitForIndicatorData(HandleM5_200SMA, MABufferM5_200SMA, rates_total, "M5_200SMA");
-   WaitForIndicatorData(HandleM15_200SMA, MABufferM15_200SMA, rates_total, "M15_200SMA");
-   WaitForIndicatorData(HandleM30_200SMA, MABufferM30_200SMA, rates_total, "M30_200SMA");
-   WaitForIndicatorData(HandleH1_200SMA, MABufferH1_200SMA, rates_total, "H1_200SMA");
-   WaitForIndicatorData(HandleH4_200SMA,MABufferH4_200SMA, rates_total, "H4_200SMA");
-   WaitForIndicatorData(HandleD1_200SMA, MABufferD1_200SMA, rates_total, "D1_200SMA");
-   WaitForIndicatorData(HandleW1_200SMA, MABufferW1_200SMA, rates_total, "W1_200SMA");
-   WaitForIndicatorData(HandleM1_50SMA, MABufferM1_50SMA, rates_total, "M1_50SMA");
-   WaitForIndicatorData(HandleM5_50SMA, MABufferM5_50SMA, rates_total, "M5_50SMA");
-   WaitForIndicatorData(HandleM15_50SMA, MABufferM15_50SMA, rates_total, "M15_50SMA");
-   WaitForIndicatorData(HandleM30_50SMA, MABufferM30_50SMA, rates_total, "M30_50SMA");
-   WaitForIndicatorData(HandleH1_50SMA, MABufferH1_50SMA, rates_total, "H1_50SMA");
-   WaitForIndicatorData(HandleH4_50SMA, MABufferH4_50SMA, rates_total, "H4_50SMA");
-   WaitForIndicatorData(HandleD1_50SMA, MABufferD1_50SMA, rates_total, "D1_50SMA");
-   WaitForIndicatorData(HandleW1_50SMA, MABufferW1_50SMA, rates_total, "W1_50SMA");
-   WaitForIndicatorData(HandleM1_20SMA, MABufferM1_20SMA, rates_total, "M1_20SMA");
-   WaitForIndicatorData(HandleM5_20SMA, MABufferM5_20SMA, rates_total, "M5_20SMA");
-   WaitForIndicatorData(HandleM15_20SMA, MABufferM15_20SMA, rates_total, "M15_20SMA");
-   WaitForIndicatorData(HandleM30_20SMA, MABufferM30_20SMA, rates_total, "M30_20SMA");
-   WaitForIndicatorData(HandleH1_20SMA, MABufferH1_20SMA, rates_total, "H1_20SMA");
-   WaitForIndicatorData(HandleH4_20SMA, MABufferH4_20SMA, rates_total, "H4_20SMA");
-   WaitForIndicatorData(HandleD1_20SMA, MABufferD1_20SMA, rates_total, "D1_20SMA");
-   WaitForIndicatorData(HandleW1_20SMA, MABufferW1_20SMA, rates_total, "W1_20SMA");
-   WaitForIndicatorData(HandleM1_10SMA, MABufferM1_10SMA, rates_total, "M1_10SMA");
-   WaitForIndicatorData(HandleM5_10SMA, MABufferM5_10SMA, rates_total, "M5_10SMA");
-   WaitForIndicatorData(HandleM15_10SMA, MABufferM15_10SMA, rates_total, "M15_10SMA");
-   WaitForIndicatorData(HandleM30_10SMA, MABufferM30_10SMA, rates_total, "M30_10SMA");
-   WaitForIndicatorData(HandleH1_10SMA, MABufferH1_10SMA, rates_total, "H1_10SMA");
-   WaitForIndicatorData(HandleH4_10SMA, MABufferH4_10SMA, rates_total, "H4_10SMA");
-   WaitForIndicatorData(HandleD1_10SMA, MABufferD1_10SMA, rates_total, "D1_10SMA");
-   WaitForIndicatorData(HandleW1_10SMA, MABufferW1_10SMA, rates_total, "W1_10SMA");
-   WaitForIndicatorData(HandleM1_100SMA, MABufferM1_100SMA, rates_total, "M1_100SMA");
-   WaitForIndicatorData(HandleM5_100SMA, MABufferM5_100SMA, rates_total, "M5_100SMA");
-   WaitForIndicatorData(HandleM15_100SMA, MABufferM15_100SMA, rates_total, "M15_100SMA");
-   WaitForIndicatorData(HandleM30_100SMA, MABufferM30_100SMA, rates_total, "M30_100SMA");
-   WaitForIndicatorData(HandleH1_100SMA, MABufferH1_100SMA, rates_total, "H1_100SMA");
-   WaitForIndicatorData(HandleH4_100SMA, MABufferH4_100SMA, rates_total, "H4_100SMA");
-   WaitForIndicatorData(HandleD1_100SMA, MABufferD1_100SMA, rates_total, "D1_100SMA");
-   WaitForIndicatorData(HandleW1_100SMA, MABufferW1_100SMA, rates_total, "W1_100SMA");
-   WaitForIndicatorData(HandleMN1_100SMA, MABufferMN1_100SMA, rates_total, "MN1_100SMA");
+   CopyBuffer(HandleM1_200SMA, 0, 0, BufferSize(MABufferM1_200SMA), MABufferM1_200SMA);
+   CopyBuffer(HandleM5_200SMA, 0, 0, BufferSize(MABufferM5_200SMA), MABufferM5_200SMA);
+   CopyBuffer(HandleM15_200SMA, 0, 0, BufferSize(MABufferM15_200SMA), MABufferM15_200SMA);
+   CopyBuffer(HandleM30_200SMA, 0, 0, BufferSize(MABufferM30_200SMA), MABufferM30_200SMA);
+   CopyBuffer(HandleH1_200SMA, 0, 0, BufferSize(MABufferH1_200SMA), MABufferH1_200SMA);
+   CopyBuffer(HandleH4_200SMA, 0, 0, BufferSize(MABufferH4_200SMA), MABufferH4_200SMA);
+   CopyBuffer(HandleD1_200SMA, 0, 0, BufferSize(MABufferD1_200SMA), MABufferD1_200SMA);
+   CopyBuffer(HandleW1_200SMA, 0, 0, BufferSize(MABufferW1_200SMA), MABufferW1_200SMA);
+   CopyBuffer(HandleM1_50SMA, 0, 0, BufferSize(MABufferM1_50SMA), MABufferM1_50SMA);
+   CopyBuffer(HandleM5_50SMA, 0, 0, BufferSize(MABufferM5_50SMA), MABufferM5_50SMA);
+   CopyBuffer(HandleM15_50SMA, 0, 0, BufferSize(MABufferM15_50SMA), MABufferM15_50SMA);
+   CopyBuffer(HandleM30_50SMA, 0, 0, BufferSize(MABufferM30_50SMA), MABufferM30_50SMA);
+   CopyBuffer(HandleH1_50SMA, 0, 0, BufferSize(MABufferH1_50SMA), MABufferH1_50SMA);
+   CopyBuffer(HandleH4_50SMA, 0, 0, BufferSize(MABufferH4_50SMA), MABufferH4_50SMA);
+   CopyBuffer(HandleD1_50SMA, 0, 0, BufferSize(MABufferD1_50SMA), MABufferD1_50SMA);
+   CopyBuffer(HandleW1_50SMA, 0, 0, BufferSize(MABufferW1_50SMA), MABufferW1_50SMA);
+   CopyBuffer(HandleM1_20SMA, 0, 0, BufferSize(MABufferM1_20SMA), MABufferM1_20SMA);
+   CopyBuffer(HandleM5_20SMA, 0, 0, BufferSize(MABufferM5_20SMA), MABufferM5_20SMA);
+   CopyBuffer(HandleM15_20SMA, 0, 0, BufferSize(MABufferM15_20SMA), MABufferM15_20SMA);
+   CopyBuffer(HandleM30_20SMA, 0, 0, BufferSize(MABufferM30_20SMA), MABufferM30_20SMA);
+   CopyBuffer(HandleH1_20SMA, 0, 0, BufferSize(MABufferH1_20SMA), MABufferH1_20SMA);
+   CopyBuffer(HandleH4_20SMA, 0, 0, BufferSize(MABufferH4_20SMA), MABufferH4_20SMA);
+   CopyBuffer(HandleD1_20SMA, 0, 0, BufferSize(MABufferD1_20SMA), MABufferD1_20SMA);
+   CopyBuffer(HandleW1_20SMA, 0, 0, BufferSize(MABufferW1_20SMA), MABufferW1_20SMA);
+   CopyBuffer(HandleM1_10SMA, 0, 0, BufferSize(MABufferM1_10SMA), MABufferM1_10SMA);
+   CopyBuffer(HandleM5_10SMA, 0, 0, BufferSize(MABufferM5_10SMA), MABufferM5_10SMA);
+   CopyBuffer(HandleM15_10SMA, 0, 0, BufferSize(MABufferM15_10SMA), MABufferM15_10SMA);
+   CopyBuffer(HandleM30_10SMA, 0, 0, BufferSize(MABufferM30_10SMA), MABufferM30_10SMA);
+   CopyBuffer(HandleH1_10SMA, 0, 0, BufferSize(MABufferH1_10SMA), MABufferH1_10SMA);
+   CopyBuffer(HandleH4_10SMA, 0, 0, BufferSize(MABufferH4_10SMA), MABufferH4_10SMA);
+   CopyBuffer(HandleD1_10SMA, 0, 0, BufferSize(MABufferD1_10SMA), MABufferD1_10SMA);
+   CopyBuffer(HandleW1_10SMA, 0, 0, BufferSize(MABufferW1_10SMA), MABufferW1_10SMA);
+   CopyBuffer(HandleM1_100SMA, 0, 0, BufferSize(MABufferM1_100SMA), MABufferM1_100SMA);
+   CopyBuffer(HandleM5_100SMA, 0, 0, BufferSize(MABufferM5_100SMA), MABufferM5_100SMA);
+   CopyBuffer(HandleM15_100SMA, 0, 0, BufferSize(MABufferM15_100SMA), MABufferM15_100SMA);
+   CopyBuffer(HandleM30_100SMA, 0, 0, BufferSize(MABufferM30_100SMA), MABufferM30_100SMA);
+   CopyBuffer(HandleH1_100SMA, 0, 0, BufferSize(MABufferH1_100SMA), MABufferH1_100SMA);
+   CopyBuffer(HandleH4_100SMA, 0, 0, BufferSize(MABufferH4_100SMA), MABufferH4_100SMA);
+   CopyBuffer(HandleD1_100SMA, 0, 0, BufferSize(MABufferD1_100SMA), MABufferD1_100SMA);
+   CopyBuffer(HandleW1_100SMA, 0, 0, BufferSize(MABufferW1_100SMA), MABufferW1_100SMA);
+   CopyBuffer(HandleMN1_100SMA, 0, 0, BufferSize(MABufferMN1_100SMA), MABufferMN1_100SMA);
 }
 bool IsNewMinute(const datetime &currentTime, const datetime &prevTime)
 {
@@ -718,16 +724,11 @@ int BufferSize(const double &buffer[])
 {
    return ArraySize(buffer);
 }
-void WaitForIndicatorData(int handle, double &buffer[], int rates_total, string name)
+void EraseBufferValues(double& buffer[])
 {
-   if (CopyBuffer(handle, 0, 0, rates_total, buffer) > 0)
+   int bufferSize = BufferSize(buffer);
+   for (int i = 0; i < bufferSize; i++)
    {
-      return; // Successful copy
-   }
-   else
-   {
-         // Print the error and wait before retrying
-        // Print("Error in CopyBuffer for ", name, ": ", GetLastError(), ", retrying...");
-         Sleep(9000);
+      buffer[i] = EMPTY_VALUE;
    }
 }
