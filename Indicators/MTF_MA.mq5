@@ -728,6 +728,6 @@ void WaitForIndicatorData(int handle, double &buffer[], int rates_total, string 
    {
          // Print the error and wait before retrying
         // Print("Error in CopyBuffer for ", name, ": ", GetLastError(), ", retrying...");
-         Sleep(1000);
+         Sleep(3000);
    }
 }
