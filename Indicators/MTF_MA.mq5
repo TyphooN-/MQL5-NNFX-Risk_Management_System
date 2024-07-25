@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.marketwizardry.info"
-#property version   "1.068"
+#property version   "1.067"
 #property indicator_chart_window
 #property indicator_buffers 41
 #property indicator_plots   8
@@ -142,47 +142,6 @@ int OnInit()
    SetIndexBuffer(38, MABufferM15_100SMA, INDICATOR_DATA);
    SetIndexBuffer(39, MABufferM30_100SMA, INDICATOR_DATA);
    SetIndexBuffer(40, MABufferH1_100SMA, INDICATOR_DATA);
-   HandleM1_200SMA = iMA(NULL, PERIOD_M1, 200, 0, MODE_SMA, MAPrice);
-   HandleM5_200SMA = iMA(NULL, PERIOD_M5, 200, 0, MODE_SMA, MAPrice);
-   HandleM15_200SMA = iMA(NULL, PERIOD_M15, 200, 0, MODE_SMA, MAPrice);
-   HandleM30_200SMA = iMA(NULL, PERIOD_M30, 200, 0, MODE_SMA, MAPrice);
-   HandleH1_200SMA = iMA(NULL, PERIOD_H1, 200, 0, MODE_SMA, MAPrice);
-   HandleH4_200SMA = iMA(NULL, PERIOD_H4, 200, 0, MODE_SMA, MAPrice);
-   HandleD1_200SMA = iMA(NULL, PERIOD_D1, 200, 0, MODE_SMA, MAPrice);
-   HandleW1_200SMA = iMA(NULL, PERIOD_W1, 200, 0, MODE_SMA, MAPrice);
-   HandleM1_50SMA = iMA(NULL, PERIOD_M1, 50, 0, MODE_SMA, MAPrice);
-   HandleM5_50SMA = iMA(NULL, PERIOD_M5, 50, 0, MODE_SMA, MAPrice);
-   HandleM15_50SMA = iMA(NULL, PERIOD_M15, 50, 0, MODE_SMA, MAPrice);
-   HandleM30_50SMA = iMA(NULL, PERIOD_M30, 50, 0, MODE_SMA, MAPrice);
-   HandleH1_50SMA = iMA(NULL, PERIOD_H1, 50, 0, MODE_SMA, MAPrice);
-   HandleH4_50SMA = iMA(NULL, PERIOD_H4, 50, 0, MODE_SMA, MAPrice);
-   HandleD1_50SMA = iMA(NULL, PERIOD_D1, 50, 0, MODE_SMA, MAPrice);
-   HandleW1_50SMA = iMA(NULL, PERIOD_W1, 50, 0, MODE_SMA, MAPrice);
-   HandleM1_20SMA = iMA(NULL, PERIOD_M1, 20, 0, MODE_SMA, MAPrice);
-   HandleM5_20SMA = iMA(NULL, PERIOD_M5, 20, 0, MODE_SMA, MAPrice);
-   HandleM15_20SMA = iMA(NULL, PERIOD_M15, 20, 0, MODE_SMA, MAPrice);
-   HandleM30_20SMA = iMA(NULL, PERIOD_M30, 20, 0, MODE_SMA, MAPrice);
-   HandleH1_20SMA = iMA(NULL, PERIOD_H1, 20, 0, MODE_SMA, MAPrice);
-   HandleH4_20SMA = iMA(NULL, PERIOD_H4, 20, 0, MODE_SMA, MAPrice);
-   HandleD1_20SMA = iMA(NULL, PERIOD_D1, 20, 0, MODE_SMA, MAPrice);
-   HandleW1_20SMA = iMA(NULL, PERIOD_W1, 20, 0, MODE_SMA, MAPrice);
-   HandleM1_10SMA = iMA(NULL, PERIOD_M1, 10, 0, MODE_SMA, MAPrice);
-   HandleM5_10SMA = iMA(NULL, PERIOD_M5, 10, 0, MODE_SMA, MAPrice);
-   HandleM15_10SMA = iMA(NULL, PERIOD_M15, 10, 0, MODE_SMA, MAPrice);
-   HandleM30_10SMA = iMA(NULL, PERIOD_M30, 10, 0, MODE_SMA, MAPrice);
-   HandleH1_10SMA = iMA(NULL, PERIOD_H1, 10, 0, MODE_SMA, MAPrice);
-   HandleH4_10SMA = iMA(NULL, PERIOD_H4, 10, 0, MODE_SMA, MAPrice);
-   HandleD1_10SMA = iMA(NULL, PERIOD_D1, 10, 0, MODE_SMA, MAPrice);
-   HandleW1_10SMA = iMA(NULL, PERIOD_W1, 10, 0, MODE_SMA, MAPrice);
-   HandleM1_100SMA = iMA(NULL, PERIOD_M1, 100, 0, MODE_SMA, MAPrice);
-   HandleM5_100SMA = iMA(NULL, PERIOD_M5, 100, 0, MODE_SMA, MAPrice);
-   HandleM15_100SMA = iMA(NULL, PERIOD_M15, 100, 0, MODE_SMA, MAPrice);
-   HandleM30_100SMA = iMA(NULL, PERIOD_M30, 100, 0, MODE_SMA, MAPrice);
-   HandleH1_100SMA = iMA(NULL, PERIOD_H1, 100, 0, MODE_SMA, MAPrice);
-   HandleH4_100SMA = iMA(NULL, PERIOD_H4, 100, 0, MODE_SMA, MAPrice);
-   HandleD1_100SMA = iMA(NULL, PERIOD_D1, 100, 0, MODE_SMA, MAPrice);
-   HandleW1_100SMA = iMA(NULL, PERIOD_W1, 100, 0, MODE_SMA, MAPrice);
-   HandleMN1_100SMA = iMA(NULL, PERIOD_MN1, 100, 0, MODE_SMA, MAPrice);
    return 0;
 }
 void OnDeinit(const int pReason)
@@ -399,7 +358,7 @@ int OnCalculate(const int rates_total,
    static int waitCount = 10;
    if (waitCount > 0)
    {
-      UpdateBuffers();
+      UpdateBuffersOnCalculate(0, rates_total);
       waitCount--;
       return prev_calculated;
    }
@@ -670,6 +629,125 @@ int OnCalculate(const int rates_total,
    return rates_total;
 }
 void UpdateBuffers()
+{
+   // Clear buffer values before updating
+   EraseBufferValues(MABufferM1_200SMA);
+   EraseBufferValues(MABufferM5_200SMA);
+   EraseBufferValues(MABufferM15_200SMA);
+   EraseBufferValues(MABufferM30_200SMA);
+   EraseBufferValues(MABufferH1_200SMA);
+   EraseBufferValues(MABufferH4_200SMA);
+   EraseBufferValues(MABufferD1_200SMA);
+   EraseBufferValues(MABufferW1_200SMA);
+   EraseBufferValues(MABufferM1_50SMA);
+   EraseBufferValues(MABufferM5_50SMA);
+   EraseBufferValues(MABufferM15_50SMA);
+   EraseBufferValues(MABufferM30_50SMA);
+   EraseBufferValues(MABufferH1_50SMA);
+   EraseBufferValues(MABufferH4_50SMA);
+   EraseBufferValues(MABufferD1_50SMA);
+   EraseBufferValues(MABufferW1_50SMA);
+   EraseBufferValues(MABufferM1_20SMA);
+   EraseBufferValues(MABufferM5_20SMA);
+   EraseBufferValues(MABufferM15_20SMA);
+   EraseBufferValues(MABufferM30_20SMA);
+   EraseBufferValues(MABufferH1_20SMA);
+   EraseBufferValues(MABufferH4_20SMA);
+   EraseBufferValues(MABufferD1_20SMA);
+   EraseBufferValues(MABufferW1_20SMA);
+   EraseBufferValues(MABufferM1_10SMA);
+   EraseBufferValues(MABufferM5_10SMA);
+   EraseBufferValues(MABufferM15_10SMA);
+   EraseBufferValues(MABufferM30_10SMA);
+   EraseBufferValues(MABufferH1_10SMA);
+   EraseBufferValues(MABufferH4_10SMA);
+   EraseBufferValues(MABufferD1_10SMA);
+   EraseBufferValues(MABufferW1_10SMA);
+   EraseBufferValues(MABufferMN1_100SMA);
+   HandleM1_200SMA = iMA(NULL, PERIOD_M1, 200, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM1_200SMA, 0, 0, BufferSize(MABufferM1_200SMA), MABufferM1_200SMA);
+   HandleM5_200SMA = iMA(NULL, PERIOD_M5, 200, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM5_200SMA, 0, 0, BufferSize(MABufferM5_200SMA), MABufferM5_200SMA);
+   HandleM15_200SMA = iMA(NULL, PERIOD_M15, 200, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM15_200SMA, 0, 0, BufferSize(MABufferM15_200SMA), MABufferM15_200SMA);
+   HandleM30_200SMA = iMA(NULL, PERIOD_M30, 200, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM30_200SMA, 0, 0, BufferSize(MABufferM30_200SMA), MABufferM30_200SMA);
+   HandleH1_200SMA = iMA(NULL, PERIOD_H1, 200, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleH1_200SMA, 0, 0, BufferSize(MABufferH1_200SMA), MABufferH1_200SMA);
+   HandleH4_200SMA = iMA(NULL, PERIOD_H4, 200, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleH4_200SMA, 0, 0, BufferSize(MABufferH4_200SMA), MABufferH4_200SMA);
+   HandleD1_200SMA = iMA(NULL, PERIOD_D1, 200, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleD1_200SMA, 0, 0, BufferSize(MABufferD1_200SMA), MABufferD1_200SMA);
+   HandleW1_200SMA = iMA(NULL, PERIOD_W1, 200, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleW1_200SMA, 0, 0, BufferSize(MABufferW1_200SMA), MABufferW1_200SMA);
+   HandleM1_50SMA = iMA(NULL, PERIOD_M1, 50, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM1_50SMA, 0, 0, BufferSize(MABufferM1_50SMA), MABufferM1_50SMA);
+   HandleM5_50SMA = iMA(NULL, PERIOD_M5, 50, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM5_50SMA, 0, 0, BufferSize(MABufferM5_50SMA), MABufferM5_50SMA);
+   HandleM15_50SMA = iMA(NULL, PERIOD_M15, 50, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM15_50SMA, 0, 0, BufferSize(MABufferM15_50SMA), MABufferM15_50SMA);
+   HandleM30_50SMA = iMA(NULL, PERIOD_M30, 50, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM30_50SMA, 0, 0, BufferSize(MABufferM30_50SMA), MABufferM30_50SMA);
+   HandleH1_50SMA = iMA(NULL, PERIOD_H1, 50, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleH1_50SMA, 0, 0, BufferSize(MABufferH1_50SMA), MABufferH1_50SMA);
+   HandleH4_50SMA = iMA(NULL, PERIOD_H4, 50, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleH4_50SMA, 0, 0, BufferSize(MABufferH4_50SMA), MABufferH4_50SMA);
+   HandleD1_50SMA = iMA(NULL, PERIOD_D1, 50, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleD1_50SMA, 0, 0, BufferSize(MABufferD1_50SMA), MABufferD1_50SMA);
+   HandleW1_50SMA = iMA(NULL, PERIOD_W1, 50, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleW1_50SMA, 0, 0, BufferSize(MABufferW1_50SMA), MABufferW1_50SMA);
+   HandleM1_20SMA = iMA(NULL, PERIOD_M1, 20, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM1_20SMA, 0, 0, BufferSize(MABufferM1_20SMA), MABufferM1_20SMA);
+   HandleM5_20SMA = iMA(NULL, PERIOD_M5, 20, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM5_20SMA, 0, 0, BufferSize(MABufferM5_20SMA), MABufferM5_20SMA);
+   HandleM15_20SMA = iMA(NULL, PERIOD_M15, 20, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM15_20SMA, 0, 0, BufferSize(MABufferM15_20SMA), MABufferM15_20SMA);
+   HandleM30_20SMA = iMA(NULL, PERIOD_M30, 20, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM30_20SMA, 0, 0, BufferSize(MABufferM30_20SMA), MABufferM30_20SMA);
+   HandleH1_20SMA = iMA(NULL, PERIOD_H1, 20, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleH1_20SMA, 0, 0, BufferSize(MABufferH1_20SMA), MABufferH1_20SMA);
+   HandleH4_20SMA = iMA(NULL, PERIOD_H4, 20, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleH4_20SMA, 0, 0, BufferSize(MABufferH4_20SMA), MABufferH4_20SMA);
+   HandleD1_20SMA = iMA(NULL, PERIOD_D1, 20, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleD1_20SMA, 0, 0, BufferSize(MABufferD1_20SMA), MABufferD1_20SMA);
+   HandleW1_20SMA = iMA(NULL, PERIOD_W1, 20, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleW1_20SMA, 0, 0, BufferSize(MABufferW1_20SMA), MABufferW1_20SMA);
+   HandleM1_10SMA = iMA(NULL, PERIOD_M1, 10, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM1_10SMA, 0, 0, BufferSize(MABufferM1_10SMA), MABufferM1_10SMA);
+   HandleM5_10SMA = iMA(NULL, PERIOD_M5, 10, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM5_10SMA, 0, 0, BufferSize(MABufferM5_10SMA), MABufferM5_10SMA);
+   HandleM15_10SMA = iMA(NULL, PERIOD_M15, 10, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM15_10SMA, 0, 0, BufferSize(MABufferM15_10SMA), MABufferM15_10SMA);
+   HandleM30_10SMA = iMA(NULL, PERIOD_M30, 10, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM30_10SMA, 0, 0, BufferSize(MABufferM30_10SMA), MABufferM30_10SMA);
+   HandleH1_10SMA = iMA(NULL, PERIOD_H1, 10, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleH1_10SMA, 0, 0, BufferSize(MABufferH1_10SMA), MABufferH1_10SMA);
+   HandleH4_10SMA = iMA(NULL, PERIOD_H4, 10, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleH4_10SMA, 0, 0, BufferSize(MABufferH4_10SMA), MABufferH4_10SMA);
+   HandleD1_10SMA = iMA(NULL, PERIOD_D1, 10, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleD1_10SMA, 0, 0, BufferSize(MABufferD1_10SMA), MABufferD1_10SMA);
+   HandleW1_10SMA = iMA(NULL, PERIOD_W1, 10, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleW1_10SMA, 0, 0, BufferSize(MABufferW1_10SMA), MABufferW1_10SMA);
+   HandleM1_100SMA = iMA(NULL, PERIOD_M1, 100, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM1_100SMA, 0, 0, BufferSize(MABufferM1_100SMA), MABufferM1_100SMA);
+   HandleM5_100SMA = iMA(NULL, PERIOD_M5, 100, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM5_100SMA, 0, 0, BufferSize(MABufferM5_100SMA), MABufferM5_100SMA);
+   HandleM15_100SMA = iMA(NULL, PERIOD_M15, 100, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM15_100SMA, 0, 0, BufferSize(MABufferM15_100SMA), MABufferM15_100SMA);
+   HandleM30_100SMA = iMA(NULL, PERIOD_M30, 100, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleM30_100SMA, 0, 0, BufferSize(MABufferM30_100SMA), MABufferM30_100SMA);
+   HandleH1_100SMA = iMA(NULL, PERIOD_H1, 100, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleH1_100SMA, 0, 0, BufferSize(MABufferH1_100SMA), MABufferH1_100SMA);
+   HandleH4_100SMA = iMA(NULL, PERIOD_H4, 100, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleH4_100SMA, 0, 0, BufferSize(MABufferH4_100SMA), MABufferH4_100SMA);
+   HandleD1_100SMA = iMA(NULL, PERIOD_D1, 100, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleD1_100SMA, 0, 0, BufferSize(MABufferD1_100SMA), MABufferD1_100SMA);
+   HandleW1_100SMA = iMA(NULL, PERIOD_W1, 100, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleW1_100SMA, 0, 0, BufferSize(MABufferW1_100SMA), MABufferW1_100SMA);
+   HandleMN1_100SMA = iMA(NULL, PERIOD_MN1, 100, 0, MODE_SMA, MAPrice);
+   CopyBuffer(HandleMN1_100SMA, 0, 0, BufferSize(MABufferMN1_100SMA), MABufferMN1_100SMA);
+}
+void UpdateBuffersOnCalculate(int start, int rates_total)
 {
    CopyBuffer(HandleM1_200SMA, 0, 0, BufferSize(MABufferM1_200SMA), MABufferM1_200SMA);
    CopyBuffer(HandleM5_200SMA, 0, 0, BufferSize(MABufferM5_200SMA), MABufferM5_200SMA);
