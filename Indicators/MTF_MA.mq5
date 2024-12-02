@@ -23,10 +23,10 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.marketwizardry.info"
-#property version   "1.071"
+#property version   "1.072"
 #property indicator_chart_window
 #property indicator_buffers 41
-#property indicator_plots   7
+#property indicator_plots   6
 #property indicator_label1  "H1 200SMA"
 #property indicator_type1   DRAW_LINE
 #property indicator_color1  clrTomato
@@ -47,21 +47,16 @@
 #property indicator_color4  clrMagenta
 #property indicator_style4  STYLE_SOLID
 #property indicator_width4  2
-#property indicator_label5  "D1 100SMA"
+#property indicator_label5  "W1 100SMA"
 #property indicator_type5   DRAW_LINE
 #property indicator_color5  clrMagenta
 #property indicator_style5  STYLE_SOLID
 #property indicator_width5  2
-#property indicator_label6  "W1 100SMA"
+#property indicator_label6  "MN1 100SMA"
 #property indicator_type6   DRAW_LINE
 #property indicator_color6  clrMagenta
 #property indicator_style6  STYLE_SOLID
 #property indicator_width6  2
-#property indicator_label7  "MN1 100SMA"
-#property indicator_type7   DRAW_LINE
-#property indicator_color7  clrMagenta
-#property indicator_style7  STYLE_SOLID
-#property indicator_width7  2
 // Input variables
 input group  "[INFO TEXT SETTINGS]";
 input string FontName                      = "Courier New";
@@ -100,12 +95,12 @@ int OnInit()
    SetIndexBuffer(1, MABufferH4_200SMA, INDICATOR_DATA);
    SetIndexBuffer(2, MABufferD1_200SMA, INDICATOR_DATA);
    SetIndexBuffer(3, MABufferW1_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(4, MABufferD1_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(5, MABufferW1_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(6, MABufferMN1_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(7, MABufferM1_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(8, MABufferM5_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(9, MABufferH4_100SMA, INDICATOR_DATA);
+   SetIndexBuffer(4, MABufferW1_100SMA, INDICATOR_DATA);
+   SetIndexBuffer(5, MABufferMN1_100SMA, INDICATOR_DATA);
+   SetIndexBuffer(6, MABufferM1_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(7, MABufferM5_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(8, MABufferH4_100SMA, INDICATOR_DATA);
+   SetIndexBuffer(9, MABufferD1_100SMA, INDICATOR_DATA);
    SetIndexBuffer(10, MABufferM15_200SMA, INDICATOR_DATA);
    SetIndexBuffer(11, MABufferM30_200SMA, INDICATOR_DATA);
    SetIndexBuffer(12, MABufferM1_50SMA, INDICATOR_DATA);
