@@ -23,10 +23,10 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.marketwizardry.info"
-#property version   "1.069"
+#property version   "1.070"
 #property indicator_chart_window
 #property indicator_buffers 41
-#property indicator_plots   8
+#property indicator_plots   7
 #property indicator_label1  "H1 200SMA"
 #property indicator_type1   DRAW_LINE
 #property indicator_color1  clrTomato
@@ -52,7 +52,7 @@
 #property indicator_color5  clrMagenta
 #property indicator_style5  STYLE_SOLID
 #property indicator_width5  2
-#property indicator_label6  "W1 100SMA"
+#property indicator_label5  "W1 100SMA"
 #property indicator_type6   DRAW_LINE
 #property indicator_color6  clrMagenta
 #property indicator_style6  STYLE_SOLID
