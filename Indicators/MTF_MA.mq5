@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.marketwizardry.info"
-#property version   "1.068"
+#property version   "1.069"
 #property indicator_chart_window
 #property indicator_buffers 41
 #property indicator_plots   8
@@ -100,12 +100,12 @@ int OnInit()
    SetIndexBuffer(1, MABufferH4_200SMA, INDICATOR_DATA);
    SetIndexBuffer(2, MABufferD1_200SMA, INDICATOR_DATA);
    SetIndexBuffer(3, MABufferW1_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(4, MABufferH4_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(5, MABufferD1_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(6, MABufferW1_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(7, MABufferMN1_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(8, MABufferM1_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(9, MABufferM5_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(4, MABufferD1_100SMA, INDICATOR_DATA);
+   SetIndexBuffer(5, MABufferW1_100SMA, INDICATOR_DATA);
+   SetIndexBuffer(6, MABufferMN1_100SMA, INDICATOR_DATA);
+   SetIndexBuffer(7, MABufferM1_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(8, MABufferM5_200SMA, INDICATOR_DATA);
+   SetIndexBuffer(9, MABufferH4_100SMA, INDICATOR_DATA);
    SetIndexBuffer(10, MABufferM15_200SMA, INDICATOR_DATA);
    SetIndexBuffer(11, MABufferM30_200SMA, INDICATOR_DATA);
    SetIndexBuffer(12, MABufferM1_50SMA, INDICATOR_DATA);
