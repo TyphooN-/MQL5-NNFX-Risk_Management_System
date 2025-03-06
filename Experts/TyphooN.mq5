@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.368"
+#property version   "1.369"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -64,6 +64,7 @@ input group           "[EXPERT ADVISOR SETTINGS]";
 input int             MagicNumber                = 13;
 input int             HorizontalLineThickness    = 3;
 input bool            ManageAllPositions         = false;
+input int             FontSize                   = 8;
 input group           "[ORDER PLACEMENT SETTINGS]";
 input int             MarginBufferPercent        = 1;
 input double          AdditionalRiskRatio        = 0.25;
@@ -209,7 +210,7 @@ void CreateAndSetObjectProperties(string name, int xDistance, int yDistance, int
 {
    ObjectCreate(0, name, OBJ_LABEL, 0, 0, 0);
    ObjectSetString(0, name, OBJPROP_FONT, "Courier New");
-   ObjectSetInteger(0, name, OBJPROP_FONTSIZE, 8);
+   ObjectSetInteger(0, name, OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, name, OBJPROP_XDISTANCE, xDistance);
    ObjectSetInteger(0, name, OBJPROP_YDISTANCE, yDistance);
    ObjectSetInteger(0, name, OBJPROP_COLOR, textColor);
