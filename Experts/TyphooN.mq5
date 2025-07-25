@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.369"
+#property version   "1.370"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -481,7 +481,7 @@ bool PlacePyramidOrders()
       return false;
    }
    // Check if free margin exceeds the trigger
-   double freeMargin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
+   double freeMargin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
    if (freeMargin < PyramidFreeMarginTrigger)
    {
       // Print("Free margin is less than the trigger.");
@@ -558,7 +558,7 @@ bool PlacePyramidOrders()
        //  Print("Pyramid order cooldown period not met.");
          break;
       }
-      freeMargin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
+      freeMargin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
       if (freeMargin < required_margin)
       {
        //  Print("Not enough free margin to place the order. Required: ", required_margin, " Available: ", freeMargin);
@@ -607,7 +607,7 @@ bool PlacePyramidOrders()
             break;
          }
       }
-      freeMargin = AccountInfoDouble(ACCOUNT_FREEMARGIN);
+      freeMargin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
    }
    LastPyramidTime = TimeCurrent();
    return true;
@@ -1336,19 +1336,23 @@ void TyWindow::OnClickTrade(void)
    }
    if (OrderMode == VaR && VaRRiskMode == NotionalVaR)
    {
-      double zScore = PortfolioRisk.PublicInverseCumulativeNormal(VaRConfidence);
-      double nominalValuePerUnitPerLot = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_VALUE) / SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
-      double currentPrice = iClose(_Symbol, PERIOD_M1, 0);
-      double stdDevReturns;
-      if (PortfolioRisk.PublicGetAssetStdDevReturns(_Symbol, stdDevReturns))
+      double var_1_lot = 0.0;
+      if (PortfolioRisk.CalculateVaR(_Symbol, 1.0))
       {
-         double unitVaR = zScore * stdDevReturns * nominalValuePerUnitPerLot * currentPrice;
-         OrderLots = RiskVaRNotional / unitVaR;
-         OrderLots = NormalizeDouble(OrderLots, OrderDigits);
+         var_1_lot = PortfolioRisk.SinglePositionVaR;
+         if (var_1_lot > 0)
+         {
+            OrderLots = RiskVaRNotional / var_1_lot;
+            OrderLots = NormalizeDouble(OrderLots, OrderDigits);
+         }
+         else
+         {
+            Print("VaR for 1 lot is not positive, cannot calculate Notional VaR lots.");
+         }
       }
       else
       {
-         Print("Failed to get asset standard deviation of returns.");
+         Print("Failed to calculate VaR for 1 lot.");
       }
    }
    if (OrderLots > available_volume)
