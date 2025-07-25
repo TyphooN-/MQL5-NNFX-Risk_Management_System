@@ -29,30 +29,27 @@
 #property copyright     "Copyright 2022, Darwinex / TyphooN (v1.01+)"
 #property link          "https://www.darwinex.com"
 #property description   "Portfolio Risk Management Module"
-#property version       "1.02"
+#property version       "1.03"
 #property strict
 #include <Math\Stat\Math.mqh>
 
 class CPortfolioRiskMan
 {
-   public:   
-      double SinglePositionVaR; 
-      void   CPortfolioRiskMan(ENUM_TIMEFRAMES VaRTimeframe, int StdDevPeriods); //CONSTRUCTOR
-      bool   CalculateVaR(string Asset, double AssetPosSize);
-      bool   CalculateLotSizeBasedOnVaR(string Asset, double confidenceLevel, double accountEquity, double VaRPercent, double &lotSize);
-      double PublicInverseCumulativeNormal(double confidenceLevel)
-      {
-         return InverseCumulativeNormal(confidenceLevel);
-      }
-      bool PublicGetAssetStdDevReturns(const string &symbol, double &stdDevReturns)
-      {
-         return GetAssetStdDevReturns(symbol, stdDevReturns);
-      }
-   private:
-      ENUM_TIMEFRAMES ValueAtRiskTimeframe;
-      int   StandardDeviationPeriods;
-      bool  GetAssetStdDevReturns(string VolSymbolName, double &StandardDevOfReturns);
-      double InverseCumulativeNormal(double p);
+public:
+    double SinglePositionVaR;
+    void CPortfolioRiskMan(ENUM_TIMEFRAMES VaRTimeframe, int StdDevPeriods); //CONSTRUCTOR
+    bool CalculateVaR(string Asset, double AssetPosSize);
+    bool CalculateLotSizeBasedOnVaR(string Asset, double confidenceLevel, double accountEquity, double VaRPercent, double &lotSize);
+
+private:
+    ENUM_TIMEFRAMES ValueAtRiskTimeframe;
+    int StandardDeviationPeriods;
+    double m_stdDevReturnsCache[];
+    string m_symbolCache[];
+
+    bool GetAssetStdDevReturns(string VolSymbolName, double &StandardDevOfReturns);
+    double InverseCumulativeNormal(double p);
+    void ClearCache() { ArrayFree(m_stdDevReturnsCache); ArrayFree(m_symbolCache); }
 };
 //CONSTRUCTOR
 void CPortfolioRiskMan::CPortfolioRiskMan(ENUM_TIMEFRAMES VaRTF, int SDPeriods)  
@@ -152,15 +149,38 @@ double CPortfolioRiskMan::InverseCumulativeNormal(double p)
 }
 bool CPortfolioRiskMan::GetAssetStdDevReturns(string VolSymbolName, double &StandardDevOfReturns)
 {
-   double returns[];
-   ArrayResize(returns, StandardDeviationPeriods);
-   //STORE 'CHANGE' IN CLOSE PRICES TO ARRAY
-   for(int calcLoop=0; calcLoop < StandardDeviationPeriods; calcLoop++) //START LOOP AT 1 BECAUSE DON'T WANT TO INCLUDE CURRENT BAR (WHICH MIGHT NOT BE COMPLETE) IN CALC.
-   {
-      //USE calcLoop + 1 BECAUSE DON'T WANT TO INCLUDE CURRENT BAR (WHICH WILL NOT BE COMPLETE) IN CALC.  CALCULATE RETURN AS A RATIO. i.e. 0.01 IS A 1% INCREASE, AND -0.01 IS A 1% DECREASE
-      returns[calcLoop] = (iClose(VolSymbolName, ValueAtRiskTimeframe, calcLoop + 1) / iClose(VolSymbolName, ValueAtRiskTimeframe, calcLoop + 2)) - 1.0;
-   }
-   //CALCULATE THE STD DEV OF ALL RETURNS (MathStandardDeviation() IN #include <Math\Stat\Math.mqh>)
-   StandardDevOfReturns = MathStandardDeviation(returns);
-   return true;
+    for (int i = 0; i < ArraySize(m_symbolCache); i++)
+    {
+        if (m_symbolCache[i] == VolSymbolName)
+        {
+            StandardDevOfReturns = m_stdDevReturnsCache[i];
+            return true;
+        }
+    }
+
+    double returns[];
+    if (CopyClose(VolSymbolName, ValueAtRiskTimeframe, 1, StandardDeviationPeriods + 1, returns) <= 0)
+    {
+        Print("Failed to copy close prices for ", VolSymbolName);
+        return false;
+    }
+
+    double daily_returns[];
+    int returns_size = ArraySize(returns);
+    ArrayResize(daily_returns, returns_size - 1);
+
+    for (int i = 0; i < returns_size - 1; i++)
+    {
+        daily_returns[i] = (returns[i+1] / returns[i]) - 1.0;
+    }
+
+    StandardDevOfReturns = MathStandardDeviation(daily_returns);
+
+    int cache_size = ArraySize(m_symbolCache);
+    ArrayResize(m_symbolCache, cache_size + 1);
+    ArrayResize(m_stdDevReturnsCache, cache_size + 1);
+    m_symbolCache[cache_size] = VolSymbolName;
+    m_stdDevReturnsCache[cache_size] = StandardDevOfReturns;
+
+    return true;
 }
