@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.370"
+#property version   "1.371"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -41,7 +41,6 @@ CPositionInfo     Position; // Trade wrapper
 CTrade            Trade;    // Trade wrapper
 COrderInfo        Order;    // Order wrapper
 CAccountInfo      Account;  // Account wrapper
-CSymbolInfo       Symbol;   // Symbol wrapper
 // orchard compat functions
 string BaseCurrency() { return ( AccountInfoString( ACCOUNT_CURRENCY ) ); }
 double Point( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_POINT ) ); }
@@ -111,7 +110,7 @@ double PyramidLotsOpened = 0, TP = 0, SL = 0, Bid = 0, Ask = 0, prevBidPrice = 0
        prevAskPrice = 0.0, order_risk_money = 0, DynamicRisk = 0, AccountBalance = 0,
        required_margin = 0, AccountEquity = 0, percent_risk = 0;
 bool AutoProtectCalled = false, LimitLineExists = false, EquityTPCalled = false,
-     EquitySLCalled = false, HasOpenPosition = false, breakEvenFound = false;
+     EquitySLCalled = false, breakEvenFound = false;
 int OrderDigits = 0;
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
 #define INDENT_TOP        (10)      // indent from top (with allowance for border width)
@@ -412,6 +411,22 @@ struct LotsInfo
 {
    double longLots;
    double shortLots;
+   // Copy constructor
+   LotsInfo(const LotsInfo &other)
+   {
+      longLots = other.longLots;
+      shortLots = other.shortLots;
+   }
+   // Default constructor
+   LotsInfo()
+   {
+   }
+   // Assignment operator
+   void operator=(const LotsInfo &other)
+   {
+      longLots = other.longLots;
+      shortLots = other.shortLots;
+   }
 };
 // Function to tally up the lots on all open positions and return the results
 LotsInfo TallyPositionLots()
@@ -614,7 +629,6 @@ bool PlacePyramidOrders()
 }
 void OnTick()
 {
-   HasOpenPosition = false;
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
@@ -683,7 +697,6 @@ void OnTick()
       ulong ticket = PositionGetTicket(i);
       if (ProcessPositionCheck(ticket, _Symbol, MagicNumber))
       {
-         HasOpenPosition = true;
          double profit = PositionGetDouble(POSITION_PROFIT);
          double swap = PositionGetDouble(POSITION_SWAP);
          profit += swap;
@@ -821,11 +834,6 @@ void OnTick()
    if (total_risk < 0)
    {
       infoSLPL = "SL P/L: -$" + DoubleToString(MathAbs(total_risk), 2);
-   }
-   if (!HasOpenPosition)
-   {
-      sl_risk = 0;
-      percent_risk = 0;
    }
    ObjectSetString(0,"infoRR",OBJPROP_TEXT,infoRR);
    ObjectSetString(0,"infoPL",OBJPROP_TEXT,infoPL);
@@ -1639,6 +1647,24 @@ struct PositionInfo
    ulong ticket;
    double diff;
    double lotSize;
+   // Copy constructor
+   PositionInfo(const PositionInfo &other)
+   {
+      ticket = other.ticket;
+      diff = other.diff;
+      lotSize = other.lotSize;
+   }
+   // Default constructor
+   PositionInfo()
+   {
+   }
+   // Assignment operator
+   void operator=(const PositionInfo &other)
+   {
+      ticket = other.ticket;
+      diff = other.diff;
+      lotSize = other.lotSize;
+   }
 };
 void BubbleSort(PositionInfo &arr[])
 {
@@ -1677,13 +1703,12 @@ void TyWindow::OnClickCloseAll(void)
    {
       if(ProcessPositionCheck(PositionGetTicket(i), _Symbol, MagicNumber))
       {
-         HasOpenPosition = true;
          break;
       }
    }
-   if(!HasOpenLimitOrder && !HasOpenPosition)
+   if(!HasOpenLimitOrder)
    {
-      Print("There are no positions or limit orders to close on ", _Symbol, ".");
+      Print("There are no limit orders to close on ", _Symbol, ".");
       return;
    }
    // Close limit orders logic
@@ -1728,8 +1753,6 @@ void TyWindow::OnClickCloseAll(void)
       }
    }
    // Close open positions logic
-   if(HasOpenPosition)
-   {
       int result = MessageBox("Do you want to close all positions on " + _Symbol + "?", "Close Positions", MB_YESNO | MB_ICONQUESTION);
       if (result == IDYES)
       {
@@ -1792,7 +1815,6 @@ void TyWindow::OnClickCloseAll(void)
          Print("Positions not closed as user answered no.");
       }
    }
-}
 void TyWindow::OnClickClosePartial(void)
 {
    PositionInfo positions[];
