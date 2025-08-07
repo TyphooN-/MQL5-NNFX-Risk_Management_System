@@ -29,7 +29,7 @@
 #property copyright     "Copyright 2022, Darwinex / TyphooN (v1.01+)"
 #property link          "https://www.darwinex.com"
 #property description   "Portfolio Risk Management Module"
-#property version       "1.03"
+#property version       "1.04"
 #property strict
 #include <Math\Stat\Math.mqh>
 
