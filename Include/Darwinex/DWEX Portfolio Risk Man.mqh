@@ -46,10 +46,11 @@ private:
     int StandardDeviationPeriods;
     double m_stdDevReturnsCache[];
     string m_symbolCache[];
+    datetime m_cacheTimestamp[];
 
     bool GetAssetStdDevReturns(string VolSymbolName, double &StandardDevOfReturns);
     double InverseCumulativeNormal(double p);
-    void ClearCache() { ArrayFree(m_stdDevReturnsCache); ArrayFree(m_symbolCache); }
+    void ClearCache() { ArrayFree(m_stdDevReturnsCache); ArrayFree(m_symbolCache); ArrayFree(m_cacheTimestamp); }
 };
 //CONSTRUCTOR
 void CPortfolioRiskMan::CPortfolioRiskMan(ENUM_TIMEFRAMES VaRTF, int SDPeriods)  
@@ -149,12 +150,18 @@ double CPortfolioRiskMan::InverseCumulativeNormal(double p)
 }
 bool CPortfolioRiskMan::GetAssetStdDevReturns(string VolSymbolName, double &StandardDevOfReturns)
 {
+    int existing_index = -1;
     for (int i = 0; i < ArraySize(m_symbolCache); i++)
     {
         if (m_symbolCache[i] == VolSymbolName)
         {
-            StandardDevOfReturns = m_stdDevReturnsCache[i];
-            return true;
+            if (TimeCurrent() - m_cacheTimestamp[i] < 300) // 5 minutes
+            {
+                StandardDevOfReturns = m_stdDevReturnsCache[i];
+                return true;
+            }
+            existing_index = i;
+            break;
         }
     }
 
@@ -176,11 +183,21 @@ bool CPortfolioRiskMan::GetAssetStdDevReturns(string VolSymbolName, double &Stan
 
     StandardDevOfReturns = MathStandardDeviation(daily_returns);
 
-    int cache_size = ArraySize(m_symbolCache);
-    ArrayResize(m_symbolCache, cache_size + 1);
-    ArrayResize(m_stdDevReturnsCache, cache_size + 1);
-    m_symbolCache[cache_size] = VolSymbolName;
-    m_stdDevReturnsCache[cache_size] = StandardDevOfReturns;
+    if(existing_index != -1)
+    {
+        m_stdDevReturnsCache[existing_index] = StandardDevOfReturns;
+        m_cacheTimestamp[existing_index] = TimeCurrent();
+    }
+    else
+    {
+        int cache_size = ArraySize(m_symbolCache);
+        ArrayResize(m_symbolCache, cache_size + 1);
+        ArrayResize(m_stdDevReturnsCache, cache_size + 1);
+        ArrayResize(m_cacheTimestamp, cache_size + 1);
+        m_symbolCache[cache_size] = VolSymbolName;
+        m_stdDevReturnsCache[cache_size] = StandardDevOfReturns;
+        m_cacheTimestamp[cache_size] = TimeCurrent();
+    }
 
     return true;
 }
