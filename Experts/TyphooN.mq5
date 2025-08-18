@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.371"
+#property version   "1.372"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -834,6 +834,11 @@ void OnTick()
    if (total_risk < 0)
    {
       infoSLPL = "SL P/L: -$" + DoubleToString(MathAbs(total_risk), 2);
+   }
+   if(HasOpenPosition(_Symbol, POSITION_TYPE_BUY) || HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
+   {
+      sl_risk = 0;
+      percent_risk = 0;
    }
    ObjectSetString(0,"infoRR",OBJPROP_TEXT,infoRR);
    ObjectSetString(0,"infoPL",OBJPROP_TEXT,infoPL);
@@ -1706,9 +1711,9 @@ void TyWindow::OnClickCloseAll(void)
          break;
       }
    }
-   if(!HasOpenLimitOrder)
+   if(!HasOpenLimitOrder && (HasOpenPosition(_Symbol, POSITION_TYPE_BUY) || HasOpenPosition(_Symbol, POSITION_TYPE_SELL)))
    {
-      Print("There are no limit orders to close on ", _Symbol, ".");
+      Print("There are no positions or limit orders to close on ", _Symbol, ".");
       return;
    }
    // Close limit orders logic
@@ -1753,6 +1758,8 @@ void TyWindow::OnClickCloseAll(void)
       }
    }
    // Close open positions logic
+   if(!HasOpenLimitOrder && (HasOpenPosition(_Symbol, POSITION_TYPE_BUY) || HasOpenPosition(_Symbol, POSITION_TYPE_SELL)))
+   {
       int result = MessageBox("Do you want to close all positions on " + _Symbol + "?", "Close Positions", MB_YESNO | MB_ICONQUESTION);
       if (result == IDYES)
       {
@@ -1815,6 +1822,7 @@ void TyWindow::OnClickCloseAll(void)
          Print("Positions not closed as user answered no.");
       }
    }
+}
 void TyWindow::OnClickClosePartial(void)
 {
    PositionInfo positions[];
