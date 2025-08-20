@@ -1155,6 +1155,8 @@ void TyWindow::ExecuteSellOrder(double lots)
 }
 bool ProcessPositionCheck(ulong ticket, string symbol, int magicNumber)
 {
+    if (!PositionSelectByTicket(ticket))
+        return(false);
     bool ShouldProcessPosition = false;
     if (ManageAllPositions)
     {
@@ -1693,31 +1695,36 @@ void TyWindow::OnClickProtect(void)
 }
 void TyWindow::OnClickCloseAll(void)
 {
-   bool HasOpenLimitOrder = false;
+   bool hasOpenLimitOrder = false;
    // Check for open limit orders
    for(int i=0; i<OrdersTotal(); i++)
    {
       if(Order.SelectByIndex(i) && Order.Magic() == MagicNumber && Order.Symbol() == _Symbol)
       {
-         HasOpenLimitOrder = true;
+         hasOpenLimitOrder = true;
          break;
       }
    }
-   // Check for open positions
+
+   bool hasOpenPosition = false;
    for(int i=0; i<PositionsTotal(); i++)
    {
-      if(ProcessPositionCheck(PositionGetTicket(i), _Symbol, MagicNumber))
+      ulong ticket = PositionGetTicket(i);
+      if (ProcessPositionCheck(ticket, _Symbol, MagicNumber))
       {
+         hasOpenPosition = true;
          break;
       }
    }
-   if(!HasOpenLimitOrder && (HasOpenPosition(_Symbol, POSITION_TYPE_BUY) || HasOpenPosition(_Symbol, POSITION_TYPE_SELL)))
+
+   if(!hasOpenLimitOrder && !hasOpenPosition)
    {
       Print("There are no positions or limit orders to close on ", _Symbol, ".");
       return;
    }
+
    // Close limit orders logic
-   if(HasOpenLimitOrder)
+   if(hasOpenLimitOrder)
    {
       int result = MessageBox("Do you want to close all limit orders?", "Close Limit Orders", MB_YESNO | MB_ICONQUESTION);
       if (result == IDYES)
@@ -1757,8 +1764,9 @@ void TyWindow::OnClickCloseAll(void)
          Print("Limit orders not closed.");
       }
    }
+
    // Close open positions logic
-   if(!HasOpenLimitOrder && (HasOpenPosition(_Symbol, POSITION_TYPE_BUY) || HasOpenPosition(_Symbol, POSITION_TYPE_SELL)))
+   if(hasOpenPosition)
    {
       int result = MessageBox("Do you want to close all positions on " + _Symbol + "?", "Close Positions", MB_YESNO | MB_ICONQUESTION);
       if (result == IDYES)
@@ -1767,7 +1775,8 @@ void TyWindow::OnClickCloseAll(void)
          double TotalPL = 0.0;
          for (int i = PositionsTotal() - 1; i >= 0; i--)
          {
-            if (ProcessPositionCheck(PositionGetTicket(i), _Symbol, MagicNumber))
+            ulong ticket = PositionGetTicket(i);
+            if (ProcessPositionCheck(ticket, _Symbol, MagicNumber))
             {
                double entryPrice = PositionGetDouble(POSITION_PRICE_OPEN);
                double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
@@ -1775,21 +1784,21 @@ void TyWindow::OnClickCloseAll(void)
                double swap = PositionGetDouble(POSITION_SWAP);
                double totalProfitWithSwap = positionProfit + swap; // Include swap in total profit/loss
                double lotSize = PositionGetDouble(POSITION_VOLUME);
-               if (Trade.PositionClose(PositionGetInteger(POSITION_TICKET)))
+               if (Trade.PositionClose(ticket))
                {
                   TotalPL += totalProfitWithSwap;
                   if (totalProfitWithSwap >= 0)
                   {
-                     Print("Closed Position #", PositionGetInteger(POSITION_TICKET), " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a profit of $", DoubleToString(totalProfitWithSwap, 2));
+                     Print("Closed Position #", ticket, " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a profit of $", DoubleToString(totalProfitWithSwap, 2));
                   }
                   else
                   {
-                     Print("Closed Position #", PositionGetInteger(POSITION_TICKET), " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a loss of -$", MathAbs(totalProfitWithSwap));
+                     Print("Closed Position #", ticket, " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a loss of -$", MathAbs(totalProfitWithSwap));
                   }
                }
                else
                {
-                  Print("Position #", PositionGetInteger(POSITION_TICKET), " close failed asynchronously with error ", GetLastError());
+                  Print("Position #", ticket, " close failed asynchronously with error ", GetLastError());
                }
             }
          }
