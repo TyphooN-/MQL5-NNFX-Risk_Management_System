@@ -185,10 +185,10 @@ int OnInit()
 void OnDeinit(const int pReason)
 {
    ObjectsDeleteAll(0, objname);
+   EventKillTimer();
 }
 void UpdateInfoLabel(string timeframe, bool condition, string label)
 {
-   GlobalVariableSet("PowerCalcComplete", false);
    string objnameInfo = objname + timeframe + label;
    color textColor = condition ? clrLime : clrRed;
    int TotalBearPowerLTF, TotalBullPowerLTF, TotalBearPowerHTF, TotalBullPowerHTF;
@@ -197,56 +197,34 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
    TotalBearPowerHTF = (BearPowerHTF * 5);
    TotalBullPowerHTF = (BullPowerHTF * 5);
    // Check if the color has changed
-   if (ObjectGetInteger(0, objnameInfo, OBJPROP_COLOR) != textColor)
+   color prevColor = (color)ObjectGetInteger(0, objnameInfo, OBJPROP_COLOR);
+   if (prevColor != textColor)
    {
+      // Classify timeframe once (direct equality is faster than StringFind)
+      bool isLTF = (timeframe == "M1" || timeframe == "M5" || timeframe == "M15" || timeframe == "M30");
+      bool isHTF = (timeframe == "H1" || timeframe == "H4" || timeframe == "D1" || timeframe == "W1");
       // Decrement the appropriate variable based on the previous color
-      if (ObjectGetInteger(0, objnameInfo, OBJPROP_COLOR) == clrLime)
+      if (prevColor == clrLime)
       {
-         if (StringFind(timeframe, "M1", 0) != -1 || StringFind(timeframe, "M5", 0) != -1 || StringFind(timeframe, "M15", 0) != -1 || StringFind(timeframe, "M30", 0) != -1) 
-         {
-            BullPowerLTF--;
-         }
-         else if (StringFind(timeframe, "H1", 0) != -1 || StringFind(timeframe, "H4", 0) != -1 || StringFind(timeframe, "D1", 0) != -1 || StringFind(timeframe, "W1", 0) != -1)
-         {
-            BullPowerHTF--;
-         }
+         if (isLTF) BullPowerLTF--;
+         else if (isHTF) BullPowerHTF--;
       }
-      else if (ObjectGetInteger(0, objnameInfo, OBJPROP_COLOR) == clrRed)
+      else if (prevColor == clrRed)
       {
-         if (StringFind(timeframe, "M1", 0) != -1 || StringFind(timeframe, "M5", 0) != -1 || StringFind(timeframe, "M15", 0) != -1 || StringFind(timeframe, "M30", 0) != -1) 
-         {
-            BearPowerLTF--;
-         }
-         else if (StringFind(timeframe, "H1", 0) != -1 || StringFind(timeframe, "H4", 0) != -1 || StringFind(timeframe, "D1", 0) != -1 || StringFind(timeframe, "W1", 0) != -1)
-         {
-            BearPowerHTF--;
-         }
+         if (isLTF) BearPowerLTF--;
+         else if (isHTF) BearPowerHTF--;
       }
       // Update the color and count variables
       ObjectSetInteger(0, objnameInfo, OBJPROP_COLOR, textColor);
       if (condition)
       {
-         // Increment the appropriate variable based on the timeframe
-         if (StringFind(timeframe, "M1", 0) != -1 || StringFind(timeframe, "M5", 0) != -1 || StringFind(timeframe, "M15", 0) != -1 || StringFind(timeframe, "M30", 0) != -1) 
-         {
-            BullPowerLTF++;
-         }
-         else if (StringFind(timeframe, "H1", 0) != -1 || StringFind(timeframe, "H4", 0) != -1 || StringFind(timeframe, "D1", 0) != -1 || StringFind(timeframe, "W1", 0) != -1)
-         {
-            BullPowerHTF++;
-         }
+         if (isLTF) BullPowerLTF++;
+         else if (isHTF) BullPowerHTF++;
       }
       else
       {
-         // Increment the appropriate variable based on the timeframe
-         if (StringFind(timeframe, "M1", 0) != -1 || StringFind(timeframe, "M5", 0) != -1 || StringFind(timeframe, "M15", 0) != -1 || StringFind(timeframe, "M30", 0) != -1) 
-         {
-            BearPowerLTF++;
-         }
-         else if (StringFind(timeframe, "H1", 0) != -1 || StringFind(timeframe, "H4", 0) != -1 || StringFind(timeframe, "D1", 0) != -1 || StringFind(timeframe, "W1", 0) != -1)
-         {
-            BearPowerHTF++;
-         }
+         if (isLTF) BearPowerLTF++;
+         else if (isHTF) BearPowerHTF++;
       }
       // Update the colors based on the TotalBullPower and TotalBearPower
       if (TotalBearPowerHTF > TotalBullPowerHTF)
@@ -326,11 +304,6 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
       ObjectSetString(0, objname + "InfoBullPowerHTF", OBJPROP_TEXT, BullPowerTextHTF);
       ObjectSetString(0, objname + "InfoBearPowerHTF", OBJPROP_TEXT, BearPowerTextHTF);
    }
-   GlobalVariableSet("GlobalBullPowerLTF", TotalBullPowerLTF);
-   GlobalVariableSet("GlobalBearPowerLTF", TotalBearPowerLTF);
-   GlobalVariableSet("GlobalBullPowerHTF", TotalBullPowerHTF);
-   GlobalVariableSet("GlobalBearPowerHTF", TotalBearPowerHTF);
-   GlobalVariableSet("PowerCalcComplete", true);
 }
 int OnCalculate(const int rates_total,
                 const int prev_calculated,
@@ -403,7 +376,12 @@ int OnCalculate(const int rates_total,
          return prev_calculated;
       }
       dataReady = true;
+      UpdateBuffers(); // Ensure all buffers are freshly filled when data first becomes ready
    }
+   static bool objectsCreated = false;
+   if (!objectsCreated)
+   {
+   objectsCreated = true;
    string objnameInfo1 = objname + "Info1";
    if (ObjectFind(0, objnameInfo1) == -1)
    {
@@ -581,8 +559,10 @@ int OnCalculate(const int rates_total,
       ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_COLOR, clrWhite);
       ObjectSetString(0, objname + "InfoBearPowerHTF", OBJPROP_TEXT, BearPowerTextHTF);
    }
+   } // objectsCreated
    // Get the current price
    double currentPrice = close[rates_total - 1];
+   GlobalVariableSet("PowerCalcComplete", false);
    // Check the relationship of the current price with the 200-period SMAs
    bool isAbove_M1_200SMA = currentPrice > MABufferM1_200SMA[rates_total - 1];
    bool isAbove_M5_200SMA = currentPrice > MABufferM5_200SMA[rates_total - 1];
@@ -668,6 +648,12 @@ int OnCalculate(const int rates_total,
    UpdateInfoLabel("H4", is10_20cross_H4, "10_20");
    UpdateInfoLabel("D1", is10_20cross_D1, "10_20");
    UpdateInfoLabel("W1", is10_20cross_W1, "10_20");
+   // Set global variables once after all 40 UpdateInfoLabel calls (was 240 calls/tick, now 5)
+   GlobalVariableSet("GlobalBullPowerLTF", (BullPowerLTF * 5));
+   GlobalVariableSet("GlobalBearPowerLTF", (BearPowerLTF * 5));
+   GlobalVariableSet("GlobalBullPowerHTF", (BullPowerHTF * 5));
+   GlobalVariableSet("GlobalBearPowerHTF", (BearPowerHTF * 5));
+   GlobalVariableSet("PowerCalcComplete", true);
    return rates_total;
 }
 void UpdateBuffers()
