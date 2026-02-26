@@ -64,7 +64,7 @@ string objname = "Projected ATR ";
 int handle_iATR_D1, handle_iATR_W1, handle_iATR_MN1, handle_iATR_H4, handle_iATR_H1, handle_iATR_M15;
 double iATR_D1[], iATR_W1[], iATR_MN1[], iATR_H4[], iATR_H1[], iATR_M15[];
 int copiedD1, copiedW1, copiedMN1, copiedH4, copiedH1, copiedM15;
-double avgD1, avgD, avgW1, avgH4, avgH1, avgMN1, avgM15;
+double avgD1, avgW1, avgH4, avgH1, avgMN1, avgM15;
 double currentOpenD1 = 0;
 double currentOpenW1 = 0;
 double currentOpenMN1 = 0;
@@ -201,7 +201,6 @@ int OnCalculate(const int        rates_total,
       UpdateATRData();
       UpdateCandlestickData();
       prevTradeServerTime = currentTradeServerTime;
-      //Print("Updating ATR Data and Candlestick data due to 15 min server time.");
     }
     // Get the current bid and ask prices
     double currentBidPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
@@ -222,7 +221,6 @@ int OnCalculate(const int        rates_total,
       return prev_calculated;
    // Check if a new candlestick has formed
    if (lastCheckedCandle != rates_total - 1) {
-      //Print("New candle has formed, updating ATR & Candlestick Data");
       // Update the last checked candle index
       lastCheckedCandle = rates_total - 1;
       UpdateATRData();
@@ -334,7 +332,6 @@ int OnCalculate(const int        rates_total,
       dataReady = true;
    }
 #endif
-   //PrintFormat( "ATR and candlestick Data is now available" );
    // Initialize vars
    double ATRLevelAboveD1 = 0;
    double ATRLevelBelowD1 = 0;
@@ -424,7 +421,6 @@ bool IsNewM15Interval(const datetime& currentTime, const datetime& prevTime)
     MqlDateTime currentMqlTime, prevMqlTime;
     TimeToStruct(currentTime, currentMqlTime);
     TimeToStruct(prevTime, prevMqlTime);
-    //Print("IsNewM15Interval() has run.");
     // Check if the minutes have changed
     if (currentMqlTime.min != prevMqlTime.min)
     {

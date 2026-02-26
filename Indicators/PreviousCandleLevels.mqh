@@ -75,7 +75,6 @@ int OnCalculate(const int rates_total,
       UpdateJudasData();
       DrawLines();
       PrevTradeServerTime = CurrentTradeServerTime;
-      //Print("Updating ATR Data and Candlestick data due to 1 hour server time change.");
    }
    // Judas check runs intrabar (when price breaks D1 high/low)
    if ((Ask > Current_D1_High) || (Bid < Current_D1_Low))
@@ -99,7 +98,6 @@ int OnCalculate(const int rates_total,
    // Check if a new candlestick has formed
    if (lastCheckedCandle != rates_total - 1)
    {
-      //Print("New candle has formed, updating ATR & Candlestick Data");
       // Update the last checked candle index
       lastCheckedCandle = rates_total - 1;
       UpdatePreviousData();
@@ -214,8 +212,6 @@ void DrawLines()
       DeleteHorizontalLine(objname1 + "D1_Low");
       DeleteHorizontalLine(objname2 + "D1_High");
       DeleteHorizontalLine(objname2 + "D1_Low");
-      DeleteHorizontalLine(objname1 + "W1_High");
-      DeleteHorizontalLine(objname1 + "W1_Low");
       DeleteHorizontalLine(objname1 + "W1_High");
       DeleteHorizontalLine(objname1 + "W1_Low");
       DrawHorizontalLine(Previous_MN1_High, objname1 + "MN1_High", JudasLevelColour, prevMN1Time, currentBarTime);
