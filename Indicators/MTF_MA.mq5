@@ -191,11 +191,6 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
 {
    string objnameInfo = objname + timeframe + label;
    color textColor = condition ? clrLime : clrRed;
-   int TotalBearPowerLTF, TotalBullPowerLTF, TotalBearPowerHTF, TotalBullPowerHTF;
-   TotalBearPowerLTF = (BearPowerLTF * 5);
-   TotalBullPowerLTF = (BullPowerLTF * 5);
-   TotalBearPowerHTF = (BearPowerHTF * 5);
-   TotalBullPowerHTF = (BullPowerHTF * 5);
    // Check if the color has changed
    color prevColor = (color)ObjectGetInteger(0, objnameInfo, OBJPROP_COLOR);
    if (prevColor != textColor)
@@ -226,44 +221,11 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
          if (isLTF) BearPowerLTF++;
          else if (isHTF) BearPowerHTF++;
       }
-      // Update the colors based on the TotalBullPower and TotalBearPower
-      if (TotalBearPowerHTF > TotalBullPowerHTF)
-      {
-         ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_COLOR, clrWhite);
-         ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_COLOR, clrRed);
-      }
-      if (TotalBullPowerHTF > TotalBearPowerHTF)
-      {
-         ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_COLOR, clrLime);
-         ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_COLOR, clrWhite);
-      }
-      if (TotalBearPowerLTF > TotalBullPowerLTF)
-      {
-         ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_COLOR, clrWhite);
-         ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_COLOR, clrRed);
-      }
-      if (TotalBullPowerLTF > TotalBearPowerLTF)
-      {
-         ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_COLOR, clrLime);
-         ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_COLOR, clrWhite);
-      }
-      if (TotalBullPowerHTF == TotalBearPowerHTF)
-      {
-         ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_COLOR, clrWhite);
-         ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_COLOR, clrWhite);
-      }
-      if (TotalBullPowerLTF == TotalBearPowerLTF)
-      {
-         ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_COLOR, clrWhite);
-         ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_COLOR, clrWhite);
-      }
-      // Update the total variables
-      TotalBearPowerLTF = (BearPowerLTF * 5);
-      TotalBullPowerLTF = (BullPowerLTF * 5);
-      double TotalScoreLTF = TotalBullPowerLTF + TotalBearPowerLTF;
-      TotalBearPowerHTF = (BearPowerHTF * 5);
-      TotalBullPowerHTF = (BullPowerHTF * 5);
-      double TotalScoreHTF = TotalBullPowerHTF + TotalBearPowerHTF;
+      // Recompute totals after increment/decrement, then update colors
+      int TotalBearPowerLTF = (BearPowerLTF * 5);
+      int TotalBullPowerLTF = (BullPowerLTF * 5);
+      int TotalBearPowerHTF = (BearPowerHTF * 5);
+      int TotalBullPowerHTF = (BullPowerHTF * 5);
       if (TotalBearPowerHTF > TotalBullPowerHTF)
       {
          ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_COLOR, clrWhite);

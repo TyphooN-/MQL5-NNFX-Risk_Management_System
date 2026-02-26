@@ -297,30 +297,30 @@ int OnCalculate(const int        rates_total,
    }
    string infoText1 = "ATR| M15: " + DoubleToString(M15info, ATRInfoDecimals) + " H1: " + DoubleToString(H1info, ATRInfoDecimals) + " H4: " + DoubleToString(H4info, ATRInfoDecimals);
    string infoText2 = "ATR| D1: " + DoubleToString(D1info, ATRInfoDecimals) + " W1: " + DoubleToString(W1info, ATRInfoDecimals) + " MN1: " + DoubleToString(MN1info, ATRInfoDecimals);
-   if (ObjectFind(0, objname + "Info1") == -1)
+   static bool infoObjectsCreated = false;
+   if (!infoObjectsCreated)
    {
+      infoObjectsCreated = true;
       ObjectCreate(0, objname + "Info1", OBJ_LABEL, 0, 0, 0);
       ObjectSetInteger(0, objname + "Info1", OBJPROP_XDISTANCE, HorizPos);
       ObjectSetInteger(0, objname + "Info1", OBJPROP_YDISTANCE, VertPos);
       ObjectSetInteger(0, objname + "Info1", OBJPROP_CORNER, Corner);
       ObjectSetString(0, objname + "Info1", OBJPROP_FONT, FontName);
       ObjectSetInteger(0, objname + "Info1", OBJPROP_FONTSIZE, FontSize);
-      ObjectSetInteger(0, objname + "Info1", OBJPROP_COLOR, FontColor);
-   }
-   if (ObjectFind(0, objname + "Info2") == -1)
-   {
       ObjectCreate(0, objname + "Info2", OBJ_LABEL, 0, 0, 0);
       ObjectSetInteger(0, objname + "Info2", OBJPROP_XDISTANCE, HorizPos);
       ObjectSetInteger(0, objname + "Info2", OBJPROP_YDISTANCE, VertPos + 13);
       ObjectSetInteger(0, objname + "Info2", OBJPROP_CORNER, Corner);
       ObjectSetString(0, objname + "Info2", OBJPROP_FONT, FontName);
       ObjectSetInteger(0, objname + "Info2", OBJPROP_FONTSIZE, FontSize);
-      ObjectSetInteger(0, objname + "Info2", OBJPROP_COLOR, FontColor);
    }
-   ObjectSetString(0, objname + "Info1", OBJPROP_TEXT, infoText1);
-   ObjectSetInteger(0, objname + "Info1", OBJPROP_COLOR, FontColor1);
-   ObjectSetString(0, objname + "Info2", OBJPROP_TEXT, infoText2);
-   ObjectSetInteger(0, objname + "Info2", OBJPROP_COLOR, FontColor2);
+   // Only update text/color when changed
+   static string prevInfoText1, prevInfoText2;
+   static color prevFontColor1 = clrNONE, prevFontColor2 = clrNONE;
+   if (infoText1 != prevInfoText1) { ObjectSetString(0, objname + "Info1", OBJPROP_TEXT, infoText1); prevInfoText1 = infoText1; }
+   if (FontColor1 != prevFontColor1) { ObjectSetInteger(0, objname + "Info1", OBJPROP_COLOR, FontColor1); prevFontColor1 = FontColor1; }
+   if (infoText2 != prevInfoText2) { ObjectSetString(0, objname + "Info2", OBJPROP_TEXT, infoText2); prevInfoText2 = infoText2; }
+   if (FontColor2 != prevFontColor2) { ObjectSetInteger(0, objname + "Info2", OBJPROP_COLOR, FontColor2); prevFontColor2 = FontColor2; }
 #ifdef __MQL5__
    static bool dataReady = false;
    if (!dataReady)
