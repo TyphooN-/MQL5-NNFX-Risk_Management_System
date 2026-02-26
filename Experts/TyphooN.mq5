@@ -707,10 +707,7 @@ void OnTick()
    else
       infoSLPL = "SL P/L: $" + DoubleToString(total_risk, 2);
    if(hasLongs || hasShorts)
-   {
-      sl_risk = 0;
       percent_risk = 0;
-   }
    // Only update labels when text actually changes (avoid redundant ObjectSetString calls)
    static string prevInfoRR, prevInfoPL, prevInfoSLPL, prevInfoTP, prevInfoRisk, prevInfoTPRR;
    if (infoRR != prevInfoRR) { ObjectSetString(0,"infoRR",OBJPROP_TEXT,infoRR); prevInfoRR = infoRR; }
@@ -1296,7 +1293,7 @@ void TyWindow::OnClickTrade(void)
       Print("Order size adjusted to zero due to insufficient margin. Cannot place order.");
       return;
    }
-   if (potentialRisk <= (MaxRisk))
+   if (potentialRisk <= MaxRisk)
    {
       if (FixedOrdersToPlace >= 2)
       {

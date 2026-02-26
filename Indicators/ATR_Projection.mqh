@@ -238,18 +238,12 @@ int OnCalculate(const int        rates_total,
       avgH1 = iATR_H1[0];
       avgM15 = iATR_M15[0];
    }
-   double M15info = 0;
-   double H1info = 0;
-   double H4info = 0;
-   double D1info = 0;
-   double W1info = 0;
-   double MN1info = 0;
-   D1info = (copiedD1 == ATR_Period) ? avgD1 : copiedD1;
-   W1info = (copiedW1 == ATR_Period) ? avgW1 : copiedW1;
-   MN1info = (copiedMN1 == ATR_Period) ? avgMN1 : copiedMN1;
-   H4info = (copiedH4 == ATR_Period) ? avgH4 : copiedH4;
-   H1info = (copiedH1 == ATR_Period) ? avgH1 : copiedH1;
-   M15info = (copiedM15 == ATR_Period) ? avgM15 : copiedM15;
+   double D1info = (copiedD1 == ATR_Period) ? avgD1 : copiedD1;
+   double W1info = (copiedW1 == ATR_Period) ? avgW1 : copiedW1;
+   double MN1info = (copiedMN1 == ATR_Period) ? avgMN1 : copiedMN1;
+   double H4info = (copiedH4 == ATR_Period) ? avgH4 : copiedH4;
+   double H1info = (copiedH1 == ATR_Period) ? avgH1 : copiedH1;
+   double M15info = (copiedM15 == ATR_Period) ? avgM15 : copiedM15;
    bool IsM15AboveH1 = (avgM15 >= avgH1);
    bool IsM15AboveH4 = (avgM15 >= avgH4);
    bool IsH1AboveH4 = (avgH1 >= avgH4);
@@ -299,19 +293,6 @@ int OnCalculate(const int        rates_total,
       dataReady = true;
    }
 #endif
-   // Initialize vars
-   double ATRLevelAboveD1 = 0;
-   double ATRLevelBelowD1 = 0;
-   double ATRLevelAboveW1 = 0;
-   double ATRLevelBelowW1 = 0;
-   double ATRLevelAboveMN1 = 0;
-   double ATRLevelBelowMN1 = 0;
-   double ATRLevelAboveH4 = 0;
-   double ATRLevelBelowH4 = 0;
-   double ATRLevelAboveH1 = 0;
-   double ATRLevelBelowH1 = 0;
-   double ATRLevelAboveM15 = 0;
-   double ATRLevelBelowM15 = 0;
    #ifdef __MQL5__
    datetime endTime = time[rates_total - 1];
 #else
@@ -322,48 +303,48 @@ int OnCalculate(const int        rates_total,
    if (D1_ATR_Projections && _Period <= PERIOD_W1 && _Period != PERIOD_MN1)
    {
       datetime startTimeD1 = iTime(_Symbol, PERIOD_D1, 7);
-      ATRLevelAboveD1 = currentOpenD1 + avgD1;
-      ATRLevelBelowD1 = currentOpenD1 - avgD1;
+      double ATRLevelAboveD1 = currentOpenD1 + avgD1;
+      double ATRLevelBelowD1 = currentOpenD1 - avgD1;
       DrawHorizontalLine(ATRLevelAboveD1, objname + "High D1", startTimeD1, endTime);
       DrawHorizontalLine(ATRLevelBelowD1, objname + "Low D1", startTimeD1, endTime);
    }
    if (W1_ATR_Projections)
    {
       datetime startTimeW1 = iTime(_Symbol, PERIOD_W1, 4);
-      ATRLevelAboveW1 = currentOpenW1 + avgW1;
-      ATRLevelBelowW1 = currentOpenW1 - avgW1;
+      double ATRLevelAboveW1 = currentOpenW1 + avgW1;
+      double ATRLevelBelowW1 = currentOpenW1 - avgW1;
       DrawHorizontalLine(ATRLevelAboveW1, objname + "High W1", startTimeW1, endTime);
       DrawHorizontalLine(ATRLevelBelowW1, objname + "Low W1", startTimeW1, endTime);
    }
    if (MN1_ATR_Projections)
    {
       datetime startTimeMN1 = iTime(_Symbol, PERIOD_MN1, 2);
-      ATRLevelAboveMN1 = currentOpenMN1 + avgMN1;
-      ATRLevelBelowMN1 = currentOpenMN1 - avgMN1;
+      double ATRLevelAboveMN1 = currentOpenMN1 + avgMN1;
+      double ATRLevelBelowMN1 = currentOpenMN1 - avgMN1;
       DrawHorizontalLine(ATRLevelAboveMN1, objname + "High MN1", startTimeMN1, endTime);
       DrawHorizontalLine(ATRLevelBelowMN1, objname + "Low MN1", startTimeMN1, endTime);
    }
    if (H4_ATR_Projections && _Period <= PERIOD_D1 && _Period != PERIOD_MN1)
    {
       datetime startTimeH4 = iTime(_Symbol, PERIOD_H4, 11);
-      ATRLevelAboveH4 = currentOpenH4 + avgH4;
-      ATRLevelBelowH4 = currentOpenH4 - avgH4;
+      double ATRLevelAboveH4 = currentOpenH4 + avgH4;
+      double ATRLevelBelowH4 = currentOpenH4 - avgH4;
       DrawHorizontalLine(ATRLevelAboveH4, objname + "High H4", startTimeH4, endTime);
       DrawHorizontalLine(ATRLevelBelowH4, objname + "Low H4", startTimeH4, endTime);
    }
    if (H1_ATR_Projections && _Period <= PERIOD_H4 && _Period != PERIOD_MN1)
    {
       datetime startTimeH1 = iTime(_Symbol, PERIOD_H1, 12);
-      ATRLevelAboveH1 = currentOpenH1 + avgH1;
-      ATRLevelBelowH1 = currentOpenH1 - avgH1;
+      double ATRLevelAboveH1 = currentOpenH1 + avgH1;
+      double ATRLevelBelowH1 = currentOpenH1 - avgH1;
       DrawHorizontalLine(ATRLevelAboveH1, objname + "High H1", startTimeH1, endTime);
       DrawHorizontalLine(ATRLevelBelowH1, objname + "Low H1", startTimeH1, endTime);
    }
    if (M15_ATR_Projections && _Period <= PERIOD_H1 && _Period != PERIOD_MN1)
    {
       datetime startTimeM15 = iTime(_Symbol, PERIOD_M15, 7);
-      ATRLevelAboveM15 = currentOpenM15 + avgM15;
-      ATRLevelBelowM15 = currentOpenM15 - avgM15;
+      double ATRLevelAboveM15 = currentOpenM15 + avgM15;
+      double ATRLevelBelowM15 = currentOpenM15 - avgM15;
       DrawHorizontalLine(ATRLevelAboveM15, objname + "High M15", startTimeM15, endTime);
       DrawHorizontalLine(ATRLevelBelowM15, objname + "Low M15", startTimeM15, endTime);
    }
