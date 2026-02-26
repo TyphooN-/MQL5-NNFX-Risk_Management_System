@@ -102,33 +102,44 @@ void CalculateRelVolume(const int startBar, const int rates_total, const long& v
    ExtRelVolumesBuffer[0] = (double)volume[0];
    ExtColorsBuffer[0] = 0.0;
 
-   for (int i = startBar; i < rates_total && !IsStopped(); i++)
+   // Use sliding window for O(n) mean calculation instead of O(n * AveragingDays)
+   double windowSum = 0.0;
+
+   // Initialize window sum for the starting position
+   int windowStart = (startBar >= AveragingDays) ? startBar : AveragingDays;
+   if (windowStart <= rates_total && windowStart >= AveragingDays)
    {
-      if (i >= AveragingDays)
+      for (int j = 1; j <= AveragingDays; j++)
+         windowSum += (double)volume[windowStart - j];
+   }
+
+   // Fill pre-window bars if needed
+   for (int i = startBar; i < windowStart && i < rates_total && !IsStopped(); i++)
+   {
+      ExtRelVolumesBuffer[i] = 0.0;
+      ExtColorsBuffer[i] = 0.0;
+   }
+
+   // Main loop with sliding window
+   for (int i = windowStart; i < rates_total && !IsStopped(); i++)
+   {
+      // Slide the window: add new element, remove oldest
+      if (i > windowStart)
       {
-         double curr_volume = (double)volume[i];
-
-         double mean_volume = 0.0;
-
-         for (int j = 1; j <= AveragingDays; j++)
-            mean_volume += (double)volume[i - j];
-
-         mean_volume /= (double)AveragingDays;
-
-         ExtRelVolumesBuffer[i] = curr_volume / mean_volume;
-
-         if (ExtRelVolumesBuffer[i] > 1.25) // Above Average Volume
-            ExtColorsBuffer[i] = 0.0;
-         else if (ExtRelVolumesBuffer[i] > 0.8) // Average Volume
-            ExtColorsBuffer[i] = 1.0;
-         else // Below Average Volume
-            ExtColorsBuffer[i] = 2.0;
+         windowSum += (double)volume[i - 1];
+         windowSum -= (double)volume[i - AveragingDays - 1];
       }
-      else
-      {
-         ExtRelVolumesBuffer[i] = 0.0;
+
+      double curr_volume = (double)volume[i];
+      double mean_volume = windowSum / AveragingDays;
+      ExtRelVolumesBuffer[i] = curr_volume / mean_volume;
+
+      if (ExtRelVolumesBuffer[i] > 1.25) // Above Average Volume
          ExtColorsBuffer[i] = 0.0;
-      }
+      else if (ExtRelVolumesBuffer[i] > 0.8) // Average Volume
+         ExtColorsBuffer[i] = 1.0;
+      else // Below Average Volume
+         ExtColorsBuffer[i] = 2.0;
    }
 }
 
