@@ -409,14 +409,12 @@ bool PlacePyramidOrders()
    // Check if enough time has passed since the last pyramid order
    if (TimeCurrent() - LastPyramidTime < PyramidCooldown)
    {
-      // Print("Pyramid order cooldown period not met.");
       return false;
    }
    // Check if free margin exceeds the trigger
    double freeMargin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
    if (freeMargin < PyramidFreeMarginTrigger)
    {
-      // Print("Free margin is less than the trigger.");
       return false;
    }
    // Determine whether it's a buy or sell order based on current position
@@ -1134,8 +1132,6 @@ double PerformOrderCheck(const MqlTradeRequest &request, MqlTradeCheckResult &ch
             Print("Failed to calculate required margin after successful OrderCheck. Error:", GetLastError());
             return -1.0; // Return -1.0 to indicate failure
          }
-         MqlTradeRequest Request = request;
-         Request.volume = OrderLots;
          return required_margin;
    }
    return -1.0;
@@ -1300,8 +1296,6 @@ void TyWindow::OnClickTrade(void)
    }
    MqlTradeCheckResult check_result;
    MqlTick latest_tick;
-   int retcode = 0;
-   double free_margin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
    AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
    usable_margin = (AccountBalance - (AccountBalance * (MarginBufferPercent / 100.0))) - AccountInfoDouble(ACCOUNT_MARGIN);
    if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY || request.type == ORDER_TYPE_BUY_LIMIT) ? Ask : Bid, required_margin))
