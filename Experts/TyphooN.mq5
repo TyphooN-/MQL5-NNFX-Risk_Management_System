@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.380"
+#property version   "1.382"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -627,13 +627,13 @@ void OnTick()
 {
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
-   AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
-   AccountEquity = AccountInfoDouble(ACCOUNT_EQUITY);
    // Check if both bid and ask prices have changed from the previous tick
    if (Bid == prevBidPrice && Ask == prevAskPrice)
    {
       return;
    }
+   AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
+   AccountEquity = AccountInfoDouble(ACCOUNT_EQUITY);
    PlacePyramidOrders();
    prevBidPrice = Bid;
    prevAskPrice = Ask;
@@ -691,20 +691,6 @@ void OnTick()
    // Reset per-direction break-even flags before the position loop
    breakEvenFoundLong = false;
    breakEvenFoundShort = false;
-   // Single pre-scan to detect longs/shorts (replaces two HasOpenPosition calls)
-   bool hasLongs = false, hasShorts = false;
-   for (int p = 0; p < PositionsTotal(); p++)
-   {
-      ulong pTicket = PositionGetTicket(p);
-      if (ProcessPositionCheck(pTicket, _Symbol, MagicNumber))
-      {
-         int pType = (int)PositionGetInteger(POSITION_TYPE);
-         if (pType == POSITION_TYPE_BUY) hasLongs = true;
-         else if (pType == POSITION_TYPE_SELL) hasShorts = true;
-         if (hasLongs && hasShorts) break;
-      }
-   }
-   bool isHedged = (hasLongs && hasShorts);
    LotsInfo lots;
    lots.longLots = 0.0;
    lots.shortLots = 0.0;
@@ -729,16 +715,12 @@ void OnTick()
          else if (posType == POSITION_TYPE_SELL) lots.shortLots += posVolume;
          if (sl == 0 && tp == 0 && EnableUpdateEmptySLTP)
          {
-            // Only auto-fill from same-direction positions; skip if hedged and already has any SL/TP
-            if (!isHedged || (sl == 0 && tp == 0))
+            GetSLTPFromAnotherPosition(ticket, sl, tp, posType);
+            if (sl != 0 || tp != 0)
             {
-               GetSLTPFromAnotherPosition(ticket, sl, tp, posType);
-               if (sl != 0 || tp != 0)
+               if (!Trade.PositionModify(ticket, sl, tp))
                {
-                  if (!Trade.PositionModify(ticket, sl, tp))
-                  {
-                     Print("Failed to modify position SL/TP: ", GetLastError());
-                  }
+                  Print("Failed to modify position SL/TP: ", GetLastError());
                }
             }
          }
@@ -750,46 +732,20 @@ void OnTick()
             else if (posType == POSITION_TYPE_SELL)
                breakEvenFoundShort = true;
          }
-         if (tp > sl)
+         if (sl != 0 || tp != 0)
          {
-            if (!OrderCalcMargin(ORDER_TYPE_BUY, _Symbol, posVolume, posOpenPrice, margin))
-            {
+            ENUM_ORDER_TYPE orderType = (posType == POSITION_TYPE_BUY) ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
+            if (!OrderCalcMargin(orderType, _Symbol, posVolume, posOpenPrice, margin))
                Print("Error in OrderCalcMargin: ", GetLastError());
-            }
             if (tp != 0)
             {
-               if (!OrderCalcProfit(ORDER_TYPE_BUY, _Symbol, posVolume, posOpenPrice, tp, tpprofit))
-               {
+               if (!OrderCalcProfit(orderType, _Symbol, posVolume, posOpenPrice, tp, tpprofit))
                   Print("Error in OrderCalcProfit (TP): ", GetLastError());
-               }
             }
             if (sl != 0)
             {
-               if (!OrderCalcProfit(ORDER_TYPE_BUY, _Symbol, posVolume, posOpenPrice, sl, risk))
-               {
+               if (!OrderCalcProfit(orderType, _Symbol, posVolume, posOpenPrice, sl, risk))
                   Print("Error in OrderCalcProfit (SL): ", GetLastError());
-               }
-            }
-         }
-         if (sl > tp)
-         {
-            if (!OrderCalcMargin(ORDER_TYPE_SELL, _Symbol, posVolume, posOpenPrice, margin))
-            {
-               Print("Error in OrderCalcMargin: ", GetLastError());
-            }
-            if (tp != 0)
-            {
-               if (!OrderCalcProfit(ORDER_TYPE_SELL, _Symbol, posVolume, posOpenPrice, tp, tpprofit))
-               {
-                  Print("Error in OrderCalcProfit (TP): ", GetLastError());
-               }
-            }
-            if (sl != 0)
-            {
-               if (!OrderCalcProfit(ORDER_TYPE_SELL, _Symbol, posVolume, posOpenPrice, sl, risk))
-               {
-                  Print("Error in OrderCalcProfit (SL): ", GetLastError());
-               }
             }
          }
          if (risk <= 0)
@@ -809,11 +765,17 @@ void OnTick()
          total_pl += profit;
          total_tp += tpprofit;
          total_margin += margin;
-         tprr = total_tp/MathAbs(total_risk);
-         rr = total_pl/MathAbs(total_risk);
-         percent_risk = MathAbs((sl_risk / AccountBalance) * 100);
       }
    }
+   bool hasLongs = (lots.longLots > 0);
+   bool hasShorts = (lots.shortLots > 0);
+   double absRisk = MathAbs(total_risk);
+   if (absRisk > 0)
+   {
+      tprr = total_tp / absRisk;
+      rr = total_pl / absRisk;
+   }
+   percent_risk = MathAbs((sl_risk / AccountBalance) * 100);
    breakEvenFound = (breakEvenFoundLong || breakEvenFoundShort);
    if (EnableAutoProtect == true && AutoProtectCalled == false && breakEvenFound == false)
    {
@@ -831,7 +793,6 @@ void OnTick()
       infoRR = "RR : " + DoubleToString(rr, 2);
    else
       infoRR = "RR : N/A";
-   double absRisk = MathAbs(total_risk);
    if (total_pl >= absRisk)
    {
       double floatingRisk = MathAbs(total_pl - total_risk);
