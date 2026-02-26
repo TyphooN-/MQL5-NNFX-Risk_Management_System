@@ -228,7 +228,7 @@ int OnCalculate(const int        rates_total,
    }
    int currentbar = rates_total - 1;
    // Check if the current bar is within the valid range of the arrays
-   if (currentbar >= ATR_Period && currentbar < rates_total)
+   if (currentbar >= ATR_Period)
    {
    // Calculate the average true range (ATR) for the specified period
       avgD1 = iATR_D1[0];
@@ -244,55 +244,22 @@ int OnCalculate(const int        rates_total,
    double D1info = 0;
    double W1info = 0;
    double MN1info = 0;
-   if (copiedD1 != ATR_Period)
-      D1info = copiedD1;
-   if (copiedW1 != ATR_Period)
-      W1info = copiedW1;
-   if (copiedMN1 != ATR_Period)
-      MN1info = copiedMN1;
-   if (copiedH4 != ATR_Period)
-      H4info = copiedH4;
-   if (copiedM15 != ATR_Period)
-      M15info = copiedM15;
-    if (copiedD1 == ATR_Period)
-      D1info = avgD1;
-   if (copiedW1 == ATR_Period)
-      W1info = avgW1;
-   if (copiedMN1 == ATR_Period)
-      MN1info = avgMN1;
-   if (copiedH4 == ATR_Period)
-      H4info = avgH4;
-   if (copiedH1 == ATR_Period)
-      H1info = avgH1;
-   if (copiedM15 == ATR_Period)
-      M15info = avgM15;
+   D1info = (copiedD1 == ATR_Period) ? avgD1 : copiedD1;
+   W1info = (copiedW1 == ATR_Period) ? avgW1 : copiedW1;
+   MN1info = (copiedMN1 == ATR_Period) ? avgMN1 : copiedMN1;
+   H4info = (copiedH4 == ATR_Period) ? avgH4 : copiedH4;
+   H1info = (copiedH1 == ATR_Period) ? avgH1 : copiedH1;
+   M15info = (copiedM15 == ATR_Period) ? avgM15 : copiedM15;
    bool IsM15AboveH1 = (avgM15 >= avgH1);
    bool IsM15AboveH4 = (avgM15 >= avgH4);
    bool IsH1AboveH4 = (avgH1 >= avgH4);
    bool IsH4AboveD1 = (avgH4 >= avgD1);
    // Change InfoText1 font color if any lower timeframe ATR values are higher than higher timeframe ATR values
-   color FontColor1 = FontColor;
-   if (IsM15AboveH1 && IsM15AboveH4 && IsH1AboveH4 && IsH4AboveD1)
-   {
-      FontColor1 = clrMagenta;
-   }
-   else
-   {
-      FontColor1 = FontColor;
-   }
+   color FontColor1 = (IsM15AboveH1 && IsM15AboveH4 && IsH1AboveH4 && IsH4AboveD1) ? clrMagenta : FontColor;
    bool IsD1AboveW1 = (avgD1 > avgW1);
    bool IsD1AboveMN1 = (avgD1 > avgMN1);
    bool IsW1AboveMN1 = (avgW1 > avgMN1);
-   // Change InfoText2 font color if any lower timeframe ATR values are higher than higher timeframe ATR values
-   color FontColor2 = FontColor;
-   if (IsD1AboveW1 && IsD1AboveMN1 && IsW1AboveMN1)
-   {
-       FontColor2 = clrMagenta;
-   }
-   else
-   {
-       FontColor2 = FontColor;
-   }
+   color FontColor2 = (IsD1AboveW1 && IsD1AboveMN1 && IsW1AboveMN1) ? clrMagenta : FontColor;
    string infoText1 = "ATR| M15: " + DoubleToString(M15info, ATRInfoDecimals) + " H1: " + DoubleToString(H1info, ATRInfoDecimals) + " H4: " + DoubleToString(H4info, ATRInfoDecimals);
    string infoText2 = "ATR| D1: " + DoubleToString(D1info, ATRInfoDecimals) + " W1: " + DoubleToString(W1info, ATRInfoDecimals) + " MN1: " + DoubleToString(MN1info, ATRInfoDecimals);
    static bool infoObjectsCreated = false;
