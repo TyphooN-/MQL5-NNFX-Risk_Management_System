@@ -500,8 +500,8 @@ bool PlacePyramidOrders()
    // Determine whether it's a buy or sell order based on current position
    ENUM_ORDER_TYPE orderType = (PositionSelect(_Symbol) && PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL) ? ORDER_TYPE_SELL : ORDER_TYPE_BUY;
    // Get current bid or ask price
-   double price = (orderType == ORDER_TYPE_BUY) ? SymbolInfoDouble(_Symbol, SYMBOL_ASK) : SymbolInfoDouble(_Symbol, SYMBOL_BID);
-   // Check if SymbolInfoDouble returns a valid price
+   double price = (orderType == ORDER_TYPE_BUY) ? Ask : Bid;
+   // Check if price is valid
    if (price <= 0)
    {
       Print("Invalid price for symbol: ", _Symbol, " Price: ", price);
@@ -509,8 +509,8 @@ bool PlacePyramidOrders()
    }
    // Validate the price with market info
    double MarketPriceDeviation = 20;
-   double minPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID) * (1 - MarketPriceDeviation);
-   double maxPrice = SymbolInfoDouble(_Symbol, SYMBOL_ASK) * (1 + MarketPriceDeviation);
+   double minPrice = Bid * (1 - MarketPriceDeviation);
+   double maxPrice = Ask * (1 + MarketPriceDeviation);
    if (price < minPrice || price > maxPrice)
    {
       Print("Price out of acceptable range. Price: ", price, " Min: ", minPrice, " Max: ", maxPrice);
@@ -670,11 +670,11 @@ void OnTick()
    {
       if (breakEvenFound)
       {
-         order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * ((Risk / 100) * AdditionalRiskRatio));
+         order_risk_money = (AccountBalance * ((Risk / 100) * AdditionalRiskRatio));
       }
       else
       {
-         order_risk_money = (AccountInfoDouble(ACCOUNT_BALANCE) * (Risk / 100));
+         order_risk_money = (AccountBalance * (Risk / 100));
       }
    }
    if (OrderMode == Dynamic)
@@ -1862,18 +1862,19 @@ void TyWindow::OnClickCloseAll(void)
 void TyWindow::OnClickClosePartial(void)
 {
    PositionInfo positions[];
+   ArrayResize(positions, PositionsTotal());
+   int count = 0;
    for (int i = 0; i < PositionsTotal(); i++)
    {
       if (ProcessPositionCheck(PositionGetTicket(i), _Symbol, MagicNumber))
       {
-         PositionInfo pos;
-         pos.ticket = PositionGetInteger(POSITION_TICKET);
-         pos.lotSize = PositionGetDouble(POSITION_VOLUME);
-         pos.diff = 0;
-         ArrayResize(positions, ArraySize(positions) + 1);
-         positions[ArraySize(positions) - 1] = pos;
+         positions[count].ticket = PositionGetInteger(POSITION_TICKET);
+         positions[count].lotSize = PositionGetDouble(POSITION_VOLUME);
+         positions[count].diff = 0;
+         count++;
       }
    }
+   ArrayResize(positions, count);
    if(ArraySize(positions) == 0)
    {
       Print("There are no positions to close on ", _Symbol + ".");
