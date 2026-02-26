@@ -91,56 +91,57 @@ int OnInit()
 #ifdef __MQL5__
 int OnCalculate(const int rates_total, const int prev_calculated, const int begin, const double &price[])
 {
-   int calculated = prev_calculated - 1;
-   if (calculated < 0)
+   if (rates_total <= 0)
+      return 0;
+   // Only copy full buffers on new bar (HTF KAMA values don't change intra-bar)
+   if (prev_calculated == 0 || prev_calculated != rates_total)
    {
-      calculated = 0;
+      CopyIndicatorData(handle_KAMA_H1, ExtAMABuffer_H1, rates_total, "KAMA_H1");
+      CopyIndicatorData(handle_KAMA_H4, ExtAMABuffer_H4, rates_total, "KAMA_H4");
+      CopyIndicatorData(handle_KAMA_D1, ExtAMABuffer_D1, rates_total, "KAMA_D1");
+      CopyIndicatorData(handle_KAMA_W1, ExtAMABuffer_W1, rates_total, "KAMA_W1");
+      CopyIndicatorData(handle_KAMA_MN1, ExtAMABuffer_MN1, rates_total, "KAMA_MN1");
+      int latestIndex = rates_total - 1;
+      GlobalVariableSet("recent_KAMA_H1", ExtAMABuffer_H1[latestIndex]);
+      GlobalVariableSet("recent_KAMA_H4", ExtAMABuffer_H4[latestIndex]);
+      GlobalVariableSet("recent_KAMA_D1", ExtAMABuffer_D1[latestIndex]);
+      GlobalVariableSet("recent_KAMA_W1", ExtAMABuffer_W1[latestIndex]);
+      GlobalVariableSet("recent_KAMA_MN1", ExtAMABuffer_MN1[latestIndex]);
    }
-   //--- calculate KAMA for each timeframe
-   WaitForIndicatorData(handle_KAMA_H1, ExtAMABuffer_H1, rates_total, "KAMA_H1");
-   WaitForIndicatorData(handle_KAMA_H4, ExtAMABuffer_H4, rates_total, "KAMA_H4");
-   WaitForIndicatorData(handle_KAMA_D1, ExtAMABuffer_D1, rates_total, "KAMA_D1");
-   WaitForIndicatorData(handle_KAMA_W1, ExtAMABuffer_W1, rates_total, "KAMA_W1");
-   WaitForIndicatorData(handle_KAMA_MN1, ExtAMABuffer_MN1, rates_total, "KAMA_MN1");
-    // Check if the buffers are correctly filled
-    if (rates_total > 0)
-    {
-        int latestIndex = rates_total - 1; // Index of the latest bar
-        GlobalVariableSet("recent_KAMA_H1", ExtAMABuffer_H1[latestIndex]);
-        GlobalVariableSet("recent_KAMA_H4", ExtAMABuffer_H4[latestIndex]);
-        GlobalVariableSet("recent_KAMA_D1", ExtAMABuffer_D1[latestIndex]);
-        GlobalVariableSet("recent_KAMA_W1", ExtAMABuffer_W1[latestIndex]);
-        GlobalVariableSet("recent_KAMA_MN1", ExtAMABuffer_MN1[latestIndex]);
-    }
-   // Get the current price
+   // Check price vs KAMA on every tick, but only update globals when values change
    double currentPrice = price[rates_total - 1];
-   // Check if the current price is above or below each KAMA
    bool isAbove_KAMA_H1 = currentPrice > ExtAMABuffer_H1[rates_total - 1];
    bool isAbove_KAMA_H4 = currentPrice > ExtAMABuffer_H4[rates_total - 1];
    bool isAbove_KAMA_D1 = currentPrice > ExtAMABuffer_D1[rates_total - 1];
    bool isAbove_KAMA_W1 = currentPrice > ExtAMABuffer_W1[rates_total - 1];
    bool isAbove_KAMA_MN1 = currentPrice > ExtAMABuffer_MN1[rates_total - 1];
-   // Set global variables for each timeframe's KAMA comparison
-   GlobalVariableSet("IsAbove_KAMA_H1", isAbove_KAMA_H1);
-   GlobalVariableSet("IsAbove_KAMA_H4", isAbove_KAMA_H4);
-   GlobalVariableSet("IsAbove_KAMA_D1", isAbove_KAMA_D1);
-   GlobalVariableSet("IsAbove_KAMA_W1", isAbove_KAMA_W1);
-   GlobalVariableSet("IsAbove_KAMA_MN1", isAbove_KAMA_MN1);
+   static bool prev_H1 = false, prev_H4 = false, prev_D1 = false, prev_W1 = false, prev_MN1 = false;
+   static bool initialized = false;
+   if (!initialized || isAbove_KAMA_H1 != prev_H1 || isAbove_KAMA_H4 != prev_H4 ||
+       isAbove_KAMA_D1 != prev_D1 || isAbove_KAMA_W1 != prev_W1 || isAbove_KAMA_MN1 != prev_MN1)
+   {
+      GlobalVariableSet("IsAbove_KAMA_H1", isAbove_KAMA_H1);
+      GlobalVariableSet("IsAbove_KAMA_H4", isAbove_KAMA_H4);
+      GlobalVariableSet("IsAbove_KAMA_D1", isAbove_KAMA_D1);
+      GlobalVariableSet("IsAbove_KAMA_W1", isAbove_KAMA_W1);
+      GlobalVariableSet("IsAbove_KAMA_MN1", isAbove_KAMA_MN1);
+      prev_H1 = isAbove_KAMA_H1;
+      prev_H4 = isAbove_KAMA_H4;
+      prev_D1 = isAbove_KAMA_D1;
+      prev_W1 = isAbove_KAMA_W1;
+      prev_MN1 = isAbove_KAMA_MN1;
+      initialized = true;
+   }
    //--- return value of prev_calculated for next call
    return (rates_total);
 }
-void WaitForIndicatorData(int handle, double &buffer[], int rates_total, string name)
+bool CopyIndicatorData(int handle, double &buffer[], int rates_total, string name)
 {
-   if (CopyBuffer(handle, 0, 0, rates_total, buffer) > 0)
-   {
-      return;
-   }
-   else
-   {
-      //Print("Error in CopyBuffer for ", name, ": ", GetLastError(), ", retrying...");
-      // If the copy buffer fails, wait for a short period before retrying
-      Sleep(1000); // Wait for 1000 milliseconds before retrying
-   }
+   if (BarsCalculated(handle) <= 0)
+      return false;
+   if (CopyBuffer(handle, 0, 0, rates_total, buffer) <= 0)
+      return false;
+   return true;
 }
 #else
 #ifdef __MQL4__

@@ -645,7 +645,6 @@ void OnTick()
    double rr = 0;
    double tprr = 0;
    double sl_risk = 0;
-   double CurrentTick = SymbolInfoDouble(_Symbol, SYMBOL_LAST);
    if (AccountEquity >= TargetEquityTP && EnableEquityTP == true && EquityTPCalled == false)
    {
       Print("Closing all positions across all symbols because Equity >= TargetEquityTP ($" + DoubleToString(TargetEquityTP, 2) + ").");
@@ -695,6 +694,9 @@ void OnTick()
    bool hasLongs = HasOpenPosition(_Symbol, POSITION_TYPE_BUY);
    bool hasShorts = HasOpenPosition(_Symbol, POSITION_TYPE_SELL);
    bool isHedged = (hasLongs && hasShorts);
+   LotsInfo lots;
+   lots.longLots = 0.0;
+   lots.shortLots = 0.0;
    for (int i = 0; i < PositionsTotal(); i++)
    {
       ulong ticket = PositionGetTicket(i);
@@ -712,6 +714,8 @@ void OnTick()
          double sl = PositionGetDouble(POSITION_SL);
          double tp = PositionGetDouble(POSITION_TP);
          int posType = (int)PositionGetInteger(POSITION_TYPE);
+         if (posType == POSITION_TYPE_BUY) lots.longLots += posVolume;
+         else if (posType == POSITION_TYPE_SELL) lots.shortLots += posVolume;
          if (sl == 0 && tp == 0 && EnableUpdateEmptySLTP)
          {
             // Only auto-fill from same-direction positions; skip if hedged and already has any SL/TP
@@ -847,7 +851,7 @@ void OnTick()
    {
       infoSLPL = "SL P/L: -$" + DoubleToString(MathAbs(total_risk), 2);
    }
-   if(HasOpenPosition(_Symbol, POSITION_TYPE_BUY) || HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
+   if(hasLongs || hasShorts)
    {
       sl_risk = 0;
       percent_risk = 0;
@@ -860,61 +864,64 @@ void OnTick()
    ObjectSetString(0,"infoRisk",OBJPROP_TEXT,infoRisk);
    string infoTPRR = "TP RR: " + DoubleToString(tprr, 2);
    ObjectSetString(0,"infoTPRR",OBJPROP_TEXT,infoTPRR);
-   string infoH4 = "H4 : " + TimeTilNextBar(PERIOD_H4);
-   ObjectSetString(0,"infoH4",OBJPROP_TEXT,infoH4);
-   string infoW1 = "W1 : " + TimeTilNextBar(PERIOD_W1);
-   ObjectSetString(0,"infoW1",OBJPROP_TEXT,infoW1);
-   string infoD1 = "D1 : " + TimeTilNextBar(PERIOD_D1);
-   ObjectSetString(0,"infoD1",OBJPROP_TEXT,infoD1);
-   string infoMN1 = "MN1: " + TimeTilNextBar(PERIOD_MN1);
-   ObjectSetString(0,"infoMN1",OBJPROP_TEXT,infoMN1);
-   LotsInfo lots = TallyPositionLots();
-   string infoPosition;
-   if(HasOpenPosition(_Symbol, POSITION_TYPE_BUY) || HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
+   // Only update countdown timers once per second (iTime is expensive)
+   static datetime lastTimerUpdate = 0;
+   datetime now = TimeCurrent();
+   if (now != lastTimerUpdate)
    {
-      if (lots.longLots > 0 && lots.shortLots == 0)
+      lastTimerUpdate = now;
+      string infoH4 = "H4 : " + TimeTilNextBar(PERIOD_H4);
+      ObjectSetString(0,"infoH4",OBJPROP_TEXT,infoH4);
+      string infoW1 = "W1 : " + TimeTilNextBar(PERIOD_W1);
+      ObjectSetString(0,"infoW1",OBJPROP_TEXT,infoW1);
+      string infoD1 = "D1 : " + TimeTilNextBar(PERIOD_D1);
+      ObjectSetString(0,"infoD1",OBJPROP_TEXT,infoD1);
+      string infoMN1 = "MN1: " + TimeTilNextBar(PERIOD_MN1);
+      ObjectSetString(0,"infoMN1",OBJPROP_TEXT,infoMN1);
+   }
+   string infoPosition;
+   if (lots.longLots > 0 && lots.shortLots == 0)
+   {
+      infoPosition = "Long " + DoubleToString(lots.longLots, Digits()) + " Lots";
+      ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrLime);
+      ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrLime);
+      ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
+      if(PortfolioRisk.CalculateVaR(_Symbol, lots.longLots))
       {
-         infoPosition = "Long " + DoubleToString(lots.longLots, Digits()) + " Lots";
-         ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrLime);
-         ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrLime);
-         ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
-         if(PortfolioRisk.CalculateVaR(_Symbol, lots.longLots))
-         {
-            string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity  * 100), 2);
-            ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
-         }
-      }
-      if (lots.shortLots > 0 && lots.longLots == 0)
-      {
-         infoPosition = "Short " + DoubleToString(lots.shortLots, Digits()) + " Lots";
-         ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrRed);
-         ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrRed);
-         ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
-         if(PortfolioRisk.CalculateVaR(_Symbol, lots.shortLots))
-         {
-            string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity  * 100), 2);
-            ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
-         }
-      }
-      if (lots.shortLots > 0 && lots.longLots > 0)
-      {
-         double netExposure = MathAbs(lots.longLots - lots.shortLots);
-         infoPosition = DoubleToString(lots.longLots, Digits()) + " Long / " + DoubleToString(lots.shortLots, Digits()) + " Short";
-         ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrWhite);
-         ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
-         ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrWhite);
-         if (netExposure > 0 && PortfolioRisk.CalculateVaR(_Symbol, netExposure))
-         {
-            string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2) + " (net)";
-            ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
-         }
-         else
-         {
-            ObjectSetString(0,"infoVaR",OBJPROP_TEXT,"VaR %: 0.00 (hedged)");
-         }
+         string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity  * 100), 2);
+         ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
       }
    }
-   if (GetTotalVolumeForSymbol(_Symbol) == 0)
+   else if (lots.shortLots > 0 && lots.longLots == 0)
+   {
+      infoPosition = "Short " + DoubleToString(lots.shortLots, Digits()) + " Lots";
+      ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrRed);
+      ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrRed);
+      ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
+      if(PortfolioRisk.CalculateVaR(_Symbol, lots.shortLots))
+      {
+         string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity  * 100), 2);
+         ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
+      }
+   }
+   else if (lots.shortLots > 0 && lots.longLots > 0)
+   {
+      double netExposure = MathAbs(lots.longLots - lots.shortLots);
+      infoPosition = DoubleToString(lots.longLots, Digits()) + " Long / " + DoubleToString(lots.shortLots, Digits()) + " Short";
+      ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrWhite);
+      ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
+      ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrWhite);
+      if (netExposure > 0 && PortfolioRisk.CalculateVaR(_Symbol, netExposure))
+      {
+         string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2) + " (net)";
+         ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
+      }
+      else
+      {
+         ObjectSetString(0,"infoVaR",OBJPROP_TEXT,"VaR %: 0.00 (hedged)");
+      }
+   }
+   else
    {
       double var_1_lot = 0.0;
       if(PortfolioRisk.CalculateVaR(_Symbol, 1.0))

@@ -321,14 +321,19 @@ int OnCalculate(const int        rates_total,
    ObjectSetInteger(0, objname + "Info1", OBJPROP_COLOR, FontColor1);
    ObjectSetString(0, objname + "Info2", OBJPROP_TEXT, infoText2);
    ObjectSetInteger(0, objname + "Info2", OBJPROP_COLOR, FontColor2);
-   static int waitCount = 10;
-   if ( waitCount > 0 )
+#ifdef __MQL5__
+   static bool dataReady = false;
+   if (!dataReady)
    {
-      UpdateATRData();
-      UpdateCandlestickData();
-      waitCount--;
-      return prev_calculated;
+      if (BarsCalculated(handle_iATR_D1) <= 0 || BarsCalculated(handle_iATR_MN1) <= 0)
+      {
+         UpdateATRData();
+         UpdateCandlestickData();
+         return prev_calculated;
+      }
+      dataReady = true;
    }
+#endif
    //PrintFormat( "ATR and candlestick Data is now available" );
    // Initialize vars
    double ATRLevelAboveD1 = 0;
@@ -402,6 +407,12 @@ int OnCalculate(const int        rates_total,
 }
 void DrawHorizontalLine(double price, string label, datetime StartTime, datetime EndTime)
 {
+   if(ObjectFind(0, label) != -1)
+   {
+      ObjectMove(0, label, 0, StartTime, price);
+      ObjectMove(0, label, 1, EndTime, price);
+      return;
+   }
    ObjectCreate(0, label, OBJ_TREND, 0, StartTime, price, EndTime, price);
    ObjectSetInteger(0, label, OBJPROP_STYLE, ATR_linestyle);
    ObjectSetInteger(0, label, OBJPROP_WIDTH, ATR_Line_Thickness);
