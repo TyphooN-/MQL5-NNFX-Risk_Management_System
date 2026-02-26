@@ -64,7 +64,6 @@ input int    FontSize                      = 8;
 const ENUM_BASE_CORNER Corner              = CORNER_RIGHT_UPPER;
 input int    HorizPos                      = 310;
 input int    VertPos                       = 130;
-bool W1_Empty_Warning = false;
 ENUM_APPLIED_PRICE MAPrice = PRICE_CLOSE;
 // Handles
 int HandleM1_200SMA, HandleM1_50SMA, HandleM1_20SMA, HandleM1_10SMA, HandleM5_200SMA, HandleM5_50SMA, HandleM5_20SMA, HandleM5_10SMA, HandleM15_200SMA, HandleM15_50SMA, HandleM15_20SMA;
@@ -77,13 +76,9 @@ double MABufferM15_10SMA[], MABufferM30_200SMA[], MABufferM30_50SMA[], MABufferM
 double MABufferH4_20SMA[], MABufferH4_10SMA[], MABufferD1_200SMA[], MABufferD1_50SMA[], MABufferD1_20SMA[], MABufferD1_10SMA[], MABufferW1_200SMA[], MABufferW1_50SMA[], MABufferW1_20SMA[], MABufferW1_10SMA[];
 double MABufferM1_100SMA[], MABufferM5_100SMA[], MABufferM15_100SMA[], MABufferM30_100SMA[], MABufferH1_100SMA[], MABufferH4_100SMA[], MABufferD1_100SMA[], MABufferW1_100SMA[], MABufferMN1_100SMA[];
 int BullPowerLTF = 0;
-int BullPowerMTF = 0;
 int BullPowerHTF = 0;
 int BearPowerLTF = 0;
-int BearPowerMTF = 0;
 int BearPowerHTF = 0;
-double TotalBearPower;
-double TotalBullPower;
 bool isTimerSet = false;
 int lastCheckedCandle = -1;
 double prevBidPrice = 0.0;

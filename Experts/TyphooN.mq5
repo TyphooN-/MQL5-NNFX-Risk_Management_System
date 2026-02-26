@@ -27,20 +27,15 @@
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
-#include <Trade\PositionInfo.mqh>
 #include <Trade\Trade.mqh>
 #include <Trade\OrderInfo.mqh>
-#include <Trade\AccountInfo.mqh>
-#include <Trade\SymbolInfo.mqh>
 #include <Orchard\RiskCalc.mqh>
 #include <Darwinex\DWEX Portfolio Risk Man.mqh>
 #define XRGB(r,g,b)    (0xFF000000|(uchar(r)<<16)|(uchar(g)<<8)|uchar(b))
 #define GETRGB(clr)    ((clr)&0xFFFFFF)
 // Classes
-CPositionInfo     Position; // Trade wrapper
 CTrade            Trade;    // Trade wrapper
 COrderInfo        Order;    // Order wrapper
-CAccountInfo      Account;  // Account wrapper
 // orchard compat functions
 string BaseCurrency() { return ( AccountInfoString( ACCOUNT_CURRENCY ) ); }
 double Point( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_POINT ) ); }
@@ -107,7 +102,7 @@ CPortfolioRiskMan PortfolioRisk(VaRTimeframe, StdDevPeriods); // Darwinex VaR wr
 // global vars
 datetime LastPyramidTime = 0;
 double PyramidLotsOpened = 0, TP = 0, SL = 0, Bid = 0, Ask = 0, prevBidPrice = 0.0,
-       prevAskPrice = 0.0, order_risk_money = 0, DynamicRisk = 0, AccountBalance = 0,
+       prevAskPrice = 0.0, order_risk_money = 0, AccountBalance = 0,
        required_margin = 0, AccountEquity = 0, percent_risk = 0;
 bool AutoProtectCalled = false, LimitLineExists = false, EquityTPCalled = false,
      EquitySLCalled = false, breakEvenFoundLong = false, breakEvenFoundShort = false;
@@ -405,55 +400,7 @@ struct LotsInfo
 {
    double longLots;
    double shortLots;
-   // Copy constructor
-   LotsInfo(const LotsInfo &other)
-   {
-      longLots = other.longLots;
-      shortLots = other.shortLots;
-   }
-   // Default constructor
-   LotsInfo()
-   {
-   }
-   // Assignment operator
-   void operator=(const LotsInfo &other)
-   {
-      longLots = other.longLots;
-      shortLots = other.shortLots;
-   }
 };
-// Function to tally up the lots on all open positions and return the results
-LotsInfo TallyPositionLots()
-{
-   LotsInfo lotsInfo;
-   lotsInfo.longLots = 0.0;
-   lotsInfo.shortLots = 0.0;
-   // Loop through all open positions
-   for(int i = 0; i < PositionsTotal(); i++)
-   {
-      ulong ticket = PositionGetTicket(i);
-      if(PositionSelectByTicket(ticket))
-      {
-         if(PositionGetString(POSITION_SYMBOL) == _Symbol) // Check if the position's symbol matches the current chart symbol
-         {
-            // Get the type of the position
-            int posType = (int)PositionGetInteger(POSITION_TYPE);
-            // Get the lot size of the position
-            double lotSize = PositionGetDouble(POSITION_VOLUME);
-            // Check if it's a buy position
-            if(posType == POSITION_TYPE_BUY)
-            {
-               lotsInfo.longLots += lotSize;
-            }
-            else if(posType == POSITION_TYPE_SELL)
-            {
-               lotsInfo.shortLots += lotSize;
-            }
-         }
-      }
-   }
-   return lotsInfo;
-}
 bool IsTradeAllowed(const string symbol)
 {
    if (!AccountInfoInteger(ACCOUNT_TRADE_ALLOWED))
@@ -638,14 +585,12 @@ void OnTick()
    prevBidPrice = Bid;
    prevAskPrice = Ask;
    double total_risk = 0;
-   double total_tpprofit = 0;
    double total_pl = 0;
    double total_tp = 0;
-   double total_margin = 0;
    double rr = 0;
    double tprr = 0;
    double sl_risk = 0;
-   if (AccountEquity >= TargetEquityTP && EnableEquityTP == true && EquityTPCalled == false)
+   if (AccountEquity >= TargetEquityTP && EnableEquityTP && !EquityTPCalled)
    {
       Print("Closing all positions across all symbols because Equity >= TargetEquityTP ($" + DoubleToString(TargetEquityTP, 2) + ").");
       if (CloseAllPositionsOnAllSymbols())
@@ -655,7 +600,7 @@ void OnTick()
         Alert("EquityTP closed all positions on all symbols. New account balance: " + DoubleToString(AccountBalance, 2));
       }
    }
-   if (AccountEquity < TargetEquitySL && EnableEquitySL == true && EquitySLCalled == false)
+   if (AccountEquity < TargetEquitySL && EnableEquitySL && !EquitySLCalled)
    {
       Print("Closing all positions across all symbols because Equity < TargetEquitySL ($" + DoubleToString(TargetEquitySL, 2) + ").");
       if (CloseAllPositionsOnAllSymbols())
@@ -707,7 +652,6 @@ void OnTick()
          profit += swap;
          double risk = 0;
          double tpprofit = 0;
-         double margin = 0;
          double sl = PositionGetDouble(POSITION_SL);
          double tp = PositionGetDouble(POSITION_TP);
          int posType = (int)PositionGetInteger(POSITION_TYPE);
@@ -735,8 +679,6 @@ void OnTick()
          if (sl != 0 || tp != 0)
          {
             ENUM_ORDER_TYPE orderType = (posType == POSITION_TYPE_BUY) ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
-            if (!OrderCalcMargin(orderType, _Symbol, posVolume, posOpenPrice, margin))
-               Print("Error in OrderCalcMargin: ", GetLastError());
             if (tp != 0)
             {
                if (!OrderCalcProfit(orderType, _Symbol, posVolume, posOpenPrice, tp, tpprofit))
@@ -761,10 +703,9 @@ void OnTick()
          {
             sl_risk += swap;
          }
-         total_risk += risk; // Add profit to total risk
+         total_risk += risk;
          total_pl += profit;
          total_tp += tpprofit;
-         total_margin += margin;
       }
    }
    bool hasLongs = (lots.longLots > 0);
@@ -777,7 +718,7 @@ void OnTick()
    }
    percent_risk = MathAbs((sl_risk / AccountBalance) * 100);
    breakEvenFound = (breakEvenFoundLong || breakEvenFoundShort);
-   if (EnableAutoProtect == true && AutoProtectCalled == false && breakEvenFound == false)
+   if (EnableAutoProtect && !AutoProtectCalled && !breakEvenFound)
    {
          if (rr >= APRRLevel && sl_risk < 0)
          {
@@ -1081,7 +1022,7 @@ void TyWindow::ExecuteBuyLimitOrder(double lots, double Limit_Price)
       string BuyLimitText = "[" + _Symbol + "] Buy limit order opened. Price: " + DoubleToString(Limit_Price, _Digits) + 
             ", Lots: " + DoubleToString(lots, 2) + ", SL: " + DoubleToString(SL, _Digits) + ", TP: " + DoubleToString(TP, _Digits);
       Print(BuyLimitText);
-      if(EnableBroadcast == true)
+      if(EnableBroadcast)
       {
          BroadcastDiscordAnnouncement(BuyLimitText);
       }
@@ -1098,7 +1039,7 @@ void TyWindow::ExecuteSellLimitOrder(double lots, double Limit_Price)
       string SellLimitText = "[" + _Symbol + "] Sell limit order opened. Price: " + DoubleToString(Limit_Price, _Digits) + 
       ", Lots: " + DoubleToString(lots, 2) + ", SL: " + DoubleToString(SL, _Digits) + ", TP: " + DoubleToString(TP, _Digits);
       Print(SellLimitText);
-      if(EnableBroadcast == true)
+      if(EnableBroadcast)
       {
          BroadcastDiscordAnnouncement(SellLimitText);
       }
@@ -1115,7 +1056,7 @@ void TyWindow::ExecuteBuyOrder(double lots)
       string MarketBuyText = "[" + _Symbol + "] Market Buy position opened. Price: " + DoubleToString(Ask, _Digits) +
       ", Lots: " + DoubleToString(lots, 2) + ", SL: " +  DoubleToString(SL, _Digits) + ", TP: " + DoubleToString(TP, _Digits);
       Print(MarketBuyText);
-      if(EnableBroadcast == true)
+      if(EnableBroadcast)
       {
          BroadcastDiscordAnnouncement(MarketBuyText);
       }
@@ -1132,7 +1073,7 @@ void TyWindow::ExecuteSellOrder(double lots)
       string MarketSellText = "[" + _Symbol + "] Market Sell position opened. Price: " + DoubleToString(Bid, _Digits) +
          ", Lots: " + DoubleToString(lots, 2) + ", SL: " + DoubleToString(SL, _Digits) + ", TP: " + DoubleToString(TP, _Digits);
       Print(MarketSellText);
-      if(EnableBroadcast == true)
+      if(EnableBroadcast)
       {
          BroadcastDiscordAnnouncement(MarketSellText);
       }
@@ -1319,7 +1260,7 @@ void TyWindow::OnClickTrade(void)
    }
    Trade.SetExpertMagicNumber(MagicNumber);
    double Limit_Price = 0;
-   if (LimitLineExists == true)
+   if (LimitLineExists)
    {
       Limit_Price = ObjectGetDouble(0, "Limit_Line", OBJPROP_PRICE, 0);
    }
@@ -1456,7 +1397,7 @@ void TyWindow::OnClickTrade(void)
       int numOrders = (OrderMode == Fixed && FixedOrdersToPlace >= 2) ? FixedOrdersToPlace : 1;
       for (int i = 0; i < numOrders; i++)
       {
-         if (LimitLineExists == true)
+         if (LimitLineExists)
          {
             if (TP > SL)
             {
