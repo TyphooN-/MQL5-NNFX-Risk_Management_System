@@ -1146,7 +1146,7 @@ void TyWindow::OnClickTrade(void)
    double max_volume = NormalizeDouble(SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX), _Digits);
    double limit_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_LIMIT);
    double existing_volume = GetTotalVolumeForSymbol(_Symbol);
-   double usable_margin = (AccountBalance - (AccountBalance * (MarginBufferPercent / 100.0))) - AccountInfoDouble(ACCOUNT_MARGIN);
+   double usable_margin = 0;
    double potentialRisk = -1;
    double OrderRisk;
    // Use direction-specific breakeven flag for the trade being placed
@@ -1468,20 +1468,8 @@ void OrderLines(bool isBuy)
    ArrayResize(HighArray, VisibleCandles);
    CopyLow(Symbol(), Period(), 0, VisibleCandles, LowArray);
    CopyHigh(Symbol(), Period(), 0, VisibleCandles, HighArray);
-   // Calculate the lowest and highest prices within the visible range
-   double LowestPrice = LowArray[0];
-   double HighestPrice = HighArray[0];
-   for (int i = 1; i < VisibleCandles; i++)
-   {
-      if (LowArray[i] < LowestPrice)
-      {
-         LowestPrice = LowArray[i];
-      }
-      if (HighArray[i] > HighestPrice)
-      {
-         HighestPrice = HighArray[i];
-      }
-   }
+   double LowestPrice = LowArray[ArrayMinimum(LowArray)];
+   double HighestPrice = HighArray[ArrayMaximum(HighArray)];
    // Check if there's an active position on the symbol
    if (PositionSelect(Symbol()))
    {
