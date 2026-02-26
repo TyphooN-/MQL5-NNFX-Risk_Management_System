@@ -96,11 +96,11 @@ int OnCalculate(const int rates_total, const int prev_calculated, const int begi
    // Only copy full buffers on new bar (HTF KAMA values don't change intra-bar)
    if (prev_calculated == 0 || prev_calculated != rates_total)
    {
-      CopyIndicatorData(handle_KAMA_H1, ExtAMABuffer_H1, rates_total, "KAMA_H1");
-      CopyIndicatorData(handle_KAMA_H4, ExtAMABuffer_H4, rates_total, "KAMA_H4");
-      CopyIndicatorData(handle_KAMA_D1, ExtAMABuffer_D1, rates_total, "KAMA_D1");
-      CopyIndicatorData(handle_KAMA_W1, ExtAMABuffer_W1, rates_total, "KAMA_W1");
-      CopyIndicatorData(handle_KAMA_MN1, ExtAMABuffer_MN1, rates_total, "KAMA_MN1");
+      CopyIndicatorData(handle_KAMA_H1, ExtAMABuffer_H1, rates_total);
+      CopyIndicatorData(handle_KAMA_H4, ExtAMABuffer_H4, rates_total);
+      CopyIndicatorData(handle_KAMA_D1, ExtAMABuffer_D1, rates_total);
+      CopyIndicatorData(handle_KAMA_W1, ExtAMABuffer_W1, rates_total);
+      CopyIndicatorData(handle_KAMA_MN1, ExtAMABuffer_MN1, rates_total);
       int latestIndex = rates_total - 1;
       GlobalVariableSet("recent_KAMA_H1", ExtAMABuffer_H1[latestIndex]);
       GlobalVariableSet("recent_KAMA_H4", ExtAMABuffer_H4[latestIndex]);
@@ -135,7 +135,7 @@ int OnCalculate(const int rates_total, const int prev_calculated, const int begi
    //--- return value of prev_calculated for next call
    return (rates_total);
 }
-bool CopyIndicatorData(int handle, double &buffer[], int rates_total, string name)
+bool CopyIndicatorData(int handle, double &buffer[], int rates_total)
 {
    if (BarsCalculated(handle) <= 0)
       return false;

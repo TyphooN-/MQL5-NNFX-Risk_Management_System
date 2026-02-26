@@ -285,21 +285,11 @@ int OnCalculate(const int rates_total,
    // Update the previous bid and ask prices with the current prices
    prevBidPrice = currentBidPrice;
    prevAskPrice = currentAskPrice;
-   int start;
-   if (prev_calculated == 0)
-   {
-      start = 0;
-   }
-   else
-   {
-      start = prev_calculated - 1;
-   }
    static datetime prevTime = TimeTradeServer();
    static bool isTimerStarted = false;
    datetime currentTime = TimeTradeServer();
    if (lastCheckedCandle != rates_total - 1)
    {
-    //  Print("New candle has formed, updating MA Data");
       // Update the last checked candle index
       lastCheckedCandle = rates_total - 1;
       UpdateBuffers();
@@ -309,7 +299,6 @@ int OnCalculate(const int rates_total,
    if (!isTimerStarted && IsNewMinute(currentTime, prevTime))
    {
       isTimerStarted = true;
-      //Print("Timer started or restarted");
       isTimerSet = EventSetTimer(60);
       if (!isTimerSet)
       {
@@ -319,7 +308,6 @@ int OnCalculate(const int rates_total,
    int elapsedSeconds = (int)(currentTime - prevTime);
    if (isTimerStarted && elapsedSeconds >= 60)
    {
-      //Print("One minute has passed, updating MA Data");
       prevTime = currentTime;
       UpdateBuffers();
    }
@@ -329,7 +317,7 @@ int OnCalculate(const int rates_total,
       if (BarsCalculated(HandleM1_200SMA) <= 0 || BarsCalculated(HandleW1_200SMA) <= 0 ||
           BarsCalculated(HandleMN1_100SMA) <= 0)
       {
-         UpdateBuffersOnCalculate(0, rates_total);
+         UpdateBuffersOnCalculate();
          return prev_calculated;
       }
       dataReady = true;
@@ -658,7 +646,7 @@ void UpdateBuffers()
    CopyBuffer(HandleW1_100SMA, 0, 0, ArraySize(MABufferW1_100SMA), MABufferW1_100SMA);
    CopyBuffer(HandleMN1_100SMA, 0, 0, ArraySize(MABufferMN1_100SMA), MABufferMN1_100SMA);
 }
-void UpdateBuffersOnCalculate(int start, int rates_total)
+void UpdateBuffersOnCalculate()
 {
    CopyBuffer(HandleM1_200SMA, 0, 0, ArraySize(MABufferM1_200SMA), MABufferM1_200SMA);
    CopyBuffer(HandleM5_200SMA, 0, 0, ArraySize(MABufferM5_200SMA), MABufferM5_200SMA);

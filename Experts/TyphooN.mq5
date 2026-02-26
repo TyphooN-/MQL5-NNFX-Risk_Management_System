@@ -36,11 +36,8 @@
 // Classes
 CTrade            Trade;    // Trade wrapper
 COrderInfo        Order;    // Order wrapper
-// orchard compat functions
-string BaseCurrency() { return ( AccountInfoString( ACCOUNT_CURRENCY ) ); }
-double Point( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_POINT ) ); }
+// orchard compat function
 double TickSize( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_SIZE ) ); }
-double TickValue( string symbol ) { return ( SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_VALUE ) ); }
 enum OrderModeEnum { Standard, Fixed, Dynamic, VaR };
 enum VaRModeEnum { PercentVaR, NotionalVaR };
 ENUM_ORDER_TYPE_FILLING SelectFillingMode()
@@ -300,17 +297,6 @@ string TimeTilNextBar(ENUM_TIMEFRAMES tf=PERIOD_CURRENT)
    // If less than 24 hours, consider it as hours and minutes until the new bar
    return StringFormat("%ldH %ldM %lds", hours, minutes, seconds);
 }
-double PointValue()
-{
-   double tickSize      = TickSize( _Symbol );
-   double tickValue     = TickValue( _Symbol );
-   double point         = Point( _Symbol );
-   double ticksPerPoint = tickSize / point;
-   double pointValue    = tickValue / ticksPerPoint;
- //  PrintFormat( "tickSize=%f, tickValue=%f, point=%f, ticksPerPoint=%f, pointValue=%f",
- //               tickSize, tickValue, point, ticksPerPoint, pointValue );
-   return ( pointValue );
-}
 bool CloseAllPositionsOnAllSymbols()
 {
    Trade.SetAsyncMode(true);
@@ -365,16 +351,6 @@ bool CloseAllPositionsOnAllSymbols()
       return false;
    }
 }
-bool IsNewTick(const double LastTick)
-{
-   static double PrevTick = 0;
-   if (LastTick != PrevTick)
-   {
-      PrevTick = LastTick;
-      return true;
-   }
-   return false;
-}
 void GetSLTPFromAnotherPosition(ulong ticket, double &sl, double &tp, int positionTypeFilter = -1)
 {
    for (int j = 0; j < PositionsTotal(); j++)
@@ -420,7 +396,6 @@ bool PlacePyramidOrders()
    // Check if pyramid orders are enabled
    if (!EnablePyramid)
    {
-      // Print("Pyramid orders are not enabled.");
       return false;
    }
    // Cache total volume to avoid repeated position loops
@@ -513,13 +488,11 @@ bool PlacePyramidOrders()
       }
       if (TimeCurrent() - LastPyramidTime < PyramidCooldown)
       {
-       //  Print("Pyramid order cooldown period not met.");
          break;
       }
       freeMargin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
       if (freeMargin < required_margin)
       {
-       //  Print("Not enough free margin to place the order. Required: ", required_margin, " Available: ", freeMargin);
          break;
       }
       if (orderType == ORDER_TYPE_BUY)
@@ -550,9 +523,6 @@ bool PlacePyramidOrders()
          {
             int error = GetLastError();
             Print("Failed to place order. Error: ", error);
-            // Detailed logging for troubleshooting
-            //  Print("Request Details - Action: ", request.action, ", Symbol: ", request.symbol, ", Volume: ", request.volume, ", Price: ", request.price, ", SL: ", request.sl, ", TP: ", request.tp, ", Deviation: ", request.deviation, ", Magic: ", request.magic, ", Type: ", request.type, ", Comment: ", request.comment);
-            //  Print("Account Trade Allowed: ", AccountInfoInteger(ACCOUNT_TRADE_ALLOWED));
             long tradeMode;
             if (SymbolInfoInteger(_Symbol, SYMBOL_TRADE_MODE, tradeMode))
             {
@@ -998,17 +968,7 @@ void BroadcastDiscordAnnouncement(string announcement)
       ArrayResize(jsonArray, arrSize - 1);
    }
    int res = WebRequest("POST", DiscordAPIKey, headers, 10, jsonArray, result, result_headers);
-   // Get the error immediately after WebRequest
-   //int lastError = GetLastError();
    string resultString = CharArrayToString(result);
-   //Print("Debug - HTTP response code: ", res);
-   //Print("Debug - Result: ", resultString);
-   //Print("Debug - JSON as uchar array: ", arrayToString(jsonArray));
-   //Print("Debug - Length of Result: ", StringLen(resultString));
-   //if(lastError != 0)
-   //{
-   //   Print("WebRequest Error Code: ", lastError);
-   //}
    if (DiscordAPIKey == "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token")
    {
       Print("You cannot broadcast to Discord with the Default API key.  Create a webhook in your own Discord or contact TyphooN if you would like to broadcast in the Market Wizardry Discord.");
