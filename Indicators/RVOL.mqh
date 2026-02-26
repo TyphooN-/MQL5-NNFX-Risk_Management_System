@@ -11,7 +11,6 @@ input ENUM_APPLIED_VOLUME InpVolumeType = VOLUME_TICK; // Volume Type
 double ExtRelVolumesBuffer[];
 double ExtColorsBuffer[];
 int AveragingDays;
-int OrderDigits;
 
 void OnInit()
 {
@@ -58,8 +57,6 @@ void OnInit()
    #endif
 #endif
 
-   // Determine OrderDigits
-   OrderDigits = VolumeStepDigits();
 }
 
 int OnCalculate(const int rates_total,
@@ -141,19 +138,4 @@ void CalculateRelVolume(const int startBar, const int rates_total, const long& v
       else // Below Average Volume
          ExtColorsBuffer[i] = 2.0;
    }
-}
-
-int VolumeStepDigits()
-{
-   double step;
-   SymbolInfoDouble(Symbol(), SYMBOL_VOLUME_STEP, step);
-   int digits = 0;
-
-   while (step < 1)
-   {
-      step *= 10;
-      digits++;
-   }
-
-   return digits;
 }

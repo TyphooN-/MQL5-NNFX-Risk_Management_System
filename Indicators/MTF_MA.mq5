@@ -79,7 +79,6 @@ int BullPowerLTF = 0;
 int BullPowerHTF = 0;
 int BearPowerLTF = 0;
 int BearPowerHTF = 0;
-bool isTimerSet = false;
 int lastCheckedCandle = -1;
 double prevBidPrice = 0.0;
 double prevAskPrice = 0.0;
@@ -180,7 +179,6 @@ int OnInit()
 void OnDeinit(const int pReason)
 {
    ObjectsDeleteAll(0, objname);
-   EventKillTimer();
 }
 void UpdateInfoLabel(string timeframe, bool condition, string label)
 {
@@ -285,28 +283,15 @@ int OnCalculate(const int rates_total,
    // Update the previous bid and ask prices with the current prices
    prevBidPrice = currentBidPrice;
    prevAskPrice = currentAskPrice;
-   static datetime prevTime = TimeTradeServer();
-   static bool isTimerStarted = false;
+   static datetime prevTime = 0;
    datetime currentTime = TimeTradeServer();
    if (lastCheckedCandle != rates_total - 1)
    {
-      // Update the last checked candle index
       lastCheckedCandle = rates_total - 1;
       UpdateBuffers();
-      // Restart the timer
-      isTimerStarted = false;
+      prevTime = currentTime;
    }
-   if (!isTimerStarted && IsNewMinute(currentTime, prevTime))
-   {
-      isTimerStarted = true;
-      isTimerSet = EventSetTimer(60);
-      if (!isTimerSet)
-      {
-         Print("Error setting timer");
-      }
-   }
-   int elapsedSeconds = (int)(currentTime - prevTime);
-   if (isTimerStarted && elapsedSeconds >= 60)
+   else if ((int)(currentTime - prevTime) >= 60)
    {
       prevTime = currentTime;
       UpdateBuffers();
@@ -317,11 +302,11 @@ int OnCalculate(const int rates_total,
       if (BarsCalculated(HandleM1_200SMA) <= 0 || BarsCalculated(HandleW1_200SMA) <= 0 ||
           BarsCalculated(HandleMN1_100SMA) <= 0)
       {
-         UpdateBuffersOnCalculate();
+         UpdateBuffers();
          return prev_calculated;
       }
       dataReady = true;
-      UpdateBuffers(); // Ensure all buffers are freshly filled when data first becomes ready
+      UpdateBuffers();
    }
    static bool objectsCreated = false;
    if (!objectsCreated)
@@ -645,55 +630,4 @@ void UpdateBuffers()
    CopyBuffer(HandleD1_100SMA, 0, 0, ArraySize(MABufferD1_100SMA), MABufferD1_100SMA);
    CopyBuffer(HandleW1_100SMA, 0, 0, ArraySize(MABufferW1_100SMA), MABufferW1_100SMA);
    CopyBuffer(HandleMN1_100SMA, 0, 0, ArraySize(MABufferMN1_100SMA), MABufferMN1_100SMA);
-}
-void UpdateBuffersOnCalculate()
-{
-   CopyBuffer(HandleM1_200SMA, 0, 0, ArraySize(MABufferM1_200SMA), MABufferM1_200SMA);
-   CopyBuffer(HandleM5_200SMA, 0, 0, ArraySize(MABufferM5_200SMA), MABufferM5_200SMA);
-   CopyBuffer(HandleM15_200SMA, 0, 0, ArraySize(MABufferM15_200SMA), MABufferM15_200SMA);
-   CopyBuffer(HandleM30_200SMA, 0, 0, ArraySize(MABufferM30_200SMA), MABufferM30_200SMA);
-   CopyBuffer(HandleH1_200SMA, 0, 0, ArraySize(MABufferH1_200SMA), MABufferH1_200SMA);
-   CopyBuffer(HandleH4_200SMA, 0, 0, ArraySize(MABufferH4_200SMA), MABufferH4_200SMA);
-   CopyBuffer(HandleD1_200SMA, 0, 0, ArraySize(MABufferD1_200SMA), MABufferD1_200SMA);
-   CopyBuffer(HandleW1_200SMA, 0, 0, ArraySize(MABufferW1_200SMA), MABufferW1_200SMA);
-   CopyBuffer(HandleM1_50SMA, 0, 0, ArraySize(MABufferM1_50SMA), MABufferM1_50SMA);
-   CopyBuffer(HandleM5_50SMA, 0, 0, ArraySize(MABufferM5_50SMA), MABufferM5_50SMA);
-   CopyBuffer(HandleM15_50SMA, 0, 0, ArraySize(MABufferM15_50SMA), MABufferM15_50SMA);
-   CopyBuffer(HandleM30_50SMA, 0, 0, ArraySize(MABufferM30_50SMA), MABufferM30_50SMA);
-   CopyBuffer(HandleH1_50SMA, 0, 0, ArraySize(MABufferH1_50SMA), MABufferH1_50SMA);
-   CopyBuffer(HandleH4_50SMA, 0, 0, ArraySize(MABufferH4_50SMA), MABufferH4_50SMA);
-   CopyBuffer(HandleD1_50SMA, 0, 0, ArraySize(MABufferD1_50SMA), MABufferD1_50SMA);
-   CopyBuffer(HandleW1_50SMA, 0, 0, ArraySize(MABufferW1_50SMA), MABufferW1_50SMA);
-   CopyBuffer(HandleM1_20SMA, 0, 0, ArraySize(MABufferM1_20SMA), MABufferM1_20SMA);
-   CopyBuffer(HandleM5_20SMA, 0, 0, ArraySize(MABufferM5_20SMA), MABufferM5_20SMA);
-   CopyBuffer(HandleM15_20SMA, 0, 0, ArraySize(MABufferM15_20SMA), MABufferM15_20SMA);
-   CopyBuffer(HandleM30_20SMA, 0, 0, ArraySize(MABufferM30_20SMA), MABufferM30_20SMA);
-   CopyBuffer(HandleH1_20SMA, 0, 0, ArraySize(MABufferH1_20SMA), MABufferH1_20SMA);
-   CopyBuffer(HandleH4_20SMA, 0, 0, ArraySize(MABufferH4_20SMA), MABufferH4_20SMA);
-   CopyBuffer(HandleD1_20SMA, 0, 0, ArraySize(MABufferD1_20SMA), MABufferD1_20SMA);
-   CopyBuffer(HandleW1_20SMA, 0, 0, ArraySize(MABufferW1_20SMA), MABufferW1_20SMA);
-   CopyBuffer(HandleM1_10SMA, 0, 0, ArraySize(MABufferM1_10SMA), MABufferM1_10SMA);
-   CopyBuffer(HandleM5_10SMA, 0, 0, ArraySize(MABufferM5_10SMA), MABufferM5_10SMA);
-   CopyBuffer(HandleM15_10SMA, 0, 0, ArraySize(MABufferM15_10SMA), MABufferM15_10SMA);
-   CopyBuffer(HandleM30_10SMA, 0, 0, ArraySize(MABufferM30_10SMA), MABufferM30_10SMA);
-   CopyBuffer(HandleH1_10SMA, 0, 0, ArraySize(MABufferH1_10SMA), MABufferH1_10SMA);
-   CopyBuffer(HandleH4_10SMA, 0, 0, ArraySize(MABufferH4_10SMA), MABufferH4_10SMA);
-   CopyBuffer(HandleD1_10SMA, 0, 0, ArraySize(MABufferD1_10SMA), MABufferD1_10SMA);
-   CopyBuffer(HandleW1_10SMA, 0, 0, ArraySize(MABufferW1_10SMA), MABufferW1_10SMA);
-   CopyBuffer(HandleM1_100SMA, 0, 0, ArraySize(MABufferM1_100SMA), MABufferM1_100SMA);
-   CopyBuffer(HandleM5_100SMA, 0, 0, ArraySize(MABufferM5_100SMA), MABufferM5_100SMA);
-   CopyBuffer(HandleM15_100SMA, 0, 0, ArraySize(MABufferM15_100SMA), MABufferM15_100SMA);
-   CopyBuffer(HandleM30_100SMA, 0, 0, ArraySize(MABufferM30_100SMA), MABufferM30_100SMA);
-   CopyBuffer(HandleH1_100SMA, 0, 0, ArraySize(MABufferH1_100SMA), MABufferH1_100SMA);
-   CopyBuffer(HandleH4_100SMA, 0, 0, ArraySize(MABufferH4_100SMA), MABufferH4_100SMA);
-   CopyBuffer(HandleD1_100SMA, 0, 0, ArraySize(MABufferD1_100SMA), MABufferD1_100SMA);
-   CopyBuffer(HandleW1_100SMA, 0, 0, ArraySize(MABufferW1_100SMA), MABufferW1_100SMA);
-   CopyBuffer(HandleMN1_100SMA, 0, 0, ArraySize(MABufferMN1_100SMA), MABufferMN1_100SMA);
-}
-bool IsNewMinute(const datetime &currentTime, const datetime &prevTime)
-{
-   MqlDateTime currentMqlTime, prevMqlTime;
-   TimeToStruct(currentTime, currentMqlTime);
-   TimeToStruct(prevTime, prevMqlTime);
-   return currentMqlTime.min != prevMqlTime.min;
 }
