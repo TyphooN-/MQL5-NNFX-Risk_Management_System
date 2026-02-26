@@ -77,23 +77,7 @@ int OnCalculate(const int rates_total,
       PrevTradeServerTime = CurrentTradeServerTime;
       //Print("Updating ATR Data and Candlestick data due to 1 hour server time change.");
    }
-   // Calculate the number of bars to be processed
-   int limit = rates_total - prev_calculated;
-   // If there are no new bars, return
-   if (limit <= 0)
-   {
-      return 0;
-   }
-   // Check if a new candlestick has formed
-   if (lastCheckedCandle != rates_total - 1)
-   {
-      //Print("New candle has formed, updating ATR & Candlestick Data");
-      // Update the last checked candle index
-      lastCheckedCandle = rates_total - 1;
-      UpdatePreviousData();
-      UpdateJudasData();
-      DrawLines();
-   }
+   // Judas check runs intrabar (when price breaks D1 high/low)
    if ((Ask > Current_D1_High) || (Bid < Current_D1_Low))
    {
       double prevD1H = Current_D1_High, prevD1L = Current_D1_Low;
@@ -106,6 +90,21 @@ int OnCalculate(const int rates_total,
       {
          DrawLines();
       }
+   }
+   // Calculate the number of bars to be processed
+   int limit = rates_total - prev_calculated;
+   // If there are no new bars, return (must return prev_calculated, not 0, to avoid forced full recalc)
+   if (limit <= 0)
+      return prev_calculated;
+   // Check if a new candlestick has formed
+   if (lastCheckedCandle != rates_total - 1)
+   {
+      //Print("New candle has formed, updating ATR & Candlestick Data");
+      // Update the last checked candle index
+      lastCheckedCandle = rates_total - 1;
+      UpdatePreviousData();
+      UpdateJudasData();
+      DrawLines();
    }
    return(rates_total);
 }

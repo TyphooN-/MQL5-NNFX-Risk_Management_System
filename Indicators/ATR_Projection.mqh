@@ -217,9 +217,9 @@ int OnCalculate(const int        rates_total,
     prevAskPrice = currentAskPrice;
    // Calculate the number of bars to be processed
    int limit = rates_total - prev_calculated;
-   // If there are no new bars, return
+   // If there are no new bars, return (must return prev_calculated, not 0, to avoid forced full recalc)
    if (limit <= 0)
-      return 0;
+      return prev_calculated;
    // Check if a new candlestick has formed
    if (lastCheckedCandle != rates_total - 1) {
       //Print("New candle has formed, updating ATR & Candlestick Data");
