@@ -672,40 +672,7 @@ int OnCalculate(const int rates_total,
 }
 void UpdateBuffers()
 {
-   // Clear buffer values before updating
-   ArrayInitialize(MABufferM1_200SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferM5_200SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferM15_200SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferM30_200SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferH1_200SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferH4_200SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferD1_200SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferW1_200SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferM1_50SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferM5_50SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferM15_50SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferM30_50SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferH1_50SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferH4_50SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferD1_50SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferW1_50SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferM1_20SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferM5_20SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferM15_20SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferM30_20SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferH1_20SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferH4_20SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferD1_20SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferW1_20SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferM1_10SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferM5_10SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferM15_10SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferM30_10SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferH1_10SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferH4_10SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferD1_10SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferW1_10SMA, EMPTY_VALUE);
-   ArrayInitialize(MABufferMN1_100SMA, EMPTY_VALUE);
+   // CopyBuffer overwrites from index 0, no need to pre-clear
    CopyBuffer(HandleM1_200SMA, 0, 0, ArraySize(MABufferM1_200SMA), MABufferM1_200SMA);
    CopyBuffer(HandleM5_200SMA, 0, 0, ArraySize(MABufferM5_200SMA), MABufferM5_200SMA);
    CopyBuffer(HandleM15_200SMA, 0, 0, ArraySize(MABufferM15_200SMA), MABufferM15_200SMA);

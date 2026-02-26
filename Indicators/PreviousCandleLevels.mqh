@@ -124,21 +124,13 @@ void UpdatePreviousData()
 }
 void UpdateJudasData()
 {
-   // Calculate current day's High and Low
-   int currentDayStartShift = iBarShift(_Symbol, PERIOD_D1, iTime(_Symbol, PERIOD_D1, 0));
-   int currentDayEndShift = iBarShift(_Symbol, PERIOD_CURRENT, iTime(_Symbol, PERIOD_M1, 0));
-   Current_D1_High = iHigh(_Symbol, PERIOD_D1, currentDayEndShift);
-   Current_D1_Low = iLow(_Symbol, PERIOD_D1, currentDayStartShift);
-   // Calculate current week's High and Low
-   int currentWeekStartShift = iBarShift(_Symbol, PERIOD_W1, iTime(_Symbol, PERIOD_W1, 0));
-   int currentWeekEndShift = iBarShift(_Symbol, PERIOD_CURRENT, iTime(_Symbol, PERIOD_M1, 0));
-   Current_W1_High = iHigh(_Symbol, PERIOD_W1, currentWeekEndShift);
-   Current_W1_Low = iLow(_Symbol, PERIOD_W1, currentWeekStartShift);
-   // Calculate current month's High and Low
-   int currentMonthStartShift = iBarShift(_Symbol, PERIOD_MN1, iTime(_Symbol, PERIOD_MN1, 0));
-   int currentMonthEndShift = iBarShift(_Symbol, PERIOD_CURRENT, iTime(_Symbol, PERIOD_M1, 0));
-   Current_MN1_High = iHigh(_Symbol, PERIOD_MN1, currentMonthEndShift);
-   Current_MN1_Low = iLow(_Symbol, PERIOD_MN1, currentMonthStartShift);
+   // Current bar (0) high/low for each timeframe — replaces 6 iBarShift + 6 iTime calls
+   Current_D1_High = iHigh(_Symbol, PERIOD_D1, 0);
+   Current_D1_Low = iLow(_Symbol, PERIOD_D1, 0);
+   Current_W1_High = iHigh(_Symbol, PERIOD_W1, 0);
+   Current_W1_Low = iLow(_Symbol, PERIOD_W1, 0);
+   Current_MN1_High = iHigh(_Symbol, PERIOD_MN1, 0);
+   Current_MN1_Low = iLow(_Symbol, PERIOD_MN1, 0);
 }
 void DeleteHorizontalLine(string label)
 {
