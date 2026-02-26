@@ -429,7 +429,7 @@ bool IsNewM15Interval(const datetime& currentTime, const datetime& prevTime)
     if (currentMqlTime.min != prevMqlTime.min)
     {
         // Check if the current time is at a a 15 minute interval
-        if (currentMqlTime.min == 0 || currentMqlTime.min == 15 || currentMqlTime.min == 30 || currentMqlTime.min == 45 )
+        if (currentMqlTime.min % 15 == 0)
         {
 #ifdef __MQL4__
                 ObjectsDeleteAll(0, objname);

@@ -827,18 +827,15 @@ void OnTick()
    string infoRisk;
    string infoPL;
    string infoRR;
-   if (rr >= 0)
-   {
+   if (rr > 0)
       infoRR = "RR : " + DoubleToString(rr, 2);
-   }
-   if (rr <= 0)
-   {
+   else
       infoRR = "RR : N/A";
-   }
-   if (total_pl >= MathAbs(total_risk))
+   double absRisk = MathAbs(total_risk);
+   if (total_pl >= absRisk)
    {
       double floatingRisk = MathAbs(total_pl - total_risk);
-      double floatingRiskPercent = MathAbs((total_pl - total_risk) / AccountBalance) * 100;
+      double floatingRiskPercent = (floatingRisk / AccountBalance) * 100;
       infoRisk = "Risk: $" + DoubleToString(floatingRisk, 0) + " (" + DoubleToString(floatingRiskPercent, 1) + "%)";
    }
    else
@@ -846,22 +843,16 @@ void OnTick()
       infoRisk = "Risk: $" + DoubleToString(MathAbs(sl_risk), 0) + " (" + DoubleToString(MathAbs(percent_risk), 1) + "%)";
    }
    if (total_pl < 0)
-   {
-      infoPL = "Total P/L: -$" + DoubleToString(MathAbs(total_pl), 2); 
-   }
-   if (total_pl == 0)
-   {
-      infoPL = "Total P/L: $" + DoubleToString(MathAbs(total_pl), 2); 
-   }
-   if (total_pl > 0)
-   {
+      infoPL = "Total P/L: -$" + DoubleToString(MathAbs(total_pl), 2);
+   else if (total_pl > 0)
       infoPL = "Total P/L: $" + DoubleToString(total_pl, 2);
-   }
-   string infoSLPL = "SL P/L: $" + DoubleToString(total_risk, 2);
+   else
+      infoPL = "Total P/L: $0.00";
+   string infoSLPL;
    if (total_risk < 0)
-   {
-      infoSLPL = "SL P/L: -$" + DoubleToString(MathAbs(total_risk), 2);
-   }
+      infoSLPL = "SL P/L: -$" + DoubleToString(absRisk, 2);
+   else
+      infoSLPL = "SL P/L: $" + DoubleToString(total_risk, 2);
    if(hasLongs || hasShorts)
    {
       sl_risk = 0;
