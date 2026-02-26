@@ -801,7 +801,7 @@ void OnTick()
    }
    else
    {
-      infoRisk = "Risk: $" + DoubleToString(MathAbs(sl_risk), 0) + " (" + DoubleToString(MathAbs(percent_risk), 1) + "%)";
+      infoRisk = "Risk: $" + DoubleToString(MathAbs(sl_risk), 0) + " (" + DoubleToString(percent_risk, 1) + "%)";
    }
    if (total_pl < 0)
       infoPL = "Total P/L: -$" + DoubleToString(MathAbs(total_pl), 2);
