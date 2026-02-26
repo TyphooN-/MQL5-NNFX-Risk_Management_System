@@ -580,7 +580,7 @@ bool PlacePyramidOrders()
          orderIntended = true;
          orderPlaced = Trade.Buy(OrderLots, _Symbol, 0, stopLoss, takeProfit, PyramidComment);
       }
-      if (orderType == ORDER_TYPE_SELL)
+      else if (orderType == ORDER_TYPE_SELL)
       {
          orderIntended = true;
          orderPlaced = Trade.Sell(OrderLots, _Symbol, 0, stopLoss, takeProfit, PyramidComment);
@@ -691,8 +691,19 @@ void OnTick()
    // Reset per-direction break-even flags before the position loop
    breakEvenFoundLong = false;
    breakEvenFoundShort = false;
-   bool hasLongs = HasOpenPosition(_Symbol, POSITION_TYPE_BUY);
-   bool hasShorts = HasOpenPosition(_Symbol, POSITION_TYPE_SELL);
+   // Single pre-scan to detect longs/shorts (replaces two HasOpenPosition calls)
+   bool hasLongs = false, hasShorts = false;
+   for (int p = 0; p < PositionsTotal(); p++)
+   {
+      ulong pTicket = PositionGetTicket(p);
+      if (ProcessPositionCheck(pTicket, _Symbol, MagicNumber))
+      {
+         int pType = (int)PositionGetInteger(POSITION_TYPE);
+         if (pType == POSITION_TYPE_BUY) hasLongs = true;
+         else if (pType == POSITION_TYPE_SELL) hasShorts = true;
+         if (hasLongs && hasShorts) break;
+      }
+   }
    bool isHedged = (hasLongs && hasShorts);
    LotsInfo lots;
    lots.longLots = 0.0;
@@ -856,14 +867,16 @@ void OnTick()
       sl_risk = 0;
       percent_risk = 0;
    }
-   ObjectSetString(0,"infoRR",OBJPROP_TEXT,infoRR);
-   ObjectSetString(0,"infoPL",OBJPROP_TEXT,infoPL);
-   ObjectSetString(0,"infoSLPL",OBJPROP_TEXT,infoSLPL);
+   // Only update labels when text actually changes (avoid redundant ObjectSetString calls)
+   static string prevInfoRR, prevInfoPL, prevInfoSLPL, prevInfoTP, prevInfoRisk, prevInfoTPRR;
+   if (infoRR != prevInfoRR) { ObjectSetString(0,"infoRR",OBJPROP_TEXT,infoRR); prevInfoRR = infoRR; }
+   if (infoPL != prevInfoPL) { ObjectSetString(0,"infoPL",OBJPROP_TEXT,infoPL); prevInfoPL = infoPL; }
+   if (infoSLPL != prevInfoSLPL) { ObjectSetString(0,"infoSLPL",OBJPROP_TEXT,infoSLPL); prevInfoSLPL = infoSLPL; }
    string infoTP = "TP P/L : $" + DoubleToString(total_tp, 2);
-   ObjectSetString(0,"infoTP",OBJPROP_TEXT,infoTP);
-   ObjectSetString(0,"infoRisk",OBJPROP_TEXT,infoRisk);
+   if (infoTP != prevInfoTP) { ObjectSetString(0,"infoTP",OBJPROP_TEXT,infoTP); prevInfoTP = infoTP; }
+   if (infoRisk != prevInfoRisk) { ObjectSetString(0,"infoRisk",OBJPROP_TEXT,infoRisk); prevInfoRisk = infoRisk; }
    string infoTPRR = "TP RR: " + DoubleToString(tprr, 2);
-   ObjectSetString(0,"infoTPRR",OBJPROP_TEXT,infoTPRR);
+   if (infoTPRR != prevInfoTPRR) { ObjectSetString(0,"infoTPRR",OBJPROP_TEXT,infoTPRR); prevInfoTPRR = infoTPRR; }
    // Only update countdown timers once per second (iTime is expensive)
    static datetime lastTimerUpdate = 0;
    datetime now = TimeCurrent();
@@ -879,6 +892,10 @@ void OnTick()
       string infoMN1 = "MN1: " + TimeTilNextBar(PERIOD_MN1);
       ObjectSetString(0,"infoMN1",OBJPROP_TEXT,infoMN1);
    }
+   // Cache VaR: only recalculate when lot sizes change
+   static double prevLongLots = -1, prevShortLots = -1;
+   static string cachedVaRStr = "VaR %: 0.00";
+   bool lotsChanged = (lots.longLots != prevLongLots || lots.shortLots != prevShortLots);
    string infoPosition;
    if (lots.longLots > 0 && lots.shortLots == 0)
    {
@@ -886,11 +903,9 @@ void OnTick()
       ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrLime);
       ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrLime);
       ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
-      if(PortfolioRisk.CalculateVaR(_Symbol, lots.longLots))
-      {
-         string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity  * 100), 2);
-         ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
-      }
+      if (lotsChanged && PortfolioRisk.CalculateVaR(_Symbol, lots.longLots))
+         cachedVaRStr = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2);
+      ObjectSetString(0,"infoVaR",OBJPROP_TEXT,cachedVaRStr);
    }
    else if (lots.shortLots > 0 && lots.longLots == 0)
    {
@@ -898,11 +913,9 @@ void OnTick()
       ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrRed);
       ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrRed);
       ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
-      if(PortfolioRisk.CalculateVaR(_Symbol, lots.shortLots))
-      {
-         string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity  * 100), 2);
-         ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
-      }
+      if (lotsChanged && PortfolioRisk.CalculateVaR(_Symbol, lots.shortLots))
+         cachedVaRStr = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2);
+      ObjectSetString(0,"infoVaR",OBJPROP_TEXT,cachedVaRStr);
    }
    else if (lots.shortLots > 0 && lots.longLots > 0)
    {
@@ -911,25 +924,29 @@ void OnTick()
       ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrWhite);
       ObjectSetString(0,"infoPosition",OBJPROP_TEXT,infoPosition);
       ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrWhite);
-      if (netExposure > 0 && PortfolioRisk.CalculateVaR(_Symbol, netExposure))
+      if (lotsChanged)
       {
-         string infoVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2) + " (net)";
-         ObjectSetString(0,"infoVaR",OBJPROP_TEXT,infoVaR);
+         if (netExposure > 0 && PortfolioRisk.CalculateVaR(_Symbol, netExposure))
+            cachedVaRStr = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2) + " (net)";
+         else
+            cachedVaRStr = "VaR %: 0.00 (hedged)";
       }
-      else
-      {
-         ObjectSetString(0,"infoVaR",OBJPROP_TEXT,"VaR %: 0.00 (hedged)");
-      }
+      ObjectSetString(0,"infoVaR",OBJPROP_TEXT,cachedVaRStr);
    }
    else
    {
-      double var_1_lot = 0.0;
-      if(PortfolioRisk.CalculateVaR(_Symbol, 1.0))
+      if (lotsChanged)
       {
-         var_1_lot = PortfolioRisk.SinglePositionVaR;
-         infoPosition = "VaR 1 lot: " + DoubleToString(var_1_lot, 2);
+         double var_1_lot = 0.0;
+         if(PortfolioRisk.CalculateVaR(_Symbol, 1.0))
+         {
+            var_1_lot = PortfolioRisk.SinglePositionVaR;
+            infoPosition = "VaR 1 lot: " + DoubleToString(var_1_lot, 2);
+         }
       }
    }
+   prevLongLots = lots.longLots;
+   prevShortLots = lots.shortLots;
 }
 void OnChartEvent(const int id,         // event ID  
                   const long& lparam,   // event parameter of the long type
@@ -1702,9 +1719,10 @@ struct PositionInfo
 };
 void BubbleSort(PositionInfo &arr[])
 {
-   for (int i = 0; i < ArraySize(arr); i++)
+   int size = ArraySize(arr);
+   for (int i = 0; i < size; i++)
    {
-      for (int j = 0; j < ArraySize(arr) - i - 1; j++)
+      for (int j = 0; j < size - i - 1; j++)
       {
          // Compare based on price difference first and then lot size
          if (arr[j].diff > arr[j+1].diff || (arr[j].diff == arr[j+1].diff && arr[j].lotSize > arr[j+1].lotSize))
