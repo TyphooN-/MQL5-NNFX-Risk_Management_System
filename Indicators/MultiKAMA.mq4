@@ -1,4 +1,4 @@
-/**=             TyphooN.mq5  (TyphooN's MultiKAMA)
+/**=             MultiKAMA.mq4  (TyphooN's MultiKAMA)
  *               Copyright 2023, TyphooN (https://www.marketwizardry.org/)
  *
  * Disclaimer and Licence
@@ -25,33 +25,9 @@
 #property link        "https://www.marketwizardry.info"
 #property version     "1.007"
 #property description "Multi-Timeframe Kaufman's Adaptive Moving Average"
+#property strict
 #property indicator_chart_window
 #property indicator_buffers 5
 #property indicator_plots   5
-#property indicator_label1  "KAMA_H1"
-#property indicator_type1   DRAW_LINE
-#property indicator_color1  clrWhite
-#property indicator_style1  STYLE_SOLID
-#property indicator_width1  2
-#property indicator_label2  "KAMA_H4"
-#property indicator_type2   DRAW_LINE
-#property indicator_color2  clrWhite
-#property indicator_style2  STYLE_SOLID
-#property indicator_width2  2
-#property indicator_label3  "KAMA_D1"
-#property indicator_type3   DRAW_LINE
-#property indicator_color3  clrWhite
-#property indicator_style3  STYLE_SOLID
-#property indicator_width3  2
-#property indicator_label4  "KAMA_W1"
-#property indicator_type4   DRAW_LINE
-#property indicator_color4  clrWhite
-#property indicator_style4  STYLE_SOLID
-#property indicator_width4  2
-#property indicator_label5  "KAMA_MN1"
-#property indicator_type5   DRAW_LINE
-#property indicator_color5  clrWhite
-#property indicator_style5  STYLE_SOLID
-#property indicator_width5  2
 
 #include "MultiKAMA.mqh"
