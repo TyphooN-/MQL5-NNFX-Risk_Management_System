@@ -725,7 +725,7 @@ void OnTick()
             }
          }
          // Track break-even per direction (1B fix: only set true, never reset to false)
-         if (sl == posOpenPrice && PositionGetString(POSITION_SYMBOL) == _Symbol)
+         if (sl == posOpenPrice)
          {
             if (posType == POSITION_TYPE_BUY)
                breakEvenFoundLong = true;
