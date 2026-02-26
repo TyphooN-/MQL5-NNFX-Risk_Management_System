@@ -490,9 +490,7 @@ int OnCalculate(const int rates_total,
       ObjectSetString(0, objname + "InfoBearPowerHTF", OBJPROP_TEXT, BearPowerTextHTF);
    }
    } // objectsCreated
-   // Get the current price
    double currentPrice = close[rates_total - 1];
-   GlobalVariableSet("PowerCalcComplete", false);
    // Check the relationship of the current price with the 200-period SMAs
    bool isAbove_M1_200SMA = currentPrice > MABufferM1_200SMA[rates_total - 1];
    bool isAbove_M5_200SMA = currentPrice > MABufferM5_200SMA[rates_total - 1];
@@ -583,7 +581,6 @@ int OnCalculate(const int rates_total,
    GlobalVariableSet("GlobalBearPowerLTF", (BearPowerLTF * 5));
    GlobalVariableSet("GlobalBullPowerHTF", (BullPowerHTF * 5));
    GlobalVariableSet("GlobalBearPowerHTF", (BearPowerHTF * 5));
-   GlobalVariableSet("PowerCalcComplete", true);
    return rates_total;
 }
 void UpdateBuffers()

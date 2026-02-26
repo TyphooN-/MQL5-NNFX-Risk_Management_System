@@ -66,8 +66,7 @@ int OnCalculate(const int rates_total,
    prevBidPrice = Bid;
    prevAskPrice = Ask;
    static datetime PrevTradeServerTime = 0;  // Initialize with 0 on the first run
-   datetime CurrentTradeServerTime = 0;
-   CurrentTradeServerTime = TimeCurrent();
+   datetime CurrentTradeServerTime = TimeCurrent();
    // Check if it is a new H1 interval
    if (IsNewH1Interval(CurrentTradeServerTime, PrevTradeServerTime))
    {
