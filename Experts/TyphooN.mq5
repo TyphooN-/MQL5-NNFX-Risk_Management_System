@@ -754,7 +754,7 @@ void OnTick()
    if (OrderMode == Dynamic)
    {
       if (breakEvenFound)
-         order_risk_money = (AdditionalRiskRatio > 0) ? ((AccountBalance - MinAccountBalance) / (LossesToMinBalance / AdditionalRiskRatio)) : 0;
+         order_risk_money = (AdditionalRiskRatio > 0 && LossesToMinBalance > 0) ? ((AccountBalance - MinAccountBalance) / (LossesToMinBalance / AdditionalRiskRatio)) : 0;
       else
          order_risk_money = (LossesToMinBalance > 0) ? ((AccountBalance - MinAccountBalance) / LossesToMinBalance) : 0;
    }
