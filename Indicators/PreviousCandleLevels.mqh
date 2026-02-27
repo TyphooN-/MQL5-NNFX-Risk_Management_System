@@ -33,8 +33,13 @@ double Previous_H1_High, Previous_H1_Low, Previous_H4_High, Previous_H4_Low, Pre
 int lastCheckedCandle = -1;
 double prevBidPrice = 0.0;
 double prevAskPrice = 0.0;
+datetime g_PrevTradeServerTime = 0;
 int OnInit()
 {
+    lastCheckedCandle = -1;
+    prevBidPrice = 0.0;
+    prevAskPrice = 0.0;
+    g_PrevTradeServerTime = 0;
     return(INIT_SUCCEEDED);
 }
 void OnDeinit(const int reason)
@@ -53,6 +58,7 @@ int OnCalculate(const int rates_total,
                 const long &volume[],
                 const int &spread[])
 {
+   if (rates_total <= 0) return 0;
    // Get the current bid and ask prices
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
@@ -65,15 +71,14 @@ int OnCalculate(const int rates_total,
    // Update the previous bid and ask prices with the current prices
    prevBidPrice = Bid;
    prevAskPrice = Ask;
-   static datetime PrevTradeServerTime = 0;  // Initialize with 0 on the first run
    datetime CurrentTradeServerTime = TimeCurrent();
    // Check if it is a new H1 interval
-   if (IsNewH1Interval(CurrentTradeServerTime, PrevTradeServerTime))
+   if (IsNewH1Interval(CurrentTradeServerTime, g_PrevTradeServerTime))
    {
       UpdatePreviousData();
       UpdateJudasData();
       DrawLines();
-      PrevTradeServerTime = CurrentTradeServerTime;
+      g_PrevTradeServerTime = CurrentTradeServerTime;
    }
    // Judas check runs intrabar (when price breaks D1 high/low)
    if ((Ask > Current_D1_High) || (Bid < Current_D1_Low))
