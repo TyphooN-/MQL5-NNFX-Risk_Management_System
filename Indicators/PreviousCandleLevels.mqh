@@ -242,6 +242,8 @@ void DrawLines()
       DeleteHorizontalLine(g_cur_D1_Low);
       DeleteHorizontalLine(g_prev_W1_High);
       DeleteHorizontalLine(g_prev_W1_Low);
+      DeleteHorizontalLine(g_cur_W1_High);
+      DeleteHorizontalLine(g_cur_W1_Low);
       DrawHorizontalLine(Previous_MN1_High, g_prev_MN1_High, JudasLevelColour, prevMN1Time, currentBarTime);
       DrawHorizontalLine(Previous_MN1_Low, g_prev_MN1_Low, JudasLevelColour, prevMN1Time, currentBarTime);
       DrawHorizontalLine(Current_MN1_High, g_cur_MN1_High, JudasLevelColour, prevMN1Time, currentBarTime);

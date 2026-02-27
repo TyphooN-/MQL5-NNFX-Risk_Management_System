@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.399"
+#property version   "1.400"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -687,7 +687,11 @@ void OnTick()
             }
          }
          // Track break-even per direction (1B fix: only set true, never reset to false)
-         if (sl == posOpenPrice)
+         // Tick-round both sides to avoid ECN sub-tick fill mismatches
+         double tickSz = TickSize(_Symbol);
+         double roundedSL = (tickSz > 0) ? MathRound(sl / tickSz) * tickSz : sl;
+         double roundedOpen = (tickSz > 0) ? MathRound(posOpenPrice / tickSz) * tickSz : posOpenPrice;
+         if (roundedSL == roundedOpen)
          {
             if (posType == POSITION_TYPE_BUY)
                breakEvenFoundLong = true;
@@ -1938,7 +1942,6 @@ void TyWindow::OnClickCloseAll(void)
    }
 
    // Close open positions logic
-   if(hasOpenPosition)
    {
       int result = MessageBox("Do you want to close all positions on " + _Symbol + "?", "Close Positions", MB_YESNO | MB_ICONQUESTION);
       if (result == IDYES)
@@ -2198,7 +2201,7 @@ void Protect()
          // Skip positions that don't match the direction filter
          if (dirFilter != -1 && (int)PositionGetInteger(POSITION_TYPE) != dirFilter)
             continue;
-         double entryPrice = PositionGetDouble(POSITION_PRICE_OPEN);
+         double entryPrice = MathRound(PositionGetDouble(POSITION_PRICE_OPEN) / tickSize) * tickSize;
          double originalSL = MathRound(PositionGetDouble(POSITION_SL) / tickSize) * tickSize;
          if (originalSL != entryPrice)
          {
