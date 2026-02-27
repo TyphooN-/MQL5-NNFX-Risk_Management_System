@@ -22,7 +22,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "2.103"
+#property version   "2.104"
 #property description "NNFX Confluence Algo EA — Modular Signal Slots"
 #include <Trade\Trade.mqh>
 #include <Orchard\RiskCalc.mqh>
@@ -403,12 +403,12 @@ void UpdateDashboard(LotsInfo &lots, double total_risk, double total_tp, double 
    else
    {
       double plPercent = (AccountBalance > 0) ? (total_pl / AccountBalance) * 100 : 0;
-      infoRisk = "Risk: $" + DoubleToString(MathAbs(total_risk), 0) + " (" + DoubleToString(percent_risk, 2) + "%)";
+      infoRisk = "Risk: $" + DoubleToString(MathAbs(sl_risk), 0) + " (" + DoubleToString(percent_risk, 2) + "%)";
       infoPL = "Total P/L: $" + DoubleToString(total_pl, 0) + " (" + DoubleToString(plPercent, 2) + "%)";
    }
    if (infoRisk != g_prevRisk) { ObjectSetString(0, "infoRisk", OBJPROP_TEXT, infoRisk); g_prevRisk = infoRisk; }
    if (infoPL != g_prevPL) { ObjectSetString(0, "infoPL", OBJPROP_TEXT, infoPL); g_prevPL = infoPL; }
-   string slplStr = FormatInfoString("SL P/L", total_risk);
+   string slplStr = FormatInfoString("SL P/L", sl_risk);
    if (slplStr != g_prevSLPL) { ObjectSetString(0, "infoSLPL", OBJPROP_TEXT, slplStr); g_prevSLPL = slplStr; }
    string tpStr = FormatInfoString("TP P/L", total_tp);
    if (tpStr != g_prevTP) { ObjectSetString(0, "infoTP", OBJPROP_TEXT, tpStr); g_prevTP = tpStr; }
@@ -446,6 +446,7 @@ void UpdateDashboard(LotsInfo &lots, double total_risk, double total_tp, double 
          {
             infoPosition = DoubleToString(lots.longLots, OrderDigits) + " Long / " + DoubleToString(lots.shortLots, OrderDigits) + " Short";
             ObjectSetInteger(0, "infoPosition", OBJPROP_COLOR, clrWhite);
+            ObjectSetInteger(0, "infoVaR", OBJPROP_COLOR, clrWhite);
             ObjectSetString(0, "infoPosition", OBJPROP_TEXT, infoPosition);
             double netExposure = MathAbs(lots.longLots - lots.shortLots);
             if (netExposure > 0 && AccountEquity > 0 && PortfolioRisk.CalculateVaR(_Symbol, netExposure))
