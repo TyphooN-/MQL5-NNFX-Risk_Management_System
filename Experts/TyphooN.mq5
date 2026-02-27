@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.395"
+#property version   "1.396"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -322,6 +322,7 @@ int OnInit()
    g_prevLongLots = -1; g_prevShortLots = -1;
    g_cachedVaRStr = "VaR %: 0.00"; g_cachedPositionStr = "";
    g_lastMGLogTime = 0;
+   PyramidLotsOpened = 0;
    double var_1_lot = 0.0;
    if(PortfolioRisk.CalculateVaR(_Symbol, 1.0))
    {
@@ -1184,6 +1185,7 @@ void CloseProfitableOppositePositions()
    for (int i = total - 1; i >= 0; i--)
    {
       ulong ticket = PositionGetTicket(i);
+      if (ticket == 0) continue;
       if (PositionGetString(POSITION_SYMBOL) != _Symbol)
          continue;
       if ((int)PositionGetInteger(POSITION_TYPE) != closeType)
@@ -1655,15 +1657,9 @@ void TyWindow::OnClickTrade(void)
    }
    if (OrderMode != Standard || potentialRisk <= MaxRisk)
    {
-      if (FixedOrdersToPlace >= 2)
-      {
-         Trade.SetAsyncMode(true);
-      }
-      else
-      {
-         Trade.SetAsyncMode(false);
-      }
-      int numOrders = (OrderMode == Fixed && FixedOrdersToPlace >= 2) ? FixedOrdersToPlace : 1;
+      bool useAsync = (OrderMode == Fixed && FixedOrdersToPlace >= 2);
+      Trade.SetAsyncMode(useAsync);
+      int numOrders = useAsync ? FixedOrdersToPlace : 1;
       for (int i = 0; i < numOrders; i++)
       {
          if (TP > SL)
