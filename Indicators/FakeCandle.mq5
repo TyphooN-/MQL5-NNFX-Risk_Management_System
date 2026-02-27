@@ -22,7 +22,7 @@
  *
  **/
 #property copyright "TyphooN"
-#property link      "http://marketwizardry.info/"
+#property link      "https://www.marketwizardry.org/"
 #property version   "1.05"
 #property indicator_chart_window
 #include "FakeCandle.mqh"

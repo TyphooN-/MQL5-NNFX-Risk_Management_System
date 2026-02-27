@@ -21,7 +21,7 @@
  *
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
-#property link      "http://marketwizardry.info/"
+#property link      "https://www.marketwizardry.org/"
 #property version   "2.105"
 #property description "NNFX Confluence Algo EA — Modular Signal Slots"
 #include <Trade\Trade.mqh>
