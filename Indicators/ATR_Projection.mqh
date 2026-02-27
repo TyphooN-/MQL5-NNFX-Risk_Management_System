@@ -79,6 +79,11 @@ bool g_dataReady = false;
 bool g_infoObjectsCreated = false;
 string g_prevInfoText1, g_prevInfoText2;
 color g_prevFontColor1 = clrNONE, g_prevFontColor2 = clrNONE;
+// Cached object name strings (initialized in OnInit to avoid per-tick allocation)
+string g_nameInfo1, g_nameInfo2;
+string g_nameHighD1, g_nameLowD1, g_nameHighW1, g_nameLowW1;
+string g_nameHighMN1, g_nameLowMN1, g_nameHighH4, g_nameLowH4;
+string g_nameHighH1, g_nameLowH1, g_nameHighM15, g_nameLowM15;
 int OnInit()
 {
    if (ATR_Period <= 0)
@@ -137,6 +142,15 @@ int OnInit()
       return INIT_FAILED;
    }
 #endif
+   // Cache object name strings once
+   g_nameInfo1 = objname + "Info1";
+   g_nameInfo2 = objname + "Info2";
+   g_nameHighD1 = objname + "High D1";   g_nameLowD1 = objname + "Low D1";
+   g_nameHighW1 = objname + "High W1";   g_nameLowW1 = objname + "Low W1";
+   g_nameHighMN1 = objname + "High MN1"; g_nameLowMN1 = objname + "Low MN1";
+   g_nameHighH4 = objname + "High H4";   g_nameLowH4 = objname + "Low H4";
+   g_nameHighH1 = objname + "High H1";   g_nameLowH1 = objname + "Low H1";
+   g_nameHighM15 = objname + "High M15"; g_nameLowM15 = objname + "Low M15";
    return INIT_SUCCEEDED;
 }
 void OnDeinit(const int pReason)
@@ -314,29 +328,27 @@ int OnCalculate(const int        rates_total,
    color FontColor2 = (IsD1AboveW1 && IsD1AboveMN1 && IsW1AboveMN1) ? clrMagenta : FontColor;
    string infoText1 = "ATR| M15: " + DoubleToString(M15info, ATRInfoDecimals) + " H1: " + DoubleToString(H1info, ATRInfoDecimals) + " H4: " + DoubleToString(H4info, ATRInfoDecimals);
    string infoText2 = "ATR| D1: " + DoubleToString(D1info, ATRInfoDecimals) + " W1: " + DoubleToString(W1info, ATRInfoDecimals) + " MN1: " + DoubleToString(MN1info, ATRInfoDecimals);
-   string nameInfo1 = objname + "Info1";
-   string nameInfo2 = objname + "Info2";
    if (!g_infoObjectsCreated)
    {
       g_infoObjectsCreated = true;
-      ObjectCreate(0, nameInfo1, OBJ_LABEL, 0, 0, 0);
-      ObjectSetInteger(0, nameInfo1, OBJPROP_XDISTANCE, HorizPos);
-      ObjectSetInteger(0, nameInfo1, OBJPROP_YDISTANCE, VertPos);
-      ObjectSetInteger(0, nameInfo1, OBJPROP_CORNER, Corner);
-      ObjectSetString(0, nameInfo1, OBJPROP_FONT, FontName);
-      ObjectSetInteger(0, nameInfo1, OBJPROP_FONTSIZE, FontSize);
-      ObjectCreate(0, nameInfo2, OBJ_LABEL, 0, 0, 0);
-      ObjectSetInteger(0, nameInfo2, OBJPROP_XDISTANCE, HorizPos);
-      ObjectSetInteger(0, nameInfo2, OBJPROP_YDISTANCE, VertPos + 13);
-      ObjectSetInteger(0, nameInfo2, OBJPROP_CORNER, Corner);
-      ObjectSetString(0, nameInfo2, OBJPROP_FONT, FontName);
-      ObjectSetInteger(0, nameInfo2, OBJPROP_FONTSIZE, FontSize);
+      ObjectCreate(0, g_nameInfo1, OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, g_nameInfo1, OBJPROP_XDISTANCE, HorizPos);
+      ObjectSetInteger(0, g_nameInfo1, OBJPROP_YDISTANCE, VertPos);
+      ObjectSetInteger(0, g_nameInfo1, OBJPROP_CORNER, Corner);
+      ObjectSetString(0, g_nameInfo1, OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, g_nameInfo1, OBJPROP_FONTSIZE, FontSize);
+      ObjectCreate(0, g_nameInfo2, OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, g_nameInfo2, OBJPROP_XDISTANCE, HorizPos);
+      ObjectSetInteger(0, g_nameInfo2, OBJPROP_YDISTANCE, VertPos + 13);
+      ObjectSetInteger(0, g_nameInfo2, OBJPROP_CORNER, Corner);
+      ObjectSetString(0, g_nameInfo2, OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, g_nameInfo2, OBJPROP_FONTSIZE, FontSize);
    }
    // Only update text/color when changed
-   if (infoText1 != g_prevInfoText1) { ObjectSetString(0, nameInfo1, OBJPROP_TEXT, infoText1); g_prevInfoText1 = infoText1; }
-   if (FontColor1 != g_prevFontColor1) { ObjectSetInteger(0, nameInfo1, OBJPROP_COLOR, FontColor1); g_prevFontColor1 = FontColor1; }
-   if (infoText2 != g_prevInfoText2) { ObjectSetString(0, nameInfo2, OBJPROP_TEXT, infoText2); g_prevInfoText2 = infoText2; }
-   if (FontColor2 != g_prevFontColor2) { ObjectSetInteger(0, nameInfo2, OBJPROP_COLOR, FontColor2); g_prevFontColor2 = FontColor2; }
+   if (infoText1 != g_prevInfoText1) { ObjectSetString(0, g_nameInfo1, OBJPROP_TEXT, infoText1); g_prevInfoText1 = infoText1; }
+   if (FontColor1 != g_prevFontColor1) { ObjectSetInteger(0, g_nameInfo1, OBJPROP_COLOR, FontColor1); g_prevFontColor1 = FontColor1; }
+   if (infoText2 != g_prevInfoText2) { ObjectSetString(0, g_nameInfo2, OBJPROP_TEXT, infoText2); g_prevInfoText2 = infoText2; }
+   if (FontColor2 != g_prevFontColor2) { ObjectSetInteger(0, g_nameInfo2, OBJPROP_COLOR, FontColor2); g_prevFontColor2 = FontColor2; }
    #ifdef __MQL5__
    datetime endTime = time[rates_total - 1];
 #else
@@ -349,48 +361,48 @@ int OnCalculate(const int        rates_total,
       datetime startTimeD1 = iTime(_Symbol, PERIOD_D1, 7);
       double ATRLevelAboveD1 = currentOpenD1 + avgD1;
       double ATRLevelBelowD1 = currentOpenD1 - avgD1;
-      DrawHorizontalLine(ATRLevelAboveD1, objname + "High D1", startTimeD1, endTime);
-      DrawHorizontalLine(ATRLevelBelowD1, objname + "Low D1", startTimeD1, endTime);
+      DrawHorizontalLine(ATRLevelAboveD1, g_nameHighD1, startTimeD1, endTime);
+      DrawHorizontalLine(ATRLevelBelowD1, g_nameLowD1, startTimeD1, endTime);
    }
    if (W1_ATR_Projections)
    {
       datetime startTimeW1 = iTime(_Symbol, PERIOD_W1, 4);
       double ATRLevelAboveW1 = currentOpenW1 + avgW1;
       double ATRLevelBelowW1 = currentOpenW1 - avgW1;
-      DrawHorizontalLine(ATRLevelAboveW1, objname + "High W1", startTimeW1, endTime);
-      DrawHorizontalLine(ATRLevelBelowW1, objname + "Low W1", startTimeW1, endTime);
+      DrawHorizontalLine(ATRLevelAboveW1, g_nameHighW1, startTimeW1, endTime);
+      DrawHorizontalLine(ATRLevelBelowW1, g_nameLowW1, startTimeW1, endTime);
    }
    if (MN1_ATR_Projections)
    {
       datetime startTimeMN1 = iTime(_Symbol, PERIOD_MN1, 2);
       double ATRLevelAboveMN1 = currentOpenMN1 + avgMN1;
       double ATRLevelBelowMN1 = currentOpenMN1 - avgMN1;
-      DrawHorizontalLine(ATRLevelAboveMN1, objname + "High MN1", startTimeMN1, endTime);
-      DrawHorizontalLine(ATRLevelBelowMN1, objname + "Low MN1", startTimeMN1, endTime);
+      DrawHorizontalLine(ATRLevelAboveMN1, g_nameHighMN1, startTimeMN1, endTime);
+      DrawHorizontalLine(ATRLevelBelowMN1, g_nameLowMN1, startTimeMN1, endTime);
    }
    if (H4_ATR_Projections && _Period <= PERIOD_D1 && _Period != PERIOD_MN1)
    {
       datetime startTimeH4 = iTime(_Symbol, PERIOD_H4, 11);
       double ATRLevelAboveH4 = currentOpenH4 + avgH4;
       double ATRLevelBelowH4 = currentOpenH4 - avgH4;
-      DrawHorizontalLine(ATRLevelAboveH4, objname + "High H4", startTimeH4, endTime);
-      DrawHorizontalLine(ATRLevelBelowH4, objname + "Low H4", startTimeH4, endTime);
+      DrawHorizontalLine(ATRLevelAboveH4, g_nameHighH4, startTimeH4, endTime);
+      DrawHorizontalLine(ATRLevelBelowH4, g_nameLowH4, startTimeH4, endTime);
    }
    if (H1_ATR_Projections && _Period <= PERIOD_H4 && _Period != PERIOD_MN1)
    {
       datetime startTimeH1 = iTime(_Symbol, PERIOD_H1, 12);
       double ATRLevelAboveH1 = currentOpenH1 + avgH1;
       double ATRLevelBelowH1 = currentOpenH1 - avgH1;
-      DrawHorizontalLine(ATRLevelAboveH1, objname + "High H1", startTimeH1, endTime);
-      DrawHorizontalLine(ATRLevelBelowH1, objname + "Low H1", startTimeH1, endTime);
+      DrawHorizontalLine(ATRLevelAboveH1, g_nameHighH1, startTimeH1, endTime);
+      DrawHorizontalLine(ATRLevelBelowH1, g_nameLowH1, startTimeH1, endTime);
    }
    if (M15_ATR_Projections && _Period <= PERIOD_H1 && _Period != PERIOD_MN1)
    {
       datetime startTimeM15 = iTime(_Symbol, PERIOD_M15, 7);
       double ATRLevelAboveM15 = currentOpenM15 + avgM15;
       double ATRLevelBelowM15 = currentOpenM15 - avgM15;
-      DrawHorizontalLine(ATRLevelAboveM15, objname + "High M15", startTimeM15, endTime);
-      DrawHorizontalLine(ATRLevelBelowM15, objname + "Low M15", startTimeM15, endTime);
+      DrawHorizontalLine(ATRLevelAboveM15, g_nameHighM15, startTimeM15, endTime);
+      DrawHorizontalLine(ATRLevelBelowM15, g_nameLowM15, startTimeM15, endTime);
    }
    return rates_total;
 }

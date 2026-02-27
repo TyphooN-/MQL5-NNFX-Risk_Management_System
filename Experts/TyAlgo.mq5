@@ -22,7 +22,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "2.102"
+#property version   "2.103"
 #property description "NNFX Confluence Algo EA — Modular Signal Slots"
 #include <Trade\Trade.mqh>
 #include <Orchard\RiskCalc.mqh>
@@ -72,7 +72,7 @@ int OrderDigits = 0;
 // Dashboard cache (file-scope for reset on reinit)
 string g_prevRisk = "", g_prevPL = "", g_prevSLPL = "", g_prevTP = "", g_prevTPRR = "", g_prevRR = "";
 double g_prevLongLots = -1, g_prevShortLots = -1;
-string g_g_cachedVaRStr = "VaR %: 0.00";
+string g_cachedVaRStr = "VaR %: 0.00";
 int handle_iATR = INVALID_HANDLE;
 SlotState g_slotBaseline, g_slotConfirm1, g_slotConfirm2, g_slotVolume, g_slotExit;
 // Structure to store lots information
@@ -182,7 +182,7 @@ int OnInit()
    g_prevRisk = ""; g_prevPL = ""; g_prevSLPL = "";
    g_prevTP = ""; g_prevTPRR = ""; g_prevRR = "";
    g_prevLongLots = -1; g_prevShortLots = -1;
-   g_g_cachedVaRStr = "VaR %: 0.00";
+   g_cachedVaRStr = "VaR %: 0.00";
    return INIT_SUCCEEDED;
 }
 // ── OnDeinit ─────────────────────────────────────────────────────────────────
@@ -391,7 +391,7 @@ void UpdateDashboard(LotsInfo &lots, double total_risk, double total_tp, double 
    }
    if (AccountBalance > 0)
       percent_risk = MathAbs((sl_risk / AccountBalance) * 100);
-   string infoRisk, infoPL, infoRR = (rr >= 0) ? "RR : " + DoubleToString(rr, 2) : "RR : N/A";
+   string infoRisk, infoPL, infoRR = (rr > 0) ? "RR : " + DoubleToString(rr, 2) : "RR : N/A";
    if (total_pl >= absRisk)
    {
       double floatingRisk = MathAbs(total_pl - total_risk);
