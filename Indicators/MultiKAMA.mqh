@@ -29,6 +29,10 @@ double ExtAMABuffer_H4[];
 double ExtAMABuffer_D1[];
 double ExtAMABuffer_W1[];
 double ExtAMABuffer_MN1[];
+// File-scope GV change detection (reset on reinit)
+bool g_prevKAMA_H1 = false, g_prevKAMA_H4 = false, g_prevKAMA_D1 = false;
+bool g_prevKAMA_W1 = false, g_prevKAMA_MN1 = false;
+bool g_kamaInitialized = false;
 #ifdef __MQL5__
 int handle_KAMA_H1, handle_KAMA_H4, handle_KAMA_D1, handle_KAMA_W1, handle_KAMA_MN1;
 #endif
@@ -85,6 +89,10 @@ int OnInit()
       return(INIT_FAILED);
    }
 #endif
+   //--- Reset GV change detection on reinit
+   g_prevKAMA_H1 = false; g_prevKAMA_H4 = false; g_prevKAMA_D1 = false;
+   g_prevKAMA_W1 = false; g_prevKAMA_MN1 = false;
+   g_kamaInitialized = false;
    //--- OnInit done
    return (INIT_SUCCEEDED);
 }
@@ -139,22 +147,20 @@ int OnCalculate(const int rates_total, const int prev_calculated, const int begi
    bool isAbove_KAMA_D1 = currentPrice > ExtAMABuffer_D1[rates_total - 1];
    bool isAbove_KAMA_W1 = currentPrice > ExtAMABuffer_W1[rates_total - 1];
    bool isAbove_KAMA_MN1 = currentPrice > ExtAMABuffer_MN1[rates_total - 1];
-   static bool prev_H1 = false, prev_H4 = false, prev_D1 = false, prev_W1 = false, prev_MN1 = false;
-   static bool initialized = false;
-   if (!initialized || isAbove_KAMA_H1 != prev_H1 || isAbove_KAMA_H4 != prev_H4 ||
-       isAbove_KAMA_D1 != prev_D1 || isAbove_KAMA_W1 != prev_W1 || isAbove_KAMA_MN1 != prev_MN1)
+   if (!g_kamaInitialized || isAbove_KAMA_H1 != g_prevKAMA_H1 || isAbove_KAMA_H4 != g_prevKAMA_H4 ||
+       isAbove_KAMA_D1 != g_prevKAMA_D1 || isAbove_KAMA_W1 != g_prevKAMA_W1 || isAbove_KAMA_MN1 != g_prevKAMA_MN1)
    {
       GlobalVariableSet("IsAbove_KAMA_H1", isAbove_KAMA_H1);
       GlobalVariableSet("IsAbove_KAMA_H4", isAbove_KAMA_H4);
       GlobalVariableSet("IsAbove_KAMA_D1", isAbove_KAMA_D1);
       GlobalVariableSet("IsAbove_KAMA_W1", isAbove_KAMA_W1);
       GlobalVariableSet("IsAbove_KAMA_MN1", isAbove_KAMA_MN1);
-      prev_H1 = isAbove_KAMA_H1;
-      prev_H4 = isAbove_KAMA_H4;
-      prev_D1 = isAbove_KAMA_D1;
-      prev_W1 = isAbove_KAMA_W1;
-      prev_MN1 = isAbove_KAMA_MN1;
-      initialized = true;
+      g_prevKAMA_H1 = isAbove_KAMA_H1;
+      g_prevKAMA_H4 = isAbove_KAMA_H4;
+      g_prevKAMA_D1 = isAbove_KAMA_D1;
+      g_prevKAMA_W1 = isAbove_KAMA_W1;
+      g_prevKAMA_MN1 = isAbove_KAMA_MN1;
+      g_kamaInitialized = true;
    }
    //--- return value of prev_calculated for next call
    return (rates_total);
@@ -208,22 +214,20 @@ int OnCalculate(const int rates_total,
       bool isAbove_D1 = currentPrice > ExtAMABuffer_D1[latestIndex];
       bool isAbove_W1 = currentPrice > ExtAMABuffer_W1[latestIndex];
       bool isAbove_MN1 = currentPrice > ExtAMABuffer_MN1[latestIndex];
-      static bool prev_H1 = false, prev_H4 = false, prev_D1 = false, prev_W1 = false, prev_MN1 = false;
-      static bool initialized = false;
-      if (!initialized || isAbove_H1 != prev_H1 || isAbove_H4 != prev_H4 ||
-          isAbove_D1 != prev_D1 || isAbove_W1 != prev_W1 || isAbove_MN1 != prev_MN1)
+      if (!g_kamaInitialized || isAbove_H1 != g_prevKAMA_H1 || isAbove_H4 != g_prevKAMA_H4 ||
+          isAbove_D1 != g_prevKAMA_D1 || isAbove_W1 != g_prevKAMA_W1 || isAbove_MN1 != g_prevKAMA_MN1)
       {
          GlobalVariableSet("IsAbove_KAMA_H1", isAbove_H1);
          GlobalVariableSet("IsAbove_KAMA_H4", isAbove_H4);
          GlobalVariableSet("IsAbove_KAMA_D1", isAbove_D1);
          GlobalVariableSet("IsAbove_KAMA_W1", isAbove_W1);
          GlobalVariableSet("IsAbove_KAMA_MN1", isAbove_MN1);
-         prev_H1 = isAbove_H1;
-         prev_H4 = isAbove_H4;
-         prev_D1 = isAbove_D1;
-         prev_W1 = isAbove_W1;
-         prev_MN1 = isAbove_MN1;
-         initialized = true;
+         g_prevKAMA_H1 = isAbove_H1;
+         g_prevKAMA_H4 = isAbove_H4;
+         g_prevKAMA_D1 = isAbove_D1;
+         g_prevKAMA_W1 = isAbove_W1;
+         g_prevKAMA_MN1 = isAbove_MN1;
+         g_kamaInitialized = true;
       }
    }
    return (rates_total);

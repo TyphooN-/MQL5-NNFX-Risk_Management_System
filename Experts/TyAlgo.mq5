@@ -22,7 +22,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "2.101"
+#property version   "2.102"
 #property description "NNFX Confluence Algo EA — Modular Signal Slots"
 #include <Trade\Trade.mqh>
 #include <Orchard\RiskCalc.mqh>
@@ -69,6 +69,10 @@ CTrade Trade;
 CPortfolioRiskMan PortfolioRisk(VaRTimeframe, StdDevPeriods, VaRConfidence);
 double AccountEquity = 0, AccountBalance = 0, percent_risk = 0;
 int OrderDigits = 0;
+// Dashboard cache (file-scope for reset on reinit)
+string g_prevRisk = "", g_prevPL = "", g_prevSLPL = "", g_prevTP = "", g_prevTPRR = "", g_prevRR = "";
+double g_prevLongLots = -1, g_prevShortLots = -1;
+string g_g_cachedVaRStr = "VaR %: 0.00";
 int handle_iATR = INVALID_HANDLE;
 SlotState g_slotBaseline, g_slotConfirm1, g_slotConfirm2, g_slotVolume, g_slotExit;
 // Structure to store lots information
@@ -174,6 +178,11 @@ int OnInit()
    ObjectSetString(0, "infoTPRR", OBJPROP_TEXT, "TP RR: N/A");
    ObjectSetString(0, "infoRR", OBJPROP_TEXT, "RR : N/A");
    ObjectSetString(0, "infoConfluence", OBJPROP_TEXT, "Confluence: Waiting...");
+   // Reset dashboard cache on reinit
+   g_prevRisk = ""; g_prevPL = ""; g_prevSLPL = "";
+   g_prevTP = ""; g_prevTPRR = ""; g_prevRR = "";
+   g_prevLongLots = -1; g_prevShortLots = -1;
+   g_g_cachedVaRStr = "VaR %: 0.00";
    return INIT_SUCCEEDED;
 }
 // ── OnDeinit ─────────────────────────────────────────────────────────────────
@@ -397,22 +406,19 @@ void UpdateDashboard(LotsInfo &lots, double total_risk, double total_tp, double 
       infoRisk = "Risk: $" + DoubleToString(MathAbs(total_risk), 0) + " (" + DoubleToString(percent_risk, 2) + "%)";
       infoPL = "Total P/L: $" + DoubleToString(total_pl, 0) + " (" + DoubleToString(plPercent, 2) + "%)";
    }
-   static string prevRisk = "", prevPL = "", prevSLPL = "", prevTP = "", prevTPRR = "", prevRR = "";
-   if (infoRisk != prevRisk) { ObjectSetString(0, "infoRisk", OBJPROP_TEXT, infoRisk); prevRisk = infoRisk; }
-   if (infoPL != prevPL) { ObjectSetString(0, "infoPL", OBJPROP_TEXT, infoPL); prevPL = infoPL; }
+   if (infoRisk != g_prevRisk) { ObjectSetString(0, "infoRisk", OBJPROP_TEXT, infoRisk); g_prevRisk = infoRisk; }
+   if (infoPL != g_prevPL) { ObjectSetString(0, "infoPL", OBJPROP_TEXT, infoPL); g_prevPL = infoPL; }
    string slplStr = FormatInfoString("SL P/L", total_risk);
-   if (slplStr != prevSLPL) { ObjectSetString(0, "infoSLPL", OBJPROP_TEXT, slplStr); prevSLPL = slplStr; }
+   if (slplStr != g_prevSLPL) { ObjectSetString(0, "infoSLPL", OBJPROP_TEXT, slplStr); g_prevSLPL = slplStr; }
    string tpStr = FormatInfoString("TP P/L", total_tp);
-   if (tpStr != prevTP) { ObjectSetString(0, "infoTP", OBJPROP_TEXT, tpStr); prevTP = tpStr; }
+   if (tpStr != g_prevTP) { ObjectSetString(0, "infoTP", OBJPROP_TEXT, tpStr); g_prevTP = tpStr; }
    string tprrStr = FormatInfoString("TP RR", tprr, 2, "");
-   if (tprrStr != prevTPRR) { ObjectSetString(0, "infoTPRR", OBJPROP_TEXT, tprrStr); prevTPRR = tprrStr; }
-   if (infoRR != prevRR) { ObjectSetString(0, "infoRR", OBJPROP_TEXT, infoRR); prevRR = infoRR; }
+   if (tprrStr != g_prevTPRR) { ObjectSetString(0, "infoTPRR", OBJPROP_TEXT, tprrStr); g_prevTPRR = tprrStr; }
+   if (infoRR != g_prevRR) { ObjectSetString(0, "infoRR", OBJPROP_TEXT, infoRR); g_prevRR = infoRR; }
    // Position/VaR display — only recalculate VaR when lot sizes change
-   static double prevLongLots = -1, prevShortLots = -1;
-   static string cachedVaRStr = "VaR %: 0.00";
    bool hasBuy = lots.longLots > 0;
    bool hasSell = lots.shortLots > 0;
-   bool lotsChanged = (lots.longLots != prevLongLots || lots.shortLots != prevShortLots);
+   bool lotsChanged = (lots.longLots != g_prevLongLots || lots.shortLots != g_prevShortLots);
    if (lotsChanged)
    {
       if (hasBuy || hasSell)
@@ -425,7 +431,7 @@ void UpdateDashboard(LotsInfo &lots, double total_risk, double total_tp, double 
             ObjectSetInteger(0, "infoVaR", OBJPROP_COLOR, clrLime);
             ObjectSetString(0, "infoPosition", OBJPROP_TEXT, infoPosition);
             if (AccountEquity > 0 && PortfolioRisk.CalculateVaR(_Symbol, lots.longLots))
-               cachedVaRStr = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR / AccountEquity * 100), 2);
+               g_cachedVaRStr = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR / AccountEquity * 100), 2);
          }
          else if (hasSell && !hasBuy)
          {
@@ -434,7 +440,7 @@ void UpdateDashboard(LotsInfo &lots, double total_risk, double total_tp, double 
             ObjectSetInteger(0, "infoVaR", OBJPROP_COLOR, clrRed);
             ObjectSetString(0, "infoPosition", OBJPROP_TEXT, infoPosition);
             if (AccountEquity > 0 && PortfolioRisk.CalculateVaR(_Symbol, lots.shortLots))
-               cachedVaRStr = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR / AccountEquity * 100), 2);
+               g_cachedVaRStr = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR / AccountEquity * 100), 2);
          }
          else
          {
@@ -443,21 +449,21 @@ void UpdateDashboard(LotsInfo &lots, double total_risk, double total_tp, double 
             ObjectSetString(0, "infoPosition", OBJPROP_TEXT, infoPosition);
             double netExposure = MathAbs(lots.longLots - lots.shortLots);
             if (netExposure > 0 && AccountEquity > 0 && PortfolioRisk.CalculateVaR(_Symbol, netExposure))
-               cachedVaRStr = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR / AccountEquity * 100), 2) + " (net)";
+               g_cachedVaRStr = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR / AccountEquity * 100), 2) + " (net)";
             else if (netExposure == 0)
-               cachedVaRStr = "VaR %: 0.00 (hedged)";
+               g_cachedVaRStr = "VaR %: 0.00 (hedged)";
          }
       }
       else
       {
          ObjectSetInteger(0, "infoPosition", OBJPROP_COLOR, clrWhite);
          ObjectSetString(0, "infoPosition", OBJPROP_TEXT, "No Positions Detected");
-         cachedVaRStr = "VaR %: 0.00";
+         g_cachedVaRStr = "VaR %: 0.00";
       }
-      ObjectSetString(0, "infoVaR", OBJPROP_TEXT, cachedVaRStr);
+      ObjectSetString(0, "infoVaR", OBJPROP_TEXT, g_cachedVaRStr);
    }
-   prevLongLots = lots.longLots;
-   prevShortLots = lots.shortLots;
+   g_prevLongLots = lots.longLots;
+   g_prevShortLots = lots.shortLots;
 }
 // Close all positions of specified type for this symbol and magic number
 void ClosePositionsByType(int posType)

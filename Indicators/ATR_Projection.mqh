@@ -314,27 +314,29 @@ int OnCalculate(const int        rates_total,
    color FontColor2 = (IsD1AboveW1 && IsD1AboveMN1 && IsW1AboveMN1) ? clrMagenta : FontColor;
    string infoText1 = "ATR| M15: " + DoubleToString(M15info, ATRInfoDecimals) + " H1: " + DoubleToString(H1info, ATRInfoDecimals) + " H4: " + DoubleToString(H4info, ATRInfoDecimals);
    string infoText2 = "ATR| D1: " + DoubleToString(D1info, ATRInfoDecimals) + " W1: " + DoubleToString(W1info, ATRInfoDecimals) + " MN1: " + DoubleToString(MN1info, ATRInfoDecimals);
+   string nameInfo1 = objname + "Info1";
+   string nameInfo2 = objname + "Info2";
    if (!g_infoObjectsCreated)
    {
       g_infoObjectsCreated = true;
-      ObjectCreate(0, objname + "Info1", OBJ_LABEL, 0, 0, 0);
-      ObjectSetInteger(0, objname + "Info1", OBJPROP_XDISTANCE, HorizPos);
-      ObjectSetInteger(0, objname + "Info1", OBJPROP_YDISTANCE, VertPos);
-      ObjectSetInteger(0, objname + "Info1", OBJPROP_CORNER, Corner);
-      ObjectSetString(0, objname + "Info1", OBJPROP_FONT, FontName);
-      ObjectSetInteger(0, objname + "Info1", OBJPROP_FONTSIZE, FontSize);
-      ObjectCreate(0, objname + "Info2", OBJ_LABEL, 0, 0, 0);
-      ObjectSetInteger(0, objname + "Info2", OBJPROP_XDISTANCE, HorizPos);
-      ObjectSetInteger(0, objname + "Info2", OBJPROP_YDISTANCE, VertPos + 13);
-      ObjectSetInteger(0, objname + "Info2", OBJPROP_CORNER, Corner);
-      ObjectSetString(0, objname + "Info2", OBJPROP_FONT, FontName);
-      ObjectSetInteger(0, objname + "Info2", OBJPROP_FONTSIZE, FontSize);
+      ObjectCreate(0, nameInfo1, OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, nameInfo1, OBJPROP_XDISTANCE, HorizPos);
+      ObjectSetInteger(0, nameInfo1, OBJPROP_YDISTANCE, VertPos);
+      ObjectSetInteger(0, nameInfo1, OBJPROP_CORNER, Corner);
+      ObjectSetString(0, nameInfo1, OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, nameInfo1, OBJPROP_FONTSIZE, FontSize);
+      ObjectCreate(0, nameInfo2, OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, nameInfo2, OBJPROP_XDISTANCE, HorizPos);
+      ObjectSetInteger(0, nameInfo2, OBJPROP_YDISTANCE, VertPos + 13);
+      ObjectSetInteger(0, nameInfo2, OBJPROP_CORNER, Corner);
+      ObjectSetString(0, nameInfo2, OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, nameInfo2, OBJPROP_FONTSIZE, FontSize);
    }
    // Only update text/color when changed
-   if (infoText1 != g_prevInfoText1) { ObjectSetString(0, objname + "Info1", OBJPROP_TEXT, infoText1); g_prevInfoText1 = infoText1; }
-   if (FontColor1 != g_prevFontColor1) { ObjectSetInteger(0, objname + "Info1", OBJPROP_COLOR, FontColor1); g_prevFontColor1 = FontColor1; }
-   if (infoText2 != g_prevInfoText2) { ObjectSetString(0, objname + "Info2", OBJPROP_TEXT, infoText2); g_prevInfoText2 = infoText2; }
-   if (FontColor2 != g_prevFontColor2) { ObjectSetInteger(0, objname + "Info2", OBJPROP_COLOR, FontColor2); g_prevFontColor2 = FontColor2; }
+   if (infoText1 != g_prevInfoText1) { ObjectSetString(0, nameInfo1, OBJPROP_TEXT, infoText1); g_prevInfoText1 = infoText1; }
+   if (FontColor1 != g_prevFontColor1) { ObjectSetInteger(0, nameInfo1, OBJPROP_COLOR, FontColor1); g_prevFontColor1 = FontColor1; }
+   if (infoText2 != g_prevInfoText2) { ObjectSetString(0, nameInfo2, OBJPROP_TEXT, infoText2); g_prevInfoText2 = infoText2; }
+   if (FontColor2 != g_prevFontColor2) { ObjectSetInteger(0, nameInfo2, OBJPROP_COLOR, FontColor2); g_prevFontColor2 = FontColor2; }
    #ifdef __MQL5__
    datetime endTime = time[rates_total - 1];
 #else
@@ -408,8 +410,8 @@ void DrawHorizontalLine(double price, string label, datetime StartTime, datetime
 }
 bool IsNewM15Interval(const datetime& currentTime, const datetime& prevTime)
 {
-    int currentM15 = (int)(currentTime / 900);
-    int prevM15 = (int)(prevTime / 900);
+    long currentM15 = (long)(currentTime / 900);
+    long prevM15 = (long)(prevTime / 900);
     if (currentM15 != prevM15)
     {
 #ifdef __MQL4__

@@ -80,8 +80,8 @@ int OnCalculate(const int rates_total,
       DrawLines();
       g_PrevTradeServerTime = CurrentTradeServerTime;
    }
-   // Judas check runs intrabar (when price breaks D1 high/low)
-   if ((Ask > Current_D1_High) || (Bid < Current_D1_Low))
+   // Judas check runs intrabar (when price breaks D1 high/low) — skip on W1/MN1 where D1 objects are deleted
+   if (_Period < PERIOD_W1 && ((Ask > Current_D1_High) || (Bid < Current_D1_Low)))
    {
       double prevD1H = Current_D1_High, prevD1L = Current_D1_Low;
       double prevW1H = Current_W1_High, prevW1L = Current_W1_Low;
