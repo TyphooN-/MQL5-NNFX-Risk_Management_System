@@ -342,8 +342,7 @@ int OnCalculate(const int rates_total,
    }
    if (!g_dataReady)
    {
-      if (BarsCalculated(HandleM1_200SMA) <= 0 || BarsCalculated(HandleW1_200SMA) <= 0 ||
-          BarsCalculated(HandleMN1_100SMA) <= 0)
+      if (BarsCalculated(HandleM1_200SMA) <= 0 || BarsCalculated(HandleW1_200SMA) <= 0)
       {
          UpdateBuffers();
          buffersOk = false;
@@ -675,6 +674,7 @@ bool UpdateBuffers()
    ok &= (CopyBuffer(HandleH4_100SMA, 0, 0, ArraySize(MABufferH4_100SMA), MABufferH4_100SMA) > 0);
    ok &= (CopyBuffer(HandleD1_100SMA, 0, 0, ArraySize(MABufferD1_100SMA), MABufferD1_100SMA) > 0);
    ok &= (CopyBuffer(HandleW1_100SMA, 0, 0, ArraySize(MABufferW1_100SMA), MABufferW1_100SMA) > 0);
-   ok &= (CopyBuffer(HandleMN1_100SMA, 0, 0, ArraySize(MABufferMN1_100SMA), MABufferMN1_100SMA) > 0);
+   // MN1 100SMA is a plotted line only (not used in bull/bear power grid) — don't let it block the dashboard
+   CopyBuffer(HandleMN1_100SMA, 0, 0, ArraySize(MABufferMN1_100SMA), MABufferMN1_100SMA);
    return ok;
 }
