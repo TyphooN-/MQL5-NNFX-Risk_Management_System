@@ -49,6 +49,7 @@ double prevAskPrice = 0.0;
 string objname = "MTF_MA_";
 bool g_dataReady = false;
 bool g_objectsCreated = false;
+bool g_buffersLoaded = false;
 datetime g_prevTime = 0;
 int g_prevBullLTF = -1, g_prevBearLTF = -1, g_prevBullHTF = -1, g_prevBearHTF = -1;
 // Cached object name strings (8 TFs x 5 labels = 40, plus 4 power labels)
@@ -175,6 +176,7 @@ int OnInit()
    prevAskPrice = 0.0;
    g_dataReady = false;
    g_objectsCreated = false;
+   g_buffersLoaded = false;
    g_prevTime = 0;
    g_prevBullLTF = -1; g_prevBearLTF = -1;
    g_prevBullHTF = -1; g_prevBearHTF = -1;
@@ -325,15 +327,15 @@ int OnCalculate(const int rates_total,
    prevBidPrice = currentBidPrice;
    prevAskPrice = currentAskPrice;
    datetime currentTime = TimeTradeServer();
-   // Once objects are created (first successful buffer load), trust cached buffer data on intermediate ticks
-   bool buffersOk = g_objectsCreated;
+   // Once buffers have loaded once, trust cached buffer data on intermediate ticks
+   bool buffersOk = g_buffersLoaded;
    if (lastCheckedCandle != rates_total - 1)
    {
       lastCheckedCandle = rates_total - 1;
       buffersOk = UpdateBuffers();
       g_prevTime = currentTime;
    }
-   else if ((int)(currentTime - g_prevTime) >= 60)
+   else if (!g_buffersLoaded || (int)(currentTime - g_prevTime) >= 60)
    {
       g_prevTime = currentTime;
       buffersOk = UpdateBuffers();
@@ -344,12 +346,14 @@ int OnCalculate(const int rates_total,
           BarsCalculated(HandleMN1_100SMA) <= 0)
       {
          UpdateBuffers();
-         return prev_calculated;
+         buffersOk = false;
       }
-      g_dataReady = true;
-      buffersOk = UpdateBuffers();
+      else
+      {
+         g_dataReady = true;
+         buffersOk = UpdateBuffers();
+      }
    }
-   if (!buffersOk) return prev_calculated;
    if (!g_objectsCreated)
    {
    g_objectsCreated = true;
@@ -531,6 +535,8 @@ int OnCalculate(const int rates_total,
       ObjectSetString(0, g_nameBearHTF, OBJPROP_TEXT, BearPowerTextHTF);
    }
    } // objectsCreated
+   if (!buffersOk) return prev_calculated;
+   if (!g_buffersLoaded) g_buffersLoaded = true;
    double currentPrice = close[rates_total - 1];
    // Check the relationship of the current price with the 200-period SMAs
    bool isAbove_M1_200SMA = currentPrice > MABufferM1_200SMA[rates_total - 1];

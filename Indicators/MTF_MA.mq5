@@ -23,7 +23,7 @@
  **/
 #property copyright "TyphooN"
 #property link      "https://www.marketwizardry.info"
-#property version   "1.075"
+#property version   "1.076"
 #property indicator_chart_window
 #property indicator_buffers 41
 #property indicator_plots   6
