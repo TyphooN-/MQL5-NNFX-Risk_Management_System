@@ -23,7 +23,7 @@
  **/
 #property copyright   "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link        "https://www.marketwizardry.info"
-#property version     "1.007"
+#property version     "1.008"
 #property description "Multi-Timeframe Kaufman's Adaptive Moving Average"
 #property indicator_chart_window
 #property indicator_buffers 5

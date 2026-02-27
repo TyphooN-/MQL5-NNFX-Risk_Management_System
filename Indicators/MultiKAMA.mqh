@@ -201,15 +201,19 @@ int OnCalculate(const int rates_total,
       ExtAMABuffer_W1[i] = iCustom(NULL, PERIOD_W1, "KAMA", InpPeriodAMA, InpFastPeriodEMA, InpSlowPeriodEMA, 0, shift);
       ExtAMABuffer_MN1[i] = iCustom(NULL, PERIOD_MN1, "KAMA", InpPeriodAMA, InpFastPeriodEMA, InpSlowPeriodEMA, 0, shift);
    }
-   // Set global variables (only when values change)
-   if (rates_total > 0)
+   if (rates_total <= 0) return rates_total;
+   int latestIndex = rates_total - 1;
+   // Only update recent_KAMA GVs on new bar (KAMA values don't change intra-bar)
+   if (prev_calculated != rates_total)
    {
-      int latestIndex = rates_total - 1;
       GlobalVariableSet("recent_KAMA_H1", ExtAMABuffer_H1[latestIndex]);
       GlobalVariableSet("recent_KAMA_H4", ExtAMABuffer_H4[latestIndex]);
       GlobalVariableSet("recent_KAMA_D1", ExtAMABuffer_D1[latestIndex]);
       GlobalVariableSet("recent_KAMA_W1", ExtAMABuffer_W1[latestIndex]);
       GlobalVariableSet("recent_KAMA_MN1", ExtAMABuffer_MN1[latestIndex]);
+   }
+   // Check price vs KAMA on every tick (price changes intra-bar)
+   {
       double currentPrice = close[latestIndex];
       bool isAbove_H1 = currentPrice > ExtAMABuffer_H1[latestIndex];
       bool isAbove_H4 = currentPrice > ExtAMABuffer_H4[latestIndex];
