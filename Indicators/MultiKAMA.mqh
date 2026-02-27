@@ -33,6 +33,8 @@ double ExtAMABuffer_MN1[];
 bool g_prevKAMA_H1 = false, g_prevKAMA_H4 = false, g_prevKAMA_D1 = false;
 bool g_prevKAMA_W1 = false, g_prevKAMA_MN1 = false;
 bool g_kamaInitialized = false;
+double g_prevRecentKAMA_H1 = 0, g_prevRecentKAMA_H4 = 0, g_prevRecentKAMA_D1 = 0;
+double g_prevRecentKAMA_W1 = 0, g_prevRecentKAMA_MN1 = 0;
 #ifdef __MQL5__
 int handle_KAMA_H1, handle_KAMA_H4, handle_KAMA_D1, handle_KAMA_W1, handle_KAMA_MN1;
 #endif
@@ -93,6 +95,8 @@ int OnInit()
    g_prevKAMA_H1 = false; g_prevKAMA_H4 = false; g_prevKAMA_D1 = false;
    g_prevKAMA_W1 = false; g_prevKAMA_MN1 = false;
    g_kamaInitialized = false;
+   g_prevRecentKAMA_H1 = 0; g_prevRecentKAMA_H4 = 0; g_prevRecentKAMA_D1 = 0;
+   g_prevRecentKAMA_W1 = 0; g_prevRecentKAMA_MN1 = 0;
    //--- OnInit done
    return (INIT_SUCCEEDED);
 }
@@ -135,11 +139,11 @@ int OnCalculate(const int rates_total, const int prev_calculated, const int begi
       int latestIndex = rates_total - 1;
       if (allCopied)
       {
-         GlobalVariableSet("recent_KAMA_H1", ExtAMABuffer_H1[latestIndex]);
-         GlobalVariableSet("recent_KAMA_H4", ExtAMABuffer_H4[latestIndex]);
-         GlobalVariableSet("recent_KAMA_D1", ExtAMABuffer_D1[latestIndex]);
-         GlobalVariableSet("recent_KAMA_W1", ExtAMABuffer_W1[latestIndex]);
-         GlobalVariableSet("recent_KAMA_MN1", ExtAMABuffer_MN1[latestIndex]);
+         if (ExtAMABuffer_H1[latestIndex] != g_prevRecentKAMA_H1) { GlobalVariableSet("recent_KAMA_H1", ExtAMABuffer_H1[latestIndex]); g_prevRecentKAMA_H1 = ExtAMABuffer_H1[latestIndex]; }
+         if (ExtAMABuffer_H4[latestIndex] != g_prevRecentKAMA_H4) { GlobalVariableSet("recent_KAMA_H4", ExtAMABuffer_H4[latestIndex]); g_prevRecentKAMA_H4 = ExtAMABuffer_H4[latestIndex]; }
+         if (ExtAMABuffer_D1[latestIndex] != g_prevRecentKAMA_D1) { GlobalVariableSet("recent_KAMA_D1", ExtAMABuffer_D1[latestIndex]); g_prevRecentKAMA_D1 = ExtAMABuffer_D1[latestIndex]; }
+         if (ExtAMABuffer_W1[latestIndex] != g_prevRecentKAMA_W1) { GlobalVariableSet("recent_KAMA_W1", ExtAMABuffer_W1[latestIndex]); g_prevRecentKAMA_W1 = ExtAMABuffer_W1[latestIndex]; }
+         if (ExtAMABuffer_MN1[latestIndex] != g_prevRecentKAMA_MN1) { GlobalVariableSet("recent_KAMA_MN1", ExtAMABuffer_MN1[latestIndex]); g_prevRecentKAMA_MN1 = ExtAMABuffer_MN1[latestIndex]; }
       }
    }
    // Check price vs KAMA on every tick, but only update globals when values change
