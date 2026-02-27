@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.396"
+#property version   "1.397"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -110,6 +110,7 @@ bool AutoProtectCalled = false, EquityTPCalled = false,
      EquitySLCalled = false, breakEvenFoundLong = false, breakEvenFoundShort = false,
      breakEvenFound = false;
 int OrderDigits = 0;
+ENUM_ORDER_TYPE_FILLING g_cachedFillMode = (ENUM_ORDER_TYPE_FILLING)-1;
 // Dashboard cache (file-scope for reset on reinit)
 string g_prevInfoRR = "", g_prevInfoPL = "", g_prevInfoSLPL = "",
        g_prevInfoTP = "", g_prevInfoRisk = "", g_prevInfoTPRR = "";
@@ -261,9 +262,9 @@ int OnInit()
       Print("StdDevPeriods must be >= 2");
       return INIT_FAILED;
    }
-   ENUM_ORDER_TYPE_FILLING fillMode = SelectFillingMode();
-   if ((int)fillMode != -1)
-      Trade.SetTypeFilling(fillMode);
+   g_cachedFillMode = SelectFillingMode();
+   if ((int)g_cachedFillMode != -1)
+      Trade.SetTypeFilling(g_cachedFillMode);
    Trade.SetExpertMagicNumber(MagicNumber);
    // Get the volume step for the current symbol
    double volumeStep = SymbolInfoDouble(Symbol(), SYMBOL_VOLUME_STEP);
@@ -418,6 +419,8 @@ void GetSLTPFromAnotherPosition(ulong ticket, double &sl, double &tp, int positi
       ulong other_ticket = PositionGetTicket(j);
       if (other_ticket != ticket && PositionGetString(POSITION_SYMBOL) == _Symbol)
       {
+         if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
+            continue;
          // Only copy SL/TP from same-direction positions when filter is specified
          if (positionTypeFilter != -1 && (int)PositionGetInteger(POSITION_TYPE) != positionTypeFilter)
             continue;
@@ -511,10 +514,15 @@ bool PlacePyramidOrders()
    }
    double stopLoss = 0;
    double takeProfit = 0;
-   if (PositionSelect(_Symbol))
+   for (int p = PositionsTotal() - 1; p >= 0; p--)
    {
-      stopLoss = PositionGetDouble(POSITION_SL);
-      takeProfit = PositionGetDouble(POSITION_TP);
+      if (PositionGetTicket(p) == 0) continue;
+      if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
+      if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
+      if ((int)PositionGetInteger(POSITION_TYPE) != (int)orderType) continue;
+      double pSL = PositionGetDouble(POSITION_SL);
+      double pTP = PositionGetDouble(POSITION_TP);
+      if (pSL != 0 || pTP != 0) { stopLoss = pSL; takeProfit = pTP; break; }
    }
    // Pre-check for enough margin before placing the order
    double OrderLots = NormalizeDouble(PyramidLotSize, OrderDigits);
@@ -530,13 +538,12 @@ bool PlacePyramidOrders()
    request.magic = MagicNumber;
    request.type = orderType;
    request.comment = PyramidComment;
-   ENUM_ORDER_TYPE_FILLING pyramidFill = SelectFillingMode();
-   if ((int)pyramidFill == -1)
+   if ((int)g_cachedFillMode == -1)
    {
       Print("No valid filling mode for pyramid order.");
       return false;
    }
-   request.type_filling = pyramidFill;
+   request.type_filling = g_cachedFillMode;
    MqlTradeCheckResult check_result;
    required_margin = PerformOrderCheck(request, check_result, OrderLots);
    if (required_margin < 0)
@@ -1149,7 +1156,11 @@ double CalculateMartingalePL()
    for (int i = 0; i < total; i++)
    {
       if (PositionGetSymbol(i) == _Symbol)
+      {
+         if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
+            continue;
          totalPL += PositionGetDouble(POSITION_PROFIT) + PositionGetDouble(POSITION_SWAP);
+      }
    }
    return totalPL;
 }
@@ -1161,13 +1172,14 @@ void CloseAllSymbolPositions()
    {
       ulong ticket = PositionGetTicket(i);
       if (ticket == 0) continue;
-      if (PositionGetString(POSITION_SYMBOL) == _Symbol)
-      {
-         if (Trade.PositionClose(ticket))
-            Print("Martingale equity TP: closed position #", ticket);
-         else
-            Print("Martingale equity TP: failed to close #", ticket, " error ", GetLastError());
-      }
+      if (PositionGetString(POSITION_SYMBOL) != _Symbol)
+         continue;
+      if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
+         continue;
+      if (Trade.PositionClose(ticket))
+         Print("Martingale equity TP: closed position #", ticket);
+      else
+         Print("Martingale equity TP: failed to close #", ticket, " error ", GetLastError());
    }
 }
 void CloseProfitableOppositePositions()
@@ -1187,6 +1199,8 @@ void CloseProfitableOppositePositions()
       ulong ticket = PositionGetTicket(i);
       if (ticket == 0) continue;
       if (PositionGetString(POSITION_SYMBOL) != _Symbol)
+         continue;
+      if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
          continue;
       if ((int)PositionGetInteger(POSITION_TYPE) != closeType)
          continue;
@@ -1224,6 +1238,8 @@ void UnwindMartingale()
    {
       if (PositionGetSymbol(i) == _Symbol)
       {
+         if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
+            continue;
          double pl = PositionGetDouble(POSITION_PROFIT) + PositionGetDouble(POSITION_SWAP);
          if (pl < worstPL)
          {
@@ -1272,6 +1288,8 @@ bool UnwindHedgeByMargin()
    for (int i = 0; i < total; i++)
    {
       if (PositionGetSymbol(i) != _Symbol)
+         continue;
+      if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
          continue;
       if ((int)PositionGetInteger(POSITION_TYPE) != hedgeType)
          continue;
@@ -1323,6 +1341,8 @@ bool ProtectivePartialCloseBias()
    {
       if (PositionGetSymbol(i) != _Symbol)
          continue;
+      if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
+         continue;
       if ((int)PositionGetInteger(POSITION_TYPE) != biasType)
          continue;
       double vol = PositionGetDouble(POSITION_VOLUME);
@@ -1367,6 +1387,8 @@ void LogMartingaleUnwindStatus()
    for (int i = 0; i < total; i++)
    {
       if (PositionGetSymbol(i) != _Symbol)
+         continue;
+      if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
          continue;
       int pType = (int)PositionGetInteger(POSITION_TYPE);
       double vol = PositionGetDouble(POSITION_VOLUME);
@@ -1578,13 +1600,12 @@ void TyWindow::OnClickTrade(void)
    request.magic = MagicNumber;
    request.sl = SL;
    request.tp = TP;
-   ENUM_ORDER_TYPE_FILLING fillMode = SelectFillingMode();
-   if ((int)fillMode == -1)
+   if ((int)g_cachedFillMode == -1)
    {
       Print("No valid filling mode available. Cannot place order.");
       return;
    }
-   request.type_filling = fillMode;
+   request.type_filling = g_cachedFillMode;
    if (TP == SL)
    {
       Print("TP and SL are at the same price. Cannot determine order direction.");
@@ -1798,27 +1819,23 @@ void OrderLines(bool isBuy)
    }
    double LowestPrice = LowArray[ArrayMinimum(LowArray)];
    double HighestPrice = HighArray[ArrayMaximum(HighArray)];
-   // Check if there's an active position on the symbol
-   if (PositionSelect(Symbol()))
+   // Check if there's an active position on the symbol with valid SL/TP
+   slPrice = isBuy ? LowestPrice : HighestPrice;
+   tpPrice = isBuy ? HighestPrice : LowestPrice;
+   for (int p = PositionsTotal() - 1; p >= 0; p--)
    {
+      if (PositionGetTicket(p) == 0) continue;
+      if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
+      if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
       double positionSL = PositionGetDouble(POSITION_SL);
       double positionTP = PositionGetDouble(POSITION_TP);
-      if (positionSL == 0.0 && positionTP == 0.0)
-      {
-         slPrice = isBuy ? LowestPrice : HighestPrice;
-         tpPrice = isBuy ? HighestPrice : LowestPrice;
-      }
-      else
+      if (positionSL != 0.0 || positionTP != 0.0)
       {
          slPrice = positionSL;
          tpPrice = positionTP;
+         break;
       }
    }
-   else
-   {
-      slPrice = isBuy ? LowestPrice : HighestPrice;
-      tpPrice = isBuy ? HighestPrice : LowestPrice;
-    }
    ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, slPrice);
    ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, tpPrice);
    ObjectSetInteger(0, "SL_Line", OBJPROP_COLOR, clrRed);
@@ -1956,13 +1973,26 @@ void TyWindow::OnClickCloseAll(void)
             }
          }
          // Wait for the asynchronous operations to complete
-         int timeout = 3000; // Set a timeout (in milliseconds) to wait for order execution
+         int timeout = 3000;
          uint startTime = GetTickCount();
-         while (PositionsTotal() > 0 && (GetTickCount() - startTime) < (uint) timeout)
+         while ((GetTickCount() - startTime) < (uint) timeout)
          {
-            Sleep(100); // Sleep for a short duration
+            bool stillOpen = false;
+            for (int w = PositionsTotal() - 1; w >= 0; w--)
+            {
+               if (PositionGetTicket(w) > 0 && PositionGetString(POSITION_SYMBOL) == _Symbol)
+               { stillOpen = true; break; }
+            }
+            if (!stillOpen) break;
+            Sleep(100);
          }
-         if (PositionsTotal() == 0)
+         bool allClosed = true;
+         for (int w = PositionsTotal() - 1; w >= 0; w--)
+         {
+            if (PositionGetTicket(w) > 0 && PositionGetString(POSITION_SYMBOL) == _Symbol)
+            { allClosed = false; break; }
+         }
+         if (allClosed)
          {
             Print("All positions closed successfully.");
          }
