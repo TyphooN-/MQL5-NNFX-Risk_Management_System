@@ -486,49 +486,49 @@ int OnCalculate(const int rates_total,
    string BearPowerTextLTF = "LTF Bear Power INIT";
    string BullPowerTextHTF = "HTF Bull Power INIT";
    string BearPowerTextHTF = "HTF Bear Power INIT";
-   if (ObjectFind(0, objname + "InfoBullPowerLTF") == -1)
+   if (ObjectFind(0, g_nameBullLTF) == -1)
    {
-      ObjectCreate(0, objname + "InfoBullPowerLTF", OBJ_LABEL, 0, 0, 0);
-      ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_XDISTANCE, HorizPos);
-      ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_YDISTANCE, VertPos + 65);
-      ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_CORNER, Corner);
-      ObjectSetString(0, objname + "InfoBullPowerLTF", OBJPROP_FONT, FontName);
-      ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_FONTSIZE, FontSize);
-      ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_COLOR, clrWhite);
-      ObjectSetString(0, objname + "InfoBullPowerLTF", OBJPROP_TEXT, BullPowerTextLTF);
+      ObjectCreate(0, g_nameBullLTF, OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, g_nameBullLTF, OBJPROP_XDISTANCE, HorizPos);
+      ObjectSetInteger(0, g_nameBullLTF, OBJPROP_YDISTANCE, VertPos + 65);
+      ObjectSetInteger(0, g_nameBullLTF, OBJPROP_CORNER, Corner);
+      ObjectSetString(0, g_nameBullLTF, OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, g_nameBullLTF, OBJPROP_FONTSIZE, FontSize);
+      ObjectSetInteger(0, g_nameBullLTF, OBJPROP_COLOR, clrWhite);
+      ObjectSetString(0, g_nameBullLTF, OBJPROP_TEXT, BullPowerTextLTF);
    }
-   if (ObjectFind(0, objname + "InfoBearPowerLTF") == -1)
+   if (ObjectFind(0, g_nameBearLTF) == -1)
    {
-      ObjectCreate(0, objname + "InfoBearPowerLTF", OBJ_LABEL, 0, 0, 0);
-      ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_XDISTANCE, HorizPos - 160);
-      ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_YDISTANCE, VertPos + 65);
-      ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_CORNER, Corner);
-      ObjectSetString(0, objname + "InfoBearPowerLTF", OBJPROP_FONT, FontName);
-      ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_FONTSIZE, FontSize);
-      ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_COLOR, clrWhite);
-      ObjectSetString(0, objname + "InfoBearPowerLTF", OBJPROP_TEXT, BearPowerTextLTF);
+      ObjectCreate(0, g_nameBearLTF, OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, g_nameBearLTF, OBJPROP_XDISTANCE, HorizPos - 160);
+      ObjectSetInteger(0, g_nameBearLTF, OBJPROP_YDISTANCE, VertPos + 65);
+      ObjectSetInteger(0, g_nameBearLTF, OBJPROP_CORNER, Corner);
+      ObjectSetString(0, g_nameBearLTF, OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, g_nameBearLTF, OBJPROP_FONTSIZE, FontSize);
+      ObjectSetInteger(0, g_nameBearLTF, OBJPROP_COLOR, clrWhite);
+      ObjectSetString(0, g_nameBearLTF, OBJPROP_TEXT, BearPowerTextLTF);
    }
-   if (ObjectFind(0, objname + "InfoBullPowerHTF") == -1)
+   if (ObjectFind(0, g_nameBullHTF) == -1)
    {
-      ObjectCreate(0, objname + "InfoBullPowerHTF", OBJ_LABEL, 0, 0, 0);
-      ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_XDISTANCE, HorizPos);
-      ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_YDISTANCE, VertPos + 77);
-      ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_CORNER, Corner);
-      ObjectSetString(0, objname + "InfoBullPowerHTF", OBJPROP_FONT, FontName);
-      ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_FONTSIZE, FontSize);
-      ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_COLOR, clrWhite);
-      ObjectSetString(0, objname + "InfoBullPowerHTF", OBJPROP_TEXT, BullPowerTextHTF);
+      ObjectCreate(0, g_nameBullHTF, OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, g_nameBullHTF, OBJPROP_XDISTANCE, HorizPos);
+      ObjectSetInteger(0, g_nameBullHTF, OBJPROP_YDISTANCE, VertPos + 77);
+      ObjectSetInteger(0, g_nameBullHTF, OBJPROP_CORNER, Corner);
+      ObjectSetString(0, g_nameBullHTF, OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, g_nameBullHTF, OBJPROP_FONTSIZE, FontSize);
+      ObjectSetInteger(0, g_nameBullHTF, OBJPROP_COLOR, clrWhite);
+      ObjectSetString(0, g_nameBullHTF, OBJPROP_TEXT, BullPowerTextHTF);
    }
-   if (ObjectFind(0, objname + "InfoBearPowerHTF") == -1)
+   if (ObjectFind(0, g_nameBearHTF) == -1)
    {
-      ObjectCreate(0, objname + "InfoBearPowerHTF", OBJ_LABEL, 0, 0, 0);
-      ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_XDISTANCE, HorizPos - 160);
-      ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_YDISTANCE, VertPos + 77);
-      ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_CORNER, Corner);
-      ObjectSetString(0, objname + "InfoBearPowerHTF", OBJPROP_FONT, FontName);
-      ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_FONTSIZE, FontSize);
-      ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_COLOR, clrWhite);
-      ObjectSetString(0, objname + "InfoBearPowerHTF", OBJPROP_TEXT, BearPowerTextHTF);
+      ObjectCreate(0, g_nameBearHTF, OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, g_nameBearHTF, OBJPROP_XDISTANCE, HorizPos - 160);
+      ObjectSetInteger(0, g_nameBearHTF, OBJPROP_YDISTANCE, VertPos + 77);
+      ObjectSetInteger(0, g_nameBearHTF, OBJPROP_CORNER, Corner);
+      ObjectSetString(0, g_nameBearHTF, OBJPROP_FONT, FontName);
+      ObjectSetInteger(0, g_nameBearHTF, OBJPROP_FONTSIZE, FontSize);
+      ObjectSetInteger(0, g_nameBearHTF, OBJPROP_COLOR, clrWhite);
+      ObjectSetString(0, g_nameBearHTF, OBJPROP_TEXT, BearPowerTextHTF);
    }
    } // objectsCreated
    double currentPrice = close[rates_total - 1];

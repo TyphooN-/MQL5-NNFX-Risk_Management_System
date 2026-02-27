@@ -188,12 +188,12 @@ void UpdateCandlestickData()
 void UpdateATRData()
 {
 #ifdef __MQL5__
-   copiedD1 = CopyBuffer(handle_iATR_D1, 0, 0, ATR_Period, iATR_D1);
-   copiedW1 = CopyBuffer(handle_iATR_W1, 0, 0, ATR_Period, iATR_W1);
-   copiedMN1 = CopyBuffer(handle_iATR_MN1, 0, 0, ATR_Period, iATR_MN1);
-   copiedH4 = CopyBuffer(handle_iATR_H4, 0, 0, ATR_Period, iATR_H4);
-   copiedM15 = CopyBuffer(handle_iATR_M15, 0, 0, ATR_Period, iATR_M15);
-   copiedH1 = CopyBuffer(handle_iATR_H1, 0, 0, ATR_Period, iATR_H1);
+   copiedD1 = CopyBuffer(handle_iATR_D1, 0, 0, 1, iATR_D1);
+   copiedW1 = CopyBuffer(handle_iATR_W1, 0, 0, 1, iATR_W1);
+   copiedMN1 = CopyBuffer(handle_iATR_MN1, 0, 0, 1, iATR_MN1);
+   copiedH4 = CopyBuffer(handle_iATR_H4, 0, 0, 1, iATR_H4);
+   copiedM15 = CopyBuffer(handle_iATR_M15, 0, 0, 1, iATR_M15);
+   copiedH1 = CopyBuffer(handle_iATR_H1, 0, 0, 1, iATR_H1);
 #else
    #ifdef __MQL4__
    copiedD1=0;
@@ -303,19 +303,19 @@ int OnCalculate(const int        rates_total,
    if (currentbar >= ATR_Period)
    {
    // Calculate the average true range (ATR) for the specified period
-      if (copiedD1 == ATR_Period) avgD1 = iATR_D1[0];
-      if (copiedW1 == ATR_Period) avgW1 = iATR_W1[0];
-      if (copiedMN1 == ATR_Period) avgMN1 = iATR_MN1[0];
-      if (copiedH4 == ATR_Period) avgH4 = iATR_H4[0];
-      if (copiedH1 == ATR_Period) avgH1 = iATR_H1[0];
-      if (copiedM15 == ATR_Period) avgM15 = iATR_M15[0];
+      if (copiedD1 == 1) avgD1 = iATR_D1[0];
+      if (copiedW1 == 1) avgW1 = iATR_W1[0];
+      if (copiedMN1 == 1) avgMN1 = iATR_MN1[0];
+      if (copiedH4 == 1) avgH4 = iATR_H4[0];
+      if (copiedH1 == 1) avgH1 = iATR_H1[0];
+      if (copiedM15 == 1) avgM15 = iATR_M15[0];
    }
-   double D1info = (copiedD1 == ATR_Period) ? avgD1 : 0.0;
-   double W1info = (copiedW1 == ATR_Period) ? avgW1 : 0.0;
-   double MN1info = (copiedMN1 == ATR_Period) ? avgMN1 : 0.0;
-   double H4info = (copiedH4 == ATR_Period) ? avgH4 : 0.0;
-   double H1info = (copiedH1 == ATR_Period) ? avgH1 : 0.0;
-   double M15info = (copiedM15 == ATR_Period) ? avgM15 : 0.0;
+   double D1info = (copiedD1 == 1) ? avgD1 : 0.0;
+   double W1info = (copiedW1 == 1) ? avgW1 : 0.0;
+   double MN1info = (copiedMN1 == 1) ? avgMN1 : 0.0;
+   double H4info = (copiedH4 == 1) ? avgH4 : 0.0;
+   double H1info = (copiedH1 == 1) ? avgH1 : 0.0;
+   double M15info = (copiedM15 == 1) ? avgM15 : 0.0;
    bool IsM15AboveH1 = (avgM15 >= avgH1);
    bool IsM15AboveH4 = (avgM15 >= avgH4);
    bool IsH1AboveH4 = (avgH1 >= avgH4);

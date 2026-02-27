@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.397"
+#property version   "1.398"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -46,7 +46,7 @@ ENUM_ORDER_TYPE_FILLING SelectFillingMode()
    if ((filling_modes & ORDER_FILLING_BOC) != 0) return ORDER_FILLING_BOC;
    if ((filling_modes & ORDER_FILLING_RETURN) != 0) return ORDER_FILLING_RETURN;
    Print("None of the desired filling modes are supported. Unable to adjust filling mode.");
-   return -1;
+   return (ENUM_ORDER_TYPE_FILLING)-1;
 }
 // input vars
 input group           "[EXPERT ADVISOR SETTINGS]";
@@ -400,6 +400,7 @@ bool CloseAllPositionsOnAllSymbols()
    {
       Sleep(100);
    }
+   Trade.SetAsyncMode(false);
    if (PositionsTotal() == 0)
    {
       Print("All positions closed successfully.");
@@ -1181,6 +1182,7 @@ void CloseAllSymbolPositions()
       else
          Print("Martingale equity TP: failed to close #", ticket, " error ", GetLastError());
    }
+   Trade.SetAsyncMode(false);
 }
 void CloseProfitableOppositePositions()
 {
@@ -1225,6 +1227,7 @@ void CloseProfitableOppositePositions()
          }
       }
    }
+   Trade.SetAsyncMode(false);
 }
 void UnwindMartingale()
 {
@@ -1501,8 +1504,7 @@ void TyWindow::OnClickTrade(void)
    {
       if (dirBreakEven)
       {
-         double divisor = LossesToMinBalance * AdditionalRiskRatio;
-         order_risk_money = (divisor > 0) ? ((AccountBalance - MinAccountBalance) / divisor) : 0;
+         order_risk_money = (AdditionalRiskRatio > 0) ? ((AccountBalance - MinAccountBalance) / (LossesToMinBalance / AdditionalRiskRatio)) : 0;
       }
       else
       {
@@ -1753,6 +1755,8 @@ void TyWindow::OnClickMartingale(void)
       {
          if (PositionGetSymbol(i) == _Symbol)
          {
+            if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
+               continue;
             if (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
                longCount++;
             else if (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL)
@@ -1981,7 +1985,11 @@ void TyWindow::OnClickCloseAll(void)
             for (int w = PositionsTotal() - 1; w >= 0; w--)
             {
                if (PositionGetTicket(w) > 0 && PositionGetString(POSITION_SYMBOL) == _Symbol)
-               { stillOpen = true; break; }
+               {
+                  if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
+                     continue;
+                  stillOpen = true; break;
+               }
             }
             if (!stillOpen) break;
             Sleep(100);
@@ -1990,7 +1998,11 @@ void TyWindow::OnClickCloseAll(void)
          for (int w = PositionsTotal() - 1; w >= 0; w--)
          {
             if (PositionGetTicket(w) > 0 && PositionGetString(POSITION_SYMBOL) == _Symbol)
-            { allClosed = false; break; }
+            {
+               if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
+                  continue;
+               allClosed = false; break;
+            }
          }
          if (allClosed)
          {
@@ -2008,6 +2020,7 @@ void TyWindow::OnClickCloseAll(void)
          {
             Print("Total loss of closed positions: -$", DoubleToString(MathAbs(TotalPL), 2));
          }
+         Trade.SetAsyncMode(false);
       }
       else if(result == IDNO)
       {
@@ -2110,6 +2123,7 @@ void ModifyPosition(double newLevel, int modificationType, int positionTypeFilte
             }
         }
     }
+    Trade.SetAsyncMode(false);
     if (modifiedPositions == targetPositions)
         Print(modLabel, " modification for all positions completed successfully.");
     else

@@ -23,6 +23,6 @@
  **/
 #property copyright "TyphooN"
 #property link      "http://marketwizardry.info/"
-#property version   "1.04"
+#property version   "1.05"
 #property indicator_chart_window
 #include "FakeCandle.mqh"

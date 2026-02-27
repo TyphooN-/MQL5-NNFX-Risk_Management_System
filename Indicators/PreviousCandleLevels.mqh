@@ -34,12 +34,27 @@ int lastCheckedCandle = -1;
 double prevBidPrice = 0.0;
 double prevAskPrice = 0.0;
 datetime g_PrevTradeServerTime = 0;
+// Cached object name strings (avoid per-call string concatenation in DrawLines)
+string g_prev_H1_High, g_prev_H1_Low, g_prev_H4_High, g_prev_H4_Low;
+string g_prev_D1_High, g_prev_D1_Low, g_prev_W1_High, g_prev_W1_Low;
+string g_prev_MN1_High, g_prev_MN1_Low;
+string g_cur_D1_High, g_cur_D1_Low, g_cur_W1_High, g_cur_W1_Low;
+string g_cur_MN1_High, g_cur_MN1_Low;
 int OnInit()
 {
     lastCheckedCandle = -1;
     prevBidPrice = 0.0;
     prevAskPrice = 0.0;
     g_PrevTradeServerTime = 0;
+    // Cache object name strings once
+    g_prev_H1_High = objname1 + "H1_High";   g_prev_H1_Low = objname1 + "H1_Low";
+    g_prev_H4_High = objname1 + "H4_High";   g_prev_H4_Low = objname1 + "H4_Low";
+    g_prev_D1_High = objname1 + "D1_High";   g_prev_D1_Low = objname1 + "D1_Low";
+    g_prev_W1_High = objname1 + "W1_High";   g_prev_W1_Low = objname1 + "W1_Low";
+    g_prev_MN1_High = objname1 + "MN1_High"; g_prev_MN1_Low = objname1 + "MN1_Low";
+    g_cur_D1_High = objname2 + "D1_High";    g_cur_D1_Low = objname2 + "D1_Low";
+    g_cur_W1_High = objname2 + "W1_High";    g_cur_W1_Low = objname2 + "W1_Low";
+    g_cur_MN1_High = objname2 + "MN1_High";  g_cur_MN1_Low = objname2 + "MN1_Low";
     return(INIT_SUCCEEDED);
 }
 void OnDeinit(const int reason)
@@ -148,22 +163,22 @@ void DrawLines()
    datetime prevMN1Time = iTime(_Symbol, PERIOD_MN1, 1);
    if (_Period < PERIOD_H1)
    {
-      DrawHorizontalLine(Previous_H1_High, objname1 + "H1_High", PreviousCandleColour, prevH1Time, currentBarTime);
-      DrawHorizontalLine(Previous_H1_Low, objname1 + "H1_Low", PreviousCandleColour, prevH1Time, currentBarTime);
-      DrawHorizontalLine(Previous_H4_High, objname1 + "H4_High", PreviousCandleColour, prevH4Time, currentBarTime);
-      DrawHorizontalLine(Previous_H4_Low, objname1 + "H4_Low", PreviousCandleColour, prevH4Time, currentBarTime);
-      DrawHorizontalLine(Previous_D1_High, objname1 + "D1_High", JudasLevelColour, prevD1Time, currentBarTime);
-      DrawHorizontalLine(Previous_D1_Low, objname1 + "D1_Low", JudasLevelColour, prevD1Time, currentBarTime);
-      DrawHorizontalLine(Previous_W1_High, objname1 + "W1_High", JudasLevelColour, prevW1Time, currentBarTime);
-      DrawHorizontalLine(Previous_W1_Low, objname1 + "W1_Low", JudasLevelColour, prevW1Time, currentBarTime);
-      DrawHorizontalLine(Previous_MN1_High, objname1 + "MN1_High", JudasLevelColour, prevMN1Time, currentBarTime);
-      DrawHorizontalLine(Previous_MN1_Low, objname1 + "MN1_Low", JudasLevelColour, prevMN1Time, currentBarTime);
-      DrawHorizontalLine(Current_D1_High, objname2 + "D1_High", JudasLevelColour, prevD1Time, currentBarTime);
-      DrawHorizontalLine(Current_D1_Low, objname2 + "D1_Low", JudasLevelColour, prevD1Time, currentBarTime);
-      DrawHorizontalLine(Current_W1_High, objname2 + "W1_High", JudasLevelColour, prevW1Time, currentBarTime);
-      DrawHorizontalLine(Current_W1_Low, objname2 + "W1_Low", JudasLevelColour, prevW1Time, currentBarTime);
-      DrawHorizontalLine(Current_MN1_High, objname2 + "MN1_High", JudasLevelColour, prevMN1Time, currentBarTime);
-      DrawHorizontalLine(Current_MN1_Low, objname2 + "MN1_Low", JudasLevelColour, prevMN1Time, currentBarTime);
+      DrawHorizontalLine(Previous_H1_High, g_prev_H1_High, PreviousCandleColour, prevH1Time, currentBarTime);
+      DrawHorizontalLine(Previous_H1_Low, g_prev_H1_Low, PreviousCandleColour, prevH1Time, currentBarTime);
+      DrawHorizontalLine(Previous_H4_High, g_prev_H4_High, PreviousCandleColour, prevH4Time, currentBarTime);
+      DrawHorizontalLine(Previous_H4_Low, g_prev_H4_Low, PreviousCandleColour, prevH4Time, currentBarTime);
+      DrawHorizontalLine(Previous_D1_High, g_prev_D1_High, JudasLevelColour, prevD1Time, currentBarTime);
+      DrawHorizontalLine(Previous_D1_Low, g_prev_D1_Low, JudasLevelColour, prevD1Time, currentBarTime);
+      DrawHorizontalLine(Previous_W1_High, g_prev_W1_High, JudasLevelColour, prevW1Time, currentBarTime);
+      DrawHorizontalLine(Previous_W1_Low, g_prev_W1_Low, JudasLevelColour, prevW1Time, currentBarTime);
+      DrawHorizontalLine(Previous_MN1_High, g_prev_MN1_High, JudasLevelColour, prevMN1Time, currentBarTime);
+      DrawHorizontalLine(Previous_MN1_Low, g_prev_MN1_Low, JudasLevelColour, prevMN1Time, currentBarTime);
+      DrawHorizontalLine(Current_D1_High, g_cur_D1_High, JudasLevelColour, prevD1Time, currentBarTime);
+      DrawHorizontalLine(Current_D1_Low, g_cur_D1_Low, JudasLevelColour, prevD1Time, currentBarTime);
+      DrawHorizontalLine(Current_W1_High, g_cur_W1_High, JudasLevelColour, prevW1Time, currentBarTime);
+      DrawHorizontalLine(Current_W1_Low, g_cur_W1_Low, JudasLevelColour, prevW1Time, currentBarTime);
+      DrawHorizontalLine(Current_MN1_High, g_cur_MN1_High, JudasLevelColour, prevMN1Time, currentBarTime);
+      DrawHorizontalLine(Current_MN1_Low, g_cur_MN1_Low, JudasLevelColour, prevMN1Time, currentBarTime);
    }
 #ifdef __MQL5__
    if(_Period >= PERIOD_H1 && _Period <= PERIOD_H8)
@@ -171,22 +186,22 @@ void DrawLines()
    if(_Period >= PERIOD_H1 && _Period <= PERIOD_H4)
 #endif
    {
-      DeleteHorizontalLine(objname1 + "H1_High");
-      DeleteHorizontalLine(objname1 + "H1_Low");
-      DeleteHorizontalLine(objname1 + "H4_High");
-      DeleteHorizontalLine(objname1 + "H4_Low");
-      DrawHorizontalLine(Previous_D1_High, objname1 + "D1_High", JudasLevelColour, prevD1Time, currentBarTime);
-      DrawHorizontalLine(Previous_D1_Low, objname1 + "D1_Low", JudasLevelColour, prevD1Time, currentBarTime);
-      DrawHorizontalLine(Previous_W1_High, objname1 + "W1_High", JudasLevelColour, prevW1Time, currentBarTime);
-      DrawHorizontalLine(Previous_W1_Low, objname1 + "W1_Low", JudasLevelColour, prevW1Time, currentBarTime);
-      DrawHorizontalLine(Previous_MN1_High, objname1 + "MN1_High", JudasLevelColour, prevMN1Time, currentBarTime);
-      DrawHorizontalLine(Previous_MN1_Low, objname1 + "MN1_Low", JudasLevelColour, prevMN1Time, currentBarTime);
-      DrawHorizontalLine(Current_D1_High, objname2 + "D1_High", JudasLevelColour, prevD1Time, currentBarTime);
-      DrawHorizontalLine(Current_D1_Low, objname2 + "D1_Low", JudasLevelColour, prevD1Time, currentBarTime);
-      DrawHorizontalLine(Current_W1_High, objname2 + "W1_High", JudasLevelColour, prevW1Time, currentBarTime);
-      DrawHorizontalLine(Current_W1_Low, objname2 + "W1_Low", JudasLevelColour, prevW1Time, currentBarTime);
-      DrawHorizontalLine(Current_MN1_High, objname2 + "MN1_High", JudasLevelColour, prevMN1Time, currentBarTime);
-      DrawHorizontalLine(Current_MN1_Low, objname2 + "MN1_Low", JudasLevelColour, prevMN1Time, currentBarTime);
+      DeleteHorizontalLine(g_prev_H1_High);
+      DeleteHorizontalLine(g_prev_H1_Low);
+      DeleteHorizontalLine(g_prev_H4_High);
+      DeleteHorizontalLine(g_prev_H4_Low);
+      DrawHorizontalLine(Previous_D1_High, g_prev_D1_High, JudasLevelColour, prevD1Time, currentBarTime);
+      DrawHorizontalLine(Previous_D1_Low, g_prev_D1_Low, JudasLevelColour, prevD1Time, currentBarTime);
+      DrawHorizontalLine(Previous_W1_High, g_prev_W1_High, JudasLevelColour, prevW1Time, currentBarTime);
+      DrawHorizontalLine(Previous_W1_Low, g_prev_W1_Low, JudasLevelColour, prevW1Time, currentBarTime);
+      DrawHorizontalLine(Previous_MN1_High, g_prev_MN1_High, JudasLevelColour, prevMN1Time, currentBarTime);
+      DrawHorizontalLine(Previous_MN1_Low, g_prev_MN1_Low, JudasLevelColour, prevMN1Time, currentBarTime);
+      DrawHorizontalLine(Current_D1_High, g_cur_D1_High, JudasLevelColour, prevD1Time, currentBarTime);
+      DrawHorizontalLine(Current_D1_Low, g_cur_D1_Low, JudasLevelColour, prevD1Time, currentBarTime);
+      DrawHorizontalLine(Current_W1_High, g_cur_W1_High, JudasLevelColour, prevW1Time, currentBarTime);
+      DrawHorizontalLine(Current_W1_Low, g_cur_W1_Low, JudasLevelColour, prevW1Time, currentBarTime);
+      DrawHorizontalLine(Current_MN1_High, g_cur_MN1_High, JudasLevelColour, prevMN1Time, currentBarTime);
+      DrawHorizontalLine(Current_MN1_Low, g_cur_MN1_Low, JudasLevelColour, prevMN1Time, currentBarTime);
    }
 #ifdef __MQL5__
    if(_Period == PERIOD_D1 || _Period == PERIOD_H12)
@@ -194,58 +209,58 @@ void DrawLines()
    if(_Period == PERIOD_D1)
 #endif
    {
-      DeleteHorizontalLine(objname1 + "H1_High");
-      DeleteHorizontalLine(objname1 + "H1_Low");
-      DeleteHorizontalLine(objname1 + "H4_High");
-      DeleteHorizontalLine(objname1 + "H4_Low");
-      DeleteHorizontalLine(objname1 + "D1_High");
-      DeleteHorizontalLine(objname1 + "D1_Low");
-      DrawHorizontalLine(Previous_W1_High, objname1 + "W1_High", JudasLevelColour, prevW1Time, currentBarTime);
-      DrawHorizontalLine(Previous_W1_Low, objname1 + "W1_Low", JudasLevelColour, prevW1Time, currentBarTime);
-      DrawHorizontalLine(Previous_MN1_High, objname1 + "MN1_High", JudasLevelColour, prevMN1Time, currentBarTime);
-      DrawHorizontalLine(Previous_MN1_Low, objname1 + "MN1_Low", JudasLevelColour, prevMN1Time, currentBarTime);
-      DrawHorizontalLine(Current_D1_High, objname2 + "D1_High", JudasLevelColour, prevD1Time, currentBarTime);
-      DrawHorizontalLine(Current_D1_Low, objname2 + "D1_Low", JudasLevelColour, prevD1Time, currentBarTime);
-      DrawHorizontalLine(Current_W1_High, objname2 + "W1_High", JudasLevelColour, prevW1Time, currentBarTime);
-      DrawHorizontalLine(Current_W1_Low, objname2 + "W1_Low", JudasLevelColour, prevW1Time, currentBarTime);
-      DrawHorizontalLine(Current_MN1_High, objname2 + "MN1_High", JudasLevelColour, prevMN1Time, currentBarTime);
-      DrawHorizontalLine(Current_MN1_Low, objname2 + "MN1_Low", JudasLevelColour, prevMN1Time, currentBarTime);
+      DeleteHorizontalLine(g_prev_H1_High);
+      DeleteHorizontalLine(g_prev_H1_Low);
+      DeleteHorizontalLine(g_prev_H4_High);
+      DeleteHorizontalLine(g_prev_H4_Low);
+      DeleteHorizontalLine(g_prev_D1_High);
+      DeleteHorizontalLine(g_prev_D1_Low);
+      DrawHorizontalLine(Previous_W1_High, g_prev_W1_High, JudasLevelColour, prevW1Time, currentBarTime);
+      DrawHorizontalLine(Previous_W1_Low, g_prev_W1_Low, JudasLevelColour, prevW1Time, currentBarTime);
+      DrawHorizontalLine(Previous_MN1_High, g_prev_MN1_High, JudasLevelColour, prevMN1Time, currentBarTime);
+      DrawHorizontalLine(Previous_MN1_Low, g_prev_MN1_Low, JudasLevelColour, prevMN1Time, currentBarTime);
+      DrawHorizontalLine(Current_D1_High, g_cur_D1_High, JudasLevelColour, prevD1Time, currentBarTime);
+      DrawHorizontalLine(Current_D1_Low, g_cur_D1_Low, JudasLevelColour, prevD1Time, currentBarTime);
+      DrawHorizontalLine(Current_W1_High, g_cur_W1_High, JudasLevelColour, prevW1Time, currentBarTime);
+      DrawHorizontalLine(Current_W1_Low, g_cur_W1_Low, JudasLevelColour, prevW1Time, currentBarTime);
+      DrawHorizontalLine(Current_MN1_High, g_cur_MN1_High, JudasLevelColour, prevMN1Time, currentBarTime);
+      DrawHorizontalLine(Current_MN1_Low, g_cur_MN1_Low, JudasLevelColour, prevMN1Time, currentBarTime);
    }
    if(_Period == PERIOD_W1)
    {
-      DeleteHorizontalLine(objname1 + "H1_High");
-      DeleteHorizontalLine(objname1 + "H1_Low");
-      DeleteHorizontalLine(objname1 + "H4_High");
-      DeleteHorizontalLine(objname1 + "H4_Low");
-      DeleteHorizontalLine(objname1 + "D1_High");
-      DeleteHorizontalLine(objname1 + "D1_Low");
-      DeleteHorizontalLine(objname2 + "D1_High");
-      DeleteHorizontalLine(objname2 + "D1_Low");
-      DeleteHorizontalLine(objname1 + "W1_High");
-      DeleteHorizontalLine(objname1 + "W1_Low");
-      DrawHorizontalLine(Previous_MN1_High, objname1 + "MN1_High", JudasLevelColour, prevMN1Time, currentBarTime);
-      DrawHorizontalLine(Previous_MN1_Low, objname1 + "MN1_Low", JudasLevelColour, prevMN1Time, currentBarTime);
-      DrawHorizontalLine(Current_MN1_High, objname2 + "MN1_High", JudasLevelColour, prevMN1Time, currentBarTime);
-      DrawHorizontalLine(Current_MN1_Low, objname2 + "MN1_Low", JudasLevelColour, prevMN1Time, currentBarTime);
+      DeleteHorizontalLine(g_prev_H1_High);
+      DeleteHorizontalLine(g_prev_H1_Low);
+      DeleteHorizontalLine(g_prev_H4_High);
+      DeleteHorizontalLine(g_prev_H4_Low);
+      DeleteHorizontalLine(g_prev_D1_High);
+      DeleteHorizontalLine(g_prev_D1_Low);
+      DeleteHorizontalLine(g_cur_D1_High);
+      DeleteHorizontalLine(g_cur_D1_Low);
+      DeleteHorizontalLine(g_prev_W1_High);
+      DeleteHorizontalLine(g_prev_W1_Low);
+      DrawHorizontalLine(Previous_MN1_High, g_prev_MN1_High, JudasLevelColour, prevMN1Time, currentBarTime);
+      DrawHorizontalLine(Previous_MN1_Low, g_prev_MN1_Low, JudasLevelColour, prevMN1Time, currentBarTime);
+      DrawHorizontalLine(Current_MN1_High, g_cur_MN1_High, JudasLevelColour, prevMN1Time, currentBarTime);
+      DrawHorizontalLine(Current_MN1_Low, g_cur_MN1_Low, JudasLevelColour, prevMN1Time, currentBarTime);
    }
    if(_Period == PERIOD_MN1)
    {
-      DeleteHorizontalLine(objname1 + "H1_High");
-      DeleteHorizontalLine(objname1 + "H1_Low");
-      DeleteHorizontalLine(objname1 + "H4_High");
-      DeleteHorizontalLine(objname1 + "H4_Low");
-      DeleteHorizontalLine(objname1 + "D1_High");
-      DeleteHorizontalLine(objname1 + "D1_Low");
-      DeleteHorizontalLine(objname1 + "W1_High");
-      DeleteHorizontalLine(objname1 + "W1_Low");
-      DeleteHorizontalLine(objname2 + "W1_High");
-      DeleteHorizontalLine(objname2 + "W1_Low");
-      DeleteHorizontalLine(objname2 + "D1_High");
-      DeleteHorizontalLine(objname2 + "D1_Low");
-      DeleteHorizontalLine(objname1 + "MN1_High");
-      DeleteHorizontalLine(objname1 + "MN1_Low");
-      DeleteHorizontalLine(objname2 + "MN1_High");
-      DeleteHorizontalLine(objname2 + "MN1_Low");
+      DeleteHorizontalLine(g_prev_H1_High);
+      DeleteHorizontalLine(g_prev_H1_Low);
+      DeleteHorizontalLine(g_prev_H4_High);
+      DeleteHorizontalLine(g_prev_H4_Low);
+      DeleteHorizontalLine(g_prev_D1_High);
+      DeleteHorizontalLine(g_prev_D1_Low);
+      DeleteHorizontalLine(g_prev_W1_High);
+      DeleteHorizontalLine(g_prev_W1_Low);
+      DeleteHorizontalLine(g_cur_W1_High);
+      DeleteHorizontalLine(g_cur_W1_Low);
+      DeleteHorizontalLine(g_cur_D1_High);
+      DeleteHorizontalLine(g_cur_D1_Low);
+      DeleteHorizontalLine(g_prev_MN1_High);
+      DeleteHorizontalLine(g_prev_MN1_Low);
+      DeleteHorizontalLine(g_cur_MN1_High);
+      DeleteHorizontalLine(g_cur_MN1_Low);
    }
 }
 void DrawHorizontalLine(double price, string label, color clr, datetime startTime, datetime endTime)
