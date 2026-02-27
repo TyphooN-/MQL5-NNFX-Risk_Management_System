@@ -22,7 +22,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "https://www.marketwizardry.org/"
-#property version   "2.105"
+#property version   "2.106"
 #property description "NNFX Confluence Algo EA — Modular Signal Slots"
 #include <Trade\Trade.mqh>
 #include <Orchard\RiskCalc.mqh>
@@ -358,6 +358,7 @@ void OnTick()
       // Entry with ATR-based SL/TP (normalized to tick size)
       double tickSize = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
       if (tickSize <= 0) tickSize = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
+      if (tickSize <= 0) { Print("Invalid tick size for ", _Symbol); return; }
       if (buySignal && !hasBuy)
       {
          double slPrice = MathRound((ask - (atrValue * SL_ATR_Multi)) / tickSize) * tickSize;

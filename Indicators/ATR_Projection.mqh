@@ -172,8 +172,8 @@ void OnDeinit(const int pReason)
    g_prevTradeServerTime = 0;
    g_dataReady = false;
    g_infoObjectsCreated = false;
-   g_prevInfoText1 = "";
-   g_prevInfoText2 = "";
+   g_prevM15 = -1; g_prevH1 = -1; g_prevH4 = -1;
+   g_prevD1 = -1; g_prevW1 = -1; g_prevMN1 = -1;
    g_prevFontColor1 = clrNONE;
    g_prevFontColor2 = clrNONE;
 }
