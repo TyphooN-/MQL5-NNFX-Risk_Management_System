@@ -64,7 +64,7 @@ string objname = "Projected ATR ";
 int handle_iATR_D1, handle_iATR_W1, handle_iATR_MN1, handle_iATR_H4, handle_iATR_H1, handle_iATR_M15;
 double iATR_D1[], iATR_W1[], iATR_MN1[], iATR_H4[], iATR_H1[], iATR_M15[];
 int copiedD1, copiedW1, copiedMN1, copiedH4, copiedH1, copiedM15;
-double avgD1, avgW1, avgH4, avgH1, avgMN1, avgM15;
+double avgD1 = 0, avgW1 = 0, avgH4 = 0, avgH1 = 0, avgMN1 = 0, avgM15 = 0;
 double currentOpenD1 = 0;
 double currentOpenW1 = 0;
 double currentOpenMN1 = 0;
@@ -77,8 +77,9 @@ double prevAskPrice = 0.0;
 datetime g_prevTradeServerTime = 0;
 bool g_dataReady = false;
 bool g_infoObjectsCreated = false;
-string g_prevInfoText1, g_prevInfoText2;
 color g_prevFontColor1 = clrNONE, g_prevFontColor2 = clrNONE;
+double g_prevM15 = -1, g_prevH1 = -1, g_prevH4 = -1;
+double g_prevD1 = -1, g_prevW1 = -1, g_prevMN1 = -1;
 // Cached object name strings (initialized in OnInit to avoid per-tick allocation)
 string g_nameInfo1, g_nameInfo2;
 string g_nameHighD1, g_nameLowD1, g_nameHighW1, g_nameLowW1;
@@ -302,8 +303,6 @@ int OnCalculate(const int        rates_total,
    bool IsD1AboveMN1 = (avgD1 > avgMN1);
    bool IsW1AboveMN1 = (avgW1 > avgMN1);
    color FontColor2 = (IsD1AboveW1 && IsD1AboveMN1 && IsW1AboveMN1) ? clrMagenta : FontColor;
-   string infoText1 = "ATR| M15: " + DoubleToString(M15info, ATRInfoDecimals) + " H1: " + DoubleToString(H1info, ATRInfoDecimals) + " H4: " + DoubleToString(H4info, ATRInfoDecimals);
-   string infoText2 = "ATR| D1: " + DoubleToString(D1info, ATRInfoDecimals) + " W1: " + DoubleToString(W1info, ATRInfoDecimals) + " MN1: " + DoubleToString(MN1info, ATRInfoDecimals);
    if (!g_infoObjectsCreated)
    {
       g_infoObjectsCreated = true;
@@ -320,10 +319,18 @@ int OnCalculate(const int        rates_total,
       ObjectSetString(0, g_nameInfo2, OBJPROP_FONT, FontName);
       ObjectSetInteger(0, g_nameInfo2, OBJPROP_FONTSIZE, FontSize);
    }
-   // Only update text/color when changed
-   if (infoText1 != g_prevInfoText1) { ObjectSetString(0, g_nameInfo1, OBJPROP_TEXT, infoText1); g_prevInfoText1 = infoText1; }
+   // Only build strings and update objects when ATR values or colors change
+   if (M15info != g_prevM15 || H1info != g_prevH1 || H4info != g_prevH4)
+   {
+      ObjectSetString(0, g_nameInfo1, OBJPROP_TEXT, "ATR| M15: " + DoubleToString(M15info, ATRInfoDecimals) + " H1: " + DoubleToString(H1info, ATRInfoDecimals) + " H4: " + DoubleToString(H4info, ATRInfoDecimals));
+      g_prevM15 = M15info; g_prevH1 = H1info; g_prevH4 = H4info;
+   }
    if (FontColor1 != g_prevFontColor1) { ObjectSetInteger(0, g_nameInfo1, OBJPROP_COLOR, FontColor1); g_prevFontColor1 = FontColor1; }
-   if (infoText2 != g_prevInfoText2) { ObjectSetString(0, g_nameInfo2, OBJPROP_TEXT, infoText2); g_prevInfoText2 = infoText2; }
+   if (D1info != g_prevD1 || W1info != g_prevW1 || MN1info != g_prevMN1)
+   {
+      ObjectSetString(0, g_nameInfo2, OBJPROP_TEXT, "ATR| D1: " + DoubleToString(D1info, ATRInfoDecimals) + " W1: " + DoubleToString(W1info, ATRInfoDecimals) + " MN1: " + DoubleToString(MN1info, ATRInfoDecimals));
+      g_prevD1 = D1info; g_prevW1 = W1info; g_prevMN1 = MN1info;
+   }
    if (FontColor2 != g_prevFontColor2) { ObjectSetInteger(0, g_nameInfo2, OBJPROP_COLOR, FontColor2); g_prevFontColor2 = FontColor2; }
    #ifdef __MQL5__
    datetime endTime = time[rates_total - 1];

@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "https://www.marketwizardry.org/"
-#property version   "1.400"
+#property version   "1.401"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -370,6 +370,7 @@ bool CloseAllPositionsOnAllSymbols()
    for (int i = totalPositions - 1; i >= 0; i--)
    {
       ulong ticket = PositionGetTicket(i);
+      if (ticket == 0) continue;
       double entryPrice = PositionGetDouble(POSITION_PRICE_OPEN);
       string symbol = PositionGetString(POSITION_SYMBOL);
       double currentPrice = SymbolInfoDouble(symbol, SYMBOL_BID);
@@ -417,6 +418,7 @@ void GetSLTPFromAnotherPosition(ulong ticket, double &sl, double &tp, int positi
    for (int j = 0; j < total; j++)
    {
       ulong other_ticket = PositionGetTicket(j);
+      if (other_ticket == 0) continue;
       if (other_ticket != ticket && PositionGetString(POSITION_SYMBOL) == _Symbol)
       {
          if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
@@ -687,7 +689,7 @@ void OnTick()
                }
             }
          }
-         // Track break-even per direction (1B fix: only set true, never reset to false)
+         // Track break-even per direction (flags reset above at start of tick)
          // Tick-round both sides to avoid ECN sub-tick fill mismatches
          double roundedSL = (tickSz > 0) ? MathRound(sl / tickSz) * tickSz : sl;
          double roundedOpen = (tickSz > 0) ? MathRound(posOpenPrice / tickSz) * tickSz : posOpenPrice;
@@ -2093,7 +2095,7 @@ void ModifyPosition(double newLevel, int modificationType, int positionTypeFilte
     Trade.SetAsyncMode(true);
     string modLabel = (modificationType == POSITION_SL) ? "SL" : "TP";
     double tickSize = TickSize(_Symbol);
-    if (tickSize <= 0) { Print("Invalid tick size"); return; }
+    if (tickSize <= 0) { Print("Invalid tick size"); Trade.SetAsyncMode(false); return; }
     int modifiedPositions = 0;
     int targetPositions = 0;
     int total = PositionsTotal();
@@ -2116,6 +2118,7 @@ void ModifyPosition(double newLevel, int modificationType, int positionTypeFilte
             if (!Trade.PositionModify(ticket, (modificationType == POSITION_SL) ? newLevel : PositionGetDouble(POSITION_SL), (modificationType == POSITION_TP) ? newLevel : PositionGetDouble(POSITION_TP)))
             {
                 Print("Failed to modify ", modLabel, ". Error code: ", GetLastError());
+                Trade.SetAsyncMode(false);
                 return;
             }
             else
