@@ -74,7 +74,7 @@ double currentOpenM15 = 0;
 int lastCheckedCandle = -1;
 double prevBidPrice = 0.0;
 double prevAskPrice = 0.0;
-datetime g_g_prevTradeServerTime = 0;
+datetime g_prevTradeServerTime = 0;
 bool g_dataReady = false;
 bool g_infoObjectsCreated = false;
 string g_prevInfoText1, g_prevInfoText2;
@@ -102,6 +102,12 @@ int OnInit()
    SetIndexBuffer(3, iATR_H4);
    SetIndexBuffer(4, iATR_H1);
    SetIndexBuffer(5, iATR_M15);
+   ArraySetAsSeries(iATR_D1, true);
+   ArraySetAsSeries(iATR_W1, true);
+   ArraySetAsSeries(iATR_MN1, true);
+   ArraySetAsSeries(iATR_H4, true);
+   ArraySetAsSeries(iATR_H1, true);
+   ArraySetAsSeries(iATR_M15, true);
    #endif
 #endif
 #ifdef __MQL5__
@@ -148,7 +154,7 @@ void OnDeinit(const int pReason)
    lastCheckedCandle = -1;
    prevBidPrice = 0.0;
    prevAskPrice = 0.0;
-   g_g_prevTradeServerTime = 0;
+   g_prevTradeServerTime = 0;
    g_dataReady = false;
    g_infoObjectsCreated = false;
    g_prevInfoText1 = "";
@@ -226,6 +232,7 @@ int OnCalculate(const int        rates_total,
                const long&     volume[],
                const int&      spread[])
 {
+   if (rates_total <= 0) return 0;
    datetime currentTradeServerTime = 0;
 #ifdef __MQL5__
     currentTradeServerTime = TimeTradeServer();

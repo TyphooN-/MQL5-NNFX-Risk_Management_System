@@ -83,6 +83,9 @@ int lastCheckedCandle = -1;
 double prevBidPrice = 0.0;
 double prevAskPrice = 0.0;
 string objname = "MTF_MA_";
+bool g_dataReady = false;
+bool g_objectsCreated = false;
+datetime g_prevTime = 0;
 int OnInit()
 {
    SetIndexBuffer(0, MABufferH1_200SMA, INDICATOR_DATA);
@@ -201,6 +204,9 @@ int OnInit()
    lastCheckedCandle = -1;
    prevBidPrice = 0.0;
    prevAskPrice = 0.0;
+   g_dataReady = false;
+   g_objectsCreated = false;
+   g_prevTime = 0;
    return 0;
 }
 void OnDeinit(const int pReason)
@@ -338,21 +344,19 @@ int OnCalculate(const int rates_total,
    // Update the previous bid and ask prices with the current prices
    prevBidPrice = currentBidPrice;
    prevAskPrice = currentAskPrice;
-   static datetime prevTime = 0;
    datetime currentTime = TimeTradeServer();
    if (lastCheckedCandle != rates_total - 1)
    {
       lastCheckedCandle = rates_total - 1;
       UpdateBuffers();
-      prevTime = currentTime;
+      g_prevTime = currentTime;
    }
-   else if ((int)(currentTime - prevTime) >= 60)
+   else if ((int)(currentTime - g_prevTime) >= 60)
    {
-      prevTime = currentTime;
+      g_prevTime = currentTime;
       UpdateBuffers();
    }
-   static bool dataReady = false;
-   if (!dataReady)
+   if (!g_dataReady)
    {
       if (BarsCalculated(HandleM1_200SMA) <= 0 || BarsCalculated(HandleW1_200SMA) <= 0 ||
           BarsCalculated(HandleMN1_100SMA) <= 0)
@@ -360,13 +364,12 @@ int OnCalculate(const int rates_total,
          UpdateBuffers();
          return prev_calculated;
       }
-      dataReady = true;
+      g_dataReady = true;
       UpdateBuffers();
    }
-   static bool objectsCreated = false;
-   if (!objectsCreated)
+   if (!g_objectsCreated)
    {
-   objectsCreated = true;
+   g_objectsCreated = true;
    string objnameInfo1 = objname + "Info1";
    if (ObjectFind(0, objnameInfo1) == -1)
    {

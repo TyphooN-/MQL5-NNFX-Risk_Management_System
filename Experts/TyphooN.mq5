@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.391"
+#property version   "1.392"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -107,7 +107,8 @@ double PyramidLotsOpened = 0, TP = 0, SL = 0, Bid = 0, Ask = 0, prevBidPrice = 0
        prevAskPrice = 0.0, order_risk_money = 0, AccountBalance = 0,
        required_margin = 0, AccountEquity = 0, percent_risk = 0;
 bool AutoProtectCalled = false, EquityTPCalled = false,
-     EquitySLCalled = false, breakEvenFoundLong = false, breakEvenFoundShort = false;
+     EquitySLCalled = false, breakEvenFoundLong = false, breakEvenFoundShort = false,
+     breakEvenFound = false;
 int OrderDigits = 0;
 enum MartingaleState { MG_OFF, MG_LONG, MG_SHORT, MG_UNWIND };
 MartingaleState MartingaleMode = MG_OFF;
@@ -248,6 +249,15 @@ int OnInit()
       Print("VaRConfidence must be between 0 and 1 exclusive");
       return INIT_FAILED;
    }
+   if (StdDevPeriods < 2)
+   {
+      Print("StdDevPeriods must be >= 2");
+      return INIT_FAILED;
+   }
+   ENUM_ORDER_TYPE_FILLING fillMode = SelectFillingMode();
+   if ((int)fillMode != -1)
+      Trade.SetTypeFilling(fillMode);
+   Trade.SetExpertMagicNumber(MagicNumber);
    // Get the volume step for the current symbol
    double volumeStep = SymbolInfoDouble(Symbol(), SYMBOL_VOLUME_STEP);
    // Convert the volume step to a string
@@ -503,7 +513,13 @@ bool PlacePyramidOrders()
    request.magic = MagicNumber;
    request.type = orderType;
    request.comment = PyramidComment;
-   request.type_filling = SelectFillingMode();
+   ENUM_ORDER_TYPE_FILLING pyramidFill = SelectFillingMode();
+   if ((int)pyramidFill == -1)
+   {
+      Print("No valid filling mode for pyramid order.");
+      return false;
+   }
+   request.type_filling = pyramidFill;
    MqlTradeCheckResult check_result;
    required_margin = PerformOrderCheck(request, check_result, OrderLots);
    if (required_margin < 0)
@@ -543,6 +559,7 @@ bool PlacePyramidOrders()
       if (orderPlaced)
       {
          PyramidLotsOpened += OrderLots;
+         LastPyramidTime = TimeCurrent();
          if (orderType == ORDER_TYPE_BUY)
             Print("Order details: Lots: ", OrderLots, " (Long), SL: ", stopLoss, ", TP: ", takeProfit, ", Pyramid Lots opened: ", PyramidLotsOpened, ", Current Lots Open: ", cachedVolume, " Pyramid Target Lots: ", PyramidTargetLots);
          if (orderType == ORDER_TYPE_SELL)
@@ -989,6 +1006,7 @@ void BroadcastDiscordAnnouncement(string announcement)
    StringReplace(escaped, "\"", "\\\"");
    StringReplace(escaped, "\n", "\\n");
    StringReplace(escaped, "\r", "\\r");
+   StringReplace(escaped, "\t", "\\t");
    string json = "{\"content\":\""+ escaped +"\"}";
    char jsonArray[];
    StringToCharArray(json, jsonArray);
@@ -998,7 +1016,11 @@ void BroadcastDiscordAnnouncement(string announcement)
    {
       ArrayResize(jsonArray, arrSize - 1);
    }
-   WebRequest("POST", DiscordAPIKey, headers, 10, jsonArray, result, result_headers);
+   int httpCode = WebRequest("POST", DiscordAPIKey, headers, 10, jsonArray, result, result_headers);
+   if (httpCode == -1)
+      Print("Discord webhook failed: ", GetLastError());
+   else if (httpCode != 200 && httpCode != 204)
+      Print("Discord webhook returned HTTP ", httpCode);
 }
 void TyWindow::ExecuteBuyOrder(double lots)
 {
@@ -1401,6 +1423,7 @@ void TyWindow::OnClickTrade(void)
    SL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
    TP = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
    double tickSize = TickSize(_Symbol);
+   if (tickSize <= 0) { Print("Invalid tick size"); return; }
    SL = MathRound(SL / tickSize) * tickSize;
    TP = MathRound(TP / tickSize) * tickSize;
    double max_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX);
@@ -1485,8 +1508,13 @@ void TyWindow::OnClickTrade(void)
    {
       double freshAsk = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
       double freshBid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
-      OrderLots = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, freshAsk - SL), OrderDigits)
-                          : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - freshBid), OrderDigits);
+      double slDistance = TP > SL ? (freshAsk - SL) : (SL - freshBid);
+      if (slDistance <= 0)
+      {
+         Print("SL distance is zero or negative. Cannot calculate lot size.");
+         return;
+      }
+      OrderLots = NormalizeDouble(RiskLots(_Symbol, order_risk_money, slDistance), OrderDigits);
    }
    if (OrderMode == VaR && VaRRiskMode == PercentVaR)
    {
@@ -1736,13 +1764,16 @@ void OrderLines(bool isBuy)
    double slPrice = 0.0, tpPrice = 0.0;
    // Calculate the number of visible candles
    int VisibleCandles = (int)ChartGetInteger(0, CHART_VISIBLE_BARS);
+   if (VisibleCandles <= 0) { Print("No visible bars on chart"); return; }
    // Create arrays to store historical low and high prices
    double LowArray[];
    double HighArray[];
-   ArrayResize(LowArray, VisibleCandles);
-   ArrayResize(HighArray, VisibleCandles);
-   CopyLow(Symbol(), Period(), 0, VisibleCandles, LowArray);
-   CopyHigh(Symbol(), Period(), 0, VisibleCandles, HighArray);
+   if (CopyLow(Symbol(), Period(), 0, VisibleCandles, LowArray) <= 0 ||
+       CopyHigh(Symbol(), Period(), 0, VisibleCandles, HighArray) <= 0)
+   {
+      Print("Failed to copy price data for order lines");
+      return;
+   }
    double LowestPrice = LowArray[ArrayMinimum(LowArray)];
    double HighestPrice = HighArray[ArrayMaximum(HighArray)];
    // Check if there's an active position on the symbol
@@ -1988,6 +2019,7 @@ void ModifyPosition(double newLevel, int modificationType, int positionTypeFilte
     Trade.SetAsyncMode(true);
     string modLabel = (modificationType == POSITION_SL) ? "SL" : "TP";
     double tickSize = TickSize(_Symbol);
+    if (tickSize <= 0) { Print("Invalid tick size"); return; }
     int modifiedPositions = 0;
     int targetPositions = 0;
     int total = PositionsTotal();
@@ -2019,17 +2051,10 @@ void ModifyPosition(double newLevel, int modificationType, int positionTypeFilte
             }
         }
     }
-    // Wait for the asynchronous operations to complete
-    int timeout = 3000;
-    uint startTime = GetTickCount();
-    while (modifiedPositions < targetPositions && (GetTickCount() - startTime) < (uint)timeout)
-    {
-        Sleep(100);
-    }
     if (modifiedPositions == targetPositions)
         Print(modLabel, " modification for all positions completed successfully.");
     else
-        Print("Failed to modify ", modLabel, " for all positions within the specified timeout.");
+        Print("Modified ", modifiedPositions, " of ", targetPositions, " positions for ", modLabel, ".");
 }
 void TyWindow::OnClickSetSL(void)
 {
@@ -2037,6 +2062,7 @@ void TyWindow::OnClickSetSL(void)
     if (newSL != SL && newSL != 0)
     {
         double tickSize = TickSize(_Symbol);
+        if (tickSize <= 0) { Print("Invalid tick size"); return; }
         newSL = MathRound(newSL / tickSize) * tickSize;
         SL = newSL;
         // Determine direction from TP/SL line orientation for hedging support
@@ -2059,6 +2085,7 @@ void TyWindow::OnClickSetTP(void)
    if (newTP != TP && newTP != 0)
    {
       double tickSize = TickSize(_Symbol);
+      if (tickSize <= 0) { Print("Invalid tick size"); return; }
       newTP = MathRound(newTP / tickSize) * tickSize;
       TP = newTP;
       // Determine direction from TP/SL line orientation for hedging support
@@ -2089,6 +2116,7 @@ void Protect()
          dirFilter = POSITION_TYPE_SELL;
    }
    double tickSize = TickSize(_Symbol);
+   if (tickSize <= 0) { Print("Invalid tick size"); return; }
    int total = PositionsTotal();
    for(int i = 0; i < total; i++)
    {

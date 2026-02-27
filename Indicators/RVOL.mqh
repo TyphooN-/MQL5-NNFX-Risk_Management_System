@@ -12,7 +12,7 @@ double ExtRelVolumesBuffer[];
 double ExtColorsBuffer[];
 int AveragingDays;
 
-void OnInit()
+int OnInit()
 {
 #ifdef __MQL5__
    // Set Buffers
@@ -57,6 +57,7 @@ void OnInit()
    #endif
 #endif
 
+   return INIT_SUCCEEDED;
 }
 
 int OnCalculate(const int rates_total,
@@ -96,9 +97,6 @@ int OnCalculate(const int rates_total,
 
 void CalculateRelVolume(const int startBar, const int rates_total, const long& volume[])
 {
-   ExtRelVolumesBuffer[0] = (double)volume[0];
-   ExtColorsBuffer[0] = 0.0;
-
    // Use sliding window for O(n) mean calculation instead of O(n * AveragingDays)
    double windowSum = 0.0;
 
