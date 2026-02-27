@@ -22,7 +22,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "2.104"
+#property version   "2.105"
 #property description "NNFX Confluence Algo EA — Modular Signal Slots"
 #include <Trade\Trade.mqh>
 #include <Orchard\RiskCalc.mqh>
@@ -212,7 +212,6 @@ void OnTick()
    {
       ulong ticket = PositionGetTicket(i);
       if (ticket == 0) continue;
-      if (!PositionSelectByTicket(ticket)) continue;
       if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
       if (PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
       int posType = (int)PositionGetInteger(POSITION_TYPE);
@@ -475,7 +474,6 @@ void ClosePositionsByType(int posType)
    {
       ulong ticket = PositionGetTicket(i);
       if (ticket == 0) continue;
-      if (!PositionSelectByTicket(ticket)) continue;
       if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
       if (PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
       if ((int)PositionGetInteger(POSITION_TYPE) != posType) continue;

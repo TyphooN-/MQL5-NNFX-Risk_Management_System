@@ -43,13 +43,14 @@ int OnCalculate(const int rates_total,
    // Nothing changes between bars since inputs are constant
    if (prev_calculated == rates_total)
       return rates_total;
-   datetime fake_time = time[rates_total - 1] + PeriodSeconds();
+   int periodSec = PeriodSeconds();
+   datetime fake_time = time[rates_total - 1] + periodSec;
    // Determine the coordinates of the rectangle for the body
    datetime body_left = (datetime)fake_time;
    double body_top = MathMax(FakeOpen, FakeClose);
-   datetime body_right = (datetime)(fake_time + PeriodSeconds() / 1.5);
+   datetime body_right = (datetime)(fake_time + periodSec / 1.5);
    double body_bottom = MathMin(FakeOpen, FakeClose);
-   datetime wick_x = body_left + PeriodSeconds() / 3;
+   datetime wick_x = body_left + periodSec / 3;
    // Update existing objects or create new ones
    if (ObjectFind(0, "FakeCandleBody") != -1)
    {
@@ -83,8 +84,8 @@ int OnCalculate(const int rates_total,
 }
 void OnDeinit(const int reason)
 {
-   ObjectsDeleteAll(0, "FakeCandleBody");
-   ObjectsDeleteAll(0, "FakeCandleWickTop");
-   ObjectsDeleteAll(0, "FakeCandleWickBottom");
-   ObjectsDeleteAll(0, "FakeCloseLine");
+   ObjectDelete(0, "FakeCandleBody");
+   ObjectDelete(0, "FakeCandleWickTop");
+   ObjectDelete(0, "FakeCandleWickBottom");
+   ObjectDelete(0, "FakeCloseLine");
 }

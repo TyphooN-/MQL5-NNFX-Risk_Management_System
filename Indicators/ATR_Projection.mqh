@@ -196,42 +196,18 @@ void UpdateATRData()
    copiedH1 = CopyBuffer(handle_iATR_H1, 0, 0, 1, iATR_H1);
 #else
    #ifdef __MQL4__
-   copiedD1=0;
-   for(int i=0; i<ATR_Period; i++)
-   {
-     iATR_D1[i] = iATR(_Symbol, PERIOD_D1, ATR_Period, i);
-      copiedD1++;
-   }
-   copiedW1=0;
-   for(int i=0; i<ATR_Period; i++)
-   {
-      iATR_W1[i] = iATR(_Symbol, PERIOD_W1, ATR_Period, i);
-      copiedW1++;
-   }
-   copiedMN1=0;
-   for(int i=0; i<ATR_Period; i++)
-   {
-      iATR_MN1[i] = iATR(_Symbol, PERIOD_MN1, ATR_Period, i);
-      copiedMN1++;
-   }
-   copiedH4=0;
-   for(int i=0; i<ATR_Period; i++)
-   {
-      iATR_H4[i] = iATR(_Symbol, PERIOD_H4, ATR_Period, i);
-      copiedH4++;
-   }
-   copiedM15=0;
-   for(int i=0; i<ATR_Period; i++)
-   {
-      iATR_M15[i] = iATR(_Symbol, PERIOD_M15, ATR_Period, i);
-      copiedM15++;
-   }
-   copiedH1=0;
-   for(int i=0; i<ATR_Period; i++)
-   {
-      iATR_H1[i] = iATR(_Symbol, PERIOD_H1, ATR_Period, i);
-      copiedH1++;
-   }
+   iATR_D1[0] = iATR(_Symbol, PERIOD_D1, ATR_Period, 0);
+   copiedD1 = 1;
+   iATR_W1[0] = iATR(_Symbol, PERIOD_W1, ATR_Period, 0);
+   copiedW1 = 1;
+   iATR_MN1[0] = iATR(_Symbol, PERIOD_MN1, ATR_Period, 0);
+   copiedMN1 = 1;
+   iATR_H4[0] = iATR(_Symbol, PERIOD_H4, ATR_Period, 0);
+   copiedH4 = 1;
+   iATR_M15[0] = iATR(_Symbol, PERIOD_M15, ATR_Period, 0);
+   copiedM15 = 1;
+   iATR_H1[0] = iATR(_Symbol, PERIOD_H1, ATR_Period, 0);
+   copiedH1 = 1;
    #endif
 #endif
 }

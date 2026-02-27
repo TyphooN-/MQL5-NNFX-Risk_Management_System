@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.398"
+#property version   "1.399"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -363,10 +363,10 @@ bool CloseAllPositionsOnAllSymbols()
    int totalPositions = PositionsTotal();
    if (totalPositions == 0)
    {
+      Trade.SetAsyncMode(false);
       Print("No open positions to close.");
       return true;  // No need to proceed if there are no positions
    }
-   int closedPositions = 0; // Variable to keep track of the number of closed positions
    for (int i = totalPositions - 1; i >= 0; i--)
    {
       ulong ticket = PositionGetTicket(i);
@@ -385,7 +385,6 @@ bool CloseAllPositionsOnAllSymbols()
          {
             Print("Closing [" + symbol + "] Position #", ticket, " (lot size: ", lotSize, " entry price: ", entryPrice, " close price: ", currentPrice, ") with a loss of -$", MathAbs(positionProfit));
          }
-         closedPositions++; // Increment closedPositions when a position is successfully closed
       }
       else
       {
@@ -1535,7 +1534,6 @@ void TyWindow::OnClickTrade(void)
       available_volume = limit_volume - existing_volume;
    else
       available_volume = max_volume;
-   Trade.SetExpertMagicNumber(MagicNumber);
    double OrderLots = 0.0;
    if (OrderMode == Fixed)
    {
@@ -1690,12 +1688,12 @@ void TyWindow::OnClickTrade(void)
             if (HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
             {
                Print("Sell position is already open. Cannot place Buy order.");
-               return;
+               break;
             }
             if (PerformOrderCheck(request, check_result, OrderLots) < 0)
             {
                Print("Buy OrderCheck failed, retcode=", check_result.retcode);
-               return;
+               break;
             }
             ExecuteBuyOrder(OrderLots);
          }
@@ -1704,16 +1702,17 @@ void TyWindow::OnClickTrade(void)
             if (HasOpenPosition(_Symbol, POSITION_TYPE_BUY))
             {
                Print("Buy position is already open. Cannot place Sell order.");
-               return;
+               break;
             }
             if (PerformOrderCheck(request, check_result, OrderLots) < 0)
             {
                Print("Sell OrderCheck failed, retcode=", check_result.retcode);
-               return;
+               break;
             }
             ExecuteSellOrder(OrderLots);
          }
       }
+      Trade.SetAsyncMode(false);
    }
    else
    {
