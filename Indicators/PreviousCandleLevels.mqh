@@ -87,12 +87,14 @@ int OnCalculate(const int rates_total,
    prevBidPrice = Bid;
    prevAskPrice = Ask;
    datetime CurrentTradeServerTime = TimeCurrent();
+   bool drewThisTick = false;
    // Check if it is a new H1 interval
    if (IsNewH1Interval(CurrentTradeServerTime, g_PrevTradeServerTime))
    {
       UpdatePreviousData();
       UpdateJudasData();
       DrawLines();
+      drewThisTick = true;
       g_PrevTradeServerTime = CurrentTradeServerTime;
    }
    // Judas check runs intrabar (when price breaks D1 high/low) — skip on W1/MN1 where D1 objects are deleted
@@ -117,11 +119,13 @@ int OnCalculate(const int rates_total,
    // Check if a new candlestick has formed
    if (lastCheckedCandle != rates_total - 1)
    {
-      // Update the last checked candle index
       lastCheckedCandle = rates_total - 1;
-      UpdatePreviousData();
-      UpdateJudasData();
-      DrawLines();
+      if (!drewThisTick)
+      {
+         UpdatePreviousData();
+         UpdateJudasData();
+         DrawLines();
+      }
    }
    return(rates_total);
 }
