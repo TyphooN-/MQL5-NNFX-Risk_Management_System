@@ -1,0 +1,14 @@
+# Compiled MQL files
+*.ex5
+*.ex4
+
+# MetaTrader logs
+*.log
+
+# IDE
+.vscode/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db

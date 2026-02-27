@@ -47,28 +47,6 @@ double DoubleToTicks( string symbol, double value ) {
    return ( value / tickSize );
 }
 
-double TicksToDouble( string symbol, double ticks ) {
-   return ( ticks * SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_SIZE ) );
-}
-
-double PointsToDouble( string symbol, int points ) {
-   return ( points * SymbolInfoDouble( symbol, SYMBOL_POINT ) );
-}
-
-double EquityPercent( double value ) {
-   return ( AccountInfoDouble( ACCOUNT_EQUITY ) * value ); // Value is actually a decimal
-}
-
-double PercentSLSize( string symbol, double riskPercent,
-                      double lots ) { // Risk percent is a decimal (1%=0.01)
-   return ( RiskSLSize( symbol, EquityPercent( riskPercent ), lots ) );
-}
-
-double PercentRiskLots( string symbol, double riskPercent,
-                        double slSize ) { // Risk percent is a decimal (1%=0.01)
-   return ( RiskLots( symbol, EquityPercent( riskPercent ), slSize ) );
-}
-
 double RiskLots( string symbol, double riskAmount, double slSize ) { // Amount in account currency
 
    double ticks = DoubleToTicks( symbol, slSize );
@@ -78,15 +56,4 @@ double RiskLots( string symbol, double riskAmount, double slSize ) { // Amount i
    if ( lotRisk == 0 ) return ( 0 );
    double riskLots = riskAmount / lotRisk;
    return ( riskLots );
-}
-
-double RiskSLSize( string symbol, double riskAmount, double lots ) { // Amount in account currency
-
-   double tickValue =
-      SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_VALUE ); // value of 1 tick for 1 lot
-   double divisor = lots * tickValue;
-   if ( divisor == 0 ) return ( 0 );
-   double ticks  = riskAmount / divisor;
-   double slSize = TicksToDouble( symbol, ticks );
-   return ( slSize );
 }
