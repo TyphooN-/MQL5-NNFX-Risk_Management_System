@@ -1,5 +1,5 @@
 /**=             MTF_MA.mqh  (TyphooN's Multi Timeframe MA Bull/Bear Power Indicator)
- *               Copyright 2023, TyphooN (https://www.marketwizardry.info)
+ *               Copyright 2023, TyphooN (https://www.marketwizardry.org)
  *
  * Disclaimer and Licence
  *

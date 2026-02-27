@@ -22,7 +22,7 @@
  *
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
-#property link      "http://marketwizardry.info/"
+#property link      "https://www.marketwizardry.org/"
 #property version   "1.400"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
@@ -656,6 +656,7 @@ void OnTick()
    LotsInfo lots;
    lots.longLots = 0.0;
    lots.shortLots = 0.0;
+   double tickSz = TickSize(_Symbol);
    int total = PositionsTotal();
    for (int i = 0; i < total; i++)
    {
@@ -688,7 +689,6 @@ void OnTick()
          }
          // Track break-even per direction (1B fix: only set true, never reset to false)
          // Tick-round both sides to avoid ECN sub-tick fill mismatches
-         double tickSz = TickSize(_Symbol);
          double roundedSL = (tickSz > 0) ? MathRound(sl / tickSz) * tickSz : sl;
          double roundedOpen = (tickSz > 0) ? MathRound(posOpenPrice / tickSz) * tickSz : posOpenPrice;
          if (roundedSL == roundedOpen)

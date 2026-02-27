@@ -22,7 +22,7 @@
  *
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
-#property link      "http://www.marketwizardry.info/"
+#property link      "https://www.marketwizardry.org/"
 #property version   "1.055"
 #property description "TyphooN's PreviousCandleLevels"
 #property indicator_chart_window
