@@ -168,8 +168,27 @@ int OnInit()
    HandleD1_100SMA = iMA(NULL, PERIOD_D1, 100, 0, MODE_SMA, MAPrice);
    HandleW1_100SMA = iMA(NULL, PERIOD_W1, 100, 0, MODE_SMA, MAPrice);
    HandleMN1_100SMA = iMA(NULL, PERIOD_MN1, 100, 0, MODE_SMA, MAPrice);
-   if (HandleM1_200SMA == INVALID_HANDLE || HandleW1_200SMA == INVALID_HANDLE ||
-       HandleMN1_100SMA == INVALID_HANDLE || HandleD1_200SMA == INVALID_HANDLE)
+   if (HandleM1_200SMA == INVALID_HANDLE || HandleM5_200SMA == INVALID_HANDLE ||
+       HandleM15_200SMA == INVALID_HANDLE || HandleM30_200SMA == INVALID_HANDLE ||
+       HandleH1_200SMA == INVALID_HANDLE || HandleH4_200SMA == INVALID_HANDLE ||
+       HandleD1_200SMA == INVALID_HANDLE || HandleW1_200SMA == INVALID_HANDLE ||
+       HandleM1_50SMA == INVALID_HANDLE || HandleM5_50SMA == INVALID_HANDLE ||
+       HandleM15_50SMA == INVALID_HANDLE || HandleM30_50SMA == INVALID_HANDLE ||
+       HandleH1_50SMA == INVALID_HANDLE || HandleH4_50SMA == INVALID_HANDLE ||
+       HandleD1_50SMA == INVALID_HANDLE || HandleW1_50SMA == INVALID_HANDLE ||
+       HandleM1_20SMA == INVALID_HANDLE || HandleM5_20SMA == INVALID_HANDLE ||
+       HandleM15_20SMA == INVALID_HANDLE || HandleM30_20SMA == INVALID_HANDLE ||
+       HandleH1_20SMA == INVALID_HANDLE || HandleH4_20SMA == INVALID_HANDLE ||
+       HandleD1_20SMA == INVALID_HANDLE || HandleW1_20SMA == INVALID_HANDLE ||
+       HandleM1_10SMA == INVALID_HANDLE || HandleM5_10SMA == INVALID_HANDLE ||
+       HandleM15_10SMA == INVALID_HANDLE || HandleM30_10SMA == INVALID_HANDLE ||
+       HandleH1_10SMA == INVALID_HANDLE || HandleH4_10SMA == INVALID_HANDLE ||
+       HandleD1_10SMA == INVALID_HANDLE || HandleW1_10SMA == INVALID_HANDLE ||
+       HandleM1_100SMA == INVALID_HANDLE || HandleM5_100SMA == INVALID_HANDLE ||
+       HandleM15_100SMA == INVALID_HANDLE || HandleM30_100SMA == INVALID_HANDLE ||
+       HandleH1_100SMA == INVALID_HANDLE || HandleH4_100SMA == INVALID_HANDLE ||
+       HandleD1_100SMA == INVALID_HANDLE || HandleW1_100SMA == INVALID_HANDLE ||
+       HandleMN1_100SMA == INVALID_HANDLE)
    {
       Print("Failed to create iMA handles");
       return INIT_FAILED;
@@ -306,6 +325,7 @@ int OnCalculate(const int rates_total,
                 const long &volume[],
                 const int &spread[])
 {
+   if (rates_total <= 0) return 0;
    // Get the current bid and ask prices
    double currentBidPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    double currentAskPrice = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
@@ -611,11 +631,14 @@ int OnCalculate(const int rates_total,
    UpdateInfoLabel("H4", is10_20cross_H4, "10_20");
    UpdateInfoLabel("D1", is10_20cross_D1, "10_20");
    UpdateInfoLabel("W1", is10_20cross_W1, "10_20");
-   // Set global variables once after all 40 UpdateInfoLabel calls (was 240 calls/tick, now 5)
-   GlobalVariableSet("GlobalBullPowerLTF", (BullPowerLTF * 5));
-   GlobalVariableSet("GlobalBearPowerLTF", (BearPowerLTF * 5));
-   GlobalVariableSet("GlobalBullPowerHTF", (BullPowerHTF * 5));
-   GlobalVariableSet("GlobalBearPowerHTF", (BearPowerHTF * 5));
+   // Only update GVs when values change
+   static int prevBullLTF = -1, prevBearLTF = -1, prevBullHTF = -1, prevBearHTF = -1;
+   int bullLTF = BullPowerLTF * 5, bearLTF = BearPowerLTF * 5;
+   int bullHTF = BullPowerHTF * 5, bearHTF = BearPowerHTF * 5;
+   if (bullLTF != prevBullLTF) { GlobalVariableSet("GlobalBullPowerLTF", bullLTF); prevBullLTF = bullLTF; }
+   if (bearLTF != prevBearLTF) { GlobalVariableSet("GlobalBearPowerLTF", bearLTF); prevBearLTF = bearLTF; }
+   if (bullHTF != prevBullHTF) { GlobalVariableSet("GlobalBullPowerHTF", bullHTF); prevBullHTF = bullHTF; }
+   if (bearHTF != prevBearHTF) { GlobalVariableSet("GlobalBearPowerHTF", bearHTF); prevBearHTF = bearHTF; }
    return rates_total;
 }
 void UpdateBuffers()

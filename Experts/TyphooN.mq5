@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.390"
+#property version   "1.391"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -222,6 +222,31 @@ int OnInit()
    if (!IsTradeAllowed(_Symbol))
    {
       return INIT_FAILED; // Exit if trading is not allowed
+   }
+   if (EnablePyramid && PyramidFreeMarginBuffer >= PyramidFreeMarginTrigger)
+   {
+      Print("PyramidFreeMarginBuffer (", PyramidFreeMarginBuffer, ") must be less than PyramidFreeMarginTrigger (", PyramidFreeMarginTrigger, ")");
+      return INIT_FAILED;
+   }
+   if (MartingaleCloseChunkSize <= 0)
+   {
+      Print("MartingaleCloseChunkSize must be > 0");
+      return INIT_FAILED;
+   }
+   if (MartingaleCooldown < 1)
+   {
+      Print("MartingaleCooldown must be >= 1");
+      return INIT_FAILED;
+   }
+   if (MartingaleUnwindLotSize <= 0)
+   {
+      Print("MartingaleUnwindLotSize must be > 0");
+      return INIT_FAILED;
+   }
+   if (VaRConfidence <= 0 || VaRConfidence >= 1)
+   {
+      Print("VaRConfidence must be between 0 and 1 exclusive");
+      return INIT_FAILED;
    }
    // Get the volume step for the current symbol
    double volumeStep = SymbolInfoDouble(Symbol(), SYMBOL_VOLUME_STEP);
@@ -427,8 +452,19 @@ bool PlacePyramidOrders()
    {
       return false;
    }
-   // Determine whether it's a buy or sell order based on current position
-   ENUM_ORDER_TYPE orderType = (PositionSelect(_Symbol) && PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL) ? ORDER_TYPE_SELL : ORDER_TYPE_BUY;
+   // Determine direction by scanning all positions for net volume
+   double totalBuyLots = 0, totalSellLots = 0;
+   for (int i = PositionsTotal() - 1; i >= 0; i--)
+   {
+      if (PositionGetTicket(i) > 0 && PositionGetString(POSITION_SYMBOL) == _Symbol)
+      {
+         if (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
+            totalBuyLots += PositionGetDouble(POSITION_VOLUME);
+         else
+            totalSellLots += PositionGetDouble(POSITION_VOLUME);
+      }
+   }
+   ENUM_ORDER_TYPE orderType = (totalSellLots > totalBuyLots) ? ORDER_TYPE_SELL : ORDER_TYPE_BUY;
    // Get current bid or ask price
    double price = (orderType == ORDER_TYPE_BUY) ? Ask : Bid;
    // Check if price is valid
@@ -958,7 +994,7 @@ void BroadcastDiscordAnnouncement(string announcement)
    StringToCharArray(json, jsonArray);
    // Remove null-terminator if any
    int arrSize = ArraySize(jsonArray);
-   if(jsonArray[arrSize - 1] == '\0')
+   if(arrSize > 0 && jsonArray[arrSize - 1] == '\0')
    {
       ArrayResize(jsonArray, arrSize - 1);
    }
@@ -1173,7 +1209,7 @@ void UnwindMartingale()
 double CalculateMarginUsagePct()
 {
    double equity = AccountInfoDouble(ACCOUNT_EQUITY);
-   if (equity <= 0) return 100.0;
+   if (equity <= 0.01) return 100.0;
    return AccountInfoDouble(ACCOUNT_MARGIN) / equity * 100.0;
 }
 bool UnwindHedgeByMargin()
@@ -1530,7 +1566,7 @@ void TyWindow::OnClickTrade(void)
    }
    while (required_margin > usable_margin && OrderLots > min_volume)
    {
-      OrderLots -= min_volume;
+      OrderLots = NormalizeDouble(OrderLots - min_volume, OrderDigits);
       usable_margin = marginBudget - AccountInfoDouble(ACCOUNT_MARGIN);
       if (PerformOrderCheck(request, check_result, OrderLots) < 0)
       {

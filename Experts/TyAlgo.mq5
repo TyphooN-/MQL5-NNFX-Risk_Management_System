@@ -22,7 +22,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "2.100"
+#property version   "2.101"
 #property description "NNFX Confluence Algo EA — Modular Signal Slots"
 #include <Trade\Trade.mqh>
 #include <Orchard\RiskCalc.mqh>
@@ -89,6 +89,11 @@ int OnInit()
    if (!AccountInfoInteger(ACCOUNT_TRADE_ALLOWED))
    {
       Print("Trading not allowed on this account.");
+      return INIT_FAILED;
+   }
+   if (VaRConfidence <= 0 || VaRConfidence >= 1)
+   {
+      Print("VaRConfidence must be between 0 and 1 exclusive");
       return INIT_FAILED;
    }
    ENUM_ORDER_TYPE_FILLING fillMode = SelectFillingMode();
@@ -387,12 +392,16 @@ void UpdateDashboard(LotsInfo &lots, double total_risk, double total_tp, double 
       infoRisk = "Risk: $" + DoubleToString(MathAbs(total_risk), 0) + " (" + DoubleToString(percent_risk, 2) + "%)";
       infoPL = "Total P/L: $" + DoubleToString(total_pl, 0) + " (" + DoubleToString(plPercent, 2) + "%)";
    }
-   ObjectSetString(0, "infoRisk", OBJPROP_TEXT, infoRisk);
-   ObjectSetString(0, "infoPL", OBJPROP_TEXT, infoPL);
-   ObjectSetString(0, "infoSLPL", OBJPROP_TEXT, FormatInfoString("SL P/L", total_risk));
-   ObjectSetString(0, "infoTP", OBJPROP_TEXT, FormatInfoString("TP P/L", total_tp));
-   ObjectSetString(0, "infoTPRR", OBJPROP_TEXT, FormatInfoString("TP RR", tprr, 2, ""));
-   ObjectSetString(0, "infoRR", OBJPROP_TEXT, infoRR);
+   static string prevRisk = "", prevPL = "", prevSLPL = "", prevTP = "", prevTPRR = "", prevRR = "";
+   if (infoRisk != prevRisk) { ObjectSetString(0, "infoRisk", OBJPROP_TEXT, infoRisk); prevRisk = infoRisk; }
+   if (infoPL != prevPL) { ObjectSetString(0, "infoPL", OBJPROP_TEXT, infoPL); prevPL = infoPL; }
+   string slplStr = FormatInfoString("SL P/L", total_risk);
+   if (slplStr != prevSLPL) { ObjectSetString(0, "infoSLPL", OBJPROP_TEXT, slplStr); prevSLPL = slplStr; }
+   string tpStr = FormatInfoString("TP P/L", total_tp);
+   if (tpStr != prevTP) { ObjectSetString(0, "infoTP", OBJPROP_TEXT, tpStr); prevTP = tpStr; }
+   string tprrStr = FormatInfoString("TP RR", tprr, 2, "");
+   if (tprrStr != prevTPRR) { ObjectSetString(0, "infoTPRR", OBJPROP_TEXT, tprrStr); prevTPRR = tprrStr; }
+   if (infoRR != prevRR) { ObjectSetString(0, "infoRR", OBJPROP_TEXT, infoRR); prevRR = infoRR; }
    // Position/VaR display — only recalculate VaR when lot sizes change
    static double prevLongLots = -1, prevShortLots = -1;
    static string cachedVaRStr = "VaR %: 0.00";

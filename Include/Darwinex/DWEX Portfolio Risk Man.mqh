@@ -210,9 +210,9 @@ bool CPortfolioRiskMan::GetAssetStdDevReturns(string VolSymbolName, double &Stan
     else
     {
         int cache_size = ArraySize(m_symbolCache);
-        ArrayResize(m_symbolCache, cache_size + 1);
-        ArrayResize(m_stdDevReturnsCache, cache_size + 1);
-        ArrayResize(m_cacheTimestamp, cache_size + 1);
+        ArrayResize(m_symbolCache, cache_size + 1, 16);
+        ArrayResize(m_stdDevReturnsCache, cache_size + 1, 16);
+        ArrayResize(m_cacheTimestamp, cache_size + 1, 16);
         m_symbolCache[cache_size] = VolSymbolName;
         m_stdDevReturnsCache[cache_size] = StandardDevOfReturns;
         m_cacheTimestamp[cache_size] = TimeCurrent();
