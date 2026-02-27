@@ -55,7 +55,6 @@ int g_prevBullLTF = -1, g_prevBearLTF = -1, g_prevBullHTF = -1, g_prevBearHTF = 
 // Cached object name strings (8 TFs x 5 labels = 40, plus 4 power labels)
 string g_objNames[8][5];  // [tf_index][label_index] for UpdateInfoLabel
 string g_nameBullLTF, g_nameBearLTF, g_nameBullHTF, g_nameBearHTF;
-bool g_objNamesReady = false;
 int OnInit()
 {
    SetIndexBuffer(0, MABufferH1_200SMA, INDICATOR_DATA);
@@ -190,7 +189,6 @@ int OnInit()
    g_nameBearLTF = objname + "InfoBearPowerLTF";
    g_nameBullHTF = objname + "InfoBullPowerHTF";
    g_nameBearHTF = objname + "InfoBearPowerHTF";
-   g_objNamesReady = true;
    // Clean stale objects from previous instance (crash recovery)
    ObjectsDeleteAll(0, objname);
    return 0;

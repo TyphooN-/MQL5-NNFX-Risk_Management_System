@@ -124,7 +124,7 @@ int OnCalculate(const int rates_total,
       double dCurrentSSC=(CalculateER(i,price)*(ExtFastSC-ExtSlowSC))+ExtSlowSC;
       //--- calculate AMA
       double dPrevAMA=ExtAMABuffer[i-1];
-      ExtAMABuffer[i]=pow(dCurrentSSC,2)*(price[i]-dPrevAMA)+dPrevAMA;
+      ExtAMABuffer[i]=dCurrentSSC*dCurrentSSC*(price[i]-dPrevAMA)+dPrevAMA;
      }
 //--- return value of prev_calculated for next call
    return(rates_total);
@@ -162,7 +162,7 @@ int OnCalculate(const int rates_total,
       double dCurrentSSC=(CalculateER(i,close)*(ExtFastSC-ExtSlowSC))+ExtSlowSC;
       //--- calculate AMA
       double dPrevAMA=ExtAMABuffer[i-1];
-      ExtAMABuffer[i]=pow(dCurrentSSC,2)*(close[i]-dPrevAMA)+dPrevAMA;
+      ExtAMABuffer[i]=dCurrentSSC*dCurrentSSC*(close[i]-dPrevAMA)+dPrevAMA;
      }
 //--- return value of prev_calculated for next call
    return(rates_total);
