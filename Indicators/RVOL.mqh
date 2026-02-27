@@ -129,7 +129,7 @@ void CalculateRelVolume(const int startBar, const int rates_total, const long& v
 
       double curr_volume = (double)volume[i];
       double mean_volume = windowSum / AveragingDays;
-      ExtRelVolumesBuffer[i] = curr_volume / mean_volume;
+      ExtRelVolumesBuffer[i] = (mean_volume > 0) ? curr_volume / mean_volume : 0.0;
 
       if (ExtRelVolumesBuffer[i] > 1.25) // Above Average Volume
          ExtColorsBuffer[i] = 0.0;

@@ -42,7 +42,9 @@ bool NewBar( string symbol = NULL, int timeframe = 0, bool initToNow = false ) {
 }
 
 double DoubleToTicks( string symbol, double value ) {
-   return ( value / SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_SIZE ) );
+   double tickSize = SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_SIZE );
+   if ( tickSize == 0 ) return ( 0 );
+   return ( value / tickSize );
 }
 
 double TicksToDouble( string symbol, double ticks ) {
@@ -73,6 +75,7 @@ double RiskLots( string symbol, double riskAmount, double slSize ) { // Amount i
    double tickValue =
       SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_VALUE ); // value of 1 tick for 1 lot
    double lotRisk  = ticks * tickValue;
+   if ( lotRisk == 0 ) return ( 0 );
    double riskLots = riskAmount / lotRisk;
    return ( riskLots );
 }
@@ -81,7 +84,9 @@ double RiskSLSize( string symbol, double riskAmount, double lots ) { // Amount i
 
    double tickValue =
       SymbolInfoDouble( symbol, SYMBOL_TRADE_TICK_VALUE ); // value of 1 tick for 1 lot
-   double ticks  = riskAmount / ( lots * tickValue );
+   double divisor = lots * tickValue;
+   if ( divisor == 0 ) return ( 0 );
+   double ticks  = riskAmount / divisor;
    double slSize = TicksToDouble( symbol, ticks );
    return ( slSize );
 }

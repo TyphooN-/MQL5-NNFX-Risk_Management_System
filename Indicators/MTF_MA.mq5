@@ -91,41 +91,41 @@ int OnInit()
    SetIndexBuffer(3, MABufferW1_200SMA, INDICATOR_DATA);
    SetIndexBuffer(4, MABufferW1_100SMA, INDICATOR_DATA);
    SetIndexBuffer(5, MABufferMN1_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(6, MABufferM1_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(7, MABufferM5_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(8, MABufferH4_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(9, MABufferD1_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(10, MABufferM15_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(11, MABufferM30_200SMA, INDICATOR_DATA);
-   SetIndexBuffer(12, MABufferM1_50SMA, INDICATOR_DATA);
-   SetIndexBuffer(13, MABufferM5_50SMA, INDICATOR_DATA);
-   SetIndexBuffer(14, MABufferM15_50SMA, INDICATOR_DATA);
-   SetIndexBuffer(15, MABufferM30_50SMA, INDICATOR_DATA);
-   SetIndexBuffer(16, MABufferH1_50SMA, INDICATOR_DATA);
-   SetIndexBuffer(17, MABufferH4_50SMA, INDICATOR_DATA);
-   SetIndexBuffer(18, MABufferD1_50SMA, INDICATOR_DATA);
-   SetIndexBuffer(19, MABufferW1_50SMA, INDICATOR_DATA);
-   SetIndexBuffer(20, MABufferM1_10SMA, INDICATOR_DATA);
-   SetIndexBuffer(21, MABufferM5_10SMA, INDICATOR_DATA);
-   SetIndexBuffer(22, MABufferM15_10SMA, INDICATOR_DATA);
-   SetIndexBuffer(23, MABufferM30_10SMA, INDICATOR_DATA);
-   SetIndexBuffer(24, MABufferH1_10SMA, INDICATOR_DATA);
-   SetIndexBuffer(25, MABufferH4_10SMA, INDICATOR_DATA);
-   SetIndexBuffer(26, MABufferD1_10SMA, INDICATOR_DATA);
-   SetIndexBuffer(27, MABufferW1_10SMA, INDICATOR_DATA);
-   SetIndexBuffer(28, MABufferM1_20SMA, INDICATOR_DATA);
-   SetIndexBuffer(29, MABufferM5_20SMA, INDICATOR_DATA);
-   SetIndexBuffer(30, MABufferM15_20SMA, INDICATOR_DATA);
-   SetIndexBuffer(31, MABufferM30_20SMA, INDICATOR_DATA);
-   SetIndexBuffer(32, MABufferH1_20SMA, INDICATOR_DATA);
-   SetIndexBuffer(33, MABufferH4_20SMA, INDICATOR_DATA);
-   SetIndexBuffer(34, MABufferD1_20SMA, INDICATOR_DATA);
-   SetIndexBuffer(35, MABufferW1_20SMA, INDICATOR_DATA);
-   SetIndexBuffer(36, MABufferM1_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(37, MABufferM5_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(38, MABufferM15_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(39, MABufferM30_100SMA, INDICATOR_DATA);
-   SetIndexBuffer(40, MABufferH1_100SMA, INDICATOR_DATA);
+   SetIndexBuffer(6, MABufferM1_200SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(7, MABufferM5_200SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(8, MABufferH4_100SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(9, MABufferD1_100SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(10, MABufferM15_200SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(11, MABufferM30_200SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(12, MABufferM1_50SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(13, MABufferM5_50SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(14, MABufferM15_50SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(15, MABufferM30_50SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(16, MABufferH1_50SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(17, MABufferH4_50SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(18, MABufferD1_50SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(19, MABufferW1_50SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(20, MABufferM1_10SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(21, MABufferM5_10SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(22, MABufferM15_10SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(23, MABufferM30_10SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(24, MABufferH1_10SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(25, MABufferH4_10SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(26, MABufferD1_10SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(27, MABufferW1_10SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(28, MABufferM1_20SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(29, MABufferM5_20SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(30, MABufferM15_20SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(31, MABufferM30_20SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(32, MABufferH1_20SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(33, MABufferH4_20SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(34, MABufferD1_20SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(35, MABufferW1_20SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(36, MABufferM1_100SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(37, MABufferM5_100SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(38, MABufferM15_100SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(39, MABufferM30_100SMA, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(40, MABufferH1_100SMA, INDICATOR_CALCULATIONS);
    // Create all iMA handles once
    HandleM1_200SMA = iMA(NULL, PERIOD_M1, 200, 0, MODE_SMA, MAPrice);
    HandleM5_200SMA = iMA(NULL, PERIOD_M5, 200, 0, MODE_SMA, MAPrice);
@@ -174,11 +174,46 @@ int OnInit()
       Print("Failed to create iMA handles");
       return INIT_FAILED;
    }
+   // Reset counters on re-init (timeframe change, recompile)
+   BullPowerLTF = 0;
+   BullPowerHTF = 0;
+   BearPowerLTF = 0;
+   BearPowerHTF = 0;
+   lastCheckedCandle = -1;
+   prevBidPrice = 0.0;
+   prevAskPrice = 0.0;
    return 0;
 }
 void OnDeinit(const int pReason)
 {
    ObjectsDeleteAll(0, objname);
+   // Release all 41 iMA handles
+   IndicatorRelease(HandleM1_200SMA);  IndicatorRelease(HandleM5_200SMA);
+   IndicatorRelease(HandleM15_200SMA); IndicatorRelease(HandleM30_200SMA);
+   IndicatorRelease(HandleH1_200SMA);  IndicatorRelease(HandleH4_200SMA);
+   IndicatorRelease(HandleD1_200SMA);  IndicatorRelease(HandleW1_200SMA);
+   IndicatorRelease(HandleM1_50SMA);   IndicatorRelease(HandleM5_50SMA);
+   IndicatorRelease(HandleM15_50SMA);  IndicatorRelease(HandleM30_50SMA);
+   IndicatorRelease(HandleH1_50SMA);   IndicatorRelease(HandleH4_50SMA);
+   IndicatorRelease(HandleD1_50SMA);   IndicatorRelease(HandleW1_50SMA);
+   IndicatorRelease(HandleM1_20SMA);   IndicatorRelease(HandleM5_20SMA);
+   IndicatorRelease(HandleM15_20SMA);  IndicatorRelease(HandleM30_20SMA);
+   IndicatorRelease(HandleH1_20SMA);   IndicatorRelease(HandleH4_20SMA);
+   IndicatorRelease(HandleD1_20SMA);   IndicatorRelease(HandleW1_20SMA);
+   IndicatorRelease(HandleM1_10SMA);   IndicatorRelease(HandleM5_10SMA);
+   IndicatorRelease(HandleM15_10SMA);  IndicatorRelease(HandleM30_10SMA);
+   IndicatorRelease(HandleH1_10SMA);   IndicatorRelease(HandleH4_10SMA);
+   IndicatorRelease(HandleD1_10SMA);   IndicatorRelease(HandleW1_10SMA);
+   IndicatorRelease(HandleM1_100SMA);  IndicatorRelease(HandleM5_100SMA);
+   IndicatorRelease(HandleM15_100SMA); IndicatorRelease(HandleM30_100SMA);
+   IndicatorRelease(HandleH1_100SMA);  IndicatorRelease(HandleH4_100SMA);
+   IndicatorRelease(HandleD1_100SMA);  IndicatorRelease(HandleW1_100SMA);
+   IndicatorRelease(HandleMN1_100SMA);
+   // Clean up GlobalVariables
+   GlobalVariableDel("GlobalBullPowerLTF");
+   GlobalVariableDel("GlobalBearPowerLTF");
+   GlobalVariableDel("GlobalBullPowerHTF");
+   GlobalVariableDel("GlobalBearPowerHTF");
 }
 void UpdateInfoLabel(string timeframe, bool condition, string label)
 {

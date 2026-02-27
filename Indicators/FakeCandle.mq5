@@ -1,4 +1,4 @@
-/**=             TyphooN.mq5  (TyphooN's FakeCandle Indicator)
+/**=             FakeCandle.mq5  (TyphooN's FakeCandle Indicator)
  *               Copyright 2024, TyphooN (https://www.marketwizardry.org/)
  *
  * Disclaimer and Licence
@@ -63,13 +63,14 @@ int OnCalculate(const int rates_total,
       ObjectMove(0, "FakeCandleWickBottom", 1, wick_x, FakeLow);
       ObjectMove(0, "FakeCandleWickTop", 0, wick_x, FakeHigh);
       ObjectMove(0, "FakeCandleWickTop", 1, wick_x, body_top);
+      ObjectSetDouble(0, "FakeCloseLine", OBJPROP_PRICE, FakeClose);
    }
    else
    {
       ObjectCreate(0, "FakeCandleBody", OBJ_RECTANGLE, 0, body_left, body_top, body_right, body_bottom);
       ObjectSetInteger(0, "FakeCandleBody", OBJPROP_COLOR, clrGray);
       ObjectSetInteger(0, "FakeCandleBody", OBJPROP_STYLE, STYLE_SOLID);
-      ObjectSetInteger(0, "FakeCandleBody", OBJPROP_FILL, clrGray);
+      ObjectSetInteger(0, "FakeCandleBody", OBJPROP_FILL, true);
       ObjectCreate(0, "FakeCandleWickBottom", OBJ_TREND, 0, wick_x, body_bottom, wick_x, FakeLow);
       ObjectSetInteger(0, "FakeCandleWickBottom", OBJPROP_COLOR, clrGray);
       ObjectSetInteger(0, "FakeCandleWickBottom", OBJPROP_STYLE, STYLE_SOLID);
