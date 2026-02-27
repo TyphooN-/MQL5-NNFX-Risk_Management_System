@@ -163,7 +163,11 @@ void DrawLines()
       DrawHorizontalLine(Current_MN1_High, objname2 + "MN1_High", JudasLevelColour, prevMN1Time, currentBarTime);
       DrawHorizontalLine(Current_MN1_Low, objname2 + "MN1_Low", JudasLevelColour, prevMN1Time, currentBarTime);
    }
+#ifdef __MQL5__
    if(_Period >= PERIOD_H1 && _Period <= PERIOD_H8)
+#else
+   if(_Period >= PERIOD_H1 && _Period <= PERIOD_H4)
+#endif
    {
       DeleteHorizontalLine(objname1 + "H1_High");
       DeleteHorizontalLine(objname1 + "H1_Low");
@@ -182,7 +186,11 @@ void DrawLines()
       DrawHorizontalLine(Current_MN1_High, objname2 + "MN1_High", JudasLevelColour, prevMN1Time, currentBarTime);
       DrawHorizontalLine(Current_MN1_Low, objname2 + "MN1_Low", JudasLevelColour, prevMN1Time, currentBarTime);
    }
+#ifdef __MQL5__
    if(_Period == PERIOD_D1 || _Period == PERIOD_H12)
+#else
+   if(_Period == PERIOD_D1)
+#endif
    {
       DeleteHorizontalLine(objname1 + "H1_High");
       DeleteHorizontalLine(objname1 + "H1_Low");
@@ -258,22 +266,5 @@ void DrawHorizontalLine(double price, string label, color clr, datetime startTim
 }
 bool IsNewH1Interval(const datetime& currentTime, const datetime& prevTime)
 {
-   MqlDateTime currentMqlTime, prevMqlTime;
-   TimeToStruct(currentTime, currentMqlTime);
-   TimeToStruct(prevTime, prevMqlTime);
-   // Check if the day has changed
-   if (currentMqlTime.day != prevMqlTime.day)
-   {
-      return true;
-   }
-   // Check if the minutes have changed
-   if (currentMqlTime.min != prevMqlTime.min)
-   {
-      // Check if the current time is at an hourly interval
-      if (currentMqlTime.min == 0 && prevMqlTime.hour < currentMqlTime.hour)
-      {
-         return true;
-      }
-   }
-   return false;
+   return (currentTime / 3600) != (prevTime / 3600);
 }

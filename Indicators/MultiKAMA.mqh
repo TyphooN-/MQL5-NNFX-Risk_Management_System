@@ -1,4 +1,4 @@
-/**=             TyphooN.mq5  (TyphooN's MultiKAMA)
+/**=             MultiKAMA.mqh  (TyphooN's MultiKAMA)
  *               Copyright 2023, TyphooN (https://www.marketwizardry.org/)
  *
  * Disclaimer and Licence
@@ -88,6 +88,26 @@ int OnInit()
    //--- OnInit done
    return (INIT_SUCCEEDED);
 }
+void OnDeinit(const int reason)
+{
+#ifdef __MQL5__
+   IndicatorRelease(handle_KAMA_H1);
+   IndicatorRelease(handle_KAMA_H4);
+   IndicatorRelease(handle_KAMA_D1);
+   IndicatorRelease(handle_KAMA_W1);
+   IndicatorRelease(handle_KAMA_MN1);
+#endif
+   GlobalVariableDel("IsAbove_KAMA_H1");
+   GlobalVariableDel("IsAbove_KAMA_H4");
+   GlobalVariableDel("IsAbove_KAMA_D1");
+   GlobalVariableDel("IsAbove_KAMA_W1");
+   GlobalVariableDel("IsAbove_KAMA_MN1");
+   GlobalVariableDel("recent_KAMA_H1");
+   GlobalVariableDel("recent_KAMA_H4");
+   GlobalVariableDel("recent_KAMA_D1");
+   GlobalVariableDel("recent_KAMA_W1");
+   GlobalVariableDel("recent_KAMA_MN1");
+}
 #ifdef __MQL5__
 int OnCalculate(const int rates_total, const int prev_calculated, const int begin, const double &price[])
 {
@@ -96,17 +116,21 @@ int OnCalculate(const int rates_total, const int prev_calculated, const int begi
    // Only copy full buffers on new bar (HTF KAMA values don't change intra-bar)
    if (prev_calculated == 0 || prev_calculated != rates_total)
    {
-      CopyIndicatorData(handle_KAMA_H1, ExtAMABuffer_H1, rates_total);
-      CopyIndicatorData(handle_KAMA_H4, ExtAMABuffer_H4, rates_total);
-      CopyIndicatorData(handle_KAMA_D1, ExtAMABuffer_D1, rates_total);
-      CopyIndicatorData(handle_KAMA_W1, ExtAMABuffer_W1, rates_total);
-      CopyIndicatorData(handle_KAMA_MN1, ExtAMABuffer_MN1, rates_total);
+      bool allCopied = true;
+      allCopied &= CopyIndicatorData(handle_KAMA_H1, ExtAMABuffer_H1, rates_total);
+      allCopied &= CopyIndicatorData(handle_KAMA_H4, ExtAMABuffer_H4, rates_total);
+      allCopied &= CopyIndicatorData(handle_KAMA_D1, ExtAMABuffer_D1, rates_total);
+      allCopied &= CopyIndicatorData(handle_KAMA_W1, ExtAMABuffer_W1, rates_total);
+      allCopied &= CopyIndicatorData(handle_KAMA_MN1, ExtAMABuffer_MN1, rates_total);
       int latestIndex = rates_total - 1;
-      GlobalVariableSet("recent_KAMA_H1", ExtAMABuffer_H1[latestIndex]);
-      GlobalVariableSet("recent_KAMA_H4", ExtAMABuffer_H4[latestIndex]);
-      GlobalVariableSet("recent_KAMA_D1", ExtAMABuffer_D1[latestIndex]);
-      GlobalVariableSet("recent_KAMA_W1", ExtAMABuffer_W1[latestIndex]);
-      GlobalVariableSet("recent_KAMA_MN1", ExtAMABuffer_MN1[latestIndex]);
+      if (allCopied)
+      {
+         GlobalVariableSet("recent_KAMA_H1", ExtAMABuffer_H1[latestIndex]);
+         GlobalVariableSet("recent_KAMA_H4", ExtAMABuffer_H4[latestIndex]);
+         GlobalVariableSet("recent_KAMA_D1", ExtAMABuffer_D1[latestIndex]);
+         GlobalVariableSet("recent_KAMA_W1", ExtAMABuffer_W1[latestIndex]);
+         GlobalVariableSet("recent_KAMA_MN1", ExtAMABuffer_MN1[latestIndex]);
+      }
    }
    // Check price vs KAMA on every tick, but only update globals when values change
    double currentPrice = price[rates_total - 1];

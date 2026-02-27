@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.389"
+#property version   "1.390"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -100,7 +100,7 @@ input double          MartingaleDangerMarginPct = 0;  // % margin usage — prot
 input group           "[DISCORD ANNOUNCEMENT SETTINGS]"
 input string          DiscordAPIKey =  "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
 input bool            EnableBroadcast = false;
-CPortfolioRiskMan PortfolioRisk(VaRTimeframe, StdDevPeriods); // Darwinex VaR wrapper
+CPortfolioRiskMan PortfolioRisk(VaRTimeframe, StdDevPeriods, VaRConfidence); // Darwinex VaR wrapper
 // global vars
 datetime LastPyramidTime = 0;
 double PyramidLotsOpened = 0, TP = 0, SL = 0, Bid = 0, Ask = 0, prevBidPrice = 0.0,
@@ -296,7 +296,7 @@ string TimeTilNextBar(ENUM_TIMEFRAMES tf=PERIOD_CURRENT)
    datetime bartime = iTime(NULL, tf, 0);
    long remainingTime = (long)(bartime + PeriodSeconds(tf) - now);
    // Ensure non-negativity
-   remainingTime = MathAbs(remainingTime);
+   if (remainingTime < 0) remainingTime = 0;
    long days = remainingTime / 86400; // 86400 seconds in a day
    long hours = (remainingTime % 86400) / 3600; // 3600 seconds in an hour
    long minutes = (remainingTime % 3600) / 60; // 60 seconds in a minute
@@ -320,10 +320,10 @@ bool CloseAllPositionsOnAllSymbols()
    {
       ulong ticket = PositionGetTicket(i);
       double entryPrice = PositionGetDouble(POSITION_PRICE_OPEN);
-      double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+      string symbol = PositionGetString(POSITION_SYMBOL);
+      double currentPrice = SymbolInfoDouble(symbol, SYMBOL_BID);
       double positionProfit = PositionGetDouble(POSITION_PROFIT);
       double lotSize = PositionGetDouble(POSITION_VOLUME);
-      string symbol = PositionGetString(POSITION_SYMBOL);
       if (Trade.PositionClose(ticket))
       {
          if (positionProfit >= 0)
@@ -342,14 +342,14 @@ bool CloseAllPositionsOnAllSymbols()
          // Do not return false immediately for asynchronous processing
       }
    }
-   // Wait for the asynchronous operations to complete
-   int timeout = 3000; // Set a timeout (in milliseconds) to wait for order execution
+   // Wait for the asynchronous operations to complete by polling PositionsTotal
+   int timeout = 3000;
    uint startTime = GetTickCount();
-   while (closedPositions < totalPositions && (GetTickCount() - startTime) < (uint) timeout)
+   while (PositionsTotal() > 0 && (GetTickCount() - startTime) < (uint) timeout)
    {
-      Sleep(100); // Sleep for a short duration
+      Sleep(100);
    }
-   if (closedPositions == totalPositions)
+   if (PositionsTotal() == 0)
    {
       Print("All positions closed successfully.");
       return true;
@@ -362,7 +362,8 @@ bool CloseAllPositionsOnAllSymbols()
 }
 void GetSLTPFromAnotherPosition(ulong ticket, double &sl, double &tp, int positionTypeFilter = -1)
 {
-   for (int j = 0; j < PositionsTotal(); j++)
+   int total = PositionsTotal();
+   for (int j = 0; j < total; j++)
    {
       ulong other_ticket = PositionGetTicket(j);
       if (other_ticket != ticket && PositionGetString(POSITION_SYMBOL) == _Symbol)
@@ -393,7 +394,7 @@ bool IsTradeAllowed(const string symbol)
       Print("Trading is not allowed on this account.");
       return false;
    }
-   if (!SymbolInfoInteger(symbol, SYMBOL_TRADE_MODE))
+   if (SymbolInfoInteger(symbol, SYMBOL_TRADE_MODE) == SYMBOL_TRADE_MODE_DISABLED)
    {
       Print("Trading is not allowed for symbol: ", symbol);
       return false;
@@ -572,36 +573,14 @@ void OnTick()
          Alert("EquitySL closed all positions on all symbols. New account balance: " + DoubleToString(AccountBalance, 2));
       }
    }
-   bool breakEvenFound = (breakEvenFoundLong || breakEvenFoundShort);
-   if (OrderMode == Standard)
-   {
-      if (breakEvenFound)
-      {
-         order_risk_money = (AccountBalance * ((Risk / 100) * AdditionalRiskRatio));
-      }
-      else
-      {
-         order_risk_money = (AccountBalance * (Risk / 100));
-      }
-   }
-   if (OrderMode == Dynamic)
-   {
-      if (breakEvenFound)
-      {
-         order_risk_money = ((AccountBalance - MinAccountBalance) / (LossesToMinBalance / AdditionalRiskRatio));
-      }
-      else
-      {
-         order_risk_money = ((AccountBalance - MinAccountBalance) / LossesToMinBalance);
-      }
-   }
    // Reset per-direction break-even flags before the position loop
    breakEvenFoundLong = false;
    breakEvenFoundShort = false;
    LotsInfo lots;
    lots.longLots = 0.0;
    lots.shortLots = 0.0;
-   for (int i = 0; i < PositionsTotal(); i++)
+   int total = PositionsTotal();
+   for (int i = 0; i < total; i++)
    {
       ulong ticket = PositionGetTicket(i);
       if (ProcessPositionCheck(ticket, _Symbol, MagicNumber))
@@ -678,8 +657,24 @@ void OnTick()
       tprr = total_tp / absRisk;
       rr = total_pl / absRisk;
    }
-   percent_risk = MathAbs((sl_risk / AccountBalance) * 100);
+   if (AccountBalance > 0)
+      percent_risk = MathAbs((sl_risk / AccountBalance) * 100);
    breakEvenFound = (breakEvenFoundLong || breakEvenFoundShort);
+   // Compute order_risk_money using fresh breakEvenFound (after position loop)
+   if (OrderMode == Standard)
+   {
+      if (breakEvenFound)
+         order_risk_money = (AccountBalance * ((Risk / 100) * AdditionalRiskRatio));
+      else
+         order_risk_money = (AccountBalance * (Risk / 100));
+   }
+   if (OrderMode == Dynamic)
+   {
+      if (breakEvenFound)
+         order_risk_money = (AdditionalRiskRatio > 0) ? ((AccountBalance - MinAccountBalance) / (LossesToMinBalance / AdditionalRiskRatio)) : 0;
+      else
+         order_risk_money = (LossesToMinBalance > 0) ? ((AccountBalance - MinAccountBalance) / LossesToMinBalance) : 0;
+   }
    if (EnableAutoProtect && !AutoProtectCalled && !breakEvenFound)
    {
          if (rr >= APRRLevel && sl_risk < 0)
@@ -699,7 +694,7 @@ void OnTick()
    if (total_pl >= absRisk)
    {
       double floatingRisk = MathAbs(total_pl - total_risk);
-      double floatingRiskPercent = (floatingRisk / AccountBalance) * 100;
+      double floatingRiskPercent = (AccountBalance > 0) ? (floatingRisk / AccountBalance) * 100 : 0;
       infoRisk = "Risk: $" + DoubleToString(floatingRisk, 0) + " (" + DoubleToString(floatingRiskPercent, 1) + "%)";
    }
    else
@@ -717,7 +712,7 @@ void OnTick()
       infoSLPL = "SL P/L: -$" + DoubleToString(absRisk, 2);
    else
       infoSLPL = "SL P/L: $" + DoubleToString(total_risk, 2);
-   if(hasLongs || hasShorts)
+   if(!hasLongs && !hasShorts)
       percent_risk = 0;
    // Only update labels when text actually changes (avoid redundant ObjectSetString calls)
    static string prevInfoRR, prevInfoPL, prevInfoSLPL, prevInfoTP, prevInfoRisk, prevInfoTPRR;
@@ -756,7 +751,7 @@ void OnTick()
          cachedPositionStr = "Long " + DoubleToString(lots.longLots, OrderDigits) + " Lots";
          ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrLime);
          ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrLime);
-         if (PortfolioRisk.CalculateVaR(_Symbol, lots.longLots))
+         if (AccountEquity > 0 && PortfolioRisk.CalculateVaR(_Symbol, lots.longLots))
             cachedVaRStr = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2);
       }
       else if (lots.shortLots > 0 && lots.longLots == 0)
@@ -764,7 +759,7 @@ void OnTick()
          cachedPositionStr = "Short " + DoubleToString(lots.shortLots, OrderDigits) + " Lots";
          ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrRed);
          ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrRed);
-         if (PortfolioRisk.CalculateVaR(_Symbol, lots.shortLots))
+         if (AccountEquity > 0 && PortfolioRisk.CalculateVaR(_Symbol, lots.shortLots))
             cachedVaRStr = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2);
       }
       else if (lots.shortLots > 0 && lots.longLots > 0)
@@ -773,7 +768,7 @@ void OnTick()
          cachedPositionStr = DoubleToString(lots.longLots, OrderDigits) + " Long / " + DoubleToString(lots.shortLots, OrderDigits) + " Short";
          ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrWhite);
          ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrWhite);
-         if (netExposure > 0 && PortfolioRisk.CalculateVaR(_Symbol, netExposure))
+         if (netExposure > 0 && AccountEquity > 0 && PortfolioRisk.CalculateVaR(_Symbol, netExposure))
             cachedVaRStr = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2) + " (net)";
          else
             cachedVaRStr = "VaR %: 0.00 (hedged)";
@@ -953,7 +948,12 @@ void BroadcastDiscordAnnouncement(string announcement)
    string headers = "Content-Type: application/json";
    uchar result[];
    string result_headers;
-   string json = "{\"content\":\""+ announcement +"\"}";
+   string escaped = announcement;
+   StringReplace(escaped, "\\", "\\\\");
+   StringReplace(escaped, "\"", "\\\"");
+   StringReplace(escaped, "\n", "\\n");
+   StringReplace(escaped, "\r", "\\r");
+   string json = "{\"content\":\""+ escaped +"\"}";
    char jsonArray[];
    StringToCharArray(json, jsonArray);
    // Remove null-terminator if any
@@ -1008,7 +1008,8 @@ bool ProcessPositionCheck(ulong ticket, string symbol, int magicNumber)
 }
 bool HasOpenPosition(string sym, int orderType) 
 {
-   for(int i = 0; i < PositionsTotal(); i++) 
+   int total = PositionsTotal();
+   for(int i = 0; i < total; i++)
    {
    if (ManageAllPositions)
    {
@@ -1031,7 +1032,8 @@ double GetTotalVolumeForSymbol(string symbol)
 {
    double totalVolume = 0;
 
-   for(int i=PositionsTotal()-1; i >= 0; i--)
+   int total = PositionsTotal();
+   for(int i=total-1; i >= 0; i--)
    {
       string positionSymbol = PositionGetSymbol(i);
       if(positionSymbol == symbol)
@@ -1043,46 +1045,34 @@ double GetTotalVolumeForSymbol(string symbol)
 }
 double PerformOrderCheck(const MqlTradeRequest &request, MqlTradeCheckResult &check_result, double &OrderLots)
 {
-   // Check if the original order passes the order check
    if (!Trade.OrderCheck(request, check_result))
    {
       int retcode = (int)check_result.retcode;
       if (retcode == 10013)
       {
-         // Handle error code 10013 (Invalid request)
          Print("Invalid request. Check the request parameters.");
-         return -1.0; // Return -1.0 to indicate failure
-      }
-      if (retcode == 10019)
-      {
          return -1.0;
       }
-      if (retcode == 10030)
-      {
+      if (retcode == 10019 || retcode == 10030)
          return -1.0;
-      }
-      else
-      {
-         Print("OrderCheck failed with retcode ", retcode);
-         Print("Check result: ", check_result.comment);
-         return -1.0; // Return -1.0 to indicate failure
-      }
-      }
-      else
-      {
-         // OrderCheck successful, calculate and return the required margin
-         if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY) ? Ask : Bid, required_margin))
-         {
-            Print("Failed to calculate required margin after successful OrderCheck. Error:", GetLastError());
-            return -1.0; // Return -1.0 to indicate failure
-         }
-         return required_margin;
+      Print("OrderCheck failed with retcode ", retcode, ": ", check_result.comment);
+      return -1.0;
    }
+   // OrderCheck successful, calculate and return the required margin
+   double checkAsk = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+   double checkBid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+   if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY) ? checkAsk : checkBid, required_margin))
+   {
+      Print("Failed to calculate required margin after successful OrderCheck. Error:", GetLastError());
+      return -1.0;
+   }
+   return required_margin;
 }
 double CalculateMartingalePL()
 {
    double totalPL = 0;
-   for (int i = 0; i < PositionsTotal(); i++)
+   int total = PositionsTotal();
+   for (int i = 0; i < total; i++)
    {
       if (PositionGetSymbol(i) == _Symbol)
          totalPL += PositionGetDouble(POSITION_PROFIT) + PositionGetDouble(POSITION_SWAP);
@@ -1092,7 +1082,8 @@ double CalculateMartingalePL()
 void CloseAllSymbolPositions()
 {
    Trade.SetAsyncMode(true);
-   for (int i = PositionsTotal() - 1; i >= 0; i--)
+   int total = PositionsTotal();
+   for (int i = total - 1; i >= 0; i--)
    {
       ulong ticket = PositionGetTicket(i);
       if (PositionGetString(POSITION_SYMBOL) == _Symbol)
@@ -1115,7 +1106,8 @@ void CloseProfitableOppositePositions()
       return;
    Trade.SetAsyncMode(true);
    double chunkSize = NormalizeDouble(MartingaleCloseChunkSize, OrderDigits);
-   for (int i = PositionsTotal() - 1; i >= 0; i--)
+   int total = PositionsTotal();
+   for (int i = total - 1; i >= 0; i--)
    {
       ulong ticket = PositionGetTicket(i);
       if (PositionGetString(POSITION_SYMBOL) != _Symbol)
@@ -1151,7 +1143,8 @@ void UnwindMartingale()
    ulong worstTicket = 0;
    double worstPL = DBL_MAX;
    bool found = false;
-   for (int i = 0; i < PositionsTotal(); i++)
+   int total = PositionsTotal();
+   for (int i = 0; i < total; i++)
    {
       if (PositionGetSymbol(i) == _Symbol)
       {
@@ -1193,20 +1186,24 @@ bool UnwindHedgeByMargin()
       hedgeType = POSITION_TYPE_SELL;
    else
       return false;
-   // Find hedge position with highest POSITION_PRICE_OPEN
+   // Find worst-performing hedge position:
+   // MG_SHORT hedges are BUYs → worst = highest open (bought high, price dropping)
+   // MG_LONG hedges are SELLs → worst = lowest open (sold low, price rising)
    ulong bestTicket = 0;
-   double highestOpen = -1;
+   double worstOpen = (MartingaleMode == MG_LONG) ? DBL_MAX : -1;
    double bestVolume = 0;
-   for (int i = 0; i < PositionsTotal(); i++)
+   int total = PositionsTotal();
+   for (int i = 0; i < total; i++)
    {
       if (PositionGetSymbol(i) != _Symbol)
          continue;
       if ((int)PositionGetInteger(POSITION_TYPE) != hedgeType)
          continue;
       double openPrice = PositionGetDouble(POSITION_PRICE_OPEN);
-      if (openPrice > highestOpen)
+      bool isWorse = (MartingaleMode == MG_LONG) ? (openPrice < worstOpen) : (openPrice > worstOpen);
+      if (isWorse)
       {
-         highestOpen = openPrice;
+         worstOpen = openPrice;
          bestTicket = PositionGetInteger(POSITION_TICKET);
          bestVolume = PositionGetDouble(POSITION_VOLUME);
       }
@@ -1225,7 +1222,7 @@ bool UnwindHedgeByMargin()
       MartingaleHedgeCloses++;
       double marginPct = CalculateMarginUsagePct();
       Print("Martingale Tier1: closed ", dir, " #", bestTicket,
-            " (", (bestVolume <= closeLots) ? bestVolume : closeLots, " lots, open: ", DoubleToString(highestOpen, _Digits),
+            " (", (bestVolume <= closeLots) ? bestVolume : closeLots, " lots, open: ", DoubleToString(worstOpen, _Digits),
             ") margin: ", DoubleToString(marginPct, 1), "% | hedge closes: ", MartingaleHedgeCloses);
    }
    else
@@ -1245,7 +1242,8 @@ bool ProtectivePartialCloseBias()
    // Find the largest volume bias position (maximum margin relief)
    ulong bestTicket = 0;
    double largestVolume = 0;
-   for (int i = 0; i < PositionsTotal(); i++)
+   int total = PositionsTotal();
+   for (int i = 0; i < total; i++)
    {
       if (PositionGetSymbol(i) != _Symbol)
          continue;
@@ -1290,7 +1288,8 @@ void LogMartingaleUnwindStatus()
    int biasType = (MartingaleMode == MG_SHORT) ? POSITION_TYPE_SELL : POSITION_TYPE_BUY;
    int hedgeCount = 0, biasCount = 0;
    double hedgeLots = 0, biasLots = 0;
-   for (int i = 0; i < PositionsTotal(); i++)
+   int total = PositionsTotal();
+   for (int i = 0; i < total; i++)
    {
       if (PositionGetSymbol(i) != _Symbol)
          continue;
@@ -1404,11 +1403,12 @@ void TyWindow::OnClickTrade(void)
    {
       if (dirBreakEven)
       {
-         order_risk_money = ((AccountBalance - MinAccountBalance) / (LossesToMinBalance * AdditionalRiskRatio));
+         double divisor = LossesToMinBalance * AdditionalRiskRatio;
+         order_risk_money = (divisor > 0) ? ((AccountBalance - MinAccountBalance) / divisor) : 0;
       }
       else
       {
-         order_risk_money = ((AccountBalance - MinAccountBalance) / LossesToMinBalance);
+         order_risk_money = (LossesToMinBalance > 0) ? ((AccountBalance - MinAccountBalance) / LossesToMinBalance) : 0;
       }
       if (!dirBreakEven)
       {
@@ -1447,8 +1447,10 @@ void TyWindow::OnClickTrade(void)
    }
    if (OrderMode == Standard || OrderMode == Dynamic)
    {
-      OrderLots = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, Ask - SL), OrderDigits)
-                          : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - Bid), OrderDigits);
+      double freshAsk = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+      double freshBid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+      OrderLots = TP > SL ? NormalizeDouble(RiskLots(_Symbol, order_risk_money, freshAsk - SL), OrderDigits)
+                          : NormalizeDouble(RiskLots(_Symbol, order_risk_money, SL - freshBid), OrderDigits);
    }
    if (OrderMode == VaR && VaRRiskMode == PercentVaR)
    {
@@ -1493,13 +1495,24 @@ void TyWindow::OnClickTrade(void)
    request.magic = MagicNumber;
    request.sl = SL;
    request.tp = TP;
-   request.type_filling = SelectFillingMode();
+   ENUM_ORDER_TYPE_FILLING fillMode = SelectFillingMode();
+   if ((int)fillMode == -1)
+   {
+      Print("No valid filling mode available. Cannot place order.");
+      return;
+   }
+   request.type_filling = fillMode;
+   if (TP == SL)
+   {
+      Print("TP and SL are at the same price. Cannot determine order direction.");
+      return;
+   }
    if (TP > SL)
    {
       request.action = TRADE_ACTION_DEAL;
       request.type = ORDER_TYPE_BUY;
    }
-   else if (SL > TP)
+   else
    {
       request.action = TRADE_ACTION_DEAL;
       request.type = ORDER_TYPE_SELL;
@@ -1508,7 +1521,9 @@ void TyWindow::OnClickTrade(void)
    AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
    double marginBudget = AccountBalance * (1.0 - MarginBufferPercent / 100.0);
    usable_margin = marginBudget - AccountInfoDouble(ACCOUNT_MARGIN);
-   if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY) ? Ask : Bid, required_margin))
+   double marginAsk = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+   double marginBid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+   if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY) ? marginAsk : marginBid, required_margin))
    {
       Print("Failed to calculate required margin before the loop. Error:", GetLastError());
       return;
@@ -1517,12 +1532,12 @@ void TyWindow::OnClickTrade(void)
    {
       OrderLots -= min_volume;
       usable_margin = marginBudget - AccountInfoDouble(ACCOUNT_MARGIN);
-      if (!PerformOrderCheck(request, check_result, OrderLots))
+      if (PerformOrderCheck(request, check_result, OrderLots) < 0)
       {
          Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
          return;
       }
-      if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY) ? Ask : Bid, required_margin))
+      if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY) ? marginAsk : marginBid, required_margin))
       {
          Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
          return;
@@ -1533,7 +1548,7 @@ void TyWindow::OnClickTrade(void)
       }
    }
    usable_margin = marginBudget - AccountInfoDouble(ACCOUNT_MARGIN);
-   if (!PerformOrderCheck(request, check_result, OrderLots))
+   if (PerformOrderCheck(request, check_result, OrderLots) < 0)
    {
       Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
       return;
@@ -1548,7 +1563,7 @@ void TyWindow::OnClickTrade(void)
       Print("Order size adjusted to zero due to insufficient margin. Cannot place order.");
       return;
    }
-   if (potentialRisk <= MaxRisk)
+   if (OrderMode != Standard || potentialRisk <= MaxRisk)
    {
       if (FixedOrdersToPlace >= 2)
       {
@@ -1568,7 +1583,7 @@ void TyWindow::OnClickTrade(void)
                Print("Sell position is already open. Cannot place Buy order.");
                return;
             }
-            if (!PerformOrderCheck(request, check_result, OrderLots))
+            if (PerformOrderCheck(request, check_result, OrderLots) < 0)
             {
                Print("Buy OrderCheck failed, retcode=", check_result.retcode);
                return;
@@ -1582,7 +1597,7 @@ void TyWindow::OnClickTrade(void)
                Print("Buy position is already open. Cannot place Sell order.");
                return;
             }
-            if (!PerformOrderCheck(request, check_result, OrderLots))
+            if (PerformOrderCheck(request, check_result, OrderLots) < 0)
             {
                Print("Sell OrderCheck failed, retcode=", check_result.retcode);
                return;
@@ -1626,7 +1641,8 @@ void TyWindow::OnClickMartingale(void)
    {
       // Auto-detect bias from open positions
       int longCount = 0, shortCount = 0;
-      for (int i = 0; i < PositionsTotal(); i++)
+      int total = PositionsTotal();
+      for (int i = 0; i < total; i++)
       {
          if (PositionGetSymbol(i) == _Symbol)
          {
@@ -1792,7 +1808,8 @@ void TyWindow::OnClickProtect(void)
 void TyWindow::OnClickCloseAll(void)
 {
    bool hasOpenPosition = false;
-   for(int i=0; i<PositionsTotal(); i++)
+   int total = PositionsTotal();
+   for(int i=0; i<total; i++)
    {
       ulong ticket = PositionGetTicket(i);
       if (ProcessPositionCheck(ticket, _Symbol, MagicNumber))
@@ -1816,7 +1833,8 @@ void TyWindow::OnClickCloseAll(void)
       {
          Trade.SetAsyncMode(true);
          double TotalPL = 0.0;
-         for (int i = PositionsTotal() - 1; i >= 0; i--)
+         int closeTotal = PositionsTotal();
+         for (int i = closeTotal - 1; i >= 0; i--)
          {
             ulong ticket = PositionGetTicket(i);
             if (ProcessPositionCheck(ticket, _Symbol, MagicNumber))
@@ -1878,9 +1896,10 @@ void TyWindow::OnClickCloseAll(void)
 void TyWindow::OnClickClosePartial(void)
 {
    PositionInfo positions[];
-   ArrayResize(positions, PositionsTotal());
+   int total = PositionsTotal();
+   ArrayResize(positions, total);
    int count = 0;
-   for (int i = 0; i < PositionsTotal(); i++)
+   for (int i = 0; i < total; i++)
    {
       if (ProcessPositionCheck(PositionGetTicket(i), _Symbol, MagicNumber))
       {
@@ -1901,6 +1920,7 @@ void TyWindow::OnClickClosePartial(void)
    int result = MessageBox("Do you want to close the smallest lot order on " + _Symbol + "?", "Close Smallest Lot Order", MB_YESNO | MB_ICONQUESTION);
    if (result == IDYES)
    {
+      PositionSelectByTicket(positions[0].ticket);
       double entryPrice = PositionGetDouble(POSITION_PRICE_OPEN);
       double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
       double positionProfit = PositionGetDouble(POSITION_PROFIT);
@@ -1934,7 +1954,8 @@ void ModifyPosition(double newLevel, int modificationType, int positionTypeFilte
     double tickSize = TickSize(_Symbol);
     int modifiedPositions = 0;
     int targetPositions = 0;
-    for (int i = 0; i < PositionsTotal(); i++)
+    int total = PositionsTotal();
+    for (int i = 0; i < total; i++)
     {
         ulong ticket = PositionGetTicket(i);
         if (ProcessPositionCheck(ticket, _Symbol, MagicNumber))
@@ -2032,7 +2053,8 @@ void Protect()
          dirFilter = POSITION_TYPE_SELL;
    }
    double tickSize = TickSize(_Symbol);
-   for(int i = 0; i < PositionsTotal(); i++)
+   int total = PositionsTotal();
+   for(int i = 0; i < total; i++)
    {
       ulong ticket = PositionGetTicket(i);
       if (ProcessPositionCheck(ticket, _Symbol, MagicNumber))

@@ -37,13 +37,14 @@ class CPortfolioRiskMan
 {
 public:
     double SinglePositionVaR;
-    void CPortfolioRiskMan(ENUM_TIMEFRAMES VaRTimeframe, int StdDevPeriods); //CONSTRUCTOR
+    void CPortfolioRiskMan(ENUM_TIMEFRAMES VaRTimeframe, int StdDevPeriods, double ConfidenceLevel = 0.95); //CONSTRUCTOR
     bool CalculateVaR(string Asset, double AssetPosSize);
     bool CalculateLotSizeBasedOnVaR(string Asset, double confidenceLevel, double accountEquity, double VaRPercent, double &lotSize);
 
 private:
     ENUM_TIMEFRAMES ValueAtRiskTimeframe;
     int StandardDeviationPeriods;
+    double VaRConfidenceLevel;
     double m_stdDevReturnsCache[];
     string m_symbolCache[];
     datetime m_cacheTimestamp[];
@@ -53,10 +54,11 @@ private:
     void ClearCache() { ArrayFree(m_stdDevReturnsCache); ArrayFree(m_symbolCache); ArrayFree(m_cacheTimestamp); }
 };
 //CONSTRUCTOR
-void CPortfolioRiskMan::CPortfolioRiskMan(ENUM_TIMEFRAMES VaRTF, int SDPeriods)  
+void CPortfolioRiskMan::CPortfolioRiskMan(ENUM_TIMEFRAMES VaRTF, int SDPeriods, double ConfidenceLevel)
 {
    ValueAtRiskTimeframe     = VaRTF;
    StandardDeviationPeriods = SDPeriods;
+   VaRConfidenceLevel       = ConfidenceLevel;
 }
 bool CPortfolioRiskMan::CalculateVaR(string Asset, double AssetPosSize) //N.B. ProposedPosSize should be +ve for a LONG pos and -ve for a SHORT pos                 
 {  
@@ -69,11 +71,16 @@ bool CPortfolioRiskMan::CalculateVaR(string Asset, double AssetPosSize) //N.B. P
    }
    //GET NOMINAL VALUE FOR PROPOSED POSITION
    //TODO: THIS ASSUMES ALL ASSETS CALCULATED USING ACCOUNT CURRENCY. FOR OTHERS E.G. SPX500 NEED TO DO CURRENCY CONVERSION
-   double nominalValuePerUnitPerLot = SymbolInfoDouble(Asset, SYMBOL_TRADE_TICK_VALUE) / SymbolInfoDouble(Asset, SYMBOL_TRADE_TICK_SIZE);
-   double nominalValue              = MathAbs(AssetPosSize) * nominalValuePerUnitPerLot * iClose(Asset, PERIOD_M1, 0);  //RATIONALE: This calculates how much would be lost on a position that moved from its current price to a 0 price. This is equivalent to the nominal amount invested if we were trading with 1:1 leverage, i.e. the total amount you would lose if the asset's price went to 0
+   double tickSize = SymbolInfoDouble(Asset, SYMBOL_TRADE_TICK_SIZE);
+   if (tickSize == 0) { return false; }
+   double nominalValuePerUnitPerLot = SymbolInfoDouble(Asset, SYMBOL_TRADE_TICK_VALUE) / tickSize;
+   double closePrice = iClose(Asset, PERIOD_M1, 0);
+   if (closePrice <= 0) closePrice = SymbolInfoDouble(Asset, SYMBOL_BID);
+   if (closePrice <= 0) return false;
+   double nominalValue              = MathAbs(AssetPosSize) * nominalValuePerUnitPerLot * closePrice;
    //CALCULATE THE VaR VALUES FOR THIS IND PROPOSED POSITION
-   //VaR Calculated on basis of "max expected loss in 1-day" at a "95% confidence level" (This value will be exceeded 1 day out of 20). The value of 1.65 is the 95% Z-Score for a one-tailed test
-   SinglePositionVaR = 1.65 * stdDevReturns * nominalValue; //nominalValue is always +ve because of MathAbs(AssetPosSize) above
+   double zScore = InverseCumulativeNormal(VaRConfidenceLevel);
+   SinglePositionVaR = zScore * stdDevReturns * nominalValue; //nominalValue is always +ve because of MathAbs(AssetPosSize) above
    return true;
 }
 bool CPortfolioRiskMan::CalculateLotSizeBasedOnVaR(string Asset, double confidenceLevel, double accountEquity, double VaRPercent, double &lotSize)
@@ -86,8 +93,12 @@ bool CPortfolioRiskMan::CalculateLotSizeBasedOnVaR(string Asset, double confiden
       return false;
    }
    //GET NOMINAL VALUE PER UNIT PER LOT
-   double nominalValuePerUnitPerLot = SymbolInfoDouble(Asset, SYMBOL_TRADE_TICK_VALUE) / SymbolInfoDouble(Asset, SYMBOL_TRADE_TICK_SIZE);
+   double tickSize = SymbolInfoDouble(Asset, SYMBOL_TRADE_TICK_SIZE);
+   if (tickSize == 0) { return false; }
+   double nominalValuePerUnitPerLot = SymbolInfoDouble(Asset, SYMBOL_TRADE_TICK_VALUE) / tickSize;
    double currentPrice = iClose(Asset, PERIOD_M1, 0);
+   if (currentPrice <= 0) currentPrice = SymbolInfoDouble(Asset, SYMBOL_BID);
+   if (currentPrice <= 0) { lotSize = 0; return false; }
    //CALCULATE THE Z-SCORE FOR THE GIVEN CONFIDENCE LEVEL
    double zScore = InverseCumulativeNormal(confidenceLevel);
    //CALCULATE THE VaR FOR A SINGLE UNIT OF THE ASSET
@@ -95,6 +106,7 @@ bool CPortfolioRiskMan::CalculateLotSizeBasedOnVaR(string Asset, double confiden
    //CALCULATE THE MAXIMUM VaR BASED ON THE ACCOUNT EQUITY AND VaR PERCENTAGE
    double maxVaR = (VaRPercent / 100.0) * accountEquity;
    //CALCULATE THE LOT SIZE BASED ON THE MAXIMUM VaR
+   if (unitVaR == 0) { lotSize = 0; return false; }
    lotSize = maxVaR / unitVaR;
    return true;
 }
@@ -166,9 +178,10 @@ bool CPortfolioRiskMan::GetAssetStdDevReturns(string VolSymbolName, double &Stan
     }
 
     double returns[];
-    if (CopyClose(VolSymbolName, ValueAtRiskTimeframe, 1, StandardDeviationPeriods + 1, returns) <= 0)
+    int copied = CopyClose(VolSymbolName, ValueAtRiskTimeframe, 1, StandardDeviationPeriods + 1, returns);
+    if (copied < StandardDeviationPeriods + 1)
     {
-        Print("Failed to copy close prices for ", VolSymbolName);
+        Print("Failed to copy enough close prices for ", VolSymbolName, " (got ", copied, ", need ", StandardDeviationPeriods + 1, ")");
         return false;
     }
 
@@ -178,10 +191,16 @@ bool CPortfolioRiskMan::GetAssetStdDevReturns(string VolSymbolName, double &Stan
 
     for (int i = 0; i < returns_size - 1; i++)
     {
+        if (returns[i] == 0.0) { daily_returns[i] = 0.0; continue; }
         daily_returns[i] = (returns[i+1] / returns[i]) - 1.0;
     }
 
     StandardDevOfReturns = MathStandardDeviation(daily_returns);
+    if (StandardDevOfReturns == 0 || !MathIsValidNumber(StandardDevOfReturns))
+    {
+        Print("StdDev of returns is zero or invalid for ", VolSymbolName);
+        return false;
+    }
 
     if(existing_index != -1)
     {

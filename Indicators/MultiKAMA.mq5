@@ -1,4 +1,4 @@
-/**=             TyphooN.mq5  (TyphooN's MultiKAMA)
+/**=             MultiKAMA.mq5  (TyphooN's MultiKAMA)
  *               Copyright 2023, TyphooN (https://www.marketwizardry.org/)
  *
  * Disclaimer and Licence

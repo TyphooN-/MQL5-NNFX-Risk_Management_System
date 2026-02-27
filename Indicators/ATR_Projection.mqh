@@ -74,15 +74,31 @@ double currentOpenM15 = 0;
 int lastCheckedCandle = -1;
 double prevBidPrice = 0.0;
 double prevAskPrice = 0.0;
+datetime g_g_prevTradeServerTime = 0;
+bool g_dataReady = false;
+bool g_infoObjectsCreated = false;
+string g_prevInfoText1, g_prevInfoText2;
+color g_prevFontColor1 = clrNONE, g_prevFontColor2 = clrNONE;
 int OnInit()
 {
    //--- indicator buffers mapping
+#ifdef __MQL5__
    SetIndexBuffer(0, iATR_D1, INDICATOR_DATA);
    SetIndexBuffer(1, iATR_W1, INDICATOR_DATA);
    SetIndexBuffer(2, iATR_MN1, INDICATOR_DATA);
    SetIndexBuffer(3, iATR_H4, INDICATOR_DATA);
    SetIndexBuffer(4, iATR_H1, INDICATOR_DATA);
    SetIndexBuffer(5, iATR_M15, INDICATOR_DATA);
+#else
+   #ifdef __MQL4__
+   SetIndexBuffer(0, iATR_D1);
+   SetIndexBuffer(1, iATR_W1);
+   SetIndexBuffer(2, iATR_MN1);
+   SetIndexBuffer(3, iATR_H4);
+   SetIndexBuffer(4, iATR_H1);
+   SetIndexBuffer(5, iATR_M15);
+   #endif
+#endif
 #ifdef __MQL5__
    ArraySetAsSeries(iATR_D1, true);
    ArraySetAsSeries(iATR_W1, true);
@@ -115,6 +131,25 @@ int OnInit()
 void OnDeinit(const int pReason)
 {
    ObjectsDeleteAll(0, objname);
+#ifdef __MQL5__
+   IndicatorRelease(handle_iATR_D1);
+   IndicatorRelease(handle_iATR_W1);
+   IndicatorRelease(handle_iATR_MN1);
+   IndicatorRelease(handle_iATR_H4);
+   IndicatorRelease(handle_iATR_H1);
+   IndicatorRelease(handle_iATR_M15);
+#endif
+   // Reset globals that survive reinit
+   lastCheckedCandle = -1;
+   prevBidPrice = 0.0;
+   prevAskPrice = 0.0;
+   g_g_prevTradeServerTime = 0;
+   g_dataReady = false;
+   g_infoObjectsCreated = false;
+   g_prevInfoText1 = "";
+   g_prevInfoText2 = "";
+   g_prevFontColor1 = clrNONE;
+   g_prevFontColor2 = clrNONE;
 }
 void UpdateCandlestickData()
 {
@@ -186,7 +221,6 @@ int OnCalculate(const int        rates_total,
                const long&     volume[],
                const int&      spread[])
 {
-   static datetime prevTradeServerTime = 0;  // Initialize with 0 on the first run
    datetime currentTradeServerTime = 0;
 #ifdef __MQL5__
     currentTradeServerTime = TimeTradeServer();
@@ -196,11 +230,11 @@ int OnCalculate(const int        rates_total,
     #endif
 #endif
     // Check if a new 15-minute interval
-    if (IsNewM15Interval(currentTradeServerTime, prevTradeServerTime))
+    if (IsNewM15Interval(currentTradeServerTime, g_prevTradeServerTime))
     {
       UpdateATRData();
       UpdateCandlestickData();
-      prevTradeServerTime = currentTradeServerTime;
+      g_prevTradeServerTime = currentTradeServerTime;
     }
     // Get the current bid and ask prices
     double currentBidPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
@@ -214,6 +248,18 @@ int OnCalculate(const int        rates_total,
     // Update the previous bid and ask prices with the current prices
     prevBidPrice = currentBidPrice;
     prevAskPrice = currentAskPrice;
+#ifdef __MQL5__
+   if (!g_dataReady)
+   {
+      if (BarsCalculated(handle_iATR_D1) <= 0 || BarsCalculated(handle_iATR_MN1) <= 0)
+      {
+         UpdateATRData();
+         UpdateCandlestickData();
+         return prev_calculated;
+      }
+      g_dataReady = true;
+   }
+#endif
    // Calculate the number of bars to be processed
    int limit = rates_total - prev_calculated;
    // If there are no new bars, return (must return prev_calculated, not 0, to avoid forced full recalc)
@@ -238,12 +284,12 @@ int OnCalculate(const int        rates_total,
       avgH1 = iATR_H1[0];
       avgM15 = iATR_M15[0];
    }
-   double D1info = (copiedD1 == ATR_Period) ? avgD1 : copiedD1;
-   double W1info = (copiedW1 == ATR_Period) ? avgW1 : copiedW1;
-   double MN1info = (copiedMN1 == ATR_Period) ? avgMN1 : copiedMN1;
-   double H4info = (copiedH4 == ATR_Period) ? avgH4 : copiedH4;
-   double H1info = (copiedH1 == ATR_Period) ? avgH1 : copiedH1;
-   double M15info = (copiedM15 == ATR_Period) ? avgM15 : copiedM15;
+   double D1info = (copiedD1 == ATR_Period) ? avgD1 : 0.0;
+   double W1info = (copiedW1 == ATR_Period) ? avgW1 : 0.0;
+   double MN1info = (copiedMN1 == ATR_Period) ? avgMN1 : 0.0;
+   double H4info = (copiedH4 == ATR_Period) ? avgH4 : 0.0;
+   double H1info = (copiedH1 == ATR_Period) ? avgH1 : 0.0;
+   double M15info = (copiedM15 == ATR_Period) ? avgM15 : 0.0;
    bool IsM15AboveH1 = (avgM15 >= avgH1);
    bool IsM15AboveH4 = (avgM15 >= avgH4);
    bool IsH1AboveH4 = (avgH1 >= avgH4);
@@ -256,10 +302,9 @@ int OnCalculate(const int        rates_total,
    color FontColor2 = (IsD1AboveW1 && IsD1AboveMN1 && IsW1AboveMN1) ? clrMagenta : FontColor;
    string infoText1 = "ATR| M15: " + DoubleToString(M15info, ATRInfoDecimals) + " H1: " + DoubleToString(H1info, ATRInfoDecimals) + " H4: " + DoubleToString(H4info, ATRInfoDecimals);
    string infoText2 = "ATR| D1: " + DoubleToString(D1info, ATRInfoDecimals) + " W1: " + DoubleToString(W1info, ATRInfoDecimals) + " MN1: " + DoubleToString(MN1info, ATRInfoDecimals);
-   static bool infoObjectsCreated = false;
-   if (!infoObjectsCreated)
+   if (!g_infoObjectsCreated)
    {
-      infoObjectsCreated = true;
+      g_infoObjectsCreated = true;
       ObjectCreate(0, objname + "Info1", OBJ_LABEL, 0, 0, 0);
       ObjectSetInteger(0, objname + "Info1", OBJPROP_XDISTANCE, HorizPos);
       ObjectSetInteger(0, objname + "Info1", OBJPROP_YDISTANCE, VertPos);
@@ -274,25 +319,10 @@ int OnCalculate(const int        rates_total,
       ObjectSetInteger(0, objname + "Info2", OBJPROP_FONTSIZE, FontSize);
    }
    // Only update text/color when changed
-   static string prevInfoText1, prevInfoText2;
-   static color prevFontColor1 = clrNONE, prevFontColor2 = clrNONE;
-   if (infoText1 != prevInfoText1) { ObjectSetString(0, objname + "Info1", OBJPROP_TEXT, infoText1); prevInfoText1 = infoText1; }
-   if (FontColor1 != prevFontColor1) { ObjectSetInteger(0, objname + "Info1", OBJPROP_COLOR, FontColor1); prevFontColor1 = FontColor1; }
-   if (infoText2 != prevInfoText2) { ObjectSetString(0, objname + "Info2", OBJPROP_TEXT, infoText2); prevInfoText2 = infoText2; }
-   if (FontColor2 != prevFontColor2) { ObjectSetInteger(0, objname + "Info2", OBJPROP_COLOR, FontColor2); prevFontColor2 = FontColor2; }
-#ifdef __MQL5__
-   static bool dataReady = false;
-   if (!dataReady)
-   {
-      if (BarsCalculated(handle_iATR_D1) <= 0 || BarsCalculated(handle_iATR_MN1) <= 0)
-      {
-         UpdateATRData();
-         UpdateCandlestickData();
-         return prev_calculated;
-      }
-      dataReady = true;
-   }
-#endif
+   if (infoText1 != g_prevInfoText1) { ObjectSetString(0, objname + "Info1", OBJPROP_TEXT, infoText1); g_prevInfoText1 = infoText1; }
+   if (FontColor1 != g_prevFontColor1) { ObjectSetInteger(0, objname + "Info1", OBJPROP_COLOR, FontColor1); g_prevFontColor1 = FontColor1; }
+   if (infoText2 != g_prevInfoText2) { ObjectSetString(0, objname + "Info2", OBJPROP_TEXT, infoText2); g_prevInfoText2 = infoText2; }
+   if (FontColor2 != g_prevFontColor2) { ObjectSetInteger(0, objname + "Info2", OBJPROP_COLOR, FontColor2); g_prevFontColor2 = FontColor2; }
    #ifdef __MQL5__
    datetime endTime = time[rates_total - 1];
 #else
