@@ -81,6 +81,11 @@ string g_prevInfoText1, g_prevInfoText2;
 color g_prevFontColor1 = clrNONE, g_prevFontColor2 = clrNONE;
 int OnInit()
 {
+   if (ATR_Period <= 0)
+   {
+      Print("ATR_Period must be > 0");
+      return INIT_FAILED;
+   }
    //--- indicator buffers mapping
 #ifdef __MQL5__
    SetIndexBuffer(0, iATR_D1, INDICATOR_DATA);
@@ -277,12 +282,12 @@ int OnCalculate(const int        rates_total,
    if (currentbar >= ATR_Period)
    {
    // Calculate the average true range (ATR) for the specified period
-      avgD1 = iATR_D1[0];
-      avgW1 = iATR_W1[0];
-      avgMN1 = iATR_MN1[0];
-      avgH4 = iATR_H4[0];
-      avgH1 = iATR_H1[0];
-      avgM15 = iATR_M15[0];
+      if (copiedD1 == ATR_Period) avgD1 = iATR_D1[0];
+      if (copiedW1 == ATR_Period) avgW1 = iATR_W1[0];
+      if (copiedMN1 == ATR_Period) avgMN1 = iATR_MN1[0];
+      if (copiedH4 == ATR_Period) avgH4 = iATR_H4[0];
+      if (copiedH1 == ATR_Period) avgH1 = iATR_H1[0];
+      if (copiedM15 == ATR_Period) avgM15 = iATR_M15[0];
    }
    double D1info = (copiedD1 == ATR_Period) ? avgD1 : 0.0;
    double W1info = (copiedW1 == ATR_Period) ? avgW1 : 0.0;
@@ -396,20 +401,14 @@ void DrawHorizontalLine(double price, string label, datetime StartTime, datetime
 }
 bool IsNewM15Interval(const datetime& currentTime, const datetime& prevTime)
 {
-    MqlDateTime currentMqlTime, prevMqlTime;
-    TimeToStruct(currentTime, currentMqlTime);
-    TimeToStruct(prevTime, prevMqlTime);
-    // Check if the minutes have changed
-    if (currentMqlTime.min != prevMqlTime.min)
+    int currentM15 = (int)(currentTime / 900);
+    int prevM15 = (int)(prevTime / 900);
+    if (currentM15 != prevM15)
     {
-        // Check if the current time is at a a 15 minute interval
-        if (currentMqlTime.min % 15 == 0)
-        {
 #ifdef __MQL4__
-                ObjectsDeleteAll(0, objname);
+        ObjectsDeleteAll(0, objname);
 #endif
-                return true;
-        }
+        return true;
     }
     return false;
 }

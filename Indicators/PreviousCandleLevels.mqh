@@ -130,10 +130,7 @@ void UpdateJudasData()
 }
 void DeleteHorizontalLine(string label)
 {
-    if(ObjectFind(0, label) != -1)
-    {
-        ObjectDelete(0, label);
-    }
+    ObjectDelete(0, label);
 }
 void DrawLines()
 {
