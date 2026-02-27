@@ -86,6 +86,7 @@ string objname = "MTF_MA_";
 bool g_dataReady = false;
 bool g_objectsCreated = false;
 datetime g_prevTime = 0;
+int g_prevBullLTF = -1, g_prevBearLTF = -1, g_prevBullHTF = -1, g_prevBearHTF = -1;
 int OnInit()
 {
    SetIndexBuffer(0, MABufferH1_200SMA, INDICATOR_DATA);
@@ -207,6 +208,10 @@ int OnInit()
    g_dataReady = false;
    g_objectsCreated = false;
    g_prevTime = 0;
+   g_prevBullLTF = -1; g_prevBearLTF = -1;
+   g_prevBullHTF = -1; g_prevBearHTF = -1;
+   // Clean stale objects from previous instance (crash recovery)
+   ObjectsDeleteAll(0, objname);
    return 0;
 }
 void OnDeinit(const int pReason)
@@ -284,7 +289,7 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
          ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_COLOR, clrWhite);
          ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_COLOR, clrRed);
       }
-      if (TotalBullPowerHTF > TotalBearPowerHTF)
+      else if (TotalBullPowerHTF > TotalBearPowerHTF)
       {
          ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_COLOR, clrLime);
          ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_COLOR, clrWhite);
@@ -345,16 +350,17 @@ int OnCalculate(const int rates_total,
    prevBidPrice = currentBidPrice;
    prevAskPrice = currentAskPrice;
    datetime currentTime = TimeTradeServer();
+   bool buffersOk = false;
    if (lastCheckedCandle != rates_total - 1)
    {
       lastCheckedCandle = rates_total - 1;
-      UpdateBuffers();
+      buffersOk = UpdateBuffers();
       g_prevTime = currentTime;
    }
    else if ((int)(currentTime - g_prevTime) >= 60)
    {
       g_prevTime = currentTime;
-      UpdateBuffers();
+      buffersOk = UpdateBuffers();
    }
    if (!g_dataReady)
    {
@@ -365,8 +371,9 @@ int OnCalculate(const int rates_total,
          return prev_calculated;
       }
       g_dataReady = true;
-      UpdateBuffers();
+      buffersOk = UpdateBuffers();
    }
+   if (!buffersOk) return prev_calculated;
    if (!g_objectsCreated)
    {
    g_objectsCreated = true;
@@ -635,57 +642,57 @@ int OnCalculate(const int rates_total,
    UpdateInfoLabel("D1", is10_20cross_D1, "10_20");
    UpdateInfoLabel("W1", is10_20cross_W1, "10_20");
    // Only update GVs when values change
-   static int prevBullLTF = -1, prevBearLTF = -1, prevBullHTF = -1, prevBearHTF = -1;
    int bullLTF = BullPowerLTF * 5, bearLTF = BearPowerLTF * 5;
    int bullHTF = BullPowerHTF * 5, bearHTF = BearPowerHTF * 5;
-   if (bullLTF != prevBullLTF) { GlobalVariableSet("GlobalBullPowerLTF", bullLTF); prevBullLTF = bullLTF; }
-   if (bearLTF != prevBearLTF) { GlobalVariableSet("GlobalBearPowerLTF", bearLTF); prevBearLTF = bearLTF; }
-   if (bullHTF != prevBullHTF) { GlobalVariableSet("GlobalBullPowerHTF", bullHTF); prevBullHTF = bullHTF; }
-   if (bearHTF != prevBearHTF) { GlobalVariableSet("GlobalBearPowerHTF", bearHTF); prevBearHTF = bearHTF; }
+   if (bullLTF != g_prevBullLTF) { GlobalVariableSet("GlobalBullPowerLTF", bullLTF); g_prevBullLTF = bullLTF; }
+   if (bearLTF != g_prevBearLTF) { GlobalVariableSet("GlobalBearPowerLTF", bearLTF); g_prevBearLTF = bearLTF; }
+   if (bullHTF != g_prevBullHTF) { GlobalVariableSet("GlobalBullPowerHTF", bullHTF); g_prevBullHTF = bullHTF; }
+   if (bearHTF != g_prevBearHTF) { GlobalVariableSet("GlobalBearPowerHTF", bearHTF); g_prevBearHTF = bearHTF; }
    return rates_total;
 }
-void UpdateBuffers()
+bool UpdateBuffers()
 {
-   // CopyBuffer overwrites from index 0, no need to pre-clear
-   CopyBuffer(HandleM1_200SMA, 0, 0, ArraySize(MABufferM1_200SMA), MABufferM1_200SMA);
-   CopyBuffer(HandleM5_200SMA, 0, 0, ArraySize(MABufferM5_200SMA), MABufferM5_200SMA);
-   CopyBuffer(HandleM15_200SMA, 0, 0, ArraySize(MABufferM15_200SMA), MABufferM15_200SMA);
-   CopyBuffer(HandleM30_200SMA, 0, 0, ArraySize(MABufferM30_200SMA), MABufferM30_200SMA);
-   CopyBuffer(HandleH1_200SMA, 0, 0, ArraySize(MABufferH1_200SMA), MABufferH1_200SMA);
-   CopyBuffer(HandleH4_200SMA, 0, 0, ArraySize(MABufferH4_200SMA), MABufferH4_200SMA);
-   CopyBuffer(HandleD1_200SMA, 0, 0, ArraySize(MABufferD1_200SMA), MABufferD1_200SMA);
-   CopyBuffer(HandleW1_200SMA, 0, 0, ArraySize(MABufferW1_200SMA), MABufferW1_200SMA);
-   CopyBuffer(HandleM1_50SMA, 0, 0, ArraySize(MABufferM1_50SMA), MABufferM1_50SMA);
-   CopyBuffer(HandleM5_50SMA, 0, 0, ArraySize(MABufferM5_50SMA), MABufferM5_50SMA);
-   CopyBuffer(HandleM15_50SMA, 0, 0, ArraySize(MABufferM15_50SMA), MABufferM15_50SMA);
-   CopyBuffer(HandleM30_50SMA, 0, 0, ArraySize(MABufferM30_50SMA), MABufferM30_50SMA);
-   CopyBuffer(HandleH1_50SMA, 0, 0, ArraySize(MABufferH1_50SMA), MABufferH1_50SMA);
-   CopyBuffer(HandleH4_50SMA, 0, 0, ArraySize(MABufferH4_50SMA), MABufferH4_50SMA);
-   CopyBuffer(HandleD1_50SMA, 0, 0, ArraySize(MABufferD1_50SMA), MABufferD1_50SMA);
-   CopyBuffer(HandleW1_50SMA, 0, 0, ArraySize(MABufferW1_50SMA), MABufferW1_50SMA);
-   CopyBuffer(HandleM1_20SMA, 0, 0, ArraySize(MABufferM1_20SMA), MABufferM1_20SMA);
-   CopyBuffer(HandleM5_20SMA, 0, 0, ArraySize(MABufferM5_20SMA), MABufferM5_20SMA);
-   CopyBuffer(HandleM15_20SMA, 0, 0, ArraySize(MABufferM15_20SMA), MABufferM15_20SMA);
-   CopyBuffer(HandleM30_20SMA, 0, 0, ArraySize(MABufferM30_20SMA), MABufferM30_20SMA);
-   CopyBuffer(HandleH1_20SMA, 0, 0, ArraySize(MABufferH1_20SMA), MABufferH1_20SMA);
-   CopyBuffer(HandleH4_20SMA, 0, 0, ArraySize(MABufferH4_20SMA), MABufferH4_20SMA);
-   CopyBuffer(HandleD1_20SMA, 0, 0, ArraySize(MABufferD1_20SMA), MABufferD1_20SMA);
-   CopyBuffer(HandleW1_20SMA, 0, 0, ArraySize(MABufferW1_20SMA), MABufferW1_20SMA);
-   CopyBuffer(HandleM1_10SMA, 0, 0, ArraySize(MABufferM1_10SMA), MABufferM1_10SMA);
-   CopyBuffer(HandleM5_10SMA, 0, 0, ArraySize(MABufferM5_10SMA), MABufferM5_10SMA);
-   CopyBuffer(HandleM15_10SMA, 0, 0, ArraySize(MABufferM15_10SMA), MABufferM15_10SMA);
-   CopyBuffer(HandleM30_10SMA, 0, 0, ArraySize(MABufferM30_10SMA), MABufferM30_10SMA);
-   CopyBuffer(HandleH1_10SMA, 0, 0, ArraySize(MABufferH1_10SMA), MABufferH1_10SMA);
-   CopyBuffer(HandleH4_10SMA, 0, 0, ArraySize(MABufferH4_10SMA), MABufferH4_10SMA);
-   CopyBuffer(HandleD1_10SMA, 0, 0, ArraySize(MABufferD1_10SMA), MABufferD1_10SMA);
-   CopyBuffer(HandleW1_10SMA, 0, 0, ArraySize(MABufferW1_10SMA), MABufferW1_10SMA);
-   CopyBuffer(HandleM1_100SMA, 0, 0, ArraySize(MABufferM1_100SMA), MABufferM1_100SMA);
-   CopyBuffer(HandleM5_100SMA, 0, 0, ArraySize(MABufferM5_100SMA), MABufferM5_100SMA);
-   CopyBuffer(HandleM15_100SMA, 0, 0, ArraySize(MABufferM15_100SMA), MABufferM15_100SMA);
-   CopyBuffer(HandleM30_100SMA, 0, 0, ArraySize(MABufferM30_100SMA), MABufferM30_100SMA);
-   CopyBuffer(HandleH1_100SMA, 0, 0, ArraySize(MABufferH1_100SMA), MABufferH1_100SMA);
-   CopyBuffer(HandleH4_100SMA, 0, 0, ArraySize(MABufferH4_100SMA), MABufferH4_100SMA);
-   CopyBuffer(HandleD1_100SMA, 0, 0, ArraySize(MABufferD1_100SMA), MABufferD1_100SMA);
-   CopyBuffer(HandleW1_100SMA, 0, 0, ArraySize(MABufferW1_100SMA), MABufferW1_100SMA);
-   CopyBuffer(HandleMN1_100SMA, 0, 0, ArraySize(MABufferMN1_100SMA), MABufferMN1_100SMA);
+   bool ok = true;
+   ok &= (CopyBuffer(HandleM1_200SMA, 0, 0, ArraySize(MABufferM1_200SMA), MABufferM1_200SMA) > 0);
+   ok &= (CopyBuffer(HandleM5_200SMA, 0, 0, ArraySize(MABufferM5_200SMA), MABufferM5_200SMA) > 0);
+   ok &= (CopyBuffer(HandleM15_200SMA, 0, 0, ArraySize(MABufferM15_200SMA), MABufferM15_200SMA) > 0);
+   ok &= (CopyBuffer(HandleM30_200SMA, 0, 0, ArraySize(MABufferM30_200SMA), MABufferM30_200SMA) > 0);
+   ok &= (CopyBuffer(HandleH1_200SMA, 0, 0, ArraySize(MABufferH1_200SMA), MABufferH1_200SMA) > 0);
+   ok &= (CopyBuffer(HandleH4_200SMA, 0, 0, ArraySize(MABufferH4_200SMA), MABufferH4_200SMA) > 0);
+   ok &= (CopyBuffer(HandleD1_200SMA, 0, 0, ArraySize(MABufferD1_200SMA), MABufferD1_200SMA) > 0);
+   ok &= (CopyBuffer(HandleW1_200SMA, 0, 0, ArraySize(MABufferW1_200SMA), MABufferW1_200SMA) > 0);
+   ok &= (CopyBuffer(HandleM1_50SMA, 0, 0, ArraySize(MABufferM1_50SMA), MABufferM1_50SMA) > 0);
+   ok &= (CopyBuffer(HandleM5_50SMA, 0, 0, ArraySize(MABufferM5_50SMA), MABufferM5_50SMA) > 0);
+   ok &= (CopyBuffer(HandleM15_50SMA, 0, 0, ArraySize(MABufferM15_50SMA), MABufferM15_50SMA) > 0);
+   ok &= (CopyBuffer(HandleM30_50SMA, 0, 0, ArraySize(MABufferM30_50SMA), MABufferM30_50SMA) > 0);
+   ok &= (CopyBuffer(HandleH1_50SMA, 0, 0, ArraySize(MABufferH1_50SMA), MABufferH1_50SMA) > 0);
+   ok &= (CopyBuffer(HandleH4_50SMA, 0, 0, ArraySize(MABufferH4_50SMA), MABufferH4_50SMA) > 0);
+   ok &= (CopyBuffer(HandleD1_50SMA, 0, 0, ArraySize(MABufferD1_50SMA), MABufferD1_50SMA) > 0);
+   ok &= (CopyBuffer(HandleW1_50SMA, 0, 0, ArraySize(MABufferW1_50SMA), MABufferW1_50SMA) > 0);
+   ok &= (CopyBuffer(HandleM1_20SMA, 0, 0, ArraySize(MABufferM1_20SMA), MABufferM1_20SMA) > 0);
+   ok &= (CopyBuffer(HandleM5_20SMA, 0, 0, ArraySize(MABufferM5_20SMA), MABufferM5_20SMA) > 0);
+   ok &= (CopyBuffer(HandleM15_20SMA, 0, 0, ArraySize(MABufferM15_20SMA), MABufferM15_20SMA) > 0);
+   ok &= (CopyBuffer(HandleM30_20SMA, 0, 0, ArraySize(MABufferM30_20SMA), MABufferM30_20SMA) > 0);
+   ok &= (CopyBuffer(HandleH1_20SMA, 0, 0, ArraySize(MABufferH1_20SMA), MABufferH1_20SMA) > 0);
+   ok &= (CopyBuffer(HandleH4_20SMA, 0, 0, ArraySize(MABufferH4_20SMA), MABufferH4_20SMA) > 0);
+   ok &= (CopyBuffer(HandleD1_20SMA, 0, 0, ArraySize(MABufferD1_20SMA), MABufferD1_20SMA) > 0);
+   ok &= (CopyBuffer(HandleW1_20SMA, 0, 0, ArraySize(MABufferW1_20SMA), MABufferW1_20SMA) > 0);
+   ok &= (CopyBuffer(HandleM1_10SMA, 0, 0, ArraySize(MABufferM1_10SMA), MABufferM1_10SMA) > 0);
+   ok &= (CopyBuffer(HandleM5_10SMA, 0, 0, ArraySize(MABufferM5_10SMA), MABufferM5_10SMA) > 0);
+   ok &= (CopyBuffer(HandleM15_10SMA, 0, 0, ArraySize(MABufferM15_10SMA), MABufferM15_10SMA) > 0);
+   ok &= (CopyBuffer(HandleM30_10SMA, 0, 0, ArraySize(MABufferM30_10SMA), MABufferM30_10SMA) > 0);
+   ok &= (CopyBuffer(HandleH1_10SMA, 0, 0, ArraySize(MABufferH1_10SMA), MABufferH1_10SMA) > 0);
+   ok &= (CopyBuffer(HandleH4_10SMA, 0, 0, ArraySize(MABufferH4_10SMA), MABufferH4_10SMA) > 0);
+   ok &= (CopyBuffer(HandleD1_10SMA, 0, 0, ArraySize(MABufferD1_10SMA), MABufferD1_10SMA) > 0);
+   ok &= (CopyBuffer(HandleW1_10SMA, 0, 0, ArraySize(MABufferW1_10SMA), MABufferW1_10SMA) > 0);
+   ok &= (CopyBuffer(HandleM1_100SMA, 0, 0, ArraySize(MABufferM1_100SMA), MABufferM1_100SMA) > 0);
+   ok &= (CopyBuffer(HandleM5_100SMA, 0, 0, ArraySize(MABufferM5_100SMA), MABufferM5_100SMA) > 0);
+   ok &= (CopyBuffer(HandleM15_100SMA, 0, 0, ArraySize(MABufferM15_100SMA), MABufferM15_100SMA) > 0);
+   ok &= (CopyBuffer(HandleM30_100SMA, 0, 0, ArraySize(MABufferM30_100SMA), MABufferM30_100SMA) > 0);
+   ok &= (CopyBuffer(HandleH1_100SMA, 0, 0, ArraySize(MABufferH1_100SMA), MABufferH1_100SMA) > 0);
+   ok &= (CopyBuffer(HandleH4_100SMA, 0, 0, ArraySize(MABufferH4_100SMA), MABufferH4_100SMA) > 0);
+   ok &= (CopyBuffer(HandleD1_100SMA, 0, 0, ArraySize(MABufferD1_100SMA), MABufferD1_100SMA) > 0);
+   ok &= (CopyBuffer(HandleW1_100SMA, 0, 0, ArraySize(MABufferW1_100SMA), MABufferW1_100SMA) > 0);
+   ok &= (CopyBuffer(HandleMN1_100SMA, 0, 0, ArraySize(MABufferMN1_100SMA), MABufferMN1_100SMA) > 0);
+   return ok;
 }

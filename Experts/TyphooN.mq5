@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.392"
+#property version   "1.393"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -110,6 +110,12 @@ bool AutoProtectCalled = false, EquityTPCalled = false,
      EquitySLCalled = false, breakEvenFoundLong = false, breakEvenFoundShort = false,
      breakEvenFound = false;
 int OrderDigits = 0;
+// Dashboard cache (file-scope for reset on reinit)
+string g_prevInfoRR = "", g_prevInfoPL = "", g_prevInfoSLPL = "",
+       g_prevInfoTP = "", g_prevInfoRisk = "", g_prevInfoTPRR = "";
+datetime g_lastTimerUpdate = 0;
+double g_prevLongLots = -1, g_prevShortLots = -1;
+string g_g_cachedVaRStr = "VaR %: 0.00", g_g_cachedPositionStr = "";
 enum MartingaleState { MG_OFF, MG_LONG, MG_SHORT, MG_UNWIND };
 MartingaleState MartingaleMode = MG_OFF;
 datetime LastMartingaleTime = 0;
@@ -308,6 +314,12 @@ int OnInit()
    ObjectSetString(0, "infoW1", OBJPROP_TEXT, "W1 : " + TimeTilNextBar(PERIOD_W1));
    ObjectSetString(0, "infoD1", OBJPROP_TEXT, "D1 : " + TimeTilNextBar(PERIOD_D1));
    ObjectSetString(0, "infoMN1", OBJPROP_TEXT, "MN1: " + TimeTilNextBar(PERIOD_MN1));
+   // Reset dashboard cache on reinit
+   g_prevInfoRR = ""; g_prevInfoPL = ""; g_prevInfoSLPL = "";
+   g_prevInfoTP = ""; g_prevInfoRisk = ""; g_prevInfoTPRR = "";
+   g_lastTimerUpdate = 0;
+   g_prevLongLots = -1; g_prevShortLots = -1;
+   g_g_cachedVaRStr = "VaR %: 0.00"; g_g_cachedPositionStr = "";
    double var_1_lot = 0.0;
    if(PortfolioRisk.CalculateVaR(_Symbol, 1.0))
    {
@@ -468,6 +480,8 @@ bool PlacePyramidOrders()
    {
       if (PositionGetTicket(i) > 0 && PositionGetString(POSITION_SYMBOL) == _Symbol)
       {
+         if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
+            continue;
          if (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
             totalBuyLots += PositionGetDouble(POSITION_VOLUME);
          else
@@ -534,7 +548,7 @@ bool PlacePyramidOrders()
    }
    while (freeMargin >= (PyramidFreeMarginTrigger - PyramidFreeMarginBuffer))
    {
-      Trade.SetExpertMagicNumber(MagicNumber);
+      if (IsStopped()) break;
       // Additional checks before placing the order
       cachedVolume = GetTotalVolumeForSymbol(_Symbol);
       if (cachedVolume >= PyramidTargetLots)
@@ -768,21 +782,19 @@ void OnTick()
    if(!hasLongs && !hasShorts)
       percent_risk = 0;
    // Only update labels when text actually changes (avoid redundant ObjectSetString calls)
-   static string prevInfoRR, prevInfoPL, prevInfoSLPL, prevInfoTP, prevInfoRisk, prevInfoTPRR;
-   if (infoRR != prevInfoRR) { ObjectSetString(0,"infoRR",OBJPROP_TEXT,infoRR); prevInfoRR = infoRR; }
-   if (infoPL != prevInfoPL) { ObjectSetString(0,"infoPL",OBJPROP_TEXT,infoPL); prevInfoPL = infoPL; }
-   if (infoSLPL != prevInfoSLPL) { ObjectSetString(0,"infoSLPL",OBJPROP_TEXT,infoSLPL); prevInfoSLPL = infoSLPL; }
+   if (infoRR != g_prevInfoRR) { ObjectSetString(0,"infoRR",OBJPROP_TEXT,infoRR); g_prevInfoRR = infoRR; }
+   if (infoPL != g_prevInfoPL) { ObjectSetString(0,"infoPL",OBJPROP_TEXT,infoPL); g_prevInfoPL = infoPL; }
+   if (infoSLPL != g_prevInfoSLPL) { ObjectSetString(0,"infoSLPL",OBJPROP_TEXT,infoSLPL); g_prevInfoSLPL = infoSLPL; }
    string infoTP = "TP P/L : $" + DoubleToString(total_tp, 2);
-   if (infoTP != prevInfoTP) { ObjectSetString(0,"infoTP",OBJPROP_TEXT,infoTP); prevInfoTP = infoTP; }
-   if (infoRisk != prevInfoRisk) { ObjectSetString(0,"infoRisk",OBJPROP_TEXT,infoRisk); prevInfoRisk = infoRisk; }
+   if (infoTP != g_prevInfoTP) { ObjectSetString(0,"infoTP",OBJPROP_TEXT,infoTP); g_prevInfoTP = infoTP; }
+   if (infoRisk != g_prevInfoRisk) { ObjectSetString(0,"infoRisk",OBJPROP_TEXT,infoRisk); g_prevInfoRisk = infoRisk; }
    string infoTPRR = "TP RR: " + DoubleToString(tprr, 2);
-   if (infoTPRR != prevInfoTPRR) { ObjectSetString(0,"infoTPRR",OBJPROP_TEXT,infoTPRR); prevInfoTPRR = infoTPRR; }
+   if (infoTPRR != g_prevInfoTPRR) { ObjectSetString(0,"infoTPRR",OBJPROP_TEXT,infoTPRR); g_prevInfoTPRR = infoTPRR; }
    // Only update countdown timers once per second (iTime is expensive)
-   static datetime lastTimerUpdate = 0;
    datetime now = TimeCurrent();
-   if (now != lastTimerUpdate)
+   if (now != g_lastTimerUpdate)
    {
-      lastTimerUpdate = now;
+      g_lastTimerUpdate = now;
       string infoH4 = "H4 : " + TimeTilNextBar(PERIOD_H4);
       ObjectSetString(0,"infoH4",OBJPROP_TEXT,infoH4);
       string infoW1 = "W1 : " + TimeTilNextBar(PERIOD_W1);
@@ -793,38 +805,35 @@ void OnTick()
       ObjectSetString(0,"infoMN1",OBJPROP_TEXT,infoMN1);
    }
    // Cache position display and VaR: only update when lot sizes change
-   static double prevLongLots = -1, prevShortLots = -1;
-   static string cachedVaRStr = "VaR %: 0.00";
-   static string cachedPositionStr = "";
-   bool lotsChanged = (lots.longLots != prevLongLots || lots.shortLots != prevShortLots);
+   bool lotsChanged = (lots.longLots != g_prevLongLots || lots.shortLots != g_prevShortLots);
    if (lotsChanged)
    {
       if (lots.longLots > 0 && lots.shortLots == 0)
       {
-         cachedPositionStr = "Long " + DoubleToString(lots.longLots, OrderDigits) + " Lots";
+         g_cachedPositionStr = "Long " + DoubleToString(lots.longLots, OrderDigits) + " Lots";
          ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrLime);
          ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrLime);
          if (AccountEquity > 0 && PortfolioRisk.CalculateVaR(_Symbol, lots.longLots))
-            cachedVaRStr = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2);
+            g_cachedVaRStr = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2);
       }
       else if (lots.shortLots > 0 && lots.longLots == 0)
       {
-         cachedPositionStr = "Short " + DoubleToString(lots.shortLots, OrderDigits) + " Lots";
+         g_cachedPositionStr = "Short " + DoubleToString(lots.shortLots, OrderDigits) + " Lots";
          ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrRed);
          ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrRed);
          if (AccountEquity > 0 && PortfolioRisk.CalculateVaR(_Symbol, lots.shortLots))
-            cachedVaRStr = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2);
+            g_cachedVaRStr = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2);
       }
       else if (lots.shortLots > 0 && lots.longLots > 0)
       {
          double netExposure = MathAbs(lots.longLots - lots.shortLots);
-         cachedPositionStr = DoubleToString(lots.longLots, OrderDigits) + " Long / " + DoubleToString(lots.shortLots, OrderDigits) + " Short";
+         g_cachedPositionStr = DoubleToString(lots.longLots, OrderDigits) + " Long / " + DoubleToString(lots.shortLots, OrderDigits) + " Short";
          ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrWhite);
          ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrWhite);
          if (netExposure > 0 && AccountEquity > 0 && PortfolioRisk.CalculateVaR(_Symbol, netExposure))
-            cachedVaRStr = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2) + " (net)";
+            g_cachedVaRStr = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2) + " (net)";
          else
-            cachedVaRStr = "VaR %: 0.00 (hedged)";
+            g_cachedVaRStr = "VaR %: 0.00 (hedged)";
       }
       else
       {
@@ -832,15 +841,15 @@ void OnTick()
          if(PortfolioRisk.CalculateVaR(_Symbol, 1.0))
          {
             var_1_lot = PortfolioRisk.SinglePositionVaR;
-            cachedPositionStr = "VaR 1 lot: " + DoubleToString(var_1_lot, 2);
+            g_cachedPositionStr = "VaR 1 lot: " + DoubleToString(var_1_lot, 2);
          }
          ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrWhite);
          ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrWhite);
       }
-      ObjectSetString(0,"infoPosition",OBJPROP_TEXT,cachedPositionStr);
-      ObjectSetString(0,"infoVaR",OBJPROP_TEXT,cachedVaRStr);
-      prevLongLots = lots.longLots;
-      prevShortLots = lots.shortLots;
+      ObjectSetString(0,"infoPosition",OBJPROP_TEXT,g_cachedPositionStr);
+      ObjectSetString(0,"infoVaR",OBJPROP_TEXT,g_cachedVaRStr);
+      g_prevLongLots = lots.longLots;
+      g_prevShortLots = lots.shortLots;
    }
 }
 void OnChartEvent(const int id,         // event ID  
@@ -1089,14 +1098,14 @@ bool HasOpenPosition(string sym, int orderType)
 double GetTotalVolumeForSymbol(string symbol)
 {
    double totalVolume = 0;
-
    int total = PositionsTotal();
-   for(int i=total-1; i >= 0; i--)
+   for(int i = total - 1; i >= 0; i--)
    {
       string positionSymbol = PositionGetSymbol(i);
       if(positionSymbol == symbol)
       {
-         totalVolume += PositionGetDouble(POSITION_VOLUME);
+         if (ManageAllPositions || PositionGetInteger(POSITION_MAGIC) == MagicNumber)
+            totalVolume += PositionGetDouble(POSITION_VOLUME);
       }
    }
    return totalVolume;
@@ -1119,12 +1128,13 @@ double PerformOrderCheck(const MqlTradeRequest &request, MqlTradeCheckResult &ch
    // OrderCheck successful, calculate and return the required margin
    double checkAsk = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    double checkBid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
-   if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY) ? checkAsk : checkBid, required_margin))
+   double margin = 0;
+   if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY) ? checkAsk : checkBid, margin))
    {
       Print("Failed to calculate required margin after successful OrderCheck. Error:", GetLastError());
       return -1.0;
    }
-   return required_margin;
+   return margin;
 }
 double CalculateMartingalePL()
 {
@@ -1144,6 +1154,7 @@ void CloseAllSymbolPositions()
    for (int i = total - 1; i >= 0; i--)
    {
       ulong ticket = PositionGetTicket(i);
+      if (ticket == 0) continue;
       if (PositionGetString(POSITION_SYMBOL) == _Symbol)
       {
          if (Trade.PositionClose(ticket))
@@ -1592,8 +1603,17 @@ void TyWindow::OnClickTrade(void)
       Print("Failed to calculate required margin before the loop. Error:", GetLastError());
       return;
    }
+   // Proportional estimate to skip most loop iterations
+   if (required_margin > usable_margin && required_margin > 0)
+   {
+      double ratio = usable_margin / required_margin;
+      double estimated = NormalizeDouble(OrderLots * ratio * 0.95, OrderDigits);
+      if (estimated >= min_volume)
+         OrderLots = estimated;
+   }
    while (required_margin > usable_margin && OrderLots > min_volume)
    {
+      if (IsStopped()) return;
       OrderLots = NormalizeDouble(OrderLots - min_volume, OrderDigits);
       usable_margin = marginBudget - AccountInfoDouble(ACCOUNT_MARGIN);
       if (PerformOrderCheck(request, check_result, OrderLots) < 0)
@@ -1842,6 +1862,9 @@ struct PositionInfo
    // Default constructor
    PositionInfo()
    {
+      ticket = 0;
+      diff = 0.0;
+      lotSize = 0.0;
    }
    // Assignment operator
    void operator=(const PositionInfo &other)
@@ -1987,7 +2010,11 @@ void TyWindow::OnClickClosePartial(void)
    int result = MessageBox("Do you want to close the smallest lot order on " + _Symbol + "?", "Close Smallest Lot Order", MB_YESNO | MB_ICONQUESTION);
    if (result == IDYES)
    {
-      PositionSelectByTicket(positions[0].ticket);
+      if (!PositionSelectByTicket(positions[0].ticket))
+      {
+         Print("Position #", positions[0].ticket, " no longer exists.");
+         return;
+      }
       double entryPrice = PositionGetDouble(POSITION_PRICE_OPEN);
       double currentPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
       double positionProfit = PositionGetDouble(POSITION_PROFIT);
