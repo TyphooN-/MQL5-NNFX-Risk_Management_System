@@ -51,6 +51,10 @@ bool g_dataReady = false;
 bool g_objectsCreated = false;
 datetime g_prevTime = 0;
 int g_prevBullLTF = -1, g_prevBearLTF = -1, g_prevBullHTF = -1, g_prevBearHTF = -1;
+// Cached object name strings (8 TFs x 5 labels = 40, plus 4 power labels)
+string g_objNames[8][5];  // [tf_index][label_index] for UpdateInfoLabel
+string g_nameBullLTF, g_nameBearLTF, g_nameBullHTF, g_nameBearHTF;
+bool g_objNamesReady = false;
 int OnInit()
 {
    SetIndexBuffer(0, MABufferH1_200SMA, INDICATOR_DATA);
@@ -174,6 +178,17 @@ int OnInit()
    g_prevTime = 0;
    g_prevBullLTF = -1; g_prevBearLTF = -1;
    g_prevBullHTF = -1; g_prevBearHTF = -1;
+   // Cache object name strings for UpdateInfoLabel (avoids 40+ string allocations per tick)
+   string tfNames[] = {"M1", "M5", "M15", "M30", "H1", "H4", "D1", "W1"};
+   string lblNames[] = {"200SMA", "DEATH", "100_200", "20_50", "10_20"};
+   for (int t = 0; t < 8; t++)
+      for (int l = 0; l < 5; l++)
+         g_objNames[t][l] = objname + tfNames[t] + lblNames[l];
+   g_nameBullLTF = objname + "InfoBullPowerLTF";
+   g_nameBearLTF = objname + "InfoBearPowerLTF";
+   g_nameBullHTF = objname + "InfoBullPowerHTF";
+   g_nameBearHTF = objname + "InfoBearPowerHTF";
+   g_objNamesReady = true;
    // Clean stale objects from previous instance (crash recovery)
    ObjectsDeleteAll(0, objname);
    return 0;
@@ -209,17 +224,13 @@ void OnDeinit(const int pReason)
    GlobalVariableDel("GlobalBullPowerHTF");
    GlobalVariableDel("GlobalBearPowerHTF");
 }
-void UpdateInfoLabel(string timeframe, bool condition, string label)
+void UpdateInfoLabel(const string &objnameInfo, bool condition, bool isLTF, bool isHTF)
 {
-   string objnameInfo = objname + timeframe + label;
    color textColor = condition ? clrLime : clrRed;
    // Check if the color has changed
    color prevColor = (color)ObjectGetInteger(0, objnameInfo, OBJPROP_COLOR);
    if (prevColor != textColor)
    {
-      // Classify timeframe once (direct equality is faster than StringFind)
-      bool isLTF = (timeframe == "M1" || timeframe == "M5" || timeframe == "M15" || timeframe == "M30");
-      bool isHTF = (timeframe == "H1" || timeframe == "H4" || timeframe == "D1" || timeframe == "W1");
       // Decrement the appropriate variable based on the previous color
       if (prevColor == clrLime)
       {
@@ -250,43 +261,43 @@ void UpdateInfoLabel(string timeframe, bool condition, string label)
       int TotalBullPowerHTF = (BullPowerHTF * 5);
       if (TotalBearPowerHTF > TotalBullPowerHTF)
       {
-         ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_COLOR, clrWhite);
-         ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_COLOR, clrRed);
+         ObjectSetInteger(0, g_nameBullHTF, OBJPROP_COLOR, clrWhite);
+         ObjectSetInteger(0, g_nameBearHTF, OBJPROP_COLOR, clrRed);
       }
       else if (TotalBullPowerHTF > TotalBearPowerHTF)
       {
-         ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_COLOR, clrLime);
-         ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_COLOR, clrWhite);
+         ObjectSetInteger(0, g_nameBullHTF, OBJPROP_COLOR, clrLime);
+         ObjectSetInteger(0, g_nameBearHTF, OBJPROP_COLOR, clrWhite);
       }
       if (TotalBearPowerLTF > TotalBullPowerLTF)
       {
-         ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_COLOR, clrWhite);
-         ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_COLOR, clrRed);
+         ObjectSetInteger(0, g_nameBullLTF, OBJPROP_COLOR, clrWhite);
+         ObjectSetInteger(0, g_nameBearLTF, OBJPROP_COLOR, clrRed);
       }
       else if (TotalBullPowerLTF > TotalBearPowerLTF)
       {
-         ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_COLOR, clrLime);
-         ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_COLOR, clrWhite);
+         ObjectSetInteger(0, g_nameBullLTF, OBJPROP_COLOR, clrLime);
+         ObjectSetInteger(0, g_nameBearLTF, OBJPROP_COLOR, clrWhite);
       }
       if (TotalBullPowerHTF == TotalBearPowerHTF)
       {
-         ObjectSetInteger(0, objname + "InfoBullPowerHTF", OBJPROP_COLOR, clrWhite);
-         ObjectSetInteger(0, objname + "InfoBearPowerHTF", OBJPROP_COLOR, clrWhite);
+         ObjectSetInteger(0, g_nameBullHTF, OBJPROP_COLOR, clrWhite);
+         ObjectSetInteger(0, g_nameBearHTF, OBJPROP_COLOR, clrWhite);
       }
       if (TotalBullPowerLTF == TotalBearPowerLTF)
       {
-         ObjectSetInteger(0, objname + "InfoBullPowerLTF", OBJPROP_COLOR, clrWhite);
-         ObjectSetInteger(0, objname + "InfoBearPowerLTF", OBJPROP_COLOR, clrWhite);
+         ObjectSetInteger(0, g_nameBullLTF, OBJPROP_COLOR, clrWhite);
+         ObjectSetInteger(0, g_nameBearLTF, OBJPROP_COLOR, clrWhite);
       }
       // Update the labels with the new values
       string BullPowerTextLTF = "LTF Bull Power: " + IntegerToString(TotalBullPowerLTF);
       string BearPowerTextLTF = "LTF Bear Power: " + IntegerToString(TotalBearPowerLTF);
-      ObjectSetString(0, objname + "InfoBullPowerLTF", OBJPROP_TEXT, BullPowerTextLTF);
-      ObjectSetString(0, objname + "InfoBearPowerLTF", OBJPROP_TEXT, BearPowerTextLTF);
+      ObjectSetString(0, g_nameBullLTF, OBJPROP_TEXT, BullPowerTextLTF);
+      ObjectSetString(0, g_nameBearLTF, OBJPROP_TEXT, BearPowerTextLTF);
       string BullPowerTextHTF = "HTF Bull Power: " + IntegerToString(TotalBullPowerHTF);
       string BearPowerTextHTF = "HTF Bear Power: " + IntegerToString(TotalBearPowerHTF);
-      ObjectSetString(0, objname + "InfoBullPowerHTF", OBJPROP_TEXT, BullPowerTextHTF);
-      ObjectSetString(0, objname + "InfoBearPowerHTF", OBJPROP_TEXT, BearPowerTextHTF);
+      ObjectSetString(0, g_nameBullHTF, OBJPROP_TEXT, BullPowerTextHTF);
+      ObjectSetString(0, g_nameBearHTF, OBJPROP_TEXT, BearPowerTextHTF);
    }
 }
 int OnCalculate(const int rates_total,
@@ -530,14 +541,14 @@ int OnCalculate(const int rates_total,
    bool isAbove_H4_200SMA = currentPrice > MABufferH4_200SMA[rates_total - 1];
    bool isAbove_D1_200SMA = currentPrice > MABufferD1_200SMA[rates_total - 1];
    bool isAbove_W1_200SMA = currentPrice > MABufferW1_200SMA[rates_total - 1];
-   UpdateInfoLabel("M1", isAbove_M1_200SMA, "200SMA");
-   UpdateInfoLabel("M5", isAbove_M5_200SMA, "200SMA");
-   UpdateInfoLabel("M15", isAbove_M15_200SMA, "200SMA");
-   UpdateInfoLabel("M30", isAbove_M30_200SMA, "200SMA");
-   UpdateInfoLabel("H1", isAbove_H1_200SMA, "200SMA");
-   UpdateInfoLabel("H4", isAbove_H4_200SMA, "200SMA");
-   UpdateInfoLabel("D1", isAbove_D1_200SMA, "200SMA");
-   UpdateInfoLabel("W1", isAbove_W1_200SMA, "200SMA");
+   UpdateInfoLabel(g_objNames[0][0], isAbove_M1_200SMA, true, false);
+   UpdateInfoLabel(g_objNames[1][0], isAbove_M5_200SMA, true, false);
+   UpdateInfoLabel(g_objNames[2][0], isAbove_M15_200SMA, true, false);
+   UpdateInfoLabel(g_objNames[3][0], isAbove_M30_200SMA, true, false);
+   UpdateInfoLabel(g_objNames[4][0], isAbove_H1_200SMA, false, true);
+   UpdateInfoLabel(g_objNames[5][0], isAbove_H4_200SMA, false, true);
+   UpdateInfoLabel(g_objNames[6][0], isAbove_D1_200SMA, false, true);
+   UpdateInfoLabel(g_objNames[7][0], isAbove_W1_200SMA, false, true);
    // Check for DEATH and GOLDEN crosses
    bool isOnDeathRow_M1 = MABufferM1_50SMA[rates_total - 1] > MABufferM1_200SMA[rates_total - 1];
    bool isOnDeathRow_M5 = MABufferM5_50SMA[rates_total - 1] > MABufferM5_200SMA[rates_total - 1];
@@ -547,14 +558,14 @@ int OnCalculate(const int rates_total,
    bool isOnDeathRow_H4 = MABufferH4_50SMA[rates_total - 1] > MABufferH4_200SMA[rates_total - 1];
    bool isOnDeathRow_D1 = MABufferD1_50SMA[rates_total - 1] > MABufferD1_200SMA[rates_total - 1];
    bool isOnDeathRow_W1 = MABufferW1_50SMA[rates_total - 1] > MABufferW1_200SMA[rates_total - 1];
-   UpdateInfoLabel("M1", isOnDeathRow_M1, "DEATH");
-   UpdateInfoLabel("M5", isOnDeathRow_M5, "DEATH");
-   UpdateInfoLabel("M15", isOnDeathRow_M15, "DEATH");
-   UpdateInfoLabel("M30", isOnDeathRow_M30, "DEATH");
-   UpdateInfoLabel("H1", isOnDeathRow_H1, "DEATH");
-   UpdateInfoLabel("H4", isOnDeathRow_H4, "DEATH");
-   UpdateInfoLabel("D1", isOnDeathRow_D1, "DEATH");
-   UpdateInfoLabel("W1", isOnDeathRow_W1, "DEATH");
+   UpdateInfoLabel(g_objNames[0][1], isOnDeathRow_M1, true, false);
+   UpdateInfoLabel(g_objNames[1][1], isOnDeathRow_M5, true, false);
+   UpdateInfoLabel(g_objNames[2][1], isOnDeathRow_M15, true, false);
+   UpdateInfoLabel(g_objNames[3][1], isOnDeathRow_M30, true, false);
+   UpdateInfoLabel(g_objNames[4][1], isOnDeathRow_H1, false, true);
+   UpdateInfoLabel(g_objNames[5][1], isOnDeathRow_H4, false, true);
+   UpdateInfoLabel(g_objNames[6][1], isOnDeathRow_D1, false, true);
+   UpdateInfoLabel(g_objNames[7][1], isOnDeathRow_W1, false, true);
    // Check for 100/200 SMA crosses
    bool is100_200cross_M1 = MABufferM1_100SMA[rates_total - 1] > MABufferM1_200SMA[rates_total - 1];
    bool is100_200cross_M5 = MABufferM5_100SMA[rates_total - 1] > MABufferM5_200SMA[rates_total - 1];
@@ -564,14 +575,14 @@ int OnCalculate(const int rates_total,
    bool is100_200cross_H4 = MABufferH4_100SMA[rates_total - 1] > MABufferH4_200SMA[rates_total - 1];
    bool is100_200cross_D1 = MABufferD1_100SMA[rates_total - 1] > MABufferD1_200SMA[rates_total - 1];
    bool is100_200cross_W1 = MABufferW1_100SMA[rates_total - 1] > MABufferW1_200SMA[rates_total - 1];
-   UpdateInfoLabel("M1", is100_200cross_M1, "100_200");
-   UpdateInfoLabel("M5", is100_200cross_M5, "100_200");
-   UpdateInfoLabel("M15", is100_200cross_M15, "100_200");
-   UpdateInfoLabel("M30", is100_200cross_M30, "100_200");
-   UpdateInfoLabel("H1", is100_200cross_H1, "100_200");
-   UpdateInfoLabel("H4", is100_200cross_H4, "100_200");
-   UpdateInfoLabel("D1", is100_200cross_D1, "100_200");
-   UpdateInfoLabel("W1", is100_200cross_W1, "100_200");
+   UpdateInfoLabel(g_objNames[0][2], is100_200cross_M1, true, false);
+   UpdateInfoLabel(g_objNames[1][2], is100_200cross_M5, true, false);
+   UpdateInfoLabel(g_objNames[2][2], is100_200cross_M15, true, false);
+   UpdateInfoLabel(g_objNames[3][2], is100_200cross_M30, true, false);
+   UpdateInfoLabel(g_objNames[4][2], is100_200cross_H1, false, true);
+   UpdateInfoLabel(g_objNames[5][2], is100_200cross_H4, false, true);
+   UpdateInfoLabel(g_objNames[6][2], is100_200cross_D1, false, true);
+   UpdateInfoLabel(g_objNames[7][2], is100_200cross_W1, false, true);
    // Check for 20 SMA / 50 SMA crosses
    bool is20_50cross_M1 = MABufferM1_20SMA[rates_total - 1] > MABufferM1_50SMA[rates_total - 1];
    bool is20_50cross_M5 = MABufferM5_20SMA[rates_total - 1] > MABufferM5_50SMA[rates_total - 1];
@@ -581,14 +592,14 @@ int OnCalculate(const int rates_total,
    bool is20_50cross_H4 = MABufferH4_20SMA[rates_total - 1] > MABufferH4_50SMA[rates_total - 1];
    bool is20_50cross_D1 = MABufferD1_20SMA[rates_total - 1] > MABufferD1_50SMA[rates_total - 1];
    bool is20_50cross_W1 = MABufferW1_20SMA[rates_total - 1] > MABufferW1_50SMA[rates_total - 1];
-   UpdateInfoLabel("M1", is20_50cross_M1, "20_50");
-   UpdateInfoLabel("M5", is20_50cross_M5, "20_50");
-   UpdateInfoLabel("M15", is20_50cross_M15, "20_50");
-   UpdateInfoLabel("M30", is20_50cross_M30, "20_50");
-   UpdateInfoLabel("H1", is20_50cross_H1, "20_50");
-   UpdateInfoLabel("H4", is20_50cross_H4, "20_50");
-   UpdateInfoLabel("D1", is20_50cross_D1, "20_50");
-   UpdateInfoLabel("W1", is20_50cross_W1, "20_50");
+   UpdateInfoLabel(g_objNames[0][3], is20_50cross_M1, true, false);
+   UpdateInfoLabel(g_objNames[1][3], is20_50cross_M5, true, false);
+   UpdateInfoLabel(g_objNames[2][3], is20_50cross_M15, true, false);
+   UpdateInfoLabel(g_objNames[3][3], is20_50cross_M30, true, false);
+   UpdateInfoLabel(g_objNames[4][3], is20_50cross_H1, false, true);
+   UpdateInfoLabel(g_objNames[5][3], is20_50cross_H4, false, true);
+   UpdateInfoLabel(g_objNames[6][3], is20_50cross_D1, false, true);
+   UpdateInfoLabel(g_objNames[7][3], is20_50cross_W1, false, true);
    // Check for 10 SMA / 20 SMA crosses
    bool is10_20cross_M1 = MABufferM1_10SMA[rates_total - 1] > MABufferM1_20SMA[rates_total - 1];
    bool is10_20cross_M5 = MABufferM5_10SMA[rates_total - 1] > MABufferM5_20SMA[rates_total - 1];
@@ -598,14 +609,14 @@ int OnCalculate(const int rates_total,
    bool is10_20cross_H4 = MABufferH4_10SMA[rates_total - 1] > MABufferH4_20SMA[rates_total - 1];
    bool is10_20cross_D1 = MABufferD1_10SMA[rates_total - 1] > MABufferD1_20SMA[rates_total - 1];
    bool is10_20cross_W1 = MABufferW1_10SMA[rates_total - 1] > MABufferW1_20SMA[rates_total - 1];
-   UpdateInfoLabel("M1", is10_20cross_M1, "10_20");
-   UpdateInfoLabel("M5", is10_20cross_M5, "10_20");
-   UpdateInfoLabel("M15", is10_20cross_M15, "10_20");
-   UpdateInfoLabel("M30", is10_20cross_M30, "10_20");
-   UpdateInfoLabel("H1", is10_20cross_H1, "10_20");
-   UpdateInfoLabel("H4", is10_20cross_H4, "10_20");
-   UpdateInfoLabel("D1", is10_20cross_D1, "10_20");
-   UpdateInfoLabel("W1", is10_20cross_W1, "10_20");
+   UpdateInfoLabel(g_objNames[0][4], is10_20cross_M1, true, false);
+   UpdateInfoLabel(g_objNames[1][4], is10_20cross_M5, true, false);
+   UpdateInfoLabel(g_objNames[2][4], is10_20cross_M15, true, false);
+   UpdateInfoLabel(g_objNames[3][4], is10_20cross_M30, true, false);
+   UpdateInfoLabel(g_objNames[4][4], is10_20cross_H1, false, true);
+   UpdateInfoLabel(g_objNames[5][4], is10_20cross_H4, false, true);
+   UpdateInfoLabel(g_objNames[6][4], is10_20cross_D1, false, true);
+   UpdateInfoLabel(g_objNames[7][4], is10_20cross_W1, false, true);
    // Only update GVs when values change
    int bullLTF = BullPowerLTF * 5, bearLTF = BearPowerLTF * 5;
    int bullHTF = BullPowerHTF * 5, bearHTF = BearPowerHTF * 5;

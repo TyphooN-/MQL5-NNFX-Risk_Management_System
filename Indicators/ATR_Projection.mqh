@@ -93,12 +93,12 @@ int OnInit()
    }
    //--- indicator buffers mapping
 #ifdef __MQL5__
-   SetIndexBuffer(0, iATR_D1, INDICATOR_DATA);
-   SetIndexBuffer(1, iATR_W1, INDICATOR_DATA);
-   SetIndexBuffer(2, iATR_MN1, INDICATOR_DATA);
-   SetIndexBuffer(3, iATR_H4, INDICATOR_DATA);
-   SetIndexBuffer(4, iATR_H1, INDICATOR_DATA);
-   SetIndexBuffer(5, iATR_M15, INDICATOR_DATA);
+   SetIndexBuffer(0, iATR_D1, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(1, iATR_W1, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(2, iATR_MN1, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(3, iATR_H4, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(4, iATR_H1, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(5, iATR_M15, INDICATOR_CALCULATIONS);
 #else
    #ifdef __MQL4__
    SetIndexBuffer(0, iATR_D1);
