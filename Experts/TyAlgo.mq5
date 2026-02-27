@@ -458,6 +458,7 @@ void UpdateDashboard(LotsInfo &lots, double total_risk, double total_tp, double 
       else
       {
          ObjectSetInteger(0, "infoPosition", OBJPROP_COLOR, clrWhite);
+         ObjectSetInteger(0, "infoVaR", OBJPROP_COLOR, clrWhite);
          ObjectSetString(0, "infoPosition", OBJPROP_TEXT, "No Positions Detected");
          g_cachedVaRStr = "VaR %: 0.00";
       }

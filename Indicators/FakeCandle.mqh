@@ -70,9 +70,11 @@ int OnCalculate(const int rates_total,
       ObjectCreate(0, "FakeCandleWickBottom", OBJ_TREND, 0, wick_x, body_bottom, wick_x, FakeLow);
       ObjectSetInteger(0, "FakeCandleWickBottom", OBJPROP_COLOR, clrGray);
       ObjectSetInteger(0, "FakeCandleWickBottom", OBJPROP_STYLE, STYLE_SOLID);
+      ObjectSetInteger(0, "FakeCandleWickBottom", OBJPROP_RAY_RIGHT, false);
       ObjectCreate(0, "FakeCandleWickTop", OBJ_TREND, 0, wick_x, FakeHigh, wick_x, body_top);
       ObjectSetInteger(0, "FakeCandleWickTop", OBJPROP_COLOR, clrGray);
       ObjectSetInteger(0, "FakeCandleWickTop", OBJPROP_STYLE, STYLE_SOLID);
+      ObjectSetInteger(0, "FakeCandleWickTop", OBJPROP_RAY_RIGHT, false);
       ObjectCreate(0, "FakeCloseLine", OBJ_HLINE, 0, time[rates_total - 1], FakeClose);
       ObjectSetInteger(0, "FakeCloseLine", OBJPROP_COLOR, clrGray);
       ObjectSetInteger(0, "FakeCloseLine", OBJPROP_STYLE, STYLE_SOLID);
