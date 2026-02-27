@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "http://marketwizardry.info/"
-#property version   "1.394"
+#property version   "1.395"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -115,10 +115,11 @@ string g_prevInfoRR = "", g_prevInfoPL = "", g_prevInfoSLPL = "",
        g_prevInfoTP = "", g_prevInfoRisk = "", g_prevInfoTPRR = "";
 datetime g_lastTimerUpdate = 0;
 double g_prevLongLots = -1, g_prevShortLots = -1;
-string g_g_cachedVaRStr = "VaR %: 0.00", g_g_cachedPositionStr = "";
+string g_cachedVaRStr = "VaR %: 0.00", g_cachedPositionStr = "";
 enum MartingaleState { MG_OFF, MG_LONG, MG_SHORT, MG_UNWIND };
 MartingaleState MartingaleMode = MG_OFF;
 datetime LastMartingaleTime = 0;
+datetime g_lastMGLogTime = 0;
 int MartingaleHedgeCloses = 0;
 int MartingaleBiasCloses = 0;
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
@@ -319,7 +320,8 @@ int OnInit()
    g_prevInfoTP = ""; g_prevInfoRisk = ""; g_prevInfoTPRR = "";
    g_lastTimerUpdate = 0;
    g_prevLongLots = -1; g_prevShortLots = -1;
-   g_g_cachedVaRStr = "VaR %: 0.00"; g_g_cachedPositionStr = "";
+   g_cachedVaRStr = "VaR %: 0.00"; g_cachedPositionStr = "";
+   g_lastMGLogTime = 0;
    double var_1_lot = 0.0;
    if(PortfolioRisk.CalculateVaR(_Symbol, 1.0))
    {
@@ -843,6 +845,9 @@ void OnTick()
             var_1_lot = PortfolioRisk.SinglePositionVaR;
             g_cachedPositionStr = "VaR 1 lot: " + DoubleToString(var_1_lot, 2);
          }
+         else
+            g_cachedPositionStr = "No Positions Detected";
+         g_cachedVaRStr = "VaR %: 0.00";
          ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrWhite);
          ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrWhite);
       }
@@ -1348,10 +1353,9 @@ bool ProtectivePartialCloseBias()
 }
 void LogMartingaleUnwindStatus()
 {
-   static datetime lastLogTime = 0;
-   if (TimeCurrent() - lastLogTime < 60)
+   if (TimeCurrent() - g_lastMGLogTime < 60)
       return;
-   lastLogTime = TimeCurrent();
+   g_lastMGLogTime = TimeCurrent();
    string biasDir = (MartingaleMode == MG_LONG) ? "LONG" : "SHORT";
    int hedgeType = (MartingaleMode == MG_SHORT) ? POSITION_TYPE_BUY : POSITION_TYPE_SELL;
    int biasType = (MartingaleMode == MG_SHORT) ? POSITION_TYPE_SELL : POSITION_TYPE_BUY;

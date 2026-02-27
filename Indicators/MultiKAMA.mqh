@@ -130,6 +130,8 @@ int OnCalculate(const int rates_total, const int prev_calculated, const int begi
       allCopied &= CopyIndicatorData(handle_KAMA_D1, ExtAMABuffer_D1, rates_total);
       allCopied &= CopyIndicatorData(handle_KAMA_W1, ExtAMABuffer_W1, rates_total);
       allCopied &= CopyIndicatorData(handle_KAMA_MN1, ExtAMABuffer_MN1, rates_total);
+      if (!allCopied && prev_calculated == 0)
+         return 0;
       int latestIndex = rates_total - 1;
       if (allCopied)
       {
