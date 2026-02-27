@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "https://www.marketwizardry.org/"
-#property version   "1.401"
+#property version   "1.402"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -1286,11 +1286,9 @@ bool UnwindHedgeByMargin()
       hedgeType = POSITION_TYPE_SELL;
    else
       return false;
-   // Find worst-performing hedge position:
-   // MG_SHORT hedges are BUYs → worst = highest open (bought high, price dropping)
-   // MG_LONG hedges are SELLs → worst = lowest open (sold low, price rising)
+   // Find highest-cost hedge position (frees the most margin per lot when closed)
    ulong bestTicket = 0;
-   double worstOpen = (MartingaleMode == MG_LONG) ? DBL_MAX : -1;
+   double highestOpen = -1;
    double bestVolume = 0;
    int total = PositionsTotal();
    for (int i = 0; i < total; i++)
@@ -1302,10 +1300,9 @@ bool UnwindHedgeByMargin()
       if ((int)PositionGetInteger(POSITION_TYPE) != hedgeType)
          continue;
       double openPrice = PositionGetDouble(POSITION_PRICE_OPEN);
-      bool isWorse = (MartingaleMode == MG_LONG) ? (openPrice < worstOpen) : (openPrice > worstOpen);
-      if (isWorse)
+      if (openPrice > highestOpen)
       {
-         worstOpen = openPrice;
+         highestOpen = openPrice;
          bestTicket = PositionGetInteger(POSITION_TICKET);
          bestVolume = PositionGetDouble(POSITION_VOLUME);
       }
@@ -1323,12 +1320,12 @@ bool UnwindHedgeByMargin()
    {
       MartingaleHedgeCloses++;
       double marginPct = CalculateMarginUsagePct();
-      Print("Martingale Tier1: closed ", dir, " #", bestTicket,
-            " (", (bestVolume <= closeLots) ? bestVolume : closeLots, " lots, open: ", DoubleToString(worstOpen, _Digits),
-            ") margin: ", DoubleToString(marginPct, 1), "% | hedge closes: ", MartingaleHedgeCloses);
+      Print("Martingale TRIM: closed ", dir, " #", bestTicket,
+            " (", (bestVolume <= closeLots) ? bestVolume : closeLots, " lots, entry: ", DoubleToString(highestOpen, _Digits),
+            ") margin: ", DoubleToString(marginPct, 1), "% | trim closes: ", MartingaleHedgeCloses);
    }
    else
-      Print("Martingale Tier1: failed to close ", dir, " #", bestTicket, " error ", GetLastError());
+      Print("Martingale TRIM: failed to close ", dir, " #", bestTicket, " error ", GetLastError());
    return result;
 }
 bool ProtectivePartialCloseBias()
@@ -1341,9 +1338,10 @@ bool ProtectivePartialCloseBias()
       biasType = POSITION_TYPE_BUY;
    else
       return false;
-   // Find the largest volume bias position (maximum margin relief)
+   // Find highest-cost bias position (frees the most margin per lot when closed), volume as tiebreaker
    ulong bestTicket = 0;
-   double largestVolume = 0;
+   double highestOpen = -1;
+   double bestVolume = 0;
    int total = PositionsTotal();
    for (int i = 0; i < total; i++)
    {
@@ -1353,11 +1351,13 @@ bool ProtectivePartialCloseBias()
          continue;
       if ((int)PositionGetInteger(POSITION_TYPE) != biasType)
          continue;
+      double openPrice = PositionGetDouble(POSITION_PRICE_OPEN);
       double vol = PositionGetDouble(POSITION_VOLUME);
-      if (vol > largestVolume)
+      if (openPrice > highestOpen || (openPrice == highestOpen && vol > bestVolume))
       {
-         largestVolume = vol;
+         highestOpen = openPrice;
          bestTicket = PositionGetInteger(POSITION_TICKET);
+         bestVolume = vol;
       }
    }
    if (bestTicket == 0)
@@ -1365,7 +1365,7 @@ bool ProtectivePartialCloseBias()
    double chunkSize = NormalizeDouble(MartingaleCloseChunkSize, OrderDigits);
    string dir = (biasType == POSITION_TYPE_BUY) ? "LONG bias" : "SHORT bias";
    bool result;
-   if (largestVolume <= chunkSize)
+   if (bestVolume <= chunkSize)
       result = Trade.PositionClose(bestTicket);
    else
       result = Trade.PositionClosePartial(bestTicket, chunkSize);
@@ -1373,12 +1373,12 @@ bool ProtectivePartialCloseBias()
    {
       MartingaleBiasCloses++;
       double marginPct = CalculateMarginUsagePct();
-      Print("Martingale Tier2: closed ", dir, " #", bestTicket,
-            " (", (largestVolume <= chunkSize) ? largestVolume : chunkSize, " of ", largestVolume, " lots)",
-            " margin: ", DoubleToString(marginPct, 1), "% | bias closes: ", MartingaleBiasCloses);
+      Print("Martingale PROTECT: closed ", dir, " #", bestTicket,
+            " (", (bestVolume <= chunkSize) ? bestVolume : chunkSize, " of ", bestVolume, " lots, entry: ", DoubleToString(highestOpen, _Digits),
+            ") margin: ", DoubleToString(marginPct, 1), "% | protect closes: ", MartingaleBiasCloses);
    }
    else
-      Print("Martingale Tier2: failed to close ", dir, " #", bestTicket, " error ", GetLastError());
+      Print("Martingale PROTECT: failed to close ", dir, " #", bestTicket, " error ", GetLastError());
    return result;
 }
 void LogMartingaleUnwindStatus()
@@ -1408,12 +1408,51 @@ void LogMartingaleUnwindStatus()
    double margin = AccountInfoDouble(ACCOUNT_MARGIN);
    Print("=== Martingale Unwind Status [", biasDir, "] ===",
          " | Margin: ", DoubleToString(marginPct, 1), "%",
-         " (Unwind>=", DoubleToString(MartingaleUnwindMarginPct, 1),
-         "% Danger>=", DoubleToString(MartingaleDangerMarginPct, 1), "%)",
+         " (TRIM>=", DoubleToString(MartingaleUnwindMarginPct, 1),
+         "% PROTECT>=", DoubleToString(MartingaleDangerMarginPct, 1), "%)",
          " | Hedge: ", hedgeCount, " pos / ", DoubleToString(hedgeLots, OrderDigits), " lots",
          " | Bias: ", biasCount, " pos / ", DoubleToString(biasLots, OrderDigits), " lots",
-         " | Closes: hedge=", MartingaleHedgeCloses, " bias=", MartingaleBiasCloses,
+         " | Closes: trim=", MartingaleHedgeCloses, " protect=", MartingaleBiasCloses,
          " | Equity: $", DoubleToString(equity, 2), " Margin: $", DoubleToString(margin, 2));
+}
+void PrintMartingaleStrategyBriefing(MartingaleState state)
+{
+   string biasDir = (state == MG_LONG) ? "LONG" : "SHORT";
+   string coreType = (state == MG_LONG) ? "BUY" : "SELL";
+   string hedgeType = (state == MG_LONG) ? "SELL" : "BUY";
+   double marginPct = CalculateMarginUsagePct();
+   // Dry run detection: check if market is closed
+   datetime lastTick = (datetime)SymbolInfoInteger(_Symbol, SYMBOL_TIME);
+   bool marketClosed = (TimeCurrent() - lastTick > 60);
+   if (marketClosed)
+      Print("[DRY RUN — Market closed] Strategy preview only, no trades will execute.");
+   Print("=== MARTINGALE STRATEGY ENABLED: ", biasDir, " on ", _Symbol, " ===");
+   Print("Bias direction : ", biasDir, " — we hold ", coreType, " positions as core");
+   Print("Hedge direction: ", hedgeType, " — opposite positions to be trimmed");
+   Print("");
+   Print("TRIM  (hedge removal):");
+   if (MartingaleUnwindMarginPct > 0)
+      Print("  Threshold : margin >= ", DoubleToString(MartingaleUnwindMarginPct, 1), "%");
+   else
+      Print("  Threshold : DISABLED (MartingaleUnwindMarginPct=0)");
+   Print("  Action    : partial close ", DoubleToString(MartingaleUnwindLotSize, OrderDigits), " lots of highest-cost ", hedgeType);
+   Print("  Goal      : reduce margin usage by removing expensive hedges");
+   Print("");
+   Print("PROTECT (bias closure — emergency):");
+   if (MartingaleDangerMarginPct > 0)
+      Print("  Threshold : margin >= ", DoubleToString(MartingaleDangerMarginPct, 1), "%");
+   else
+      Print("  Threshold : DISABLED (MartingaleDangerMarginPct=0)");
+   Print("  Action    : partial close ", DoubleToString(MartingaleCloseChunkSize, OrderDigits), " lots of highest-cost ", coreType);
+   Print("  Goal      : prevent margin call by reducing core position size");
+   Print("");
+   Print("Profit banking : close profitable ", hedgeType, " positions every tick");
+   if (MartingaleEquityTP > 0)
+      Print("Equity TP      : close all at $", DoubleToString(MartingaleEquityTP, 2), " profit");
+   else
+      Print("Equity TP      : DISABLED (MartingaleEquityTP=0)");
+   Print("Cooldown       : ", MartingaleCooldown, "s between margin operations");
+   Print("Current margin : ", DoubleToString(marginPct, 1), "%");
 }
 void ProcessMartingale()
 {
@@ -1807,6 +1846,8 @@ void TyWindow::OnClickMartingale(void)
       MartingaleBiasCloses = 0;
       UpdateMartingaleButton();
       Print("Martingale mode changed to ", EnumToString(MartingaleMode), " on ", _Symbol);
+      if (nextState == MG_LONG || nextState == MG_SHORT)
+         PrintMartingaleStrategyBriefing(nextState);
    }
 }
 void OrderLines(bool isBuy)
