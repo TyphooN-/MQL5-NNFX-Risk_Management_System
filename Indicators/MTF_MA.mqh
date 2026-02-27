@@ -343,10 +343,7 @@ int OnCalculate(const int rates_total,
    if (!g_dataReady)
    {
       if (BarsCalculated(HandleM1_200SMA) <= 0 || BarsCalculated(HandleW1_200SMA) <= 0)
-      {
-         UpdateBuffers();
          buffersOk = false;
-      }
       else
       {
          g_dataReady = true;
