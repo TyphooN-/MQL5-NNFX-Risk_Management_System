@@ -345,7 +345,7 @@ int OnCalculate(const int rates_total,
       else
       {
          g_dataReady = true;
-         buffersOk = UpdateBuffers();
+         if (!buffersOk) buffersOk = UpdateBuffers();
       }
    }
    if (!g_objectsCreated)
