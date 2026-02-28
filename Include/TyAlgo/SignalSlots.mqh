@@ -331,7 +331,7 @@ SignalResult ReadVolumeSignal(ENUM_VOLUME_TYPE type, SlotState &state, double mi
          int cls = (int)colorBuf[0];
          // VOL_LOW = 0 → fail; everything else → pass
          r.direction = (cls != 0) ? 1 : 0;
-         string labels[] = {"Low","ClxUp","ClxDn","Churn","Clx+Ch","Norm"};
+         static string labels[] = {"Low","ClxUp","ClxDn","Churn","Clx+Ch","Norm"};
          r.label = "V:" + ((cls >= 0 && cls <= 5) ? labels[cls] : "?");
          break;
       }

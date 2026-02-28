@@ -89,6 +89,10 @@ int OnCalculate( const int       rates_total,     //
    if(CopyBuffer( HighHandle, 0, 0, limit + 1, highValues ) != limit + 1) return 0;
    if(CopyBuffer( LowHandle, 0, 0, limit + 1, lowValues ) != limit + 1) return 0;
 
+   // Seed carry-forward value on first load
+   if(prev_calculated == 0 && limit+1 < rates_total)
+      DirectionBuffer[limit+1] = 0;
+
    //	Loop through bars
    for ( int i = limit; i >= 0 && !IsStopped(); i-- ) {
 

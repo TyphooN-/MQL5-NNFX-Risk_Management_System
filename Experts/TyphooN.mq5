@@ -117,6 +117,8 @@ int MartingaleHedgeCloses = 0;
 int MartingaleBiasCloses = 0;
 bool HarvestEnabled = false;
 int MartingaleHarvestCloses = 0;
+datetime g_lastOppCloseTime = 0;
+double g_cachedChunkSize = 0, g_cachedUnwindLots = 0, g_cachedHarvestLots = 0;
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
 #define INDENT_TOP        (10)      // indent from top (with allowance for border width)
 #define CONTROLS_GAP_X    (5)       // gap by X coordinate
@@ -284,6 +286,11 @@ int OnInit()
          OrderDigits--;
       }
    }
+   // Cache NormalizeDouble on input constants (invariant at runtime)
+   g_cachedChunkSize = NormalizeDouble(MartingaleCloseChunkSize, OrderDigits);
+   g_cachedUnwindLots = NormalizeDouble(MartingaleUnwindLotSize, OrderDigits);
+   g_cachedHarvestLots = NormalizeDouble(MartingaleHarvestLotSize, OrderDigits);
+   g_lastOppCloseTime = 0;
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
@@ -1024,12 +1031,27 @@ void CloseAllSymbolPositions()
       else
          Print("Martingale equity TP: failed to close #", ticket, " error ", GetLastError());
    }
+   // Poll for async completion
+   uint startTime = GetTickCount();
+   while ((GetTickCount() - startTime) < 3000)
+   {
+      int remaining = 0;
+      for (int j = PositionsTotal() - 1; j >= 0; j--)
+      {
+         ulong t = PositionGetTicket(j);
+         if (t == 0) continue;
+         if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
+         if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
+         remaining++;
+      }
+      if (remaining == 0) break;
+      Sleep(100);
+   }
    Trade.SetAsyncMode(false);
 }
 void CloseProfitableOppositePositions()
 {
-   static datetime lastOppCloseTime = 0;
-   if (TimeCurrent() - lastOppCloseTime < MartingaleCooldown) return;
+   if (TimeCurrent() - g_lastOppCloseTime < MartingaleCooldown) return;
    int closeType;
    if (MartingaleMode == MG_LONG)
       closeType = POSITION_TYPE_SELL;
@@ -1038,7 +1060,6 @@ void CloseProfitableOppositePositions()
    else
       return;
    Trade.SetAsyncMode(true);
-   double chunkSize = NormalizeDouble(MartingaleCloseChunkSize, OrderDigits);
    int total = PositionsTotal();
    for (int i = total - 1; i >= 0; i--)
    {
@@ -1055,22 +1076,22 @@ void CloseProfitableOppositePositions()
       {
          double posVolume = PositionGetDouble(POSITION_VOLUME);
          string dir = (closeType == POSITION_TYPE_BUY) ? "LONG" : "SHORT";
-         if (posVolume <= chunkSize)
+         if (posVolume <= g_cachedChunkSize)
          {
             if (Trade.PositionClose(ticket))
             {
                Print("Martingale: closed ", dir, " #", ticket, " (", posVolume, " lots) P/L: $", DoubleToString(pl, 2));
-               lastOppCloseTime = TimeCurrent();
+               g_lastOppCloseTime = TimeCurrent();
             }
             else
                Print("Martingale: failed to close #", ticket, " error ", GetLastError());
          }
          else
          {
-            if (Trade.PositionClosePartial(ticket, chunkSize))
+            if (Trade.PositionClosePartial(ticket, g_cachedChunkSize))
             {
-               Print("Martingale: partial close ", dir, " #", ticket, " (", chunkSize, " of ", posVolume, " lots)");
-               lastOppCloseTime = TimeCurrent();
+               Print("Martingale: partial close ", dir, " #", ticket, " (", g_cachedChunkSize, " of ", posVolume, " lots)");
+               g_lastOppCloseTime = TimeCurrent();
             }
             else
                Print("Martingale: failed to partial close #", ticket, " error ", GetLastError());
@@ -1117,9 +1138,8 @@ void UnwindMartingale()
 }
 double CalculateMarginUsagePct()
 {
-   double equity = AccountInfoDouble(ACCOUNT_EQUITY);
-   if (equity <= 0.01) return 100.0;
-   return AccountInfoDouble(ACCOUNT_MARGIN) / equity * 100.0;
+   if (AccountEquity <= 0.01) return 100.0;
+   return AccountInfoDouble(ACCOUNT_MARGIN) / AccountEquity * 100.0;
 }
 bool UnwindHedgeByMargin()
 {
@@ -1157,19 +1177,18 @@ bool UnwindHedgeByMargin()
    }
    if (bestTicket == 0)
       return false;
-   double closeLots = NormalizeDouble(MartingaleUnwindLotSize, OrderDigits);
    string dir = (hedgeType == POSITION_TYPE_BUY) ? "LONG hedge" : "SHORT hedge";
    bool result;
-   if (bestVolume <= closeLots)
+   if (bestVolume <= g_cachedUnwindLots)
       result = Trade.PositionClose(bestTicket);
    else
-      result = Trade.PositionClosePartial(bestTicket, closeLots);
+      result = Trade.PositionClosePartial(bestTicket, g_cachedUnwindLots);
    if (result)
    {
       MartingaleHedgeCloses++;
       double marginPct = CalculateMarginUsagePct();
       Print("Martingale TRIM: closed ", dir, " #", bestTicket,
-            " (", (bestVolume <= closeLots) ? bestVolume : closeLots, " lots, entry: ", DoubleToString(highestOpen, _Digits),
+            " (", (bestVolume <= g_cachedUnwindLots) ? bestVolume : g_cachedUnwindLots, " lots, entry: ", DoubleToString(highestOpen, _Digits),
             ") margin: ", DoubleToString(marginPct, 1), "% | trim closes: ", MartingaleHedgeCloses);
    }
    else
@@ -1212,19 +1231,18 @@ bool ProtectivePartialCloseBias()
    }
    if (bestTicket == 0)
       return false;
-   double chunkSize = NormalizeDouble(MartingaleCloseChunkSize, OrderDigits);
    string dir = (biasType == POSITION_TYPE_BUY) ? "LONG bias" : "SHORT bias";
    bool result;
-   if (bestVolume <= chunkSize)
+   if (bestVolume <= g_cachedChunkSize)
       result = Trade.PositionClose(bestTicket);
    else
-      result = Trade.PositionClosePartial(bestTicket, chunkSize);
+      result = Trade.PositionClosePartial(bestTicket, g_cachedChunkSize);
    if (result)
    {
       MartingaleBiasCloses++;
       double marginPct = CalculateMarginUsagePct();
       Print("Martingale PROTECT: closed ", dir, " #", bestTicket,
-            " (", (bestVolume <= chunkSize) ? bestVolume : chunkSize, " of ", bestVolume, " lots, entry: ", DoubleToString(highestOpen, _Digits),
+            " (", (bestVolume <= g_cachedChunkSize) ? bestVolume : g_cachedChunkSize, " of ", bestVolume, " lots, entry: ", DoubleToString(highestOpen, _Digits),
             ") margin: ", DoubleToString(marginPct, 1), "% | protect closes: ", MartingaleBiasCloses);
    }
    else
@@ -1266,19 +1284,18 @@ bool HarvestProfitableBias()
    }
    if (bestTicket == 0)
       return false;
-   double closeLots = NormalizeDouble(MartingaleHarvestLotSize, OrderDigits);
    string dir = (biasType == POSITION_TYPE_BUY) ? "LONG bias" : "SHORT bias";
    bool result;
-   if (bestVolume <= closeLots)
+   if (bestVolume <= g_cachedHarvestLots)
       result = Trade.PositionClose(bestTicket);
    else
-      result = Trade.PositionClosePartial(bestTicket, closeLots);
+      result = Trade.PositionClosePartial(bestTicket, g_cachedHarvestLots);
    if (result)
    {
       MartingaleHarvestCloses++;
       double marginPct = CalculateMarginUsagePct();
       Print("Martingale HARVEST: closed ", dir, " #", bestTicket,
-            " (", (bestVolume <= closeLots) ? bestVolume : closeLots, " of ", bestVolume, " lots, entry: ", DoubleToString(bestOpen, _Digits),
+            " (", (bestVolume <= g_cachedHarvestLots) ? bestVolume : g_cachedHarvestLots, " of ", bestVolume, " lots, entry: ", DoubleToString(bestOpen, _Digits),
             ", P/L: $", DoubleToString(bestProfit, 2),
             ") margin: ", DoubleToString(marginPct, 1), "% | harvest closes: ", MartingaleHarvestCloses);
    }
@@ -1631,7 +1648,6 @@ void TyWindow::OnClickTrade(void)
    int marginLoopMax = (int)MathCeil(OrderLots / min_volume) + 10;
    while (required_margin > usable_margin && OrderLots > min_volume)
    {
-      request.volume = OrderLots;
       if (IsStopped()) return;
       if (++marginLoopIter > marginLoopMax)
       {
@@ -1639,6 +1655,7 @@ void TyWindow::OnClickTrade(void)
          return;
       }
       OrderLots = NormalizeDouble(OrderLots - min_volume, OrderDigits);
+      request.volume = OrderLots;
       usable_margin = marginBudget - AccountInfoDouble(ACCOUNT_MARGIN);
       if (PerformOrderCheck(request, check_result, OrderLots) < 0)
       {
@@ -1814,6 +1831,7 @@ void TyWindow::OnClickMartingale(void)
       MartingaleBiasCloses = 0;
       MartingaleHarvestCloses = 0;
       HarvestEnabled = false;
+      g_lastOppCloseTime = 0;
       UpdateMartingaleButton();
       Print("Martingale mode changed to ", EnumToString(MartingaleMode), " on ", _Symbol);
       if (nextState == MG_LONG || nextState == MG_SHORT)

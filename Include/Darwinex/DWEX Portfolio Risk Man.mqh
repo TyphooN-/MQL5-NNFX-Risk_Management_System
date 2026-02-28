@@ -103,13 +103,13 @@ bool CPortfolioRiskMan::CalculateLotSizeBasedOnVaR(string Asset, double confiden
    if (currentPrice <= 0) { lotSize = 0; return false; }
    //CALCULATE THE Z-SCORE FOR THE GIVEN CONFIDENCE LEVEL
    double zScore = InverseCumulativeNormal(confidenceLevel);
-   if(zScore == 0) return false;
+   if(zScore == 0) { lotSize = 0; return false; }
    //CALCULATE THE VaR FOR A SINGLE UNIT OF THE ASSET
    double unitVaR = zScore * stdDevReturns * nominalValuePerUnitPerLot * currentPrice;
    //CALCULATE THE MAXIMUM VaR BASED ON THE ACCOUNT EQUITY AND VaR PERCENTAGE
    double maxVaR = (VaRPercent / 100.0) * accountEquity;
    //CALCULATE THE LOT SIZE BASED ON THE MAXIMUM VaR
-   if (unitVaR == 0) { lotSize = 0; return false; }
+   if (unitVaR < 1e-10) { lotSize = 0; return false; }
    lotSize = maxVaR / unitVaR;
    return true;
 }
@@ -194,7 +194,7 @@ bool CPortfolioRiskMan::GetAssetStdDevReturns(string VolSymbolName, double &Stan
 
     for (int i = 0; i < returns_size - 1; i++)
     {
-        if (returns[i] == 0.0) { daily_returns[i] = 0.0; continue; }
+        if (returns[i] == 0.0 || returns[i+1] == 0.0) { daily_returns[i] = 0.0; continue; }
         daily_returns[i] = (returns[i+1] / returns[i]) - 1.0;
     }
 
