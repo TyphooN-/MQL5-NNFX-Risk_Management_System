@@ -93,6 +93,11 @@ int OnInit()
       "BetterVol(" + IntegerToString(InpLookback) + ")");
    IndicatorSetInteger(INDICATOR_DIGITS, 0);
 
+   ArraySetAsSeries(HistData, true);
+   ArraySetAsSeries(HistClr,  true);
+   ArraySetAsSeries(AvgData,  true);
+   ArraySetAsSeries(AvgCalc,  true);
+
    return INIT_SUCCEEDED;
 }
 
@@ -110,10 +115,6 @@ int OnCalculate(const int rates_total,
                 const long &volume[],
                 const int &spread[])
 {
-   ArraySetAsSeries(HistData, true);
-   ArraySetAsSeries(HistClr,  true);
-   ArraySetAsSeries(AvgData,  true);
-   ArraySetAsSeries(AvgCalc,  true);
    ArraySetAsSeries(open,  true);
    ArraySetAsSeries(high,  true);
    ArraySetAsSeries(low,   true);

@@ -60,6 +60,7 @@ int OnCalculate(const int       rates_total,
      {
       int highestVal   = iHighest(Symbol(), Period(), MODE_HIGH, periodInp, i);
       int lowestVal    = iLowest(Symbol(), Period(), MODE_LOW, periodInp, i);
+      if (highestVal == -1 || lowestVal == -1) { upBuffer[i] = 0; downBuffer[i] = 0; continue; }
       upBuffer[i]   = (periodInp - (highestVal - i)) * 100 / periodInp;
       downBuffer[i] = (periodInp - (lowestVal - i)) * 100 / periodInp;
      }

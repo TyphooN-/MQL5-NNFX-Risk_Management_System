@@ -210,9 +210,9 @@ SignalResult ReadBaselineSignal(ENUM_BASELINE_TYPE type, SlotState &state)
             r.label = "BL:Err";
             return r;
          }
-         if (val == 1.0)
+         if (val > 0.5)
             r.direction = +1;
-         else if (val == 0.0)
+         else if (val < 0.5)
             r.direction = -1;
          else
             r.direction = 0;

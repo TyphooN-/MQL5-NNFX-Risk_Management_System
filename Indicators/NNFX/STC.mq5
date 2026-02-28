@@ -144,6 +144,9 @@ int OnCalculate(const int rates_total,
       int bars_to_copy = rates_total - counted_bars + 1;
       if (bars_to_copy < 1) bars_to_copy = 1;
       if (bars_to_copy > rates_total) bars_to_copy = rates_total;
+      // Ensure arrays are sized to hold rates_total elements
+      if (ArraySize(MAShortBuf) < rates_total) ArrayResize(MAShortBuf, rates_total);
+      if (ArraySize(MALongBuf) < rates_total) ArrayResize(MALongBuf, rates_total);
       double tempS[], tempL[];
       if(CopyBuffer(hMAShort, 0, 0, bars_to_copy, tempS) != bars_to_copy) return(0);
       if(CopyBuffer(hMALong, 0, 0, bars_to_copy, tempL) != bars_to_copy) return(0);
