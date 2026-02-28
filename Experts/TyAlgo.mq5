@@ -44,7 +44,7 @@ input double             C2_MTF_MinBullHTF = 10;
 input double             C2_MTF_MinBearHTF = 10;
 input string             C2_CustomGV    = ""; // Custom GV name (CF_CUSTOM_GV only)
 input group              "[VOLUME SLOT]";
-input ENUM_VOLUME_TYPE   VolumeType     = VL_RVOL;
+input ENUM_VOLUME_TYPE   VolumeType     = VL_BETTER_VOL;
 input double             VL_MinRVOL     = 0.8;
 input int                VL_RVOL_Days   = 10;
 input string             VL_CustomGV    = ""; // Custom GV name (VL_CUSTOM_GV only)
@@ -336,7 +336,7 @@ void OnTick()
    if (g_slotVolume.active)   confStatus += sigVolume.label + " ";
    if (g_slotExit.active)     confStatus += sigExit.label;
    if (g_slotVolume.active && !volumePass)
-      confStatus += " [Low RVOL]";
+      confStatus += " [Low Vol]";
    ObjectSetString(0, "infoConfluence", OBJPROP_TEXT, "Confluence: " + confStatus);
    // Entry signals
    bool buySignal  = (consensusDir == +1) && volumePass;
