@@ -20,10 +20,11 @@ for src_dir in "$SRC_EXPERTS" "$SRC_INDICATORS" "$SRC_INCLUDE"; do
 done
 
 # All indicator source files (.mq5, .mq4, .mqh) — recursive, preserving subdirs
+# Excludes Retired/ directory (legacy indicators not deployed)
 INDICATOR_FILES=()
 while IFS= read -r -d '' f; do
     INDICATOR_FILES+=("${f#"$SRC_INDICATORS/"}")
-done < <(find "$SRC_INDICATORS" -type f \( -name '*.mqh' -o -name '*.mq5' -o -name '*.mq4' \) -print0)
+done < <(find "$SRC_INDICATORS" -path "$SRC_INDICATORS/Retired" -prune -o -type f \( -name '*.mqh' -o -name '*.mq5' -o -name '*.mq4' \) -print0)
 
 # Include files with relative paths preserved
 INCLUDE_FILES=()

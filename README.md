@@ -17,7 +17,8 @@ A comprehensive MQL5/MQL4 trading toolkit featuring manual risk management, auto
   - [MultiKAMA — Multi Timeframe KAMA](#multikama--multi-timeframe-kama-v1009)
   - [KAMA — Kaufman Adaptive Moving Average](#kama--kaufman-adaptive-moving-average-v103)
   - [Ehlers Fisher Transform](#ehlers-fisher-transform)
-  - [RVOL — Relative Volume](#rvol--relative-volume-v1001)
+  - [BetterVolume — Volume Classification](#bettervolume--volume-classification)
+  - [SupplyDemand — Supply and Demand Zones](#supplydemand--supply-and-demand-zones)
   - [ATR Projection](#atr-projection-v1052)
   - [Previous Candle Levels](#previous-candle-levels-v1056)
   - [FakeCandle](#fakecandle-v105)
@@ -40,7 +41,8 @@ A comprehensive MQL5/MQL4 trading toolkit featuring manual risk management, auto
 | MultiKAMA | Indicator | 1.009 | MQL5/MQL4 | Multi-timeframe KAMA overlay |
 | KAMA | Indicator | 1.03 | MQL5/MQL4 | Kaufman Adaptive Moving Average |
 | EhlersFisherTransform | Indicator | — | MQL5 | Fisher Transform oscillator with bias GV |
-| RVOL | Indicator | 1.001 | MQL5/MQL4 | Relative Volume histogram |
+| BetterVolume | Indicator | 1.00 | MQL5 | Volume classification histogram (climax/churn/low) |
+| SupplyDemand | Indicator | 1.00 | MQL5 | Supply and demand zone detection |
 | ATR_Projection | Indicator | 1.052 | MQL5/MQL4 | ATR projection lines on chart |
 | PreviousCandleLevels | Indicator | 1.056 | MQL5/MQL4 | Previous candle high/low levels |
 | FakeCandle | Indicator | 1.05 | MQL5 | Draws a user-defined candle on chart |
@@ -59,7 +61,7 @@ Indicators and EAs communicate through **MT5 GlobalVariables** — a shared key-
 │  EhlersFisher   │───▶ FisherBias         ──▶│  TyAlgo EA   │
 │  MTF_MA         │───▶ GlobalBullPowerHTF ──▶│  (reads GVs) │
 │                 │───▶ GlobalBearPowerHTF ──▶│              │
-│  RVOL           │    (read via handle)    ──▶│              │
+│  BetterVolume   │    (chart reference)      │              │
 └─────────────────┘                           └──────────────┘
 ```
 
@@ -86,7 +88,8 @@ Indicators and EAs communicate through **MT5 GlobalVariables** — a shared key-
 │   ├── MultiKAMA.mq5/.mq4/.mqh  # Multi-TF KAMA
 │   ├── KAMA.mq5 / .mq4 / .mqh   # Single KAMA
 │   ├── EhlersFisherTransform.mq5/.mqh  # Fisher Transform
-│   ├── RVOL.mq5 / .mq4 / .mqh   # Relative Volume
+│   ├── BetterVolume.mq5          # Volume classification histogram
+│   ├── SupplyDemand.mq5          # Supply and demand zones
 │   ├── ATR_Projection.mq5/.mq4/.mqh  # ATR projection lines
 │   ├── PreviousCandleLevels.mq5/.mq4/.mqh  # Candle levels
 │   └── FakeCandle.mq5 / .mqh # Fake candle overlay
@@ -97,7 +100,7 @@ Indicators and EAs communicate through **MT5 GlobalVariables** — a shared key-
 │   │   └── RiskCalc.mqh       # Risk utility functions
 │   └── TyAlgo/
 │       └── SignalSlots.mqh    # Modular signal slot system
-├── Retired_Indicators/        # Legacy indicators (not deployed)
+│   └── Retired/                # Legacy indicators (RVOL, shved — not deployed)
 ├── Images/                    # Screenshots for documentation
 ├── deploy.sh                  # Deploy to all MT5 installations
 └── README.md
@@ -221,7 +224,7 @@ The EA uses 5 signal slots, each independently configurable:
 | Baseline | Trend filter | BL_KAMA (D1) | None, KAMA, Custom GV |
 | Confirmation 1 | Entry signal | CF_FISHER | None, Fisher, MTF MA, Custom GV |
 | Confirmation 2 | Entry signal | CF_MTF_MA | None, Fisher, MTF MA, Custom GV |
-| Volume | Volume filter | VL_RVOL | None, RVOL, Custom GV |
+| Volume | Volume filter | VL_BETTER_VOL | None, BetterVolume, RVOL (retired), Custom GV |
 | Exit | Exit signal | EX_FISHER | None, Fisher, Custom GV |
 
 **Signal Convention:**
@@ -232,7 +235,7 @@ The EA uses 5 signal slots, each independently configurable:
 **Consensus Engine:**
 1. All active directional slots must agree on direction
 2. Any active slot returning neutral (0) blocks entry
-3. Volume must pass (RVOL >= threshold)
+3. Volume must pass (if volume slot active)
 4. Exit slot operates independently — closes positions on reversal
 
 **Custom GV Contract:** Any indicator can participate by writing to a GlobalVariable:
@@ -259,9 +262,9 @@ The EA uses 5 signal slots, each independently configurable:
 ##### Volume Slot
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| VolumeType | VL_RVOL | Volume indicator selection |
-| VL_MinRVOL | 0.8 | Minimum RVOL to pass filter |
-| VL_RVOL_Days | 10 | RVOL averaging period |
+| VolumeType | VL_BETTER_VOL | Volume indicator: BetterVolume (pass if not Low Vol), Custom GV, or None |
+| VL_MinRVOL | 0.8 | Minimum RVOL to pass filter (legacy, only with VL_RVOL) |
+| VL_RVOL_Days | 10 | RVOL averaging period (legacy, only with VL_RVOL) |
 
 ##### Exit Slot
 | Parameter | Default | Description |
@@ -382,22 +385,53 @@ Writes `FisherBias` GlobalVariable:
 
 ---
 
-### RVOL — Relative Volume (v1.001)
+### BetterVolume — Volume Classification
 
-Relative Volume indicator comparing current bar volume to the average of the previous N days. Displayed as a color-coded histogram.
+Volume classification histogram ported from the original EasyLanguage source by Emini-Watch. Classifies each bar's volume using estimated buying/selling pressure into actionable categories.
 
-| Color | Condition | Meaning |
-|-------|-----------|---------|
-| Green | RVOL > 1.25 | Above average volume |
-| Yellow | 0.8 < RVOL <= 1.25 | Average volume |
-| Red | RVOL <= 0.8 | Below average volume |
+| Color | Classification | Meaning |
+|-------|---------------|---------|
+| SteelBlue | Normal | Unremarkable volume |
+| Yellow | Low Volume | Lowest volume in lookback — potential breakout setup |
+| Red | Climax Up | Highest buying pressure x range — potential reversal/exhaustion |
+| White | Climax Down | Highest selling pressure x range — potential reversal/exhaustion |
+| Green | Churn | Highest volume/range ratio — accumulation/distribution |
+| Magenta | Climax + Churn | Both climax and churn conditions met |
 
-Uses a sliding window algorithm for O(n) calculation.
+Buy/sell volume is estimated from OHLC data since MQL5 lacks uptick/downtick data.
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| InpAveragingDays | 10 | Number of days for volume comparison |
+| InpLookback | 20 | Lookback period for extremes |
+| InpUse2Bars | true | Enable 2-bar combined analysis |
+| InpShowAvg | false | Show average volume SMA line |
+| InpAvgPeriod | 20 | Average volume SMA period |
 | InpVolumeType | VOLUME_TICK | Tick or real volume |
+
+---
+
+### SupplyDemand — Supply and Demand Zones
+
+Chart-window supply and demand zone indicator using fractal-based detection with body-to-wick zone boundaries. Zones are drawn as colored rectangles with strength classification based on touch count.
+
+| Zone Type | Boundary | Description |
+|-----------|----------|-------------|
+| Supply (Resistance) | Hi = High, Lo = Min(Close, Open) | Body-to-wick of fractal high bar |
+| Demand (Support) | Hi = Max(Close, Open), Lo = Low | Body-to-wick of fractal low bar |
+
+**Zone Strength (4-tier):**
+- **Untested** (0 touches) — freshest zone, highest probability
+- **Tested** (1-2 touches) — zone has been tested
+- **Proven** (3+ touches) — well-established zone
+- **Broken** (close beyond boundary) — zone invalidated
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| InpFractalLookback | 5 | Bars each side for fractal detection |
+| InpBackLimit | 1000 | Max history bars to scan |
+| InpShowBroken | false | Show broken zones (grayed out) |
+| InpMergeZones | true | Merge overlapping same-type zones |
+| InpShowLabels | true | Show Supply/Demand labels on zones |
 
 ---
 
@@ -473,7 +507,7 @@ TyAlgo modular signal slot system. Contains enums, structs, and init/read/deinit
    - `Include/Orchard/` → `MQL5/Include/Orchard/`
    - `Include/TyAlgo/` → `MQL5/Include/TyAlgo/`
 4. Compile all `.mq5` files in MetaEditor.
-5. Attach indicators to your chart first (MultiKAMA, EhlersFisherTransform, MTF_MA, RVOL).
+5. Attach indicators to your chart first (MultiKAMA, EhlersFisherTransform, MTF_MA, BetterVolume, SupplyDemand).
 6. Then attach the EA (TyphooN or TyAlgo).
 7. Ensure "Allow Algo Trading" is enabled in Common tab.
 
@@ -508,7 +542,7 @@ IndicatorName.mq4  ─┘
 
 Platform-specific code uses `#ifdef __MQL5__` / `#ifdef __MQL4__` preprocessor guards. The `.mq5` file is a thin wrapper setting plot properties, while `.mqh` contains all logic.
 
-**MQL5-only components:** TyphooN EA, TyAlgo EA, MTF_MA, EhlersFisherTransform, FakeCandle.
+**MQL5-only components:** TyphooN EA, TyAlgo EA, MTF_MA, EhlersFisherTransform, FakeCandle, BetterVolume, SupplyDemand.
 
 ---
 

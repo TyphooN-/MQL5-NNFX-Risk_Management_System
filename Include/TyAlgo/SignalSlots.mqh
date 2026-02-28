@@ -31,9 +31,10 @@ enum ENUM_CONFIRM_TYPE
 };
 enum ENUM_VOLUME_TYPE
 {
-   VL_NONE      = 0, // Disabled (always pass)
-   VL_RVOL      = 1, // Relative Volume
-   VL_CUSTOM_GV = 2  // Custom GlobalVariable
+   VL_NONE        = 0, // Disabled (always pass)
+   VL_BETTER_VOL  = 3, // BetterVolume (pass if not Low Volume)
+   VL_RVOL        = 1, // Relative Volume (retired)
+   VL_CUSTOM_GV   = 2  // Custom GlobalVariable
 };
 enum ENUM_EXIT_TYPE
 {
@@ -137,6 +138,14 @@ bool InitVolumeSlot(ENUM_VOLUME_TYPE type, int rvolDays, string customGV, SlotSt
    if (!state.active) return true;
    switch (type)
    {
+      case VL_BETTER_VOL:
+         state.handle = iCustom(_Symbol, PERIOD_CURRENT, "BetterVolume");
+         if (state.handle == INVALID_HANDLE)
+         {
+            Print("Failed to create BetterVolume indicator handle: ", GetLastError());
+            return false;
+         }
+         break;
       case VL_RVOL:
          state.handle = iCustom(_Symbol, PERIOD_CURRENT, "RVOL", rvolDays, VOLUME_TICK);
          if (state.handle == INVALID_HANDLE)
@@ -306,6 +315,24 @@ SignalResult ReadVolumeSignal(ENUM_VOLUME_TYPE type, SlotState &state, double mi
    if (!state.active) return r;
    switch (type)
    {
+      case VL_BETTER_VOL:
+      {
+         // Buffer 1 = color index: 0=LowVol, 1=ClimaxUp, 2=ClimaxDn, 3=Churn, 4=ClimaxChurn, 5=Normal
+         double colorBuf[];
+         if (CopyBuffer(state.handle, 1, 1, 1, colorBuf) != 1)
+         {
+            r.valid = false;
+            r.direction = 0;
+            r.label = "V:Err";
+            return r;
+         }
+         int cls = (int)colorBuf[0];
+         // VOL_LOW = 0 → fail; everything else → pass
+         r.direction = (cls != 0) ? 1 : 0;
+         string labels[] = {"Low","ClxUp","ClxDn","Churn","Clx+Ch","Norm"};
+         r.label = "V:" + ((cls >= 0 && cls <= 5) ? labels[cls] : "?");
+         break;
+      }
       case VL_RVOL:
       {
          double rvolBuffer[];
