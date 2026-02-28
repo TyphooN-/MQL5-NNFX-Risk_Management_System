@@ -219,7 +219,7 @@ bool CheckEntryAlerts()
   {
    double Close[];
    ArraySetAsSeries(Close,true);
-   CopyClose(Symbol(),timeframe,0,1,Close);
+   if(CopyClose(Symbol(),timeframe,0,1,Close) < 1) return false;
 // check for entries
    for(int i=0; i<zone_count; i++)
      {
@@ -308,11 +308,11 @@ void FindZones()
 
    double Close[],High[],Low[];
    ArraySetAsSeries(Close,true);
-   CopyClose(Symbol(),timeframe,0,shift+1,Close);
+   if(CopyClose(Symbol(),timeframe,0,shift+1,Close) < shift+1) { try_again=true; return; }
    ArraySetAsSeries(High,true);
-   CopyHigh(Symbol(),timeframe,0,shift+1,High);
+   if(CopyHigh(Symbol(),timeframe,0,shift+1,High) < shift+1) { try_again=true; return; }
    ArraySetAsSeries(Low,true);
-   CopyLow(Symbol(),timeframe,0,shift+1,Low);
+   if(CopyLow(Symbol(),timeframe,0,shift+1,Low) < shift+1) { try_again=true; return; }
 
    ArraySetAsSeries(ATR,true);
    if(CopyBuffer(iATR_handle,0,0,shift+1,ATR)==-1)
@@ -433,6 +433,7 @@ void FindZones()
                         temp_strength[temp_count]=ZONE_WEAK;
 
             temp_count++;
+            if(temp_count >= 1000) break;
            }
         }
       else
@@ -532,6 +533,7 @@ void FindZones()
                            temp_strength[temp_count]=ZONE_WEAK;
 
                temp_count++;
+               if(temp_count >= 1000) break;
               }
            }
      }
@@ -549,7 +551,7 @@ void FindZones()
          for(i=0; i<temp_count; i++)
             temp_merge[i]=false;
 
-         for(i=0; i<temp_count-1; i++)
+         for(i=0; i<temp_count-1 && merge_count<1000; i++)
            {
             if(temp_hits[i]==-1 || temp_merge[i]==true)
                continue;
@@ -569,6 +571,7 @@ void FindZones()
                   temp_merge[i] = true;
                   temp_merge[j] = true;
                   merge_count++;
+                  if(merge_count >= 1000) break;
                  }
               }
            }
@@ -645,6 +648,7 @@ void FindZones()
                   zone_type[zone_count]=ZONE_SUPPORT;
               }
          zone_count++;
+         if(zone_count >= 1000) break;
         }
      }
   }
@@ -807,9 +811,9 @@ bool Fractal(int M,int P,int shift)
       return(false);
    double High[],Low[];
    ArraySetAsSeries(High,true);
-   CopyHigh(Symbol(),timeframe,0,shift+P+1,High);
+   if(CopyHigh(Symbol(),timeframe,0,shift+P+1,High) < shift+P+1) return false;
    ArraySetAsSeries(Low,true);
-   CopyLow(Symbol(),timeframe,0,shift+P+1,Low);
+   if(CopyLow(Symbol(),timeframe,0,shift+P+1,Low) < shift+P+1) return false;
    for(int i=1; i<=P; i++)
      {
       if(M==UP_POINT)
@@ -948,9 +952,9 @@ void FastFractals()
    int P1=int(timeframe*fractal_fast_factor);
    double High[],Low[];
    ArraySetAsSeries(High,true);
-   CopyHigh(Symbol(),timeframe,0,limit+1,High);
+   if(CopyHigh(Symbol(),timeframe,0,limit+1,High) < limit+1) return;
    ArraySetAsSeries(Low,true);
-   CopyLow(Symbol(),timeframe,0,limit+1,Low);
+   if(CopyLow(Symbol(),timeframe,0,limit+1,Low) < limit+1) return;
    FastUpPts[0] = 0.0;
    FastUpPts[1] = 0.0;
    FastDnPts[0] = 0.0;
@@ -980,9 +984,9 @@ void SlowFractals()
    int P2=int(timeframe*fractal_slow_factor);
    double High[],Low[];
    ArraySetAsSeries(High,true);
-   CopyHigh(Symbol(),timeframe,0,limit+1,High);
+   if(CopyHigh(Symbol(),timeframe,0,limit+1,High) < limit+1) return;
    ArraySetAsSeries(Low,true);
-   CopyLow(Symbol(),timeframe,0,limit+1,Low);
+   if(CopyLow(Symbol(),timeframe,0,limit+1,Low) < limit+1) return;
    SlowUpPts[0] = 0.0;
    SlowUpPts[1] = 0.0;
    SlowDnPts[0] = 0.0;

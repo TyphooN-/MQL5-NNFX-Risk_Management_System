@@ -76,6 +76,7 @@ double prevBidPrice = 0.0;
 double prevAskPrice = 0.0;
 datetime g_prevTradeServerTime = 0;
 bool g_dataReady = false;
+datetime g_startTimeD1=0, g_startTimeW1=0, g_startTimeMN1=0, g_startTimeH4=0, g_startTimeH1=0, g_startTimeM15=0;
 bool g_infoObjectsCreated = false;
 color g_prevFontColor1 = clrNONE, g_prevFontColor2 = clrNONE;
 double g_prevM15 = -1, g_prevH1 = -1, g_prevH4 = -1;
@@ -185,6 +186,12 @@ void UpdateCandlestickData()
    currentOpenH4 = iOpen(_Symbol, PERIOD_H4, 0);
    currentOpenH1 = iOpen(_Symbol, PERIOD_H1, 0);
    currentOpenM15 = iOpen(_Symbol, PERIOD_M15, 0);
+   g_startTimeD1 = iTime(_Symbol, PERIOD_D1, 7);
+   g_startTimeW1 = iTime(_Symbol, PERIOD_W1, 4);
+   g_startTimeMN1 = iTime(_Symbol, PERIOD_MN1, 2);
+   g_startTimeH4 = iTime(_Symbol, PERIOD_H4, 11);
+   g_startTimeH1 = iTime(_Symbol, PERIOD_H1, 12);
+   g_startTimeM15 = iTime(_Symbol, PERIOD_M15, 7);
 }
 void UpdateATRData()
 {
@@ -224,6 +231,21 @@ int OnCalculate(const int        rates_total,
                const int&      spread[])
 {
    if (rates_total <= 0) return 0;
+#ifdef __MQL5__
+   if (!g_dataReady)
+   {
+      if (BarsCalculated(handle_iATR_D1) <= 0 || BarsCalculated(handle_iATR_W1) <= 0 ||
+          BarsCalculated(handle_iATR_MN1) <= 0 || BarsCalculated(handle_iATR_H4) <= 0 ||
+          BarsCalculated(handle_iATR_H1) <= 0 || BarsCalculated(handle_iATR_M15) <= 0)
+      {
+         UpdateATRData();
+         UpdateCandlestickData();
+         return prev_calculated;
+      }
+      g_dataReady = true;
+   }
+#endif
+   bool dataFetchedThisTick = false;
    datetime currentTradeServerTime = 0;
 #ifdef __MQL5__
     currentTradeServerTime = TimeTradeServer();
@@ -238,6 +260,7 @@ int OnCalculate(const int        rates_total,
       UpdateATRData();
       UpdateCandlestickData();
       g_prevTradeServerTime = currentTradeServerTime;
+      dataFetchedThisTick = true;
     }
     // Get the current bid and ask prices
     double currentBidPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
@@ -251,18 +274,6 @@ int OnCalculate(const int        rates_total,
     // Update the previous bid and ask prices with the current prices
     prevBidPrice = currentBidPrice;
     prevAskPrice = currentAskPrice;
-#ifdef __MQL5__
-   if (!g_dataReady)
-   {
-      if (BarsCalculated(handle_iATR_D1) <= 0 || BarsCalculated(handle_iATR_MN1) <= 0)
-      {
-         UpdateATRData();
-         UpdateCandlestickData();
-         return prev_calculated;
-      }
-      g_dataReady = true;
-   }
-#endif
    // Calculate the number of bars to be processed
    int limit = rates_total - prev_calculated;
    // If there are no new bars, return (must return prev_calculated, not 0, to avoid forced full recalc)
@@ -272,8 +283,11 @@ int OnCalculate(const int        rates_total,
    if (lastCheckedCandle != rates_total - 1) {
       // Update the last checked candle index
       lastCheckedCandle = rates_total - 1;
-      UpdateATRData();
-      UpdateCandlestickData();
+      if (!dataFetchedThisTick)
+      {
+         UpdateATRData();
+         UpdateCandlestickData();
+      }
    }
    int currentbar = rates_total - 1;
    // Check if the current bar is within the valid range of the arrays
@@ -298,11 +312,11 @@ int OnCalculate(const int        rates_total,
    bool IsH1AboveH4 = (avgH1 >= avgH4);
    bool IsH4AboveD1 = (avgH4 >= avgD1);
    // Change InfoText1 font color if any lower timeframe ATR values are higher than higher timeframe ATR values
-   color FontColor1 = (IsM15AboveH1 && IsM15AboveH4 && IsH1AboveH4 && IsH4AboveD1) ? clrMagenta : FontColor;
+   color FontColor1 = (avgM15 > 0 && avgH1 > 0 && avgH4 > 0 && avgD1 > 0 && IsM15AboveH1 && IsM15AboveH4 && IsH1AboveH4 && IsH4AboveD1) ? clrMagenta : FontColor;
    bool IsD1AboveW1 = (avgD1 > avgW1);
    bool IsD1AboveMN1 = (avgD1 > avgMN1);
    bool IsW1AboveMN1 = (avgW1 > avgMN1);
-   color FontColor2 = (IsD1AboveW1 && IsD1AboveMN1 && IsW1AboveMN1) ? clrMagenta : FontColor;
+   color FontColor2 = (avgD1 > 0 && avgW1 > 0 && avgMN1 > 0 && IsD1AboveW1 && IsD1AboveMN1 && IsW1AboveMN1) ? clrMagenta : FontColor;
    if (!g_infoObjectsCreated)
    {
       g_infoObjectsCreated = true;
@@ -339,53 +353,47 @@ int OnCalculate(const int        rates_total,
     datetime endTime = time[0];
     #endif
 #endif
-   if (D1_ATR_Projections && _Period <= PERIOD_W1 && _Period != PERIOD_MN1)
+   if (D1_ATR_Projections && _Period <= PERIOD_W1 && _Period != PERIOD_MN1 && avgD1 > 0)
    {
-      datetime startTimeD1 = iTime(_Symbol, PERIOD_D1, 7);
       double ATRLevelAboveD1 = currentOpenD1 + avgD1;
       double ATRLevelBelowD1 = currentOpenD1 - avgD1;
-      DrawHorizontalLine(ATRLevelAboveD1, g_nameHighD1, startTimeD1, endTime);
-      DrawHorizontalLine(ATRLevelBelowD1, g_nameLowD1, startTimeD1, endTime);
+      DrawHorizontalLine(ATRLevelAboveD1, g_nameHighD1, g_startTimeD1, endTime);
+      DrawHorizontalLine(ATRLevelBelowD1, g_nameLowD1, g_startTimeD1, endTime);
    }
-   if (W1_ATR_Projections)
+   if (W1_ATR_Projections && avgW1 > 0)
    {
-      datetime startTimeW1 = iTime(_Symbol, PERIOD_W1, 4);
       double ATRLevelAboveW1 = currentOpenW1 + avgW1;
       double ATRLevelBelowW1 = currentOpenW1 - avgW1;
-      DrawHorizontalLine(ATRLevelAboveW1, g_nameHighW1, startTimeW1, endTime);
-      DrawHorizontalLine(ATRLevelBelowW1, g_nameLowW1, startTimeW1, endTime);
+      DrawHorizontalLine(ATRLevelAboveW1, g_nameHighW1, g_startTimeW1, endTime);
+      DrawHorizontalLine(ATRLevelBelowW1, g_nameLowW1, g_startTimeW1, endTime);
    }
-   if (MN1_ATR_Projections)
+   if (MN1_ATR_Projections && avgMN1 > 0)
    {
-      datetime startTimeMN1 = iTime(_Symbol, PERIOD_MN1, 2);
       double ATRLevelAboveMN1 = currentOpenMN1 + avgMN1;
       double ATRLevelBelowMN1 = currentOpenMN1 - avgMN1;
-      DrawHorizontalLine(ATRLevelAboveMN1, g_nameHighMN1, startTimeMN1, endTime);
-      DrawHorizontalLine(ATRLevelBelowMN1, g_nameLowMN1, startTimeMN1, endTime);
+      DrawHorizontalLine(ATRLevelAboveMN1, g_nameHighMN1, g_startTimeMN1, endTime);
+      DrawHorizontalLine(ATRLevelBelowMN1, g_nameLowMN1, g_startTimeMN1, endTime);
    }
-   if (H4_ATR_Projections && _Period <= PERIOD_D1 && _Period != PERIOD_MN1)
+   if (H4_ATR_Projections && _Period <= PERIOD_D1 && _Period != PERIOD_MN1 && avgH4 > 0)
    {
-      datetime startTimeH4 = iTime(_Symbol, PERIOD_H4, 11);
       double ATRLevelAboveH4 = currentOpenH4 + avgH4;
       double ATRLevelBelowH4 = currentOpenH4 - avgH4;
-      DrawHorizontalLine(ATRLevelAboveH4, g_nameHighH4, startTimeH4, endTime);
-      DrawHorizontalLine(ATRLevelBelowH4, g_nameLowH4, startTimeH4, endTime);
+      DrawHorizontalLine(ATRLevelAboveH4, g_nameHighH4, g_startTimeH4, endTime);
+      DrawHorizontalLine(ATRLevelBelowH4, g_nameLowH4, g_startTimeH4, endTime);
    }
-   if (H1_ATR_Projections && _Period <= PERIOD_H4 && _Period != PERIOD_MN1)
+   if (H1_ATR_Projections && _Period <= PERIOD_H4 && _Period != PERIOD_MN1 && avgH1 > 0)
    {
-      datetime startTimeH1 = iTime(_Symbol, PERIOD_H1, 12);
       double ATRLevelAboveH1 = currentOpenH1 + avgH1;
       double ATRLevelBelowH1 = currentOpenH1 - avgH1;
-      DrawHorizontalLine(ATRLevelAboveH1, g_nameHighH1, startTimeH1, endTime);
-      DrawHorizontalLine(ATRLevelBelowH1, g_nameLowH1, startTimeH1, endTime);
+      DrawHorizontalLine(ATRLevelAboveH1, g_nameHighH1, g_startTimeH1, endTime);
+      DrawHorizontalLine(ATRLevelBelowH1, g_nameLowH1, g_startTimeH1, endTime);
    }
-   if (M15_ATR_Projections && _Period <= PERIOD_H1 && _Period != PERIOD_MN1)
+   if (M15_ATR_Projections && _Period <= PERIOD_H1 && _Period != PERIOD_MN1 && avgM15 > 0)
    {
-      datetime startTimeM15 = iTime(_Symbol, PERIOD_M15, 7);
       double ATRLevelAboveM15 = currentOpenM15 + avgM15;
       double ATRLevelBelowM15 = currentOpenM15 - avgM15;
-      DrawHorizontalLine(ATRLevelAboveM15, g_nameHighM15, startTimeM15, endTime);
-      DrawHorizontalLine(ATRLevelBelowM15, g_nameLowM15, startTimeM15, endTime);
+      DrawHorizontalLine(ATRLevelAboveM15, g_nameHighM15, g_startTimeM15, endTime);
+      DrawHorizontalLine(ATRLevelBelowM15, g_nameLowM15, g_startTimeM15, endTime);
    }
    return rates_total;
 }
@@ -411,6 +419,10 @@ bool IsNewM15Interval(const datetime& currentTime, const datetime& prevTime)
     {
 #ifdef __MQL4__
         ObjectsDeleteAll(0, objname);
+        g_infoObjectsCreated = false;
+        g_prevFontColor1 = clrNONE; g_prevFontColor2 = clrNONE;
+        g_prevM15 = -1; g_prevH1 = -1; g_prevH4 = -1;
+        g_prevD1 = -1; g_prevW1 = -1; g_prevMN1 = -1;
 #endif
         return true;
     }

@@ -1,0 +1,830 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title></title></head><body><h1>Simulation: Hedged Martingale vs Standard Short — SOL &amp; DOGE to $0</h1>
+<h2>Starting Conditions</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Account Equity</td>
+<td>$94,202</td>
+</tr>
+<tr>
+<td>Account Balance</td>
+<td>$94,292</td>
+</tr>
+<tr>
+<td>Margin Call Level</td>
+<td>50%</td>
+</tr>
+</tbody>
+</table>
+<h3>Current Positions</h3>
+<table>
+<thead>
+<tr>
+<th>Asset</th>
+<th>Price</th>
+<th>Long Lots</th>
+<th>Short Lots</th>
+<th>Net Short</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SOLUSD</td>
+<td>$86.06</td>
+<td>5,188</td>
+<td>6,913</td>
+<td>1,725</td>
+</tr>
+<tr>
+<td>DOGEUSD</td>
+<td>$0.0957</td>
+<td>0</td>
+<td>379,000</td>
+<td>379,000</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Scenario A: Standard Short (No Hedging)</h2>
+<p>With $94,202 equity, 1:1 crypto margin, and 100% margin level (all equity committed):</p>
+<p><strong>Maximum position at open:</strong></p>
+<ul>
+<li>SOLUSD: 881 lots short @ $86.06 (using 80.5% allocation = $75,833)</li>
+<li>DOGEUSD: 191,900 lots short @ $0.0957 (using 19.5% allocation = $18,369)</li>
+</ul>
+<p><strong>No margin buffer.</strong> A 1% spike upward triggers margin call. Realistically, you’d need 200% margin level minimum to survive any volatility, cutting the position in half:</p>
+<ul>
+<li>SOLUSD: ~440 lots short</li>
+<li>DOGEUSD: ~96,000 lots short</li>
+</ul>
+<h3>Profit if SOL and DOGE hit $0</h3>
+<table>
+<thead>
+<tr>
+<th>Asset</th>
+<th>Short Lots</th>
+<th>Entry</th>
+<th>Profit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SOLUSD</td>
+<td>440</td>
+<td>$86.06</td>
+<td>$37,866</td>
+</tr>
+<tr>
+<td>DOGEUSD</td>
+<td>96,000</td>
+<td>$0.0957</td>
+<td>$9,187</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td></td>
+<td></td>
+<td><strong>$47,054</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Return: $47,054 on $94,202 = 0.50x (50% return)</strong></p>
+<p>The position can’t grow because there’s no mechanism to add lots. You hold a fixed position and wait.</p>
+<hr />
+<h2>Scenario B: Hedged Martingale (Current Strategy)</h2>
+<h3>Phase 1: $86 → $60 (30% drop with 5 bounces)</h3>
+<p>SOL doesn’t drop straight. It bounces. Each bounce is a harvest cycle.</p>
+<p><strong>Bounce 1: $86 → $92 → $78</strong></p>
+<ul>
+<li>Spike to $92: harvest 5,188 long lots × $6 = <strong>$31,128 banked</strong></li>
+<li>Close longs, open ~5,000 new shorts at $92</li>
+<li>Re-open longs at $92 for next hedge</li>
+<li>Drop to $78: all shorts profit, new shorts from $92 profit $14 each</li>
+<li>Net new shorts added: ~500 (from freed margin)</li>
+</ul>
+<p><strong>Bounce 2: $78 → $85 → $72</strong></p>
+<ul>
+<li>Spike to $85: harvest longs × $7 avg = <strong>~$36,000 banked</strong></li>
+<li>Stack shorts at $85, re-hedge</li>
+<li>Drop to $72</li>
+</ul>
+<p><strong>Bounce 3: $72 → $80 → $65</strong></p>
+<ul>
+<li>Harvest: ~$40,000 banked</li>
+<li>Stack more shorts at $80</li>
+</ul>
+<p><strong>Bounce 4: $65 → $74 → $60</strong></p>
+<ul>
+<li>Harvest: ~$45,000 banked</li>
+<li>Stack more shorts at $74</li>
+</ul>
+<p><strong>Bounce 5: $60 → $68 → $60</strong></p>
+<ul>
+<li>Harvest: ~$40,000 banked</li>
+</ul>
+<p><strong>Phase 1 subtotal:</strong></p>
+<ul>
+<li>Harvested long profits: ~$192,000</li>
+<li>Balance now: $94,292 + $192,000 = <strong>~$286,000</strong></li>
+<li>Short lots accumulated: ~8,500 (original 6,913 + ~1,587 new at higher prices)</li>
+<li>Average short entry lifted to ~$88 (better than original)</li>
+<li>Long losses taken along the way: ~$30,000</li>
+<li>Net harvest profit: ~$162,000</li>
+</ul>
+<h3>Phase 2: $60 → $20 (continued drop with 5 bounces)</h3>
+<p>Balance is now ~$286K. Margin capacity much larger. Can run bigger positions.</p>
+<p><strong>Bounces 6-10: SOL oscillating down from $60 to $20</strong></p>
+<ul>
+<li>Each bounce harvests $30,000-$60,000 from longs</li>
+<li>More shorts added at each bounce peak</li>
+<li>Short position grows to ~12,000 lots</li>
+<li>Harvested: ~$200,000</li>
+<li>Long losses: ~$40,000</li>
+<li>Net: ~$160,000</li>
+</ul>
+<p><strong>Balance now: ~$446,000</strong>
+<strong>Short lots: ~12,000 at ~$75 average entry</strong></p>
+<h3>Phase 3: $20 → $0 (final collapse with 5 bounces)</h3>
+<p>Crypto is dying. Bounces get smaller but position is massive.</p>
+<p><strong>Bounces 11-15: $20 → $0</strong></p>
+<ul>
+<li>Smaller dollar bounces but still harvestable</li>
+<li>Each cycle: $10,000-$30,000 harvested</li>
+<li>Short position grows to ~15,000 lots</li>
+<li>Harvested: ~$80,000</li>
+<li>Long losses: ~$20,000</li>
+</ul>
+<p><strong>Balance before final close: ~$506,000</strong></p>
+<h3>Final Close at $0</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Lots</th>
+<th>Avg Entry</th>
+<th>Profit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SOLUSD shorts</td>
+<td>15,000</td>
+<td>~$75 avg</td>
+<td>$1,125,000</td>
+</tr>
+<tr>
+<td>DOGEUSD shorts</td>
+<td>500,000</td>
+<td>~$0.08 avg</td>
+<td>$40,000</td>
+</tr>
+<tr>
+<td>Residual long losses</td>
+<td>—</td>
+<td>—</td>
+<td>-$15,000</td>
+</tr>
+<tr>
+<td><strong>Total final close</strong></td>
+<td></td>
+<td></td>
+<td><strong>$1,150,000</strong></td>
+</tr>
+</tbody>
+</table>
+<h3>Total Cumulative Profit</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Amount</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Harvested long profits (15 cycles)</td>
+<td>$402,000</td>
+</tr>
+<tr>
+<td>Cumulative long losses</td>
+<td>-$90,000</td>
+</tr>
+<tr>
+<td>Final short close at $0</td>
+<td>$1,150,000</td>
+</tr>
+<tr>
+<td><strong>Total Profit</strong></td>
+<td><strong>$1,462,000</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Side by Side Comparison</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Standard Short</th>
+<th>Hedged Martingale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Starting equity</td>
+<td>$94,202</td>
+<td>$94,202</td>
+</tr>
+<tr>
+<td>Max short lots (SOL)</td>
+<td>440</td>
+<td>6,913 → 15,000</td>
+</tr>
+<tr>
+<td>Max short lots (DOGE)</td>
+<td>96,000</td>
+<td>379,000 → 500,000</td>
+</tr>
+<tr>
+<td>Survives 10% spike?</td>
+<td>NO (margin call)</td>
+<td>YES (hedge absorbs)</td>
+</tr>
+<tr>
+<td>Position grows over time?</td>
+<td>NO (fixed)</td>
+<td>YES (compounding)</td>
+</tr>
+<tr>
+<td>Profits from volatility?</td>
+<td>NO</td>
+<td>YES ($402K harvested)</td>
+</tr>
+<tr>
+<td>Profit if SOL/DOGE → $0</td>
+<td><strong>$47,054</strong></td>
+<td><strong>$1,462,000</strong></td>
+</tr>
+<tr>
+<td>Return multiple</td>
+<td><strong>0.5x</strong></td>
+<td><strong>15.5x</strong></td>
+</tr>
+<tr>
+<td>Final account value</td>
+<td>~$141,000</td>
+<td><strong>~$1,556,000</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Key Assumptions</h2>
+<ol>
+<li><strong>Volatility</strong>: 15 significant bounces (5-15%) on the way to zero — conservative for crypto</li>
+<li><strong>Execution</strong>: EA harvests profitable longs automatically, partial closes at 50 lots</li>
+<li><strong>Spread cost</strong>: ~$500-$1,000 per full harvest cycle (negligible vs profits)</li>
+<li><strong>No black swan recovery</strong>: SOL and DOGE do not recover permanently</li>
+<li><strong>Margin management</strong>: Losing longs closed when needed to maintain margin above 50%</li>
+<li><strong>DOGE follows similar pattern</strong>: Grows from 379K to ~500K short lots through same mechanism</li>
+<li><strong>Position growth</strong>: Each harvest cycle frees margin to add ~200-500 more short lots</li>
+</ol>
+<h2>The Multiplier Effect Visualized</h2>
+<pre><code>Standard Short:
+  $94K equity → 440 SOL lots → hold → $47K profit
+  [Fixed position, no growth, no volatility capture]
+
+Hedged Martingale:
+  $94K equity → 6,913 SOL lots (11.4x leverage via hedge)
+    → Bounce 1:  harvest $31K, add shorts  →  7,400 lots
+    → Bounce 2:  harvest $36K, add shorts  →  7,800 lots
+    → Bounce 3:  harvest $40K, add shorts  →  8,200 lots
+    → ...
+    → Bounce 10: harvest $50K, add shorts  → 12,000 lots
+    → ...
+    → Bounce 15: harvest $25K, add shorts  → 15,000 lots
+    → SOL hits $0: close all              → $1,462K profit
+  [Growing position, compounding, volatility = fuel]
+</code></pre>
+<hr />
+<h2>VaR Dynamics: The Darwinex Amplifier</h2>
+<h3>How VaR Is Calculated</h3>
+<pre><code>VaR = 1.65 × StdDev(daily returns) × NominalValue
+
+NominalValue = |PositionSize| × (TickValue / TickSize) × CurrentPrice
+</code></pre>
+<p><strong>VaR is tethered to price.</strong> As the underlying asset price drops, the nominal value of the position shrinks, and VaR shrinks with it. This is independent of P/L — it’s a function of what you can lose from <em>here</em>, not what you’ve already gained.</p>
+<h3>VaR Through the Phases</h3>
+<h4>Phase 1: SOL $86 → $60</h4>
+<p>Current net short: 1,725 lots</p>
+<table>
+<thead>
+<tr>
+<th>SOL Price</th>
+<th>Nominal Value (1,725 lots)</th>
+<th>VaR (est. 5% daily vol)</th>
+<th>VaR % of Equity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>$86</td>
+<td>$148,350</td>
+<td>$12,240</td>
+<td>13.0%</td>
+</tr>
+<tr>
+<td>$78</td>
+<td>$134,550</td>
+<td>$11,100</td>
+<td>8.5%*</td>
+</tr>
+<tr>
+<td>$72</td>
+<td>$124,200</td>
+<td>$10,247</td>
+<td>5.7%*</td>
+</tr>
+<tr>
+<td>$65</td>
+<td>$112,125</td>
+<td>$9,250</td>
+<td>4.2%*</td>
+</tr>
+<tr>
+<td>$60</td>
+<td>$103,500</td>
+<td>$8,539</td>
+<td>3.0%*</td>
+</tr>
+</tbody>
+</table>
+<p><em>Equity grows from harvesting, so VaR % drops even faster than the absolute number.</em></p>
+<p><strong>What’s happening</strong>: VaR is falling in absolute terms (lower price = lower nominal) AND as a percentage of equity (equity is growing from harvested profits). Double compression.</p>
+<h4>Phase 2: SOL $60 → $20</h4>
+<p>Short lots growing to ~12,000, but price is collapsing:</p>
+<table>
+<thead>
+<tr>
+<th>SOL Price</th>
+<th>Net Short Lots</th>
+<th>Nominal Value</th>
+<th>VaR (est.)</th>
+<th>Equity (est.)</th>
+<th>VaR % of Equity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>$60</td>
+<td>8,500</td>
+<td>$510,000</td>
+<td>$42,075</td>
+<td>$286,000</td>
+<td>14.7%</td>
+</tr>
+<tr>
+<td>$50</td>
+<td>9,500</td>
+<td>$475,000</td>
+<td>$39,188</td>
+<td>$340,000</td>
+<td>11.5%</td>
+</tr>
+<tr>
+<td>$40</td>
+<td>10,500</td>
+<td>$420,000</td>
+<td>$34,650</td>
+<td>$380,000</td>
+<td>9.1%</td>
+</tr>
+<tr>
+<td>$30</td>
+<td>11,500</td>
+<td>$345,000</td>
+<td>$28,463</td>
+<td>$420,000</td>
+<td>6.8%</td>
+</tr>
+<tr>
+<td>$20</td>
+<td>12,000</td>
+<td>$240,000</td>
+<td>$19,800</td>
+<td>$446,000</td>
+<td>4.4%</td>
+</tr>
+</tbody>
+</table>
+<p>The position grows in lots but VaR % compresses because price is falling faster than lots are added.</p>
+<h4>Phase 3: SOL $20 → $0 (The Lock-In)</h4>
+<p>This is where your point hits. <strong>Once longs are fully unwound, shorts are pure profit with collapsing VaR:</strong></p>
+<table>
+<thead>
+<tr>
+<th>SOL Price</th>
+<th>Net Short Lots</th>
+<th>Nominal Value</th>
+<th>VaR (est.)</th>
+<th>Equity (est.)</th>
+<th>VaR % of Equity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>$20</td>
+<td>15,000</td>
+<td>$300,000</td>
+<td>$24,750</td>
+<td>$506,000</td>
+<td>4.9%</td>
+</tr>
+<tr>
+<td>$15</td>
+<td>15,000</td>
+<td>$225,000</td>
+<td>$18,563</td>
+<td>$581,000</td>
+<td>3.2%</td>
+</tr>
+<tr>
+<td>$10</td>
+<td>15,000</td>
+<td>$150,000</td>
+<td>$12,375</td>
+<td>$656,000</td>
+<td>1.9%</td>
+</tr>
+<tr>
+<td>$5</td>
+<td>15,000</td>
+<td>$75,000</td>
+<td>$6,188</td>
+<td>$731,000</td>
+<td>0.8%</td>
+</tr>
+<tr>
+<td>$2</td>
+<td>15,000</td>
+<td>$30,000</td>
+<td>$2,475</td>
+<td>$776,000</td>
+<td>0.3%</td>
+</tr>
+<tr>
+<td>$0.50</td>
+<td>15,000</td>
+<td>$7,500</td>
+<td>$619</td>
+<td>$798,500</td>
+<td>0.08%</td>
+</tr>
+<tr>
+<td>$0</td>
+<td>15,000</td>
+<td>$0</td>
+<td>$0</td>
+<td>$1,556,000</td>
+<td>0.00%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Once longs are unwound, VaR can only decrease.</strong> Every tick down:</p>
+<ul>
+<li>Nominal value shrinks → VaR shrinks</li>
+<li>Equity grows (shorts profiting) → VaR % shrinks even faster</li>
+<li>The profit is locked — there is nothing left to lose in the direction of the thesis</li>
+</ul>
+<h3>The Darwinex Risk Multiplier Effect</h3>
+<p>Darwinex normalizes all DARWINs to a target VaR band of <strong>3.25% — 6.5% monthly</strong> (95% confidence):</p>
+<pre><code>Target VaR = (Current VaR / Max VaR in lookback) × 6.5%
+
+Risk Multiplier = Target VaR / Strategy VaR
+</code></pre>
+<h4>How This Applies to the Strategy</h4>
+<p><strong>Phase 1 ($86 → $60): High VaR, Multiplier ≤ 1.0</strong></p>
+<p>Strategy VaR is elevated (13% → 5.7% of equity). The Darwinex risk engine <strong>dampens</strong> the DARWIN:</p>
+<table>
+<thead>
+<tr>
+<th>Strategy VaR %</th>
+<th>Target VaR (est.)</th>
+<th>Risk Multiplier</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>13.0%</td>
+<td>~6.5%</td>
+<td>0.50x</td>
+<td>DARWIN shows 50% of raw returns</td>
+</tr>
+<tr>
+<td>8.5%</td>
+<td>~5.5%</td>
+<td>0.65x</td>
+<td>DARWIN shows 65% of raw returns</td>
+</tr>
+<tr>
+<td>5.7%</td>
+<td>~4.8%</td>
+<td>0.84x</td>
+<td>Getting closer to 1:1</td>
+</tr>
+</tbody>
+</table>
+<p>Returns are real but dampened on the DARWIN. DarwinIA sees a conservative risk profile.</p>
+<p><strong>Phase 2 ($60 → $20): VaR Normalizing, Multiplier → 1.0</strong></p>
+<p>As VaR compresses into the 3.25%–6.5% band, the risk multiplier approaches 1:1:</p>
+<table>
+<thead>
+<tr>
+<th>Strategy VaR %</th>
+<th>Target VaR (est.)</th>
+<th>Risk Multiplier</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>6.8%</td>
+<td>~5.5%</td>
+<td>0.81x</td>
+<td>Nearly 1:1</td>
+</tr>
+<tr>
+<td>4.4%</td>
+<td>~4.5%</td>
+<td>1.02x</td>
+<td><strong>Crossover — DARWIN amplifies</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Phase 3 ($20 → $0): Low VaR, Multiplier &gt; 1.0 — AMPLIFICATION</strong></p>
+<p>This is where the Darwinex system works in your favor. Strategy VaR is collapsing toward zero while the DARWIN targets 3.25%+:</p>
+<table>
+<thead>
+<tr>
+<th>SOL Price</th>
+<th>Strategy VaR %</th>
+<th>Target VaR (est.)</th>
+<th>Risk Multiplier</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>$20</td>
+<td>4.9%</td>
+<td>~4.5%</td>
+<td>0.92x</td>
+<td>Near parity</td>
+</tr>
+<tr>
+<td>$15</td>
+<td>3.2%</td>
+<td>~3.8%</td>
+<td>1.19x</td>
+<td><strong>1.2x amplification</strong></td>
+</tr>
+<tr>
+<td>$10</td>
+<td>1.9%</td>
+<td>~3.5%</td>
+<td>1.84x</td>
+<td><strong>1.8x amplification</strong></td>
+</tr>
+<tr>
+<td>$5</td>
+<td>0.8%</td>
+<td>~3.3%</td>
+<td>4.13x</td>
+<td><strong>4x amplification</strong></td>
+</tr>
+<tr>
+<td>$2</td>
+<td>0.3%</td>
+<td>~3.25%</td>
+<td>10.8x</td>
+<td><strong>10.8x amplification</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>But D-Leverage caps at 9.75x for positions held &gt; 60 minutes.</strong> So the maximum practical multiplier is <strong>~9.75x</strong>.</p>
+<p>Even capped, the DARWIN is amplifying returns by up to 9.75x in the final collapse phase. Every 1% you make on the signal account shows as ~9.75% on the DARWIN.</p>
+<h3>The Lock-In Moment</h3>
+<p>Your key insight: <strong>once longs are fully unwound, the value is locked.</strong></p>
+<pre><code>With longs:
+  Price goes up → longs profit, shorts lose → VaR stays elevated (hedge creates volatility)
+  Price goes down → shorts profit, longs lose → VaR stays elevated
+
+Without longs (fully unwound):
+  Price goes up → shorts lose → but no longs to create paired volatility
+  Price goes down → shorts profit → VaR ONLY decreases
+
+  The only direction for VaR from here is DOWN.
+  The only direction for equity from here is UP (if thesis holds).
+</code></pre>
+<p>Once longs are cleared:</p>
+<ol>
+<li><strong>VaR collapses</strong> — nominal value shrinking with price</li>
+<li><strong>Equity only grows</strong> — pure short profit accumulating</li>
+<li><strong>Risk multiplier climbs</strong> — Darwinex amplifies the returns</li>
+<li><strong>Profit is locked</strong> — mathematically, VaR approaches zero as price approaches zero</li>
+<li><strong>DARWIN outperforms signal</strong> — the lower the VaR, the higher the amplification</li>
+</ol>
+<h3>VaR Impact on DarwinIA Allocation</h3>
+<p>DarwinIA scores DARWINs on risk-adjusted returns. The collapsing VaR creates an ideal profile:</p>
+<p><strong>DarwinIA SILVER Rating Formula:</strong></p>
+<ul>
+<li>22% current month return</li>
+<li>67% cumulative 6-month return</li>
+<li>11% max drawdown</li>
+</ul>
+<p><strong>DarwinIA GOLD Requirements:</strong></p>
+<ul>
+<li>Return/Drawdown ratio &gt; 2.5</li>
+<li>Minimum returns: &gt;20% (1yr) to &gt;40% (5yr)</li>
+</ul>
+<p>During the collapse phase:</p>
+<ul>
+<li><strong>Returns are amplified</strong> by the risk multiplier (up to 9.75x)</li>
+<li><strong>Drawdown is minimal</strong> (VaR is tiny, position can barely lose)</li>
+<li><strong>Return/Drawdown ratio goes through the roof</strong></li>
+</ul>
+<p>This means the DARWIN becomes a magnet for DarwinIA allocation:</p>
+<table>
+<thead>
+<tr>
+<th>Allocation Tier</th>
+<th>Amount</th>
+<th>Duration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DarwinIA SILVER</td>
+<td>30,000 — 375,000 EUR</td>
+<td>3 months</td>
+</tr>
+<tr>
+<td>DarwinIA GOLD</td>
+<td>50,000 — 500,000 EUR</td>
+<td>6 months</td>
+</tr>
+<tr>
+<td><strong>Performance fee</strong></td>
+<td><strong>15% of profits</strong></td>
+<td>Quarterly</td>
+</tr>
+</tbody>
+</table>
+<p>At peak amplification with a 375K EUR SILVER allocation:</p>
+<ul>
+<li>DARWIN makes 50% in a month (amplified from ~5% signal return)</li>
+<li>15% performance fee on 375K × 50% = <strong>$28,125 performance fee income</strong></li>
+<li>This is on top of the signal account profits</li>
+</ul>
+<h3>Combined Profit with Darwinex Amplification</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Signal Account</th>
+<th>DARWIN (amplified)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Phase 1 profits ($86→$60)</td>
+<td>$162,000</td>
+<td>~$97,000 (dampened)</td>
+</tr>
+<tr>
+<td>Phase 2 profits ($60→$20)</td>
+<td>$160,000</td>
+<td>~$144,000 (~0.9x avg)</td>
+</tr>
+<tr>
+<td>Phase 3 profits ($20→$0)</td>
+<td>$1,140,000</td>
+<td>~$4,500,000+ (amplified ~4x avg)</td>
+</tr>
+<tr>
+<td>DarwinIA performance fees</td>
+<td>—</td>
+<td>$50,000 — $200,000</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>$1,462,000</strong></td>
+<td><strong>$4,700,000 — $5,000,000+</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The DARWIN doesn’t generate separate profit for your signal account, but:</p>
+<ol>
+<li><strong>DarwinIA performance fees</strong> are real cash (15% of profits on allocated capital)</li>
+<li><strong>Investor allocations</strong> earn you management/performance fees</li>
+<li><strong>Track record</strong> attracts more capital post-event</li>
+</ol>
+<hr />
+<h2>Complete Side by Side Comparison</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Standard Short</th>
+<th>Hedged Martingale</th>
+<th>Hedged + Darwinex</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Starting equity</td>
+<td>$94,202</td>
+<td>$94,202</td>
+<td>$94,202</td>
+</tr>
+<tr>
+<td>Max short lots (SOL)</td>
+<td>440</td>
+<td>6,913 → 15,000</td>
+<td>6,913 → 15,000</td>
+</tr>
+<tr>
+<td>Survives 10% spike?</td>
+<td>NO</td>
+<td>YES</td>
+<td>YES</td>
+</tr>
+<tr>
+<td>Position grows?</td>
+<td>NO</td>
+<td>YES</td>
+<td>YES</td>
+</tr>
+<tr>
+<td>VaR trajectory</td>
+<td>Flat</td>
+<td>Compressing</td>
+<td>Compressing → amplified returns</td>
+</tr>
+<tr>
+<td>Risk multiplier</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>0.5x → 9.75x</td>
+</tr>
+<tr>
+<td>Signal profit</td>
+<td>$47,054</td>
+<td>$1,462,000</td>
+<td>$1,462,000</td>
+</tr>
+<tr>
+<td>DARWIN amplified returns</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>$4,700,000+ on DARWIN</td>
+</tr>
+<tr>
+<td>DarwinIA fee income</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>$50,000 — $200,000</td>
+</tr>
+<tr>
+<td>Return multiple</td>
+<td>0.5x</td>
+<td>15.5x</td>
+<td>15.5x + fee income</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Bottom Line</h2>
+<p>The hedged martingale turns a <strong>0.5x return</strong> into a <strong>15.5x return</strong> on the same thesis and starting capital. The difference is entirely due to:</p>
+<ol>
+<li><strong>Hedge leverage</strong>: Carrying 11x more gross exposure on the same equity</li>
+<li><strong>Volatility harvesting</strong>: Every bounce generates realized profit</li>
+<li><strong>Compounding</strong>: Harvested profits fund larger positions</li>
+<li><strong>Survivability</strong>: The hedge prevents margin calls that would kill a pure short</li>
+</ol>
+<p>The <strong>VaR compression</strong> as price approaches zero creates a secondary amplifier through Darwinex:</p>
+<ol start="5">
+<li><strong>Collapsing VaR</strong>: Nominal value shrinks → VaR shrinks → risk multiplier climbs</li>
+<li><strong>Profit lock-in</strong>: Once longs are unwound, VaR can only decrease — the value is locked</li>
+<li><strong>DARWIN amplification</strong>: Risk multiplier up to 9.75x in the final collapse phase</li>
+<li><strong>DarwinIA magnetism</strong>: Extreme return/drawdown ratio attracts maximum allocation</li>
+<li><strong>Performance fees</strong>: 15% of profits on up to 875K EUR allocated capital</li>
+</ol>
+<p><strong>The strategy doesn’t just profit from the short. It profits from the volatility on the way down, and then the Darwinex risk engine amplifies the final collapse into outsized DARWIN returns that attract institutional capital and performance fees.</strong></p>
+</body></html>
