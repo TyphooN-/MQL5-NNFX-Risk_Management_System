@@ -125,15 +125,18 @@ int OnCalculate(const int rates_total, const int prev_calculated, const int begi
 {
    if (rates_total <= 0)
       return 0;
-   // Only copy full buffers on new bar (HTF KAMA values don't change intra-bar)
+   // Only copy buffers on new bar (HTF KAMA values don't change intra-bar)
    if (prev_calculated == 0 || prev_calculated != rates_total)
    {
+      // Full copy on first run, incremental on new bars
+      int to_copy = (prev_calculated == 0) ? rates_total : rates_total - prev_calculated + 1;
+      if (to_copy > rates_total) to_copy = rates_total;
       bool allCopied = true;
-      allCopied &= CopyIndicatorData(handle_KAMA_H1, ExtAMABuffer_H1, rates_total);
-      allCopied &= CopyIndicatorData(handle_KAMA_H4, ExtAMABuffer_H4, rates_total);
-      allCopied &= CopyIndicatorData(handle_KAMA_D1, ExtAMABuffer_D1, rates_total);
-      allCopied &= CopyIndicatorData(handle_KAMA_W1, ExtAMABuffer_W1, rates_total);
-      allCopied &= CopyIndicatorData(handle_KAMA_MN1, ExtAMABuffer_MN1, rates_total);
+      allCopied &= CopyIndicatorData(handle_KAMA_H1, ExtAMABuffer_H1, to_copy);
+      allCopied &= CopyIndicatorData(handle_KAMA_H4, ExtAMABuffer_H4, to_copy);
+      allCopied &= CopyIndicatorData(handle_KAMA_D1, ExtAMABuffer_D1, to_copy);
+      allCopied &= CopyIndicatorData(handle_KAMA_W1, ExtAMABuffer_W1, to_copy);
+      allCopied &= CopyIndicatorData(handle_KAMA_MN1, ExtAMABuffer_MN1, to_copy);
       if (!allCopied && prev_calculated == 0)
          return 0;
       int latestIndex = rates_total - 1;
@@ -171,11 +174,11 @@ int OnCalculate(const int rates_total, const int prev_calculated, const int begi
    //--- return value of prev_calculated for next call
    return (rates_total);
 }
-bool CopyIndicatorData(int handle, double &buffer[], int rates_total)
+bool CopyIndicatorData(int handle, double &buffer[], int count)
 {
    if (BarsCalculated(handle) <= 0)
       return false;
-   if (CopyBuffer(handle, 0, 0, rates_total, buffer) <= 0)
+   if (CopyBuffer(handle, 0, 0, count, buffer) <= 0)
       return false;
    return true;
 }

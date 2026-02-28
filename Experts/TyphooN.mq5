@@ -104,7 +104,8 @@ int OrderDigits = 0;
 ENUM_ORDER_TYPE_FILLING g_cachedFillMode = (ENUM_ORDER_TYPE_FILLING)-1;
 // Dashboard cache (file-scope for reset on reinit)
 string g_prevInfoRR = "", g_prevInfoPL = "", g_prevInfoSLPL = "",
-       g_prevInfoTP = "", g_prevInfoRisk = "", g_prevInfoTPRR = "";
+       g_prevInfoTP = "", g_prevInfoRisk = "", g_prevInfoTPRR = "",
+       g_prevInfoH4 = "", g_prevInfoW1 = "", g_prevInfoD1 = "", g_prevInfoMN1 = "";
 datetime g_lastTimerUpdate = 0;
 double g_prevLongLots = -1, g_prevShortLots = -1;
 string g_cachedVaRStr = "VaR %: 0.00", g_cachedPositionStr = "";
@@ -318,6 +319,7 @@ int OnInit()
    // Reset dashboard cache on reinit
    g_prevInfoRR = ""; g_prevInfoPL = ""; g_prevInfoSLPL = "";
    g_prevInfoTP = ""; g_prevInfoRisk = ""; g_prevInfoTPRR = "";
+   g_prevInfoH4 = ""; g_prevInfoW1 = ""; g_prevInfoD1 = ""; g_prevInfoMN1 = "";
    g_lastTimerUpdate = 0;
    g_prevLongLots = -1; g_prevShortLots = -1;
    g_cachedVaRStr = "VaR %: 0.00"; g_cachedPositionStr = "";
@@ -653,13 +655,13 @@ void OnTick()
    {
       g_lastTimerUpdate = now;
       string infoH4 = "H4 : " + TimeTilNextBar(PERIOD_H4);
-      ObjectSetString(0,"infoH4",OBJPROP_TEXT,infoH4);
+      if (infoH4 != g_prevInfoH4) { ObjectSetString(0,"infoH4",OBJPROP_TEXT,infoH4); g_prevInfoH4 = infoH4; }
       string infoW1 = "W1 : " + TimeTilNextBar(PERIOD_W1);
-      ObjectSetString(0,"infoW1",OBJPROP_TEXT,infoW1);
+      if (infoW1 != g_prevInfoW1) { ObjectSetString(0,"infoW1",OBJPROP_TEXT,infoW1); g_prevInfoW1 = infoW1; }
       string infoD1 = "D1 : " + TimeTilNextBar(PERIOD_D1);
-      ObjectSetString(0,"infoD1",OBJPROP_TEXT,infoD1);
+      if (infoD1 != g_prevInfoD1) { ObjectSetString(0,"infoD1",OBJPROP_TEXT,infoD1); g_prevInfoD1 = infoD1; }
       string infoMN1 = "MN1: " + TimeTilNextBar(PERIOD_MN1);
-      ObjectSetString(0,"infoMN1",OBJPROP_TEXT,infoMN1);
+      if (infoMN1 != g_prevInfoMN1) { ObjectSetString(0,"infoMN1",OBJPROP_TEXT,infoMN1); g_prevInfoMN1 = infoMN1; }
    }
    // Cache position display and VaR: only update when lot sizes change
    bool lotsChanged = (lots.longLots != g_prevLongLots || lots.shortLots != g_prevShortLots);

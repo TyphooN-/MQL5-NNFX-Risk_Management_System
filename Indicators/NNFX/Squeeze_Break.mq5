@@ -56,6 +56,9 @@ int OnInit()
       " K:" + IntegerToString(KeltnerPeriod) + "," + DoubleToString(KeltnerMul, 1) +
       " M:" + IntegerToString(MomentumPeriod) + ")");
    IndicatorSetInteger(INDICATOR_DIGITS, 4);
+   ArraySetAsSeries(PosHist, true);
+   ArraySetAsSeries(NegHist, true);
+   ArraySetAsSeries(Mom,     true);
    g_prevSqueeze   = false;
    g_lastAlertTime = 0;
    return INIT_SUCCEEDED;
@@ -72,9 +75,6 @@ int OnCalculate(const int rates_total,
                 const long &volume[],
                 const int &spread[])
 {
-   ArraySetAsSeries(PosHist, true);
-   ArraySetAsSeries(NegHist, true);
-   ArraySetAsSeries(Mom,     true);
    ArraySetAsSeries(high,  true);
    ArraySetAsSeries(low,   true);
    ArraySetAsSeries(close, true);
