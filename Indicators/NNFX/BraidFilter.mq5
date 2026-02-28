@@ -133,9 +133,6 @@ int OnCalculate(const int rates_total,
 
       fastMAnow = EmaFast[i];
       slowMAnow = EmaMedium[i];
-
-      EmaFast[i] = fastMAnow;
-      EmaMedium[i] = slowMAnow;
       CrossUp[i] = 0;
       CrossDown[i] = 0;
       Filter[i] = ATRData[i] *InpATRMultiplier;

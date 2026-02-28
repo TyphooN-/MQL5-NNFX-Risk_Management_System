@@ -83,8 +83,6 @@ int OnCalculate(const int rates_total,
      }
      
 //--- calculation Chaikin Money Flow
-   double array_mfm[];
-   double array_mfv[];
    for(int i=limit;i>=0;i--)
      {
       //--- find the Money Flow Multiplier and calculate Money Flow Volume (MFM * Volume)
@@ -94,23 +92,13 @@ int OnCalculate(const int rates_total,
          count=rates_total-1-i;
       if(count==0)
          continue;
-      if(ArrayCopy(array_mfm,ExtBufferTMP,0,i,count)!=count)
-         continue;
-      int copied=0;
-      switch(InpVolume)
+      //--- sum MFM and volume directly (avoids per-bar ArrayCopy + vector allocation)
+      double sum_mfm=0, sum_mfv=0;
+      for(int j=0; j<count; j++)
         {
-         case VOLUME_TICK  :  copied=ArrayCopy(array_mfv,tick_volume,0,i,count); break;
-         default           :  copied=ArrayCopy(array_mfv,volume,0,i,count);      break;
+         sum_mfm += ExtBufferTMP[i+j];
+         sum_mfv += (double)(InpVolume==VOLUME_TICK ? tick_volume[i+j] : volume[i+j]);
         }
-      if(copied==0)
-         continue;
-      vector vmfm;
-      vector vmfv;
-      vmfm.Swap(array_mfm);
-      vmfv.Swap(array_mfv);
-      //--- summ of Money Flow Multiplier and Money Flow Volume
-      double sum_mfm=vmfm.Sum();
-      double sum_mfv=vmfv.Sum();
       //--- calculate the CMF
       ExtBufferCMF[i]=sum_mfm/(sum_mfv!=0 ? sum_mfv : 1.0);
      }

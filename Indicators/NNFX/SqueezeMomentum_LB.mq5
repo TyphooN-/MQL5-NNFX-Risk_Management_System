@@ -51,6 +51,12 @@ int OnInit()
    IndicatorSetString(INDICATOR_SHORTNAME,
       "SqzMom_LB(" + IntegerToString(BBLength) + "," + IntegerToString(KCLength) + ")");
    IndicatorSetInteger(INDICATOR_DIGITS, _Digits);
+   ArraySetAsSeries(HistData, true);
+   ArraySetAsSeries(HistClr,  true);
+   ArraySetAsSeries(DotData,  true);
+   ArraySetAsSeries(DotClr,   true);
+   ArraySetAsSeries(RangeBuf, true);
+   ArraySetAsSeries(LinSrc,   true);
    return INIT_SUCCEEDED;
 }
 
@@ -65,12 +71,6 @@ int OnCalculate(const int rates_total,
                 const long &volume[],
                 const int &spread[])
 {
-   ArraySetAsSeries(HistData, true);
-   ArraySetAsSeries(HistClr,  true);
-   ArraySetAsSeries(DotData,  true);
-   ArraySetAsSeries(DotClr,   true);
-   ArraySetAsSeries(RangeBuf, true);
-   ArraySetAsSeries(LinSrc,   true);
    ArraySetAsSeries(high,  true);
    ArraySetAsSeries(low,   true);
    ArraySetAsSeries(close, true);

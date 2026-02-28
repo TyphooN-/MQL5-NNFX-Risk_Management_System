@@ -186,7 +186,14 @@ bool RunTheIndicator(const int& firstWorkBar) // main indicator calculations
    bool run_succeeded = true;
    if( !IsStopped() )
     {
-      SetCrossOverValue( firstWorkBar, g_calcZero, g_calcOne );
+      // Pre-fetch price data to avoid per-bar iHigh/iLow/iHighest/iLowest API calls
+      int needBars = firstWorkBar + period + 1;
+      double highBuf[], lowBuf[];
+      ArraySetAsSeries(highBuf, true);
+      ArraySetAsSeries(lowBuf, true);
+      if (CopyHigh(_Symbol, 0, 0, needBars, highBuf) < needBars) return false;
+      if (CopyLow(_Symbol, 0, 0, needBars, lowBuf) < needBars) return false;
+      SetCrossOverValue( firstWorkBar, g_calcZero, g_calcOne, highBuf, lowBuf );
       MakeWindLine( firstWorkBar, g_calcOne, g_calcTwo, g_windLine, g_windLineClrIdx, g_histogram, g_histogramClrIdx);
       //
       if((true==g_isTesting) || (UseEvents==ENUM_OFF)){  // If true, don't use events much as the strategy tester fails (locks up)
@@ -202,30 +209,35 @@ bool RunTheIndicator(const int& firstWorkBar) // main indicator calculations
    return run_succeeded;
  }
 //
-void SetCrossOverValue(const int& firstWorkBar, double& calcZero[], double& calcOne[] )
+void SetCrossOverValue(const int& firstWorkBar, double& calcZero[], double& calcOne[], const double& highBuf[], const double& lowBuf[])
  {
    //===== Select Re-paint or No Re-Paint
    if( NRP==ENUM_ON)  // Decide if using the original, repainting, Solar Wind or calculate without repainting
     {
       for( int i=firstWorkBar; i>=0; i--)    // No Re-Paint
        {
-         DoTheCrossOverCalc(i, calcZero, calcOne);
+         DoTheCrossOverCalc(i, calcZero, calcOne, highBuf, lowBuf);
        }
     } else
     {
       for( int i=0; i<=firstWorkBar; i++)     // Classic Re-Paint
        {
-         DoTheCrossOverCalc(i, calcZero, calcOne);
+         DoTheCrossOverCalc(i, calcZero, calcOne, highBuf, lowBuf);
        }
     }
  }
-void DoTheCrossOverCalc(const int& workBar, double& calcZero[], double& calcOne[])
+void DoTheCrossOverCalc(const int& workBar, double& calcZero[], double& calcOne[], const double& highBuf[], const double& lowBuf[])
  {
    double &Value=g_swValue, &Value1=g_swValue1, &Fish=g_swFish;
    double price, MinL, MaxH;
-   MaxH = iHigh(_Symbol,0,iHighest(_Symbol,0,MODE_HIGH,period,workBar));
-   MinL = iLow(_Symbol,0,iLowest(_Symbol,0,MODE_LOW,period,workBar));
-   price = (iHigh(_Symbol,0,workBar)+iLow(_Symbol,0,workBar))/2;
+   MaxH = highBuf[workBar];
+   MinL = lowBuf[workBar];
+   for (int k = 1; k < period; k++)
+   {
+      if (highBuf[workBar + k] > MaxH) MaxH = highBuf[workBar + k];
+      if (lowBuf[workBar + k] < MinL) MinL = lowBuf[workBar + k];
+   }
+   price = (highBuf[workBar] + lowBuf[workBar]) / 2;
    if(MaxH - MinL > 0)
       Value = 0.33*2*((price-MinL)/(MaxH-MinL)-0.5) + 0.67*Value1;
    else
