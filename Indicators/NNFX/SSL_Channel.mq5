@@ -29,6 +29,8 @@ input int                  InpPeriod = 10; // Period
 double                     LeadingBuffer[];
 double                     TrailingBuffer[];
 double                     DirectionBuffer[];
+double                     highValues[];
+double                     lowValues[];
 
 int                        HighHandle;
 int                        LowHandle;
@@ -50,6 +52,9 @@ int OnInit() {
 
    HighHandle = iMA( Symbol(), Period(), InpPeriod, 0, MODE_SMA, PRICE_HIGH );
    LowHandle  = iMA( Symbol(), Period(), InpPeriod, 0, MODE_SMA, PRICE_LOW );
+
+   ArraySetAsSeries( highValues, true );
+   ArraySetAsSeries( lowValues, true );
 
    return ( INIT_SUCCEEDED );
 }
@@ -79,10 +84,6 @@ int OnCalculate( const int       rates_total,     //
    // Skip values already calculated
    int    limit = ( prev_calculated == 0 ) ? rates_total - InpPeriod - 1 : rates_total - prev_calculated;
 
-   double highValues[];
-   double lowValues[];
-   ArraySetAsSeries( highValues, true );
-   ArraySetAsSeries( lowValues, true );
    ArraySetAsSeries( close, true );
 
    if(CopyBuffer( HighHandle, 0, 0, limit + 1, highValues ) != limit + 1) return 0;

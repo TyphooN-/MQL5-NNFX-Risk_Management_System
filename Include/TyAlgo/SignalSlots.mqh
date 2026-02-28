@@ -58,7 +58,9 @@ struct SlotState
 // ── Helpers ──────────────────────────────────────────────────────────────────
 bool ReadGlobalVar(string name, double &value)
 {
-   return GlobalVariableGet(name, value);
+   if (!GlobalVariableGet(name, value)) return false;
+   if (!MathIsValidNumber(value)) { value = 0; return false; }
+   return true;
 }
 string GetKAMAGlobalName(ENUM_TIMEFRAMES tf)
 {

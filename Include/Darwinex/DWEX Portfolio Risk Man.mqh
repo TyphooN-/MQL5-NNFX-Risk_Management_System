@@ -73,11 +73,10 @@ bool CPortfolioRiskMan::CalculateVaR(string Asset, double AssetPosSize) //N.B. P
    //GET NOMINAL VALUE FOR PROPOSED POSITION
    //TODO: THIS ASSUMES ALL ASSETS CALCULATED USING ACCOUNT CURRENCY. FOR OTHERS E.G. SPX500 NEED TO DO CURRENCY CONVERSION
    double tickSize = SymbolInfoDouble(Asset, SYMBOL_TRADE_TICK_SIZE);
-   if (tickSize == 0) { return false; }
+   if (tickSize <= 0) { return false; }
    double nominalValuePerUnitPerLot = SymbolInfoDouble(Asset, SYMBOL_TRADE_TICK_VALUE) / tickSize;
    if (nominalValuePerUnitPerLot <= 0) return false;
-   double closePrice = iClose(Asset, PERIOD_M1, 0);
-   if (closePrice <= 0) closePrice = SymbolInfoDouble(Asset, SYMBOL_BID);
+   double closePrice = SymbolInfoDouble(Asset, SYMBOL_BID);
    if (closePrice <= 0) return false;
    double nominalValue              = MathAbs(AssetPosSize) * nominalValuePerUnitPerLot * closePrice;
    //CALCULATE THE VaR VALUES FOR THIS IND PROPOSED POSITION
@@ -97,11 +96,10 @@ bool CPortfolioRiskMan::CalculateLotSizeBasedOnVaR(string Asset, double confiden
    }
    //GET NOMINAL VALUE PER UNIT PER LOT
    double tickSize = SymbolInfoDouble(Asset, SYMBOL_TRADE_TICK_SIZE);
-   if (tickSize == 0) { return false; }
+   if (tickSize <= 0) { return false; }
    double nominalValuePerUnitPerLot = SymbolInfoDouble(Asset, SYMBOL_TRADE_TICK_VALUE) / tickSize;
    if (nominalValuePerUnitPerLot <= 0) { lotSize = 0; return false; }
-   double currentPrice = iClose(Asset, PERIOD_M1, 0);
-   if (currentPrice <= 0) currentPrice = SymbolInfoDouble(Asset, SYMBOL_BID);
+   double currentPrice = SymbolInfoDouble(Asset, SYMBOL_BID);
    if (currentPrice <= 0) { lotSize = 0; return false; }
    //CALCULATE THE Z-SCORE FOR THE GIVEN CONFIDENCE LEVEL
    double zScore = InverseCumulativeNormal(confidenceLevel);

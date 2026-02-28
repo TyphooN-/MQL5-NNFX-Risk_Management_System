@@ -30,6 +30,8 @@ input int Lb = 10;
 double ssld[];
 double sslu[];
 double Hlv[];
+double MAHigh[];
+double MALow[];
 
 int hMAHigh;
 int hMALow;
@@ -53,6 +55,8 @@ int OnInit()
    ArraySetAsSeries(ssld,true);
    ArraySetAsSeries(sslu,true);
    ArraySetAsSeries(Hlv,true);
+   ArraySetAsSeries(MAHigh,true);
+   ArraySetAsSeries(MALow,true);
 //---
    return(INIT_SUCCEEDED);
   }
@@ -80,10 +84,6 @@ int OnCalculate(const int rates_total,
    int counted_bars = prev_calculated;
    int i,limit;
 
-   double MAHigh[];
-   double MALow[];
-   ArraySetAsSeries(MAHigh, true);
-   ArraySetAsSeries(MALow, true);
    ArraySetAsSeries(close, true);
 
    if(counted_bars<0) return(-1);
