@@ -198,8 +198,9 @@ int OnCalculate(const int rates_total,     // number of bars in history at the c
       Bid=close[bar];
       Ask=Bid+spread[bar];
 
-      if(Trend1>0) ColorIndBuffer1[bar]=1;
-      if(Trend1<0) ColorIndBuffer1[bar]=2;
+      if(Trend1>0)      ColorIndBuffer1[bar]=1;
+      else if(Trend1<0) ColorIndBuffer1[bar]=2;
+      else              ColorIndBuffer1[bar]=0;
       IndBuffer2[bar]=-Explo1;
       if(bar==0)
         {

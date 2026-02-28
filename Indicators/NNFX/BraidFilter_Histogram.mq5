@@ -389,7 +389,7 @@ int maAdaptiveExponential(const int rates_total,
          result_aema[i] = source_price[i];
       else
         {
-         double hh = -DBL_MAX, ll = DBL_MIN;
+         double hh = -DBL_MAX, ll = DBL_MAX;
          for(int k = 0; k < value_length; k++)
            {
             hh = source_high[i - k] > hh ? source_high[i - k] : hh;
