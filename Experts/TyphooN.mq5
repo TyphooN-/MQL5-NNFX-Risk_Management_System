@@ -1676,11 +1676,13 @@ void TyWindow::OnClickTrade(void)
    }
    request.volume = OrderLots;
    usable_margin = marginBudget - AccountInfoDouble(ACCOUNT_MARGIN);
-   if (PerformOrderCheck(request, check_result, OrderLots) < 0)
+   double finalMargin = PerformOrderCheck(request, check_result, OrderLots);
+   if (finalMargin < 0)
    {
       Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
       return;
    }
+   required_margin = finalMargin;
    if (required_margin >= usable_margin)
    {
       Print("Insufficient margin to place the order. Cannot proceed.");

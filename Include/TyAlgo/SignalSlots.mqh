@@ -18,15 +18,20 @@
 // ── Enums (one per slot role) ────────────────────────────────────────────────
 enum ENUM_BASELINE_TYPE
 {
-   BL_NONE      = 0, // Disabled (always pass)
-   BL_KAMA      = 1, // KAMA Baseline
-   BL_CUSTOM_GV = 2  // Custom GlobalVariable
+   BL_NONE         = 0, // Disabled (always pass)
+   BL_KAMA         = 1, // KAMA Baseline
+   BL_SSMOOTHER    = 3, // Ehlers Supersmoother
+   BL_CUSTOM_GV    = 2  // Custom GlobalVariable
 };
 enum ENUM_CONFIRM_TYPE
 {
    CF_NONE      = 0, // Disabled (always pass)
    CF_FISHER    = 1, // Fisher Transform Bias
    CF_MTF_MA    = 2, // MTF MA Bull/Bear Power
+   CF_EBSW      = 4, // Ehlers Even Better Sinewave
+   CF_DEC_OSC   = 5, // Ehlers Decycler Oscillator
+   CF_ROOF      = 6, // Ehlers Roofing Filter
+   CF_ARSI      = 7, // Ehlers Adaptive RSI
    CF_CUSTOM_GV = 3  // Custom GlobalVariable
 };
 enum ENUM_VOLUME_TYPE
@@ -38,9 +43,10 @@ enum ENUM_VOLUME_TYPE
 };
 enum ENUM_EXIT_TYPE
 {
-   EX_NONE      = 0, // Disabled (no exit signal)
-   EX_FISHER    = 1, // Fisher Transform Reversal
-   EX_CUSTOM_GV = 2  // Custom GlobalVariable
+   EX_NONE          = 0, // Disabled (no exit signal)
+   EX_FISHER        = 1, // Fisher Transform Reversal
+   EX_ARSI_FISCHER  = 3, // Ehlers Adaptive RSI Fischer
+   EX_CUSTOM_GV     = 2  // Custom GlobalVariable
 };
 // ── Structs ──────────────────────────────────────────────────────────────────
 struct SignalResult
@@ -95,6 +101,14 @@ bool InitBaselineSlot(ENUM_BASELINE_TYPE type, ENUM_TIMEFRAMES kamaTF, string cu
       case BL_KAMA:
          state.gvName = GetKAMAGlobalName(kamaTF);
          break;
+      case BL_SSMOOTHER:
+         state.handle = iCustom(_Symbol, PERIOD_CURRENT, "Ehlers\\ehlers_supersmoother");
+         if (state.handle == INVALID_HANDLE)
+         {
+            Print("Failed to create Ehlers Supersmoother handle: ", GetLastError());
+            return false;
+         }
+         break;
       case BL_CUSTOM_GV:
          if (customGV == "")
          {
@@ -121,6 +135,38 @@ bool InitConfirmSlot(ENUM_CONFIRM_TYPE type, string customGV, SlotState &state)
          break;
       case CF_MTF_MA:
          // MTF MA reads symbol-qualified GVs (GlobalBullPowerHTF_SYMBOL / GlobalBearPowerHTF_SYMBOL) directly in Read
+         break;
+      case CF_EBSW:
+         state.handle = iCustom(_Symbol, PERIOD_CURRENT, "Ehlers\\ehlers_even_better_sinewave");
+         if (state.handle == INVALID_HANDLE)
+         {
+            Print("Failed to create Ehlers EBSW handle: ", GetLastError());
+            return false;
+         }
+         break;
+      case CF_DEC_OSC:
+         state.handle = iCustom(_Symbol, PERIOD_CURRENT, "Ehlers\\ehlers_decycler_oscillator");
+         if (state.handle == INVALID_HANDLE)
+         {
+            Print("Failed to create Ehlers Decycler Oscillator handle: ", GetLastError());
+            return false;
+         }
+         break;
+      case CF_ROOF:
+         state.handle = iCustom(_Symbol, PERIOD_CURRENT, "Ehlers\\ehlers_roofing_filter");
+         if (state.handle == INVALID_HANDLE)
+         {
+            Print("Failed to create Ehlers Roofing Filter handle: ", GetLastError());
+            return false;
+         }
+         break;
+      case CF_ARSI:
+         state.handle = iCustom(_Symbol, PERIOD_CURRENT, "Ehlers\\ehlers_adaptive_rsi");
+         if (state.handle == INVALID_HANDLE)
+         {
+            Print("Failed to create Ehlers Adaptive RSI handle: ", GetLastError());
+            return false;
+         }
          break;
       case CF_CUSTOM_GV:
          if (customGV == "")
@@ -183,6 +229,14 @@ bool InitExitSlot(ENUM_EXIT_TYPE type, string customGV, SlotState &state)
       case EX_FISHER:
          state.gvName = "FisherBias_" + _Symbol + "_" + IntegerToString(Period());
          break;
+      case EX_ARSI_FISCHER:
+         state.handle = iCustom(_Symbol, PERIOD_CURRENT, "Ehlers\\ehlers_adaptive_rsi_fischer");
+         if (state.handle == INVALID_HANDLE)
+         {
+            Print("Failed to create Ehlers Adaptive RSI Fischer handle: ", GetLastError());
+            return false;
+         }
+         break;
       case EX_CUSTOM_GV:
          if (customGV == "")
          {
@@ -221,6 +275,23 @@ SignalResult ReadBaselineSignal(ENUM_BASELINE_TYPE type, SlotState &state)
             r.direction = -1;
          else
             r.direction = 0;
+         r.label = "BL:" + (r.direction > 0 ? "Above" : (r.direction < 0 ? "Below" : "?"));
+         break;
+      }
+      case BL_SSMOOTHER:
+      {
+         // Supersmoother as baseline: price above line = buy, below = sell
+         double ssBuf[];
+         if (CopyBuffer(state.handle, 0, 1, 1, ssBuf) != 1)
+         {
+            r.valid = false;
+            r.label = "BL:Err";
+            return r;
+         }
+         double bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+         if (bid > ssBuf[0])       r.direction = +1;
+         else if (bid < ssBuf[0])  r.direction = -1;
+         else                      r.direction = 0;
          r.label = "BL:" + (r.direction > 0 ? "Above" : (r.direction < 0 ? "Below" : "?"));
          break;
       }
@@ -289,6 +360,71 @@ SignalResult ReadConfirmSignal(ENUM_CONFIRM_TYPE type, SlotState &state, double 
          else
             r.direction = 0; // Neither meets threshold
          r.label = "M:" + DoubleToString(bullPower, 0) + "/" + DoubleToString(bearPower, 0);
+         break;
+      }
+      case CF_EBSW:
+      {
+         // Even Better Sinewave: >0 = buy, <0 = sell
+         double buf[];
+         if (CopyBuffer(state.handle, 0, 1, 1, buf) != 1)
+         {
+            r.valid = false;
+            r.label = "EB:Err";
+            return r;
+         }
+         if (buf[0] > 0)      r.direction = +1;
+         else if (buf[0] < 0) r.direction = -1;
+         else                  r.direction = 0;
+         r.label = "EB:" + (r.direction > 0 ? "+" : (r.direction < 0 ? "-" : "0"));
+         break;
+      }
+      case CF_DEC_OSC:
+      {
+         // Decycler Oscillator: >0 = buy, <0 = sell
+         double buf[];
+         if (CopyBuffer(state.handle, 0, 1, 1, buf) != 1)
+         {
+            r.valid = false;
+            r.label = "DO:Err";
+            return r;
+         }
+         if (buf[0] > 0)      r.direction = +1;
+         else if (buf[0] < 0) r.direction = -1;
+         else                  r.direction = 0;
+         r.label = "DO:" + (r.direction > 0 ? "+" : (r.direction < 0 ? "-" : "0"));
+         break;
+      }
+      case CF_ROOF:
+      {
+         // Roofing Filter: result > signal = buy, result < signal = sell
+         double resBuf[], sigBuf[];
+         if (CopyBuffer(state.handle, 0, 1, 1, resBuf) != 1 ||
+             CopyBuffer(state.handle, 1, 1, 1, sigBuf) != 1)
+         {
+            r.valid = false;
+            r.label = "RF:Err";
+            return r;
+         }
+         if (resBuf[0] > sigBuf[0])      r.direction = +1;
+         else if (resBuf[0] < sigBuf[0]) r.direction = -1;
+         else                             r.direction = 0;
+         r.label = "RF:" + (r.direction > 0 ? "+" : (r.direction < 0 ? "-" : "0"));
+         break;
+      }
+      case CF_ARSI:
+      {
+         // Adaptive RSI: >0.7 = buy, <0.3 = sell, else neutral
+         double buf[];
+         if (CopyBuffer(state.handle, 0, 1, 1, buf) != 1)
+         {
+            r.valid = false;
+            r.label = "AR:Err";
+            return r;
+         }
+         if (buf[0] > 0.7)      r.direction = +1;
+         else if (buf[0] < 0.3) r.direction = -1;
+         else                    r.direction = 0;
+         r.label = "AR:" + DoubleToString(buf[0], 2);
          break;
       }
       case CF_CUSTOM_GV:
@@ -379,17 +515,48 @@ SignalResult ReadExitSignal(ENUM_EXIT_TYPE type, SlotState &state)
    r.valid = true;
    r.label = "";
    if (!state.active) return r;
-   double val = 0;
-   if (!ReadGlobalVar(state.gvName, val))
+   switch (type)
    {
-      r.valid = false;
-      r.label = "X:Err";
-      return r;
+      case EX_FISHER:
+      case EX_CUSTOM_GV:
+      {
+         double val = 0;
+         if (!ReadGlobalVar(state.gvName, val))
+         {
+            r.valid = false;
+            r.label = "X:Err";
+            return r;
+         }
+         if (val > 0) r.direction = +1;
+         else if (val < 0) r.direction = -1;
+         else r.direction = 0;
+         r.label = "X:" + (r.direction > 0 ? "+" : (r.direction < 0 ? "-" : "0"));
+         break;
+      }
+      case EX_ARSI_FISCHER:
+      {
+         // Adaptive RSI Fischer: crosses above +2 = sell exit, crosses below -2 = buy exit
+         double buf[];
+         if (CopyBuffer(state.handle, 0, 1, 2, buf) != 2)
+         {
+            r.valid = false;
+            r.label = "XF:Err";
+            return r;
+         }
+         // buf[0] = bar 2, buf[1] = bar 1 (most recent completed)
+         double prev = buf[0], curr = buf[1];
+         if (prev < 2.0 && curr >= 2.0)
+            r.direction = -1; // Overbought reversal — exit buys
+         else if (prev > -2.0 && curr <= -2.0)
+            r.direction = +1; // Oversold reversal — exit sells
+         else
+            r.direction = 0;
+         r.label = "XF:" + DoubleToString(curr, 1);
+         break;
+      }
+      default:
+         break;
    }
-   if (val > 0) r.direction = +1;
-   else if (val < 0) r.direction = -1;
-   else r.direction = 0;
-   r.label = "X:" + (r.direction > 0 ? "+" : (r.direction < 0 ? "-" : "0"));
    return r;
 }
 // ── Cleanup ──────────────────────────────────────────────────────────────────
