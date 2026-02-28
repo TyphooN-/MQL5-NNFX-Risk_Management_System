@@ -391,6 +391,8 @@ void UpdateDashboard(LotsInfo &lots, double total_risk, double total_tp, double 
    }
    if (AccountBalance > 0)
       percent_risk = MathAbs((sl_risk / AccountBalance) * 100);
+   else
+      percent_risk = 0;
    string infoRisk, infoPL, infoRR = (rr > 0) ? "RR : " + DoubleToString(rr, 2) : "RR : N/A";
    if (total_pl >= absRisk)
    {

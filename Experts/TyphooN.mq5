@@ -322,6 +322,7 @@ int OnInit()
    g_prevLongLots = -1; g_prevShortLots = -1;
    g_cachedVaRStr = "VaR %: 0.00"; g_cachedPositionStr = "";
    g_lastMGLogTime = 0;
+   EquityTPCalled = false; EquitySLCalled = false;
    double var_1_lot = 0.0;
    if(PortfolioRisk.CalculateVaR(_Symbol, 1.0))
    {
@@ -603,6 +604,8 @@ void OnTick()
    }
    if (AccountBalance > 0)
       percent_risk = MathAbs((sl_risk / AccountBalance) * 100);
+   else
+      percent_risk = 0;
    breakEvenFound = (breakEvenFoundLong || breakEvenFoundShort);
    // Compute order_risk_money using fresh breakEvenFound (after position loop)
    if (OrderMode == Standard)
@@ -945,25 +948,17 @@ bool ProcessPositionCheck(ulong ticket, string symbol, int magicNumber)
         return false;
     return ManageAllPositions || (PositionGetInteger(POSITION_MAGIC) == magicNumber);
 }
-bool HasOpenPosition(string sym, int orderType) 
+bool HasOpenPosition(string sym, int orderType)
 {
    int total = PositionsTotal();
    for(int i = 0; i < total; i++)
    {
-   if (ManageAllPositions)
-   {
-      if(PositionGetSymbol(i) == sym && PositionGetInteger(POSITION_TYPE) == orderType)
-      {
+      ulong ticket = PositionGetTicket(i);
+      if (ticket == 0) continue;
+      if (PositionGetString(POSITION_SYMBOL) != sym) continue;
+      if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
+      if (PositionGetInteger(POSITION_TYPE) == orderType)
          return true;
-      }
-   }
-   else
-   {
-      if(PositionGetSymbol(i) == sym && PositionGetInteger(POSITION_TYPE) == orderType && PositionGetInteger(POSITION_MAGIC) == MagicNumber)
-      {
-         return true;
-      }
-   }
    }
    return false;
 }
@@ -973,8 +968,9 @@ double GetTotalVolumeForSymbol(string symbol)
    int total = PositionsTotal();
    for(int i = total - 1; i >= 0; i--)
    {
-      string positionSymbol = PositionGetSymbol(i);
-      if(positionSymbol == symbol)
+      ulong ticket = PositionGetTicket(i);
+      if (ticket == 0) continue;
+      if (PositionGetString(POSITION_SYMBOL) == symbol)
       {
          if (ManageAllPositions || PositionGetInteger(POSITION_MAGIC) == MagicNumber)
             totalVolume += PositionGetDouble(POSITION_VOLUME);
@@ -1014,12 +1010,12 @@ double CalculateMartingalePL()
    int total = PositionsTotal();
    for (int i = 0; i < total; i++)
    {
-      if (PositionGetSymbol(i) == _Symbol)
-      {
-         if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
-            continue;
-         totalPL += PositionGetDouble(POSITION_PROFIT) + PositionGetDouble(POSITION_SWAP);
-      }
+      ulong ticket = PositionGetTicket(i);
+      if (ticket == 0) continue;
+      if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
+      if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
+         continue;
+      totalPL += PositionGetDouble(POSITION_PROFIT) + PositionGetDouble(POSITION_SWAP);
    }
    return totalPL;
 }
@@ -1105,17 +1101,17 @@ void UnwindMartingale()
    int total = PositionsTotal();
    for (int i = 0; i < total; i++)
    {
-      if (PositionGetSymbol(i) == _Symbol)
+      ulong ticket = PositionGetTicket(i);
+      if (ticket == 0) continue;
+      if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
+      if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
+         continue;
+      double pl = PositionGetDouble(POSITION_PROFIT) + PositionGetDouble(POSITION_SWAP);
+      if (pl < worstPL)
       {
-         if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
-            continue;
-         double pl = PositionGetDouble(POSITION_PROFIT) + PositionGetDouble(POSITION_SWAP);
-         if (pl < worstPL)
-         {
-            worstPL = pl;
-            worstTicket = PositionGetInteger(POSITION_TICKET);
-            found = true;
-         }
+         worstPL = pl;
+         worstTicket = ticket;
+         found = true;
       }
    }
    if (!found)
@@ -1154,7 +1150,9 @@ bool UnwindHedgeByMargin()
    int total = PositionsTotal();
    for (int i = 0; i < total; i++)
    {
-      if (PositionGetSymbol(i) != _Symbol)
+      ulong ticket = PositionGetTicket(i);
+      if (ticket == 0) continue;
+      if (PositionGetString(POSITION_SYMBOL) != _Symbol)
          continue;
       if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
          continue;
@@ -1165,7 +1163,7 @@ bool UnwindHedgeByMargin()
       if (vol > bestVolume || (vol == bestVolume && openPrice > highestOpen))
       {
          highestOpen = openPrice;
-         bestTicket = PositionGetInteger(POSITION_TICKET);
+         bestTicket = ticket;
          bestVolume = vol;
       }
    }
@@ -1207,7 +1205,9 @@ bool ProtectivePartialCloseBias()
    int total = PositionsTotal();
    for (int i = 0; i < total; i++)
    {
-      if (PositionGetSymbol(i) != _Symbol)
+      ulong ticket = PositionGetTicket(i);
+      if (ticket == 0) continue;
+      if (PositionGetString(POSITION_SYMBOL) != _Symbol)
          continue;
       if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
          continue;
@@ -1218,7 +1218,7 @@ bool ProtectivePartialCloseBias()
       if (vol > bestVolume || (vol == bestVolume && openPrice > highestOpen))
       {
          highestOpen = openPrice;
-         bestTicket = PositionGetInteger(POSITION_TICKET);
+         bestTicket = ticket;
          bestVolume = vol;
       }
    }
@@ -1259,7 +1259,9 @@ bool HarvestProfitableBias()
    int total = PositionsTotal();
    for (int i = 0; i < total; i++)
    {
-      if (PositionGetSymbol(i) != _Symbol)
+      ulong ticket = PositionGetTicket(i);
+      if (ticket == 0) continue;
+      if (PositionGetString(POSITION_SYMBOL) != _Symbol)
          continue;
       if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
          continue;
@@ -1269,7 +1271,7 @@ bool HarvestProfitableBias()
       if (pl > bestProfit)
       {
          bestProfit = pl;
-         bestTicket = PositionGetInteger(POSITION_TICKET);
+         bestTicket = ticket;
          bestVolume = PositionGetDouble(POSITION_VOLUME);
          bestOpen = PositionGetDouble(POSITION_PRICE_OPEN);
       }
@@ -1309,7 +1311,9 @@ void LogMartingaleUnwindStatus()
    int total = PositionsTotal();
    for (int i = 0; i < total; i++)
    {
-      if (PositionGetSymbol(i) != _Symbol)
+      ulong ticket = PositionGetTicket(i);
+      if (ticket == 0) continue;
+      if (PositionGetString(POSITION_SYMBOL) != _Symbol)
          continue;
       if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
          continue;
@@ -1470,6 +1474,11 @@ void TyWindow::OnClickTrade(void)
       if (potentialRisk > MaxRisk)
       {
          OrderRisk = (MaxRisk - percent_risk);
+         if (OrderRisk <= 0)
+         {
+            Print("MaxRisk ", MaxRisk, "% already consumed by current risk ", DoubleToString(percent_risk, 2), "%. Not placing order.");
+            return;
+         }
          potentialRisk = OrderRisk + percent_risk;
          order_risk_money = (AccountBalance * (OrderRisk / 100));
       }
@@ -1758,15 +1767,15 @@ void TyWindow::OnClickMartingale(void)
       int total = PositionsTotal();
       for (int i = 0; i < total; i++)
       {
-         if (PositionGetSymbol(i) == _Symbol)
-         {
-            if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
-               continue;
-            if (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
-               longCount++;
-            else if (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL)
-               shortCount++;
-         }
+         ulong ticket = PositionGetTicket(i);
+         if (ticket == 0) continue;
+         if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
+         if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
+            continue;
+         if (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
+            longCount++;
+         else if (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL)
+            shortCount++;
       }
       if (longCount > 0 && shortCount == 0)
       {
@@ -2048,9 +2057,11 @@ void TyWindow::OnClickClosePartial(void)
    int count = 0;
    for (int i = 0; i < total; i++)
    {
-      if (ProcessPositionCheck(PositionGetTicket(i), _Symbol, MagicNumber))
+      ulong ticket = PositionGetTicket(i);
+      if (ticket == 0) continue;
+      if (ProcessPositionCheck(ticket, _Symbol, MagicNumber))
       {
-         positions[count].ticket = PositionGetInteger(POSITION_TICKET);
+         positions[count].ticket = ticket;
          positions[count].lotSize = PositionGetDouble(POSITION_VOLUME);
          positions[count].diff = 0;
          count++;

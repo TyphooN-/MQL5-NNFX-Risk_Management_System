@@ -177,6 +177,14 @@ void OnDeinit(const int pReason)
    g_prevD1 = -1; g_prevW1 = -1; g_prevMN1 = -1;
    g_prevFontColor1 = clrNONE;
    g_prevFontColor2 = clrNONE;
+   g_startTimeD1 = 0; g_startTimeW1 = 0; g_startTimeMN1 = 0;
+   g_startTimeH4 = 0; g_startTimeH1 = 0; g_startTimeM15 = 0;
+   currentOpenD1 = 0; currentOpenW1 = 0; currentOpenMN1 = 0;
+   currentOpenH4 = 0; currentOpenH1 = 0; currentOpenM15 = 0;
+   avgD1 = 0; avgW1 = 0; avgMN1 = 0;
+   avgH4 = 0; avgH1 = 0; avgM15 = 0;
+   copiedD1 = 0; copiedW1 = 0; copiedMN1 = 0;
+   copiedH4 = 0; copiedH1 = 0; copiedM15 = 0;
 }
 void UpdateCandlestickData()
 {
@@ -353,42 +361,42 @@ int OnCalculate(const int        rates_total,
     datetime endTime = time[0];
     #endif
 #endif
-   if (D1_ATR_Projections && _Period <= PERIOD_W1 && _Period != PERIOD_MN1 && avgD1 > 0)
+   if (D1_ATR_Projections && _Period <= PERIOD_W1 && _Period != PERIOD_MN1 && avgD1 > 0 && g_startTimeD1 > 0)
    {
       double ATRLevelAboveD1 = currentOpenD1 + avgD1;
       double ATRLevelBelowD1 = currentOpenD1 - avgD1;
       DrawHorizontalLine(ATRLevelAboveD1, g_nameHighD1, g_startTimeD1, endTime);
       DrawHorizontalLine(ATRLevelBelowD1, g_nameLowD1, g_startTimeD1, endTime);
    }
-   if (W1_ATR_Projections && avgW1 > 0)
+   if (W1_ATR_Projections && avgW1 > 0 && g_startTimeW1 > 0)
    {
       double ATRLevelAboveW1 = currentOpenW1 + avgW1;
       double ATRLevelBelowW1 = currentOpenW1 - avgW1;
       DrawHorizontalLine(ATRLevelAboveW1, g_nameHighW1, g_startTimeW1, endTime);
       DrawHorizontalLine(ATRLevelBelowW1, g_nameLowW1, g_startTimeW1, endTime);
    }
-   if (MN1_ATR_Projections && avgMN1 > 0)
+   if (MN1_ATR_Projections && avgMN1 > 0 && g_startTimeMN1 > 0)
    {
       double ATRLevelAboveMN1 = currentOpenMN1 + avgMN1;
       double ATRLevelBelowMN1 = currentOpenMN1 - avgMN1;
       DrawHorizontalLine(ATRLevelAboveMN1, g_nameHighMN1, g_startTimeMN1, endTime);
       DrawHorizontalLine(ATRLevelBelowMN1, g_nameLowMN1, g_startTimeMN1, endTime);
    }
-   if (H4_ATR_Projections && _Period <= PERIOD_D1 && _Period != PERIOD_MN1 && avgH4 > 0)
+   if (H4_ATR_Projections && _Period <= PERIOD_D1 && _Period != PERIOD_MN1 && avgH4 > 0 && g_startTimeH4 > 0)
    {
       double ATRLevelAboveH4 = currentOpenH4 + avgH4;
       double ATRLevelBelowH4 = currentOpenH4 - avgH4;
       DrawHorizontalLine(ATRLevelAboveH4, g_nameHighH4, g_startTimeH4, endTime);
       DrawHorizontalLine(ATRLevelBelowH4, g_nameLowH4, g_startTimeH4, endTime);
    }
-   if (H1_ATR_Projections && _Period <= PERIOD_H4 && _Period != PERIOD_MN1 && avgH1 > 0)
+   if (H1_ATR_Projections && _Period <= PERIOD_H4 && _Period != PERIOD_MN1 && avgH1 > 0 && g_startTimeH1 > 0)
    {
       double ATRLevelAboveH1 = currentOpenH1 + avgH1;
       double ATRLevelBelowH1 = currentOpenH1 - avgH1;
       DrawHorizontalLine(ATRLevelAboveH1, g_nameHighH1, g_startTimeH1, endTime);
       DrawHorizontalLine(ATRLevelBelowH1, g_nameLowH1, g_startTimeH1, endTime);
    }
-   if (M15_ATR_Projections && _Period <= PERIOD_H1 && _Period != PERIOD_MN1 && avgM15 > 0)
+   if (M15_ATR_Projections && _Period <= PERIOD_H1 && _Period != PERIOD_MN1 && avgM15 > 0 && g_startTimeM15 > 0)
    {
       double ATRLevelAboveM15 = currentOpenM15 + avgM15;
       double ATRLevelBelowM15 = currentOpenM15 - avgM15;

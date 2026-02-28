@@ -38,6 +38,7 @@ class CPortfolioRiskMan
 public:
     double SinglePositionVaR;
     void CPortfolioRiskMan(ENUM_TIMEFRAMES VaRTimeframe, int StdDevPeriods, double ConfidenceLevel = 0.95); //CONSTRUCTOR
+   ~CPortfolioRiskMan() { ClearCache(); }
     bool CalculateVaR(string Asset, double AssetPosSize);
     bool CalculateLotSizeBasedOnVaR(string Asset, double confidenceLevel, double accountEquity, double VaRPercent, double &lotSize);
 
