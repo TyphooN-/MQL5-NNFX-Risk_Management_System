@@ -31,8 +31,10 @@ input enCalcMode         inpCalcMode = calc_no;      // Calculation mode
 input ENUM_APPLIED_PRICE inpPrice    = PRICE_MEDIAN; // Price
 double val[],valc[],signal[],prices[],work[];
 double g_prevBias = -999;
+string g_fisherGVName = "";
 int OnInit()
 {
+   g_fisherGVName = "FisherBias_" + _Symbol + "_" + IntegerToString(Period());
    SetIndexBuffer(0,val   ,INDICATOR_DATA);
    SetIndexBuffer(1,valc  ,INDICATOR_COLOR_INDEX);
    SetIndexBuffer(2,signal,INDICATOR_DATA);
@@ -48,7 +50,7 @@ int OnInit()
 }
 void OnDeinit(const int reason)
 {
-   GlobalVariableDel("FisherBias");
+   GlobalVariableDel(g_fisherGVName);
    g_prevBias = -999;
 }
 #define _setPrice(_priceType,_target,_index) \
@@ -99,7 +101,7 @@ int OnCalculate(const int rates_total, const int prev_calculated, const datetime
             newBias = 0;
         if (newBias != g_prevBias)
         {
-            GlobalVariableSet("FisherBias", newBias);
+            GlobalVariableSet(g_fisherGVName, newBias);
             g_prevBias = newBias;
         }
     }

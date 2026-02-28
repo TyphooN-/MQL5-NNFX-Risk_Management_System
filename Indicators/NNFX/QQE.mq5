@@ -68,7 +68,7 @@ double MaMaAtrRsi[];
 // Indicator handles
 int myRSI;
 
-void OnInit()
+int OnInit()
 {
     LastAlertTimeCross = 0;
     LastAlertTimeLevel = 0;
@@ -96,13 +96,15 @@ void OnInit()
     PlotIndexSetInteger(1, PLOT_DRAW_BEGIN, StartBar);
 
     IndicatorSetInteger(INDICATOR_DIGITS, 2);
-    
+
     myRSI = iRSI(Symbol(), Period(), RSI_Period, PRICE_CLOSE);
-    
+    if (myRSI == INVALID_HANDLE) { Print("Failed to create RSI handle"); return INIT_FAILED; }
+
     if (PeriodSeconds(UpperTimeframe) > PeriodSeconds())
     {
         string IndicatorFileName = MQLInfoString(MQL_PROGRAM_NAME);
         QQE_handle = iCustom(Symbol(), UpperTimeframe, IndicatorFileName, SF, false, false, AlertLevel, false, LevelUpArrow, LevelDnArrow, false, CrossoverUpArrow, CrossoverDnArrow, false, false, false, UpperTimeframe, ObjectPrefix);
+        if (QQE_handle == INVALID_HANDLE) { Print("Failed to create QQE MTF handle"); return INIT_FAILED; }
     }
     else
     {
@@ -114,6 +116,7 @@ void OnInit()
     }
 
     IndicatorSetString(INDICATOR_SHORTNAME, "QQE(" + IntegerToString(SF) + ")");
+    return INIT_SUCCEEDED;
 }
 
 void OnDeinit(const int reason)

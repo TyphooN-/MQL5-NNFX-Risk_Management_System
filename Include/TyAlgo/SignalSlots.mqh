@@ -114,7 +114,7 @@ bool InitConfirmSlot(ENUM_CONFIRM_TYPE type, string customGV, SlotState &state)
    switch (type)
    {
       case CF_FISHER:
-         state.gvName = "FisherBias";
+         state.gvName = "FisherBias_" + _Symbol + "_" + IntegerToString(Period());
          break;
       case CF_MTF_MA:
          // MTF MA reads two GVs (GlobalBullPowerHTF / GlobalBearPowerHTF) directly in Read
@@ -178,7 +178,7 @@ bool InitExitSlot(ENUM_EXIT_TYPE type, string customGV, SlotState &state)
    switch (type)
    {
       case EX_FISHER:
-         state.gvName = "FisherBias";
+         state.gvName = "FisherBias_" + _Symbol + "_" + IntegerToString(Period());
          break;
       case EX_CUSTOM_GV:
          if (customGV == "")
