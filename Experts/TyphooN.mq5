@@ -1284,7 +1284,7 @@ bool HarvestProfitableBias()
       Print("Martingale HARVEST: failed to close ", dir, " #", bestTicket, " error ", GetLastError());
    return result;
 }
-void LogMartingaleUnwindStatus()
+void LogMartingaleUnwindStatus(double marginPctArg = -1)
 {
    if (TimeCurrent() - g_lastMGLogTime < 60)
       return;
@@ -1308,7 +1308,7 @@ void LogMartingaleUnwindStatus()
       if (pType == hedgeType) { hedgeCount++; hedgeLots += vol; }
       else if (pType == biasType) { biasCount++; biasLots += vol; }
    }
-   double marginPct = CalculateMarginUsagePct();
+   double marginPct = (marginPctArg >= 0) ? marginPctArg : CalculateMarginUsagePct();
    double equity = AccountInfoDouble(ACCOUNT_EQUITY);
    double margin = AccountInfoDouble(ACCOUNT_MARGIN);
    Print("=== Martingale Unwind Status [", biasDir, "] ===",
@@ -1397,9 +1397,9 @@ void ProcessMartingale()
    // Cooldown gate for margin-based operations
    if (TimeCurrent() - LastMartingaleTime < MartingaleCooldown)
       return;
-   // Periodic status log
-   LogMartingaleUnwindStatus();
+   // Periodic status log + single margin fetch for this tick
    double marginUsage = CalculateMarginUsagePct();
+   LogMartingaleUnwindStatus(marginUsage);
    // Tier 2: emergency bias close (check first — higher priority)
    if (MartingaleDangerMarginPct > 0 && marginUsage >= MartingaleDangerMarginPct)
    {
@@ -1433,6 +1433,11 @@ void TyWindow::OnClickTrade(void)
 {
    SL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
    TP = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
+   if (SL <= 0 || TP <= 0)
+   {
+      Print("SL and TP lines must both be placed on the chart before opening a trade.");
+      return;
+   }
    double tickSize = TickSize(_Symbol);
    if (tickSize <= 0) { Print("Invalid tick size"); return; }
    SL = MathRound(SL / tickSize) * tickSize;
@@ -1476,6 +1481,11 @@ void TyWindow::OnClickTrade(void)
    }
    if (OrderMode == Dynamic)
    {
+      if (AccountBalance <= MinAccountBalance)
+      {
+         Print("Account balance (", DoubleToString(AccountBalance, 2), ") at or below MinAccountBalance (", DoubleToString(MinAccountBalance, 2), "). Not placing order.");
+         return;
+      }
       if (dirBreakEven)
       {
          order_risk_money = (AdditionalRiskRatio > 0 && LossesToMinBalance > 0) ? ((AccountBalance - MinAccountBalance) / (LossesToMinBalance / AdditionalRiskRatio)) : 0;
@@ -1514,10 +1524,10 @@ void TyWindow::OnClickTrade(void)
    {
       OrderLots = FixedLots;
    }
+   double freshAsk = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+   double freshBid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    if (OrderMode == Standard || OrderMode == Dynamic)
    {
-      double freshAsk = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
-      double freshBid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
       double slDistance = TP > SL ? (freshAsk - SL) : (SL - freshBid);
       if (slDistance <= 0)
       {
@@ -1586,25 +1596,23 @@ void TyWindow::OnClickTrade(void)
       Print("TP and SL are at the same price. Cannot determine order direction.");
       return;
    }
-   double marginAsk = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
-   double marginBid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    if (TP > SL)
    {
       request.action = TRADE_ACTION_DEAL;
       request.type = ORDER_TYPE_BUY;
-      request.price = marginAsk;
+      request.price = freshAsk;
    }
    else
    {
       request.action = TRADE_ACTION_DEAL;
       request.type = ORDER_TYPE_SELL;
-      request.price = marginBid;
+      request.price = freshBid;
    }
    MqlTradeCheckResult check_result;
    AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
    double marginBudget = AccountBalance * (1.0 - MarginBufferPercent / 100.0);
    usable_margin = marginBudget - AccountInfoDouble(ACCOUNT_MARGIN);
-   if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY) ? marginAsk : marginBid, required_margin))
+   if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY) ? freshAsk : freshBid, required_margin))
    {
       Print("Failed to calculate required margin before the loop. Error:", GetLastError());
       return;
@@ -1635,7 +1643,7 @@ void TyWindow::OnClickTrade(void)
          Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
          return;
       }
-      if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY) ? marginAsk : marginBid, required_margin))
+      if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY) ? freshAsk : freshBid, required_margin))
       {
          Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
          return;

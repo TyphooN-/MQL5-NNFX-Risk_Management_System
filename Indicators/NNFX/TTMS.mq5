@@ -167,7 +167,7 @@ int OnCalculate(const int rates_total,
       ArrayInitialize(BufferATR,EMPTY_VALUE);
      }
 //--- Подготовка данных
-   int copied=0,count=(limit==0 ? 1 : rates_total);
+   int copied=0,count=(limit>1 ? rates_total : limit+2);
    copied=CopyBuffer(handle_atr,0,0,count,BufferATR);
    if(copied!=count) return 0;
    copied=CopyBuffer(handle_dev,0,0,count,BufferDEV);
