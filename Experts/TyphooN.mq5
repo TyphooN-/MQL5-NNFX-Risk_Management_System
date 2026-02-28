@@ -1646,6 +1646,8 @@ void TyWindow::OnClickTrade(void)
       if (estimated >= min_volume)
          OrderLots = estimated;
    }
+   double volumeStepLocal = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_STEP);
+   if (volumeStepLocal <= 0) volumeStepLocal = min_volume;
    int marginLoopIter = 0;
    int marginLoopMax = (int)MathCeil(OrderLots / min_volume) + 10;
    while (required_margin > usable_margin && OrderLots > min_volume)
@@ -1656,21 +1658,16 @@ void TyWindow::OnClickTrade(void)
          Print("Margin adjustment loop exceeded max iterations (", marginLoopMax, "). Aborting order.");
          return;
       }
-      double volumeStepLocal = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_STEP);
-      if (volumeStepLocal <= 0) volumeStepLocal = min_volume;
       OrderLots = NormalizeDouble(MathFloor((OrderLots - volumeStepLocal) / volumeStepLocal) * volumeStepLocal, OrderDigits);
       request.volume = OrderLots;
       usable_margin = marginBudget - AccountInfoDouble(ACCOUNT_MARGIN);
-      if (PerformOrderCheck(request, check_result, OrderLots) < 0)
+      double marginResult = PerformOrderCheck(request, check_result, OrderLots);
+      if (marginResult < 0)
       {
          Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
          return;
       }
-      if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY) ? freshAsk : freshBid, required_margin))
-      {
-         Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
-         return;
-      }
+      required_margin = marginResult;
       if (OrderLots <= min_volume)
       {
          OrderLots = min_volume;

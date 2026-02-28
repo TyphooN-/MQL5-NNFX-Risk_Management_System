@@ -55,6 +55,8 @@ int g_prevBullLTF = -1, g_prevBearLTF = -1, g_prevBullHTF = -1, g_prevBearHTF = 
 // Cached object name strings (8 TFs x 5 labels = 40, plus 4 power labels)
 string g_objNames[8][5];  // [tf_index][label_index] for UpdateInfoLabel
 string g_nameBullLTF, g_nameBearLTF, g_nameBullHTF, g_nameBearHTF;
+// Symbol-qualified GlobalVariable names (prevent cross-chart contamination)
+string g_gvBullLTF, g_gvBearLTF, g_gvBullHTF, g_gvBearHTF;
 int OnInit()
 {
    SetIndexBuffer(0, MABufferH1_200SMA, INDICATOR_DATA);
@@ -189,6 +191,11 @@ int OnInit()
    g_nameBearLTF = objname + "InfoBearPowerLTF";
    g_nameBullHTF = objname + "InfoBullPowerHTF";
    g_nameBearHTF = objname + "InfoBearPowerHTF";
+   // Symbol-qualified GV names (prevent cross-chart contamination)
+   g_gvBullLTF = "GlobalBullPowerLTF_" + _Symbol;
+   g_gvBearLTF = "GlobalBearPowerLTF_" + _Symbol;
+   g_gvBullHTF = "GlobalBullPowerHTF_" + _Symbol;
+   g_gvBearHTF = "GlobalBearPowerHTF_" + _Symbol;
    // Clean stale objects from previous instance (crash recovery)
    ObjectsDeleteAll(0, objname);
    return 0;
@@ -219,10 +226,10 @@ void OnDeinit(const int pReason)
    IndicatorRelease(HandleD1_100SMA);  IndicatorRelease(HandleW1_100SMA);
    IndicatorRelease(HandleMN1_100SMA);
    // Clean up GlobalVariables
-   GlobalVariableDel("GlobalBullPowerLTF");
-   GlobalVariableDel("GlobalBearPowerLTF");
-   GlobalVariableDel("GlobalBullPowerHTF");
-   GlobalVariableDel("GlobalBearPowerHTF");
+   GlobalVariableDel(g_gvBullLTF);
+   GlobalVariableDel(g_gvBearLTF);
+   GlobalVariableDel(g_gvBullHTF);
+   GlobalVariableDel(g_gvBearHTF);
 }
 void UpdateInfoLabel(const string &objnameInfo, bool condition, bool isLTF, bool isHTF)
 {
@@ -620,10 +627,10 @@ int OnCalculate(const int rates_total,
    // Only update GVs when values change
    int bullLTF = BullPowerLTF * 5, bearLTF = BearPowerLTF * 5;
    int bullHTF = BullPowerHTF * 5, bearHTF = BearPowerHTF * 5;
-   if (bullLTF != g_prevBullLTF) { GlobalVariableSet("GlobalBullPowerLTF", bullLTF); g_prevBullLTF = bullLTF; }
-   if (bearLTF != g_prevBearLTF) { GlobalVariableSet("GlobalBearPowerLTF", bearLTF); g_prevBearLTF = bearLTF; }
-   if (bullHTF != g_prevBullHTF) { GlobalVariableSet("GlobalBullPowerHTF", bullHTF); g_prevBullHTF = bullHTF; }
-   if (bearHTF != g_prevBearHTF) { GlobalVariableSet("GlobalBearPowerHTF", bearHTF); g_prevBearHTF = bearHTF; }
+   if (bullLTF != g_prevBullLTF) { GlobalVariableSet(g_gvBullLTF, bullLTF); g_prevBullLTF = bullLTF; }
+   if (bearLTF != g_prevBearLTF) { GlobalVariableSet(g_gvBearLTF, bearLTF); g_prevBearLTF = bearLTF; }
+   if (bullHTF != g_prevBullHTF) { GlobalVariableSet(g_gvBullHTF, bullHTF); g_prevBullHTF = bullHTF; }
+   if (bearHTF != g_prevBearHTF) { GlobalVariableSet(g_gvBearHTF, bearHTF); g_prevBearHTF = bearHTF; }
    return rates_total;
 }
 bool UpdateBuffers()

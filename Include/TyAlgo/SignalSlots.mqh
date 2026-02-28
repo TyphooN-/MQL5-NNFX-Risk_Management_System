@@ -120,7 +120,7 @@ bool InitConfirmSlot(ENUM_CONFIRM_TYPE type, string customGV, SlotState &state)
          state.gvName = "FisherBias_" + _Symbol + "_" + IntegerToString(Period());
          break;
       case CF_MTF_MA:
-         // MTF MA reads two GVs (GlobalBullPowerHTF / GlobalBearPowerHTF) directly in Read
+         // MTF MA reads symbol-qualified GVs (GlobalBullPowerHTF_SYMBOL / GlobalBearPowerHTF_SYMBOL) directly in Read
          break;
       case CF_CUSTOM_GV:
          if (customGV == "")
@@ -271,7 +271,7 @@ SignalResult ReadConfirmSignal(ENUM_CONFIRM_TYPE type, SlotState &state, double 
       case CF_MTF_MA:
       {
          double bullPower = 0, bearPower = 0;
-         if (!ReadGlobalVar("GlobalBullPowerHTF", bullPower) || !ReadGlobalVar("GlobalBearPowerHTF", bearPower))
+         if (!ReadGlobalVar("GlobalBullPowerHTF_" + _Symbol, bullPower) || !ReadGlobalVar("GlobalBearPowerHTF_" + _Symbol, bearPower))
          {
             r.valid = false;
             r.label = "M:Err";
