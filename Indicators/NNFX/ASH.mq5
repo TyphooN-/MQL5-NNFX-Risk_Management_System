@@ -1,4 +1,4 @@
-﻿//+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
 //|                                                          ASH.mq5 |
 //|                        Copyright 2018, MetaQuotes Software Corp. |
 //|                                                 https://mql5.com |
@@ -69,19 +69,9 @@ int OnInit()
    SetIndexBuffer(7,BufferAvgSmBR,INDICATOR_CALCULATIONS);
    SetIndexBuffer(8,BufferMA,INDICATOR_CALCULATIONS);
 //--- setting indicator parameters
-   string method=StringSubstr(EnumToString(InpMode),5);
    IndicatorSetString(INDICATOR_SHORTNAME,"ASH ("+(string)period_ind+","+(string)period_sm+")");
    IndicatorSetInteger(INDICATOR_DIGITS,Digits());
-//--- setting buffer arrays as timeseries
-   ArraySetAsSeries(BufferASH,true);
-   ArraySetAsSeries(BufferColors,true);
-   ArraySetAsSeries(BufferBL,true);
-   ArraySetAsSeries(BufferBR,true);
-   ArraySetAsSeries(BufferAvgBL,true);
-   ArraySetAsSeries(BufferAvgBR,true);
-   ArraySetAsSeries(BufferAvgSmBL,true);
-   ArraySetAsSeries(BufferAvgSmBR,true);
-   ArraySetAsSeries(BufferMA,true);
+//--- buffers use default ascending indexing for MovingAverages.mqh compatibility
 //--- create MA's handles
    ResetLastError();
    handle_ma=iMA(NULL,PERIOD_CURRENT,1,0,MODE_SMA,InpAppliedPrice);
@@ -112,16 +102,14 @@ int OnCalculate(const int rates_total,
                 const long &volume[],
                 const int &spread[])
   {
-//--- Установка массивов буферов как таймсерий
-   ArraySetAsSeries(high,true);
-   ArraySetAsSeries(low,true);
-//--- Проверка и расчёт количества просчитываемых баров
+//--- check minimum bars
    if(rates_total<fmax(period_max,4) || Point()==0) return 0;
-//--- Проверка и расчёт количества просчитываемых баров
+//--- determine calculation range
    int limit=rates_total-prev_calculated;
+   int start;
    if(limit>1)
      {
-      limit=rates_total-2;
+      start=1;
       ArrayInitialize(BufferASH,EMPTY_VALUE);
       ArrayInitialize(BufferBL,0);
       ArrayInitialize(BufferBR,0);
@@ -131,15 +119,19 @@ int OnCalculate(const int rates_total,
       ArrayInitialize(BufferAvgSmBR,0);
       ArrayInitialize(BufferMA,0);
      }
-//--- Подготовка данных
+   else
+     {
+      start=prev_calculated-1;
+     }
+//--- copy MA data
    int bars=(limit>1 ? rates_total : 1),copied=0;
    copied=CopyBuffer(handle_ma,0,0,bars,BufferMA);
    if(copied!=bars) return 0;
-   
-   for(int i=limit; i>=0 && !IsStopped(); i--)
+
+   for(int i=start; i<rates_total && !IsStopped(); i++)
      {
       double Pr0=BufferMA[i];
-      double Pr1=BufferMA[i+1];
+      double Pr1=BufferMA[i-1];
 
       if(InpMode==MODE_RSI)
         {
@@ -199,45 +191,43 @@ int OnCalculate(const int rates_total,
         break;
      }
 
-//--- Расчёт индикатора
-   for(int i=limit; i>=0 && !IsStopped(); i--)
+//--- compute histogram
+   for(int i=start; i<rates_total && !IsStopped(); i++)
      {
       BufferASH[i]=(BufferAvgSmBL[i]-BufferAvgSmBR[i])/Point();
-      BufferColors[i]=(BufferASH[i]>BufferASH[i+1] ? 0 : BufferASH[i]<BufferASH[i+1] ? 1 : 2);
+      BufferColors[i]=(i>0 && BufferASH[i]>BufferASH[i-1] ? 0 : i>0 && BufferASH[i]<BufferASH[i-1] ? 1 : 2);
      }
 
 //--- return value of prev_calculated for next call
    return(rates_total);
   }
 //+------------------------------------------------------------------+
-//| Возвращает индекс максимального значения таймсерии High          |
+//| Returns index of highest value in lookback window (ascending)    |
 //+------------------------------------------------------------------+
 int Highest(const double &h[],const int count,const int start)
   {
-   int size=ArraySize(h);
-   if(start>=size) return WRONG_VALUE;
+   if(start<0) return WRONG_VALUE;
    int idx=start;
    double mx=h[start];
    for(int i=1; i<count; i++)
      {
-      if(start+i>=size) break;
-      if(h[start+i]>mx) { mx=h[start+i]; idx=start+i; }
+      if(start-i<0) break;
+      if(h[start-i]>mx) { mx=h[start-i]; idx=start-i; }
      }
    return idx;
   }
 //+------------------------------------------------------------------+
-//| Возвращает индекс минимального значения таймсерии Low            |
+//| Returns index of lowest value in lookback window (ascending)     |
 //+------------------------------------------------------------------+
 int Lowest(const double &l[],const int count,const int start)
   {
-   int size=ArraySize(l);
-   if(start>=size) return WRONG_VALUE;
+   if(start<0) return WRONG_VALUE;
    int idx=start;
    double mn=l[start];
    for(int i=1; i<count; i++)
      {
-      if(start+i>=size) break;
-      if(l[start+i]<mn) { mn=l[start+i]; idx=start+i; }
+      if(start-i<0) break;
+      if(l[start-i]<mn) { mn=l[start-i]; idx=start-i; }
      }
    return idx;
   }
