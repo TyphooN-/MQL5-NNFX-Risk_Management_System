@@ -34,7 +34,7 @@ enum ENUM_VOL_CLASS
    VOL_CLIMAX_DN   = 2,   // White
    VOL_CHURN       = 3,   // Green
    VOL_CLIMAX_CHURN= 4,   // Magenta
-   VOL_NORMAL      = 5    // SlateGray
+   VOL_NORMAL      = 5    // SteelBlue
 };
 
 //--- Inputs
@@ -81,6 +81,9 @@ int OnInit()
    PlotIndexSetInteger(0, PLOT_LINE_COLOR, 3, InpClrChurn);
    PlotIndexSetInteger(0, PLOT_LINE_COLOR, 4, InpClrClimaxCh);
    PlotIndexSetInteger(0, PLOT_LINE_COLOR, 5, InpClrNormal);
+
+   if(InpLookback < 1 || InpAvgPeriod < 1)
+      return INIT_PARAMETERS_INCORRECT;
 
    //--- Hide avg line if disabled
    if(!InpShowAvg)
@@ -232,6 +235,7 @@ ENUM_VOL_CLASS ClassifyBar(const double &open[], const double &high[],
    for(int i = 0; i < InpLookback; i++)
    {
       int b = bar + 1 + i;
+      if(b >= ArraySize(open)) break;
       double bv, sv;
       EstimateBuySell(open, high, low, close, tick_vol, real_vol, b, bv, sv);
       double r = high[b] - low[b];
@@ -281,7 +285,7 @@ ENUM_VOL_CLASS ClassifyBar(const double &open[], const double &high[],
    if(InpUse2Bars && bar + 1 < ArraySize(open))
    {
       Apply2BarConditions(open, high, low, close, tick_vol, real_vol, bar,
-                          isClimaxUp, isClimaxDn, isChurn, isLowVol);
+                          buyVol, sellVol, isClimaxUp, isClimaxDn, isChurn, isLowVol);
    }
 
    //--- Priority: ClimaxChurn > LowVol > ClimaxUp > ClimaxDown > Churn > Normal
@@ -309,15 +313,14 @@ ENUM_VOL_CLASS ClassifyBar(const double &open[], const double &high[],
 void Apply2BarConditions(const double &open[], const double &high[],
                          const double &low[], const double &close[],
                          const long &tick_vol[], const long &real_vol[],
-                         int bar,
+                         int bar, double bv1, double sv1,
                          bool &isClimaxUp, bool &isClimaxDn,
                          bool &isChurn, bool &isLowVol)
 {
    int bar2 = bar + 1;
 
-   //--- 2-bar combined metrics
-   double bv1, sv1, bv2, sv2;
-   EstimateBuySell(open, high, low, close, tick_vol, real_vol, bar, bv1, sv1);
+   //--- 2-bar combined metrics (bv1/sv1 passed in, only compute bar2)
+   double bv2, sv2;
    EstimateBuySell(open, high, low, close, tick_vol, real_vol, bar2, bv2, sv2);
 
    double totalBuy  = bv1 + bv2;

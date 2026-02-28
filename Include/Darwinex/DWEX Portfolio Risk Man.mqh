@@ -74,12 +74,14 @@ bool CPortfolioRiskMan::CalculateVaR(string Asset, double AssetPosSize) //N.B. P
    double tickSize = SymbolInfoDouble(Asset, SYMBOL_TRADE_TICK_SIZE);
    if (tickSize == 0) { return false; }
    double nominalValuePerUnitPerLot = SymbolInfoDouble(Asset, SYMBOL_TRADE_TICK_VALUE) / tickSize;
+   if (nominalValuePerUnitPerLot <= 0) return false;
    double closePrice = iClose(Asset, PERIOD_M1, 0);
    if (closePrice <= 0) closePrice = SymbolInfoDouble(Asset, SYMBOL_BID);
    if (closePrice <= 0) return false;
    double nominalValue              = MathAbs(AssetPosSize) * nominalValuePerUnitPerLot * closePrice;
    //CALCULATE THE VaR VALUES FOR THIS IND PROPOSED POSITION
    double zScore = InverseCumulativeNormal(VaRConfidenceLevel);
+   if(zScore == 0) return false;
    SinglePositionVaR = zScore * stdDevReturns * nominalValue; //nominalValue is always +ve because of MathAbs(AssetPosSize) above
    return true;
 }
@@ -96,11 +98,13 @@ bool CPortfolioRiskMan::CalculateLotSizeBasedOnVaR(string Asset, double confiden
    double tickSize = SymbolInfoDouble(Asset, SYMBOL_TRADE_TICK_SIZE);
    if (tickSize == 0) { return false; }
    double nominalValuePerUnitPerLot = SymbolInfoDouble(Asset, SYMBOL_TRADE_TICK_VALUE) / tickSize;
+   if (nominalValuePerUnitPerLot <= 0) { lotSize = 0; return false; }
    double currentPrice = iClose(Asset, PERIOD_M1, 0);
    if (currentPrice <= 0) currentPrice = SymbolInfoDouble(Asset, SYMBOL_BID);
    if (currentPrice <= 0) { lotSize = 0; return false; }
    //CALCULATE THE Z-SCORE FOR THE GIVEN CONFIDENCE LEVEL
    double zScore = InverseCumulativeNormal(confidenceLevel);
+   if(zScore == 0) return false;
    //CALCULATE THE VaR FOR A SINGLE UNIT OF THE ASSET
    double unitVaR = zScore * stdDevReturns * nominalValuePerUnitPerLot * currentPrice;
    //CALCULATE THE MAXIMUM VaR BASED ON THE ACCOUNT EQUITY AND VaR PERCENTAGE
