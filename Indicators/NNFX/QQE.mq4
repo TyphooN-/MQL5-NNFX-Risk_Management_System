@@ -198,17 +198,19 @@ int OnCalculate(const int rates_total,
                 // Find the bar that corresponds to the upper timeframe's latest finished bar.
                 int customIndex = iBarShift(Symbol(), UpperTimeframe, Time[cur_i]);
                 cur_i++;
-                while (iBarShift(Symbol(), UpperTimeframe, Time[cur_i]) == customIndex)
+                while (cur_i < Bars && iBarShift(Symbol(), UpperTimeframe, Time[cur_i]) == customIndex)
                 {
                     cur_i++;
                 }
+                if (cur_i >= Bars) return prev_calculated;
                 // Find the bar that corresponds to the upper timeframe's pre-latest finished bar.
                 customIndex = iBarShift(Symbol(), UpperTimeframe, Time[cur_i]);
                 pre_i = cur_i + 1;
-                while (iBarShift(Symbol(), UpperTimeframe, Time[pre_i]) == customIndex)
+                while (pre_i < Bars && iBarShift(Symbol(), UpperTimeframe, Time[pre_i]) == customIndex)
                 {
                     pre_i++;
                 }
+                if (pre_i >= Bars) return prev_calculated;
                 cur_i = pre_i - 1; // Use oldest lower timeframe bar inside that upper timeframe bar.
             }
             
@@ -261,18 +263,20 @@ int OnCalculate(const int rates_total,
         // Find the bar that corresponds to the upper timeframe's latest finished bar.
         int cnt = 1;
         int customIndex = iBarShift(Symbol(), UpperTimeframe, Time[0]);
-        while (iBarShift(Symbol(), UpperTimeframe, Time[cnt]) == customIndex)
+        while (cnt < Bars && iBarShift(Symbol(), UpperTimeframe, Time[cnt]) == customIndex)
         {
             cnt++;
         }
+        if (cnt >= Bars) return rates_total;
         i = cnt;
         // Find the bar that corresponds to the upper timeframe's pre-latest finished bar.
         customIndex = iBarShift(Symbol(), UpperTimeframe, Time[cnt]);
         cnt++;
-        while (iBarShift(Symbol(), UpperTimeframe, Time[cnt]) == customIndex)
+        while (cnt < Bars && iBarShift(Symbol(), UpperTimeframe, Time[cnt]) == customIndex)
         {
             cnt++;
         }
+        if (cnt >= Bars) return rates_total;
         pre_i = cnt;
     }
     else i = 1; // Non-MTF.

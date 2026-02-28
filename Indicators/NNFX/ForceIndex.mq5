@@ -24,7 +24,7 @@ int                       ExtMAHandle;
 //+------------------------------------------------------------------+
 //| Custom indicator initialization function                         |
 //+------------------------------------------------------------------+
-void OnInit()
+int OnInit()
   {
 //--- indicator buffers mapping
    SetIndexBuffer(0,ExtForceBuffer,INDICATOR_DATA);
@@ -35,7 +35,9 @@ void OnInit()
    IndicatorSetString(INDICATOR_SHORTNAME,"Force("+string(InpForcePeriod)+")");
 //--- get MA handle
    ExtMAHandle=iMA(NULL,0,InpForcePeriod,0,InpMAMethod,InpAppliedPrice);
+   if(ExtMAHandle==INVALID_HANDLE) { Print("Failed to create MA handle"); return INIT_FAILED; }
 //--- initialization done
+   return INIT_SUCCEEDED;
   }
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)

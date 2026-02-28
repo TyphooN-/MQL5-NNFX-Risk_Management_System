@@ -29,7 +29,7 @@
 #property copyright     "Copyright 2022, Darwinex / TyphooN (v1.01+)"
 #property link          "https://www.darwinex.com"
 #property description   "Portfolio Risk Management Module"
-#property version       "1.04"
+#property version       "1.05"
 #property strict
 #include <Math\Stat\Math.mqh>
 
@@ -67,7 +67,7 @@ bool CPortfolioRiskMan::CalculateVaR(string Asset, double AssetPosSize) //N.B. P
    double stdDevReturns;
    if(!GetAssetStdDevReturns(Asset, stdDevReturns)) //2nd param passed by ref
    {
-      Alert("Error calculating Std Dev of Returns for " + Asset + " in: " + __FUNCTION__ + "()");
+      Print("Error calculating Std Dev of Returns for " + Asset + " in: " + __FUNCTION__ + "()");
       return false;
    }
    //GET NOMINAL VALUE FOR PROPOSED POSITION
@@ -91,7 +91,7 @@ bool CPortfolioRiskMan::CalculateLotSizeBasedOnVaR(string Asset, double confiden
    double stdDevReturns;
    if(!GetAssetStdDevReturns(Asset, stdDevReturns)) //2nd param passed by ref
    {
-      Alert("Error calculating Std Dev of Returns for " + Asset + " in: " + __FUNCTION__ + "()");
+      Print("Error calculating Std Dev of Returns for " + Asset + " in: " + __FUNCTION__ + "()");
       return false;
    }
    //GET NOMINAL VALUE PER UNIT PER LOT
@@ -160,7 +160,7 @@ double CPortfolioRiskMan::InverseCumulativeNormal(double p)
              ((((d1 * q + d2) * q + d3) * q + d4) * q + 1);
    }
    // If p is outside the valid range
-   Alert("Error: p is out of range in InverseCumulativeNormal");
+   Print("Error: p is out of range in InverseCumulativeNormal");
    return 0;
 }
 bool CPortfolioRiskMan::GetAssetStdDevReturns(string VolSymbolName, double &StandardDevOfReturns)

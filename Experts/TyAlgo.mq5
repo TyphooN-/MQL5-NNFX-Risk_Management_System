@@ -22,7 +22,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "https://www.marketwizardry.org/"
-#property version   "2.106"
+#property version   "2.107"
 #property description "NNFX Confluence Algo EA — Modular Signal Slots"
 #include <Trade\Trade.mqh>
 #include <Orchard\RiskCalc.mqh>
@@ -103,6 +103,21 @@ int OnInit()
    if (StdDevPeriods < 2)
    {
       Print("StdDevPeriods must be >= 2");
+      return INIT_FAILED;
+   }
+   if (SL_ATR_Multi <= 0)
+   {
+      Print("SL_ATR_Multi must be > 0");
+      return INIT_FAILED;
+   }
+   if (TP_ATR_Multi <= 0)
+   {
+      Print("TP_ATR_Multi must be > 0");
+      return INIT_FAILED;
+   }
+   if (RiskVaRPercent <= 0)
+   {
+      Print("RiskVaRPercent must be > 0");
       return INIT_FAILED;
    }
    ENUM_ORDER_TYPE_FILLING fillMode = SelectFillingMode();
@@ -233,10 +248,10 @@ void OnTick()
          Print("Error in OrderCalcProfit (TP): ", GetLastError());
       if (sl != 0 && !OrderCalcProfit(orderType, _Symbol, posVolume, posOpenPrice, sl, risk))
          Print("Error in OrderCalcProfit (SL): ", GetLastError());
-      if (risk <= 0)
+      if (sl != 0 && risk <= 0)
          sl_risk += risk;
       total_risk += swap;
-      if (risk <= 0)
+      if (sl != 0 && risk <= 0)
          sl_risk += swap;
       total_risk += risk;
       total_pl += profit;
@@ -363,24 +378,31 @@ void OnTick()
       }
       if (lotSize > volumeMax) lotSize = volumeMax;
       if (volumeStep > 0) lotSize = MathFloor(lotSize / volumeStep) * volumeStep;
+      if (lotSize < volumeMin)
+      {
+         ObjectSetString(0, "infoConfluence", OBJPROP_TEXT, "Confluence: Lot size below minimum");
+         return;
+      }
       // Entry with ATR-based SL/TP (normalized to tick size)
       double tickSize = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
       if (tickSize <= 0) tickSize = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
       if (tickSize <= 0) { Print("Invalid tick size for ", _Symbol); return; }
       if (buySignal && !hasBuy)
       {
-         double slPrice = MathRound((ask - (atrValue * SL_ATR_Multi)) / tickSize) * tickSize;
-         double tpPrice = MathRound((ask + (atrValue * TP_ATR_Multi)) / tickSize) * tickSize;
-         if (Trade.Buy(lotSize, _Symbol, ask, slPrice, tpPrice, "NNFX Buy"))
+         double freshAsk = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+         double slPrice = MathRound((freshAsk - (atrValue * SL_ATR_Multi)) / tickSize) * tickSize;
+         double tpPrice = MathRound((freshAsk + (atrValue * TP_ATR_Multi)) / tickSize) * tickSize;
+         if (Trade.Buy(lotSize, _Symbol, freshAsk, slPrice, tpPrice, "NNFX Buy"))
             Print("Buy position opened: ", lotSize, " lots, SL=", slPrice, " TP=", tpPrice);
          else
             Print("Error opening Buy position: ", GetLastError());
       }
       else if (sellSignal && !hasSell)
       {
-         double slPrice = MathRound((bid + (atrValue * SL_ATR_Multi)) / tickSize) * tickSize;
-         double tpPrice = MathRound((bid - (atrValue * TP_ATR_Multi)) / tickSize) * tickSize;
-         if (Trade.Sell(lotSize, _Symbol, bid, slPrice, tpPrice, "NNFX Sell"))
+         double freshBid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+         double slPrice = MathRound((freshBid + (atrValue * SL_ATR_Multi)) / tickSize) * tickSize;
+         double tpPrice = MathRound((freshBid - (atrValue * TP_ATR_Multi)) / tickSize) * tickSize;
+         if (Trade.Sell(lotSize, _Symbol, freshBid, slPrice, tpPrice, "NNFX Sell"))
             Print("Sell position opened: ", lotSize, " lots, SL=", slPrice, " TP=", tpPrice);
          else
             Print("Error opening Sell position: ", GetLastError());

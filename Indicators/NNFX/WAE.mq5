@@ -70,7 +70,7 @@ double IndBuffer1[],ColorIndBuffer1[],IndBuffer2[],IndBuffer3[];
 //+------------------------------------------------------------------+    
 //| MACD indicator initialization function                           | 
 //+------------------------------------------------------------------+  
-void OnInit()
+int OnInit()
   {
 //---- initialization of variables of the start of data calculation
    min_rates_total=BBPeriod+1;
@@ -83,10 +83,10 @@ void OnInit()
    PrevStatus=-1;
 //---- getting handle of the iMACD indicator
    MACD_Handle=iMACD(NULL,0,Fast_MA,Slow_MA,9,PRICE_CLOSE);
-   if(MACD_Handle==INVALID_HANDLE)Print(" Failed to get handle of the iMACD indicator");
+   if(MACD_Handle==INVALID_HANDLE) { Print("Failed to get handle of the iMACD indicator"); return INIT_FAILED; }
 //---- getting handle of the iBands indicator
    BB_Handle=iBands(NULL,0,BBPeriod,0,BBDeviation,PRICE_CLOSE);
-   if(BB_Handle==INVALID_HANDLE)Print(" Failed to get handle of the iBands indicator");
+   if(BB_Handle==INVALID_HANDLE) { Print("Failed to get handle of the iBands indicator"); return INIT_FAILED; }
 
 //---- set IndBuffer1[] dynamic array as an indicator buffer
    SetIndexBuffer(1,IndBuffer1,INDICATOR_DATA);
@@ -127,6 +127,7 @@ void OnInit()
 //---- determination of accuracy of displaying the indicator values
    IndicatorSetInteger(INDICATOR_DIGITS,_Digits+1);
 //---- initialization end
+   return INIT_SUCCEEDED;
   }
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
@@ -206,8 +207,8 @@ int OnCalculate(const int rates_total,     // number of bars in history at the c
             Explo1>Dead && Explo1>Explo2 && Trend1>Trend2 && 
             LastTime1<AlertCount && AlertLong==true && Ask!=bask)
            {
-            pwrt=100*(Trend1 - Trend2)/Trend1;
-            pwre=100*(Explo1 - Explo2)/Explo1;
+            pwrt=(Trend1!=0) ? 100*(Trend1 - Trend2)/Trend1 : 0;
+            pwre=(Explo1!=0) ? 100*(Explo1 - Explo2)/Explo1 : 0;
             bask=Ask;
             if(pwre>=ExplosionPower && pwrt>=TrendPower)
               {
@@ -223,12 +224,12 @@ int OnCalculate(const int rates_total,     // number of bars in history at the c
               }
             Status=1;
            }
-         if(Trend1<0 && MathAbs(Trend1)>Explo1 && MathAbs(Trend1)>Dead && 
-            Explo1>Dead && Explo1>Explo2 && MathAbs(Trend1)>MathAbs(Trend2) && 
+         if(Trend1<0 && MathAbs(Trend1)>Explo1 && MathAbs(Trend1)>Dead &&
+            Explo1>Dead && Explo1>Explo2 && MathAbs(Trend1)>MathAbs(Trend2) &&
             LastTime2<AlertCount && AlertShort==true && Bid!=bbid)
            {
-            pwrt=100*(MathAbs(Trend1) - MathAbs(Trend2))/MathAbs(Trend1);
-            pwre=100*(Explo1 - Explo2)/Explo1;
+            pwrt=(MathAbs(Trend1)!=0) ? 100*(MathAbs(Trend1) - MathAbs(Trend2))/MathAbs(Trend1) : 0;
+            pwre=(Explo1!=0) ? 100*(Explo1 - Explo2)/Explo1 : 0;
             bbid=Bid;
             if(pwre>=ExplosionPower && pwrt>=TrendPower)
               {

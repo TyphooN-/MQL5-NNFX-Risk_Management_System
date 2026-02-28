@@ -214,10 +214,15 @@ int OnCalculate(const int rates_total,
 //+------------------------------------------------------------------+
 int Highest(const double &h[],const int count,const int start)
   {
+   int size=ArraySize(h);
+   if(start>=size) return WRONG_VALUE;
    int idx=start;
    double mx=h[start];
    for(int i=1; i<count; i++)
+     {
+      if(start+i>=size) break;
       if(h[start+i]>mx) { mx=h[start+i]; idx=start+i; }
+     }
    return idx;
   }
 //+------------------------------------------------------------------+
@@ -225,10 +230,15 @@ int Highest(const double &h[],const int count,const int start)
 //+------------------------------------------------------------------+
 int Lowest(const double &l[],const int count,const int start)
   {
+   int size=ArraySize(l);
+   if(start>=size) return WRONG_VALUE;
    int idx=start;
    double mn=l[start];
    for(int i=1; i<count; i++)
+     {
+      if(start+i>=size) break;
       if(l[start+i]<mn) { mn=l[start+i]; idx=start+i; }
+     }
    return idx;
   }
 //+------------------------------------------------------------------+

@@ -62,7 +62,7 @@ double BearsAroonBuffer[];
 //+------------------------------------------------------------------+
 //| Custom indicator initialization function                         |
 //+------------------------------------------------------------------+
-void OnInit()
+int OnInit()
   {
 
   ArraySetAsSeries(BullsAroonBuffer, false);
@@ -94,6 +94,7 @@ void OnInit()
 //--- determination of accuracy of displaying of the indicator values
    IndicatorSetInteger(INDICATOR_DIGITS,0);
 //----
+   return INIT_SUCCEEDED;
   }
 
 //+------------------------------------------------------------------+
@@ -149,8 +150,9 @@ int OnCalculate(
 int getHighestIndex(const double &high[], int startIndex){
    double highestValue = -1;
    int highestIndex = 0;
+   int loopStart = MathMax(startIndex - AroonPeriod + 1, 0);
 
-   for(int a=startIndex-AroonPeriod+1; a<=startIndex; a++){
+   for(int a=loopStart; a<=startIndex; a++){
       double value = high[a];
 
       if(value > highestValue){
@@ -165,8 +167,9 @@ int getHighestIndex(const double &high[], int startIndex){
 int getLowestIndex(const double &low[], int startIndex){
    double lowestValue = DBL_MAX;
    int lowestIndex = 0;
+   int loopStart = MathMax(startIndex - AroonPeriod + 1, 0);
 
-   for(int a=startIndex-AroonPeriod+1; a<=startIndex; a++){
+   for(int a=loopStart; a<=startIndex; a++){
       double value = low[a];
 
       if(value < lowestValue){

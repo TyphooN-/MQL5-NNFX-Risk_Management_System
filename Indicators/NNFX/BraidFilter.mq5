@@ -152,8 +152,6 @@ int OnCalculate(const int rates_total,
 //+------------------------------------------------------------------+
 bool ReadIndicatorBufferData(int IndicatorHandle,int BufferNo, double &arrData[], int MaxCount)
   {
-
-   ArraySetAsSeries(arrData,true);
    if(CopyBuffer(IndicatorHandle,BufferNo,0,MaxCount,arrData)<=0)
       return false;
 
