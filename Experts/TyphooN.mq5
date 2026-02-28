@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "https://www.marketwizardry.org/"
-#property version   "1.403"
+#property version   "1.404"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -585,20 +585,14 @@ void OnTick()
                   Print("Error in OrderCalcProfit (SL): ", GetLastError());
             }
          }
+         // Always include swap in total_risk (positive reduces risk, negative increases it)
+         total_risk += swap;
+         total_risk += risk;
          if (risk <= 0)
          {
-            sl_risk += risk; // Add risk
-         }
-         if (swap > 0)
-         {
-            total_risk += swap;
-         }
-         // Include swap in stop-loss risk calculation if swap is greater than zero
-         if (swap > 0 && risk <= 0)
-         {
+            sl_risk += risk;
             sl_risk += swap;
          }
-         total_risk += risk;
          total_pl += profit;
          total_tp += tpprofit;
       }
@@ -1138,8 +1132,9 @@ void UnwindMartingale()
 }
 double CalculateMarginUsagePct()
 {
-   if (AccountEquity <= 0.01) return 100.0;
-   return AccountInfoDouble(ACCOUNT_MARGIN) / AccountEquity * 100.0;
+   double freshEquity = AccountInfoDouble(ACCOUNT_EQUITY);
+   if (freshEquity <= 0.01) return 100.0;
+   return AccountInfoDouble(ACCOUNT_MARGIN) / freshEquity * 100.0;
 }
 bool UnwindHedgeByMargin()
 {
@@ -2172,7 +2167,7 @@ void ModifyPosition(double newLevel, int modificationType, int positionTypeFilte
 void TyWindow::OnClickSetSL(void)
 {
     double newSL = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
-    if (newSL != SL && newSL != 0)
+    if (newSL > 0)
     {
         double tickSize = TickSize(_Symbol);
         if (tickSize <= 0) { Print("Invalid tick size"); return; }
@@ -2194,7 +2189,7 @@ void TyWindow::OnClickSetSL(void)
 void TyWindow::OnClickSetTP(void)
 {
    double newTP = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
-   if (newTP != TP && newTP != 0)
+   if (newTP > 0)
    {
       double tickSize = TickSize(_Symbol);
       if (tickSize <= 0) { Print("Invalid tick size"); return; }

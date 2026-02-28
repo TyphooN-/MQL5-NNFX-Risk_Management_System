@@ -49,8 +49,8 @@ int OnInit()
    hMALow = iMA(_Symbol, PERIOD_CURRENT, Lb, 0, MA_Method, PRICE_LOW);
 
 
-   if(hMAHigh==INVALID_HANDLE)Print(" Failed to get handle of the iMA indicator");
-   if(hMALow==INVALID_HANDLE)Print(" Failed to get handle of the iMA indicator");
+   if(hMAHigh==INVALID_HANDLE) { Print("Failed to get handle of iMA(HIGH)"); return INIT_FAILED; }
+   if(hMALow==INVALID_HANDLE)  { Print("Failed to get handle of iMA(LOW)");  return INIT_FAILED; }
 
    ArraySetAsSeries(ssld,true);
    ArraySetAsSeries(sslu,true);

@@ -52,10 +52,7 @@ int OnInit()
 //--- setting indicator parameters
    IndicatorSetString(INDICATOR_SHORTNAME,"Rex ("+(string)period_rex+","+(string)period_sig+")");
    IndicatorSetInteger(INDICATOR_DIGITS,Digits());
-//--- setting buffer arrays as timeseries
-   ArraySetAsSeries(BufferRex,true);
-   ArraySetAsSeries(BufferSignal,true);
-   ArraySetAsSeries(BufferTVB,true);
+//--- buffers use default ascending indexing for MovingAverages.mqh compatibility
 //---
    return(INIT_SUCCEEDED);
   }
@@ -73,24 +70,24 @@ int OnCalculate(const int rates_total,
                 const long &volume[],
                 const int &spread[])
   {
-//--- Установка массивов буферов как таймсерий
-   ArraySetAsSeries(open,true);
-   ArraySetAsSeries(high,true);
-   ArraySetAsSeries(low,true);
-   ArraySetAsSeries(close,true);
 //--- Проверка и расчёт количества просчитываемых баров
    if(rates_total<4 || Point()==0) return 0;
 //--- Проверка и расчёт количества просчитываемых баров
    int limit=rates_total-prev_calculated;
+   int start;
    if(limit>1)
      {
-      limit=rates_total-1;
+      start=0;
       ArrayInitialize(BufferRex,EMPTY_VALUE);
       ArrayInitialize(BufferSignal,EMPTY_VALUE);
       ArrayInitialize(BufferTVB,0);
      }
+   else
+     {
+      start=prev_calculated-1;
+     }
 //--- Подготовка данных
-   for(int i=limit; i>=0 && !IsStopped(); i--)
+   for(int i=start; i<rates_total && !IsStopped(); i++)
       BufferTVB[i]=3.0*close[i]-(low[i]+open[i]+high[i]);
 
 //--- Расчёт индикатора
