@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "https://www.marketwizardry.org/"
-#property version   "1.402"
+#property version   "1.403"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -76,20 +76,10 @@ input double          MinAccountBalance          = 96100;
 input int             LossesToMinBalance         = 10;
 input group           "[ACCOUNT PROTECTION SETTINGS]";
 input bool            EnableUpdateEmptySLTP      = false;
-input bool            EnableAutoProtect          = false;
-input double          APRRLevel                  = 1.0;
 input bool            EnableEquityTP             = false;
 input double          TargetEquityTP             = 110200;
 input bool            EnableEquitySL             = false;
 input double          TargetEquitySL             = 98000;
-input group           "[PYRAMID MODE SETTINGS]"
-input bool            EnablePyramid = false;
-input double          PyramidLotSize = 1.0;
-input double          PyramidFreeMarginTrigger = 31337;
-input double          PyramidFreeMarginBuffer = 9001;
-input double          PyramidTargetLots = 69;
-input int             PyramidCooldown = 420;
-input string          PyramidComment = "420 Pyramid";
 input group           "[MARTINGALE MODE SETTINGS]"
 input double          MartingaleCloseChunkSize = 50;  // lots per partial close
 input int             MartingaleCooldown = 30;        // seconds between orders
@@ -97,16 +87,17 @@ input double          MartingaleEquityTP = 0;         // $ profit target (0 = di
 input double          MartingaleUnwindLotSize = 1;    // lots per hedge unwind close
 input double          MartingaleUnwindMarginPct = 0;  // % margin usage — unwind hedges above this (0=off)
 input double          MartingaleDangerMarginPct = 0;  // % margin usage — protective bias close above this (0=off)
+input double          MartingaleHarvestMarginPct = 0; // % margin — harvest profits above this (0=off)
+input double          MartingaleHarvestLotSize = 1;   // lots per harvest close
 input group           "[DISCORD ANNOUNCEMENT SETTINGS]"
 input string          DiscordAPIKey =  "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
 input bool            EnableBroadcast = false;
 CPortfolioRiskMan PortfolioRisk(VaRTimeframe, StdDevPeriods, VaRConfidence); // Darwinex VaR wrapper
 // global vars
-datetime LastPyramidTime = 0;
-double PyramidLotsOpened = 0, TP = 0, SL = 0, Bid = 0, Ask = 0, prevBidPrice = 0.0,
+double TP = 0, SL = 0, Bid = 0, Ask = 0, prevBidPrice = 0.0,
        prevAskPrice = 0.0, order_risk_money = 0, AccountBalance = 0,
        required_margin = 0, AccountEquity = 0, percent_risk = 0;
-bool AutoProtectCalled = false, EquityTPCalled = false,
+bool EquityTPCalled = false,
      EquitySLCalled = false, breakEvenFoundLong = false, breakEvenFoundShort = false,
      breakEvenFound = false;
 int OrderDigits = 0;
@@ -123,6 +114,8 @@ datetime LastMartingaleTime = 0;
 datetime g_lastMGLogTime = 0;
 int MartingaleHedgeCloses = 0;
 int MartingaleBiasCloses = 0;
+bool HarvestEnabled = false;
+int MartingaleHarvestCloses = 0;
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
 #define INDENT_TOP        (10)      // indent from top (with allowance for border width)
 #define CONTROLS_GAP_X    (5)       // gap by X coordinate
@@ -138,7 +131,7 @@ class TyWindow : public CAppDialog
       CButton           buttonBuyLines;
       CButton           buttonSellLines;
       CButton           buttonDestroyLines;
-      CButton           buttonProtect;
+      CButton           buttonHarvest;
       CButton           buttonCloseAll;
       CButton           buttonClosePartial;
       CButton           buttonSetSL;
@@ -150,6 +143,7 @@ class TyWindow : public CAppDialog
       void ExecuteSellOrder(double lots);
       void MartingaleButtonText(string text);
       void MartingaleButtonColor(color clr);
+      void HarvestButtonColor(color clr);
       virtual bool      Create(const long chart,const string name,const int subwin,const int x1,const int y1,const int x2,const int y2);
       // handlers of drag
       virtual bool      OnDialogDragStart(void);
@@ -164,7 +158,7 @@ class TyWindow : public CAppDialog
       bool              CreateButtonBuyLines(void);
       bool              CreateButtonSellLines(void);
       bool              CreateButtonDestroyLines(void);
-      bool              CreateButtonProtect(void);
+      bool              CreateButtonHarvest(void);
       bool              CreateButtonCloseAll(void);
       bool              CreateButtonClosePartial(void);
       bool              CreateButtonSetSL(void);
@@ -175,7 +169,7 @@ class TyWindow : public CAppDialog
       void              OnClickBuyLines(void);
       void              OnClickSellLines(void);
       void              OnClickDestroyLines(void);
-      void              OnClickProtect(void);
+      void              OnClickHarvest(void);
       void              OnClickCloseAll(void);
       void              OnClickClosePartial(void);
       void              OnClickSetSL(void);
@@ -188,7 +182,7 @@ ON_EVENT(ON_CLICK, buttonMartingale, OnClickMartingale)
 ON_EVENT(ON_CLICK, buttonBuyLines, OnClickBuyLines)
 ON_EVENT(ON_CLICK, buttonSellLines, OnClickSellLines)
 ON_EVENT(ON_CLICK, buttonDestroyLines, OnClickDestroyLines)
-ON_EVENT(ON_CLICK, buttonProtect, OnClickProtect)
+ON_EVENT(ON_CLICK, buttonHarvest, OnClickHarvest)
 ON_EVENT(ON_CLICK, buttonCloseAll, OnClickCloseAll)
 ON_EVENT(ON_CLICK, buttonClosePartial, OnClickClosePartial)
 ON_EVENT(ON_CLICK, buttonSetSL, OnClickSetSL)
@@ -207,7 +201,7 @@ bool TyWindow::Create(const long chart,const string name,const int subwin,const 
    if(!CreateButtonBuyLines()){ return(false); }
    if(!CreateButtonSellLines()){ return(false); }
    if(!CreateButtonDestroyLines()){ return(false); }
-   if(!CreateButtonProtect()) { return(false); }
+   if(!CreateButtonHarvest()) { return(false); }
    if(!CreateButtonCloseAll()){ return(false); }
    if(!CreateButtonClosePartial()){ return(false); }
    if(!CreateButtonSetSL()){ return(false); }
@@ -232,11 +226,6 @@ int OnInit()
    {
       return INIT_FAILED; // Exit if trading is not allowed
    }
-   if (EnablePyramid && PyramidFreeMarginBuffer >= PyramidFreeMarginTrigger)
-   {
-      Print("PyramidFreeMarginBuffer (", PyramidFreeMarginBuffer, ") must be less than PyramidFreeMarginTrigger (", PyramidFreeMarginTrigger, ")");
-      return INIT_FAILED;
-   }
    if (MartingaleCloseChunkSize <= 0)
    {
       Print("MartingaleCloseChunkSize must be > 0");
@@ -250,6 +239,16 @@ int OnInit()
    if (MartingaleUnwindLotSize <= 0)
    {
       Print("MartingaleUnwindLotSize must be > 0");
+      return INIT_FAILED;
+   }
+   if (MartingaleHarvestLotSize <= 0)
+   {
+      Print("MartingaleHarvestLotSize must be > 0");
+      return INIT_FAILED;
+   }
+   if (MarginBufferPercent < 0 || MarginBufferPercent >= 100)
+   {
+      Print("MarginBufferPercent must be >= 0 and < 100");
       return INIT_FAILED;
    }
    if (VaRConfidence <= 0 || VaRConfidence >= 1)
@@ -323,7 +322,6 @@ int OnInit()
    g_prevLongLots = -1; g_prevShortLots = -1;
    g_cachedVaRStr = "VaR %: 0.00"; g_cachedPositionStr = "";
    g_lastMGLogTime = 0;
-   PyramidLotsOpened = 0;
    double var_1_lot = 0.0;
    if(PortfolioRisk.CalculateVaR(_Symbol, 1.0))
    {
@@ -371,6 +369,7 @@ bool CloseAllPositionsOnAllSymbols()
    {
       ulong ticket = PositionGetTicket(i);
       if (ticket == 0) continue;
+      if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
       double entryPrice = PositionGetDouble(POSITION_PRICE_OPEN);
       string symbol = PositionGetString(POSITION_SYMBOL);
       double currentPrice = SymbolInfoDouble(symbol, SYMBOL_BID);
@@ -393,15 +392,33 @@ bool CloseAllPositionsOnAllSymbols()
          // Do not return false immediately for asynchronous processing
       }
    }
-   // Wait for the asynchronous operations to complete by polling PositionsTotal
+   // Wait for the asynchronous operations to complete by polling filtered position count
    int timeout = 3000;
    uint startTime = GetTickCount();
-   while (PositionsTotal() > 0 && (GetTickCount() - startTime) < (uint) timeout)
+   while ((GetTickCount() - startTime) < (uint) timeout)
    {
+      int remaining = 0;
+      for (int j = PositionsTotal() - 1; j >= 0; j--)
+      {
+         ulong t = PositionGetTicket(j);
+         if (t == 0) continue;
+         if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
+         remaining++;
+      }
+      if (remaining == 0) break;
       Sleep(100);
    }
    Trade.SetAsyncMode(false);
-   if (PositionsTotal() == 0)
+   // Final filtered count check
+   int finalRemaining = 0;
+   for (int j = PositionsTotal() - 1; j >= 0; j--)
+   {
+      ulong t = PositionGetTicket(j);
+      if (t == 0) continue;
+      if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
+      finalRemaining++;
+   }
+   if (finalRemaining == 0)
    {
       Print("All positions closed successfully.");
       return true;
@@ -456,161 +473,6 @@ bool IsTradeAllowed(const string symbol)
    }
    return true;
 }
-bool PlacePyramidOrders()
-{
-   // Check if pyramid orders are enabled
-   if (!EnablePyramid)
-   {
-      return false;
-   }
-   // Cache total volume to avoid repeated position loops
-   double cachedVolume = GetTotalVolumeForSymbol(_Symbol);
-   // Check if the currently open lots is above the PyramidTargetLots
-   if (cachedVolume >= PyramidTargetLots)
-   {
-      Print("No need to open more Pyramid orders (Lots open:", cachedVolume, " <= PyramidTargetLots:", PyramidTargetLots, ")");
-      return false;
-   }
-   // Check if enough time has passed since the last pyramid order
-   if (TimeCurrent() - LastPyramidTime < PyramidCooldown)
-   {
-      return false;
-   }
-   // Check if free margin exceeds the trigger
-   double freeMargin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
-   if (freeMargin < PyramidFreeMarginTrigger)
-   {
-      return false;
-   }
-   // Determine direction by scanning all positions for net volume
-   double totalBuyLots = 0, totalSellLots = 0;
-   for (int i = PositionsTotal() - 1; i >= 0; i--)
-   {
-      if (PositionGetTicket(i) > 0 && PositionGetString(POSITION_SYMBOL) == _Symbol)
-      {
-         if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
-            continue;
-         if (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
-            totalBuyLots += PositionGetDouble(POSITION_VOLUME);
-         else
-            totalSellLots += PositionGetDouble(POSITION_VOLUME);
-      }
-   }
-   ENUM_ORDER_TYPE orderType = (totalSellLots > totalBuyLots) ? ORDER_TYPE_SELL : ORDER_TYPE_BUY;
-   // Get current bid or ask price
-   double price = (orderType == ORDER_TYPE_BUY) ? Ask : Bid;
-   // Check if price is valid
-   if (price <= 0)
-   {
-      Print("Invalid price for symbol: ", _Symbol, " Price: ", price);
-      return false;
-   }
-   // Validate the price with market info
-   double MarketPriceDeviation = 20;
-   double minPrice = Bid * (1 - MarketPriceDeviation);
-   double maxPrice = Ask * (1 + MarketPriceDeviation);
-   if (price < minPrice || price > maxPrice)
-   {
-      Print("Price out of acceptable range. Price: ", price, " Min: ", minPrice, " Max: ", maxPrice);
-      return false;
-   }
-   double stopLoss = 0;
-   double takeProfit = 0;
-   for (int p = PositionsTotal() - 1; p >= 0; p--)
-   {
-      if (PositionGetTicket(p) == 0) continue;
-      if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
-      if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
-      if ((int)PositionGetInteger(POSITION_TYPE) != (int)orderType) continue;
-      double pSL = PositionGetDouble(POSITION_SL);
-      double pTP = PositionGetDouble(POSITION_TP);
-      if (pSL != 0 || pTP != 0) { stopLoss = pSL; takeProfit = pTP; break; }
-   }
-   // Pre-check for enough margin before placing the order
-   double OrderLots = NormalizeDouble(PyramidLotSize, OrderDigits);
-   MqlTradeRequest request;
-   ZeroMemory(request);
-   request.action = TRADE_ACTION_DEAL;
-   request.symbol = _Symbol;
-   request.volume = OrderLots;
-   request.price = price;
-   request.sl = stopLoss;
-   request.tp = takeProfit;
-   request.deviation = (ulong)MarketPriceDeviation;
-   request.magic = MagicNumber;
-   request.type = orderType;
-   request.comment = PyramidComment;
-   if ((int)g_cachedFillMode == -1)
-   {
-      Print("No valid filling mode for pyramid order.");
-      return false;
-   }
-   request.type_filling = g_cachedFillMode;
-   MqlTradeCheckResult check_result;
-   required_margin = PerformOrderCheck(request, check_result, OrderLots);
-   if (required_margin < 0)
-   {
-      Print("Order check failed, skipping order placement.");
-      return false;
-   }
-   if (freeMargin < required_margin)
-   {
-      Print("Not enough free margin to place the order. Required: ", required_margin, " Available: ", freeMargin);
-      return false;
-   }
-   while (freeMargin >= (PyramidFreeMarginTrigger - PyramidFreeMarginBuffer))
-   {
-      if (IsStopped()) break;
-      // Additional checks before placing the order
-      cachedVolume = GetTotalVolumeForSymbol(_Symbol);
-      if (cachedVolume >= PyramidTargetLots)
-      {
-         Print("No need to open more Pyramid orders (Lots open:", cachedVolume, " <= PyramidTargetLots:", PyramidTargetLots, ")");
-         break;
-      }
-      if (TimeCurrent() - LastPyramidTime < PyramidCooldown)
-      {
-         break;
-      }
-      freeMargin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
-      if (freeMargin < required_margin)
-      {
-         break;
-      }
-      bool orderPlaced = false;
-      if (orderType == ORDER_TYPE_BUY)
-         orderPlaced = Trade.Buy(OrderLots, _Symbol, 0, stopLoss, takeProfit, PyramidComment);
-      else if (orderType == ORDER_TYPE_SELL)
-         orderPlaced = Trade.Sell(OrderLots, _Symbol, 0, stopLoss, takeProfit, PyramidComment);
-      if (orderPlaced)
-      {
-         PyramidLotsOpened += OrderLots;
-         LastPyramidTime = TimeCurrent();
-         if (orderType == ORDER_TYPE_BUY)
-            Print("Order details: Lots: ", OrderLots, " (Long), SL: ", stopLoss, ", TP: ", takeProfit, ", Pyramid Lots opened: ", PyramidLotsOpened, ", Current Lots Open: ", cachedVolume, " Pyramid Target Lots: ", PyramidTargetLots);
-         if (orderType == ORDER_TYPE_SELL)
-            Print("Order details: Lots: ", OrderLots, " (Short), SL: ", stopLoss, ", TP: ", takeProfit, ", Total Pyramid lots opened: ", PyramidLotsOpened, ", Current Lots Open: ", cachedVolume, " Pyramid Target Lots: ", PyramidTargetLots);
-      }
-      else
-      {
-         int error = GetLastError();
-         Print("Failed to place order. Error: ", error);
-         long tradeMode;
-         if (SymbolInfoInteger(_Symbol, SYMBOL_TRADE_MODE, tradeMode))
-         {
-            if (tradeMode == SYMBOL_TRADE_MODE_DISABLED)
-            {
-               Print("Symbol trading is disabled.");
-               return false;
-            }
-         }
-         break;
-      }
-      freeMargin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
-   }
-   LastPyramidTime = TimeCurrent();
-   return true;
-}
 void OnTick()
 {
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
@@ -622,7 +484,6 @@ void OnTick()
    }
    AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
    AccountEquity = AccountInfoDouble(ACCOUNT_EQUITY);
-   PlacePyramidOrders();
    ProcessMartingale();
    prevBidPrice = Bid;
    prevAskPrice = Ask;
@@ -757,15 +618,6 @@ void OnTick()
          order_risk_money = (AdditionalRiskRatio > 0 && LossesToMinBalance > 0) ? ((AccountBalance - MinAccountBalance) / (LossesToMinBalance / AdditionalRiskRatio)) : 0;
       else
          order_risk_money = (LossesToMinBalance > 0) ? ((AccountBalance - MinAccountBalance) / LossesToMinBalance) : 0;
-   }
-   if (EnableAutoProtect && !AutoProtectCalled && !breakEvenFound)
-   {
-         if (rr >= APRRLevel && sl_risk < 0)
-         {
-            Print ("Auto Protect has removed risk as RR >= " + DoubleToString(APRRLevel,8));
-            Protect();
-            AutoProtectCalled = true;
-         }
    }
    string infoRisk;
    string infoPL;
@@ -949,17 +801,18 @@ bool TyWindow::CreateButtonDestroyLines(void)
       return(false);
    return(true);
 }
-bool TyWindow::CreateButtonProtect(void)
+bool TyWindow::CreateButtonHarvest(void)
 {
    int x1 = INDENT_LEFT + (BUTTON_WIDTH + CONTROLS_GAP_X);
    int y1 = INDENT_TOP + 2 * CONTROLS_GAP_Y;
    int x2 = x1 + BUTTON_WIDTH;
    int y2 = y1 + BUTTON_HEIGHT;
-   if(!buttonProtect.Create(0,"PROTECT",0,x1,y1,x2,y2))
+   if(!buttonHarvest.Create(0,"HARVEST",0,x1,y1,x2,y2))
       return(false);
-   if(!buttonProtect.Text("PROTECT"))
+   if(!buttonHarvest.Text("HARVEST"))
       return(false);
-   if(!Add(buttonProtect))
+   buttonHarvest.ColorBackground(clrDarkGray);
+   if(!Add(buttonHarvest))
       return(false);
    return(true);
 }
@@ -1191,6 +1044,8 @@ void CloseAllSymbolPositions()
 }
 void CloseProfitableOppositePositions()
 {
+   static datetime lastOppCloseTime = 0;
+   if (TimeCurrent() - lastOppCloseTime < MartingaleCooldown) return;
    int closeType;
    if (MartingaleMode == MG_LONG)
       closeType = POSITION_TYPE_SELL;
@@ -1219,14 +1074,20 @@ void CloseProfitableOppositePositions()
          if (posVolume <= chunkSize)
          {
             if (Trade.PositionClose(ticket))
+            {
                Print("Martingale: closed ", dir, " #", ticket, " (", posVolume, " lots) P/L: $", DoubleToString(pl, 2));
+               lastOppCloseTime = TimeCurrent();
+            }
             else
                Print("Martingale: failed to close #", ticket, " error ", GetLastError());
          }
          else
          {
             if (Trade.PositionClosePartial(ticket, chunkSize))
+            {
                Print("Martingale: partial close ", dir, " #", ticket, " (", chunkSize, " of ", posVolume, " lots)");
+               lastOppCloseTime = TimeCurrent();
+            }
             else
                Print("Martingale: failed to partial close #", ticket, " error ", GetLastError());
          }
@@ -1286,7 +1147,7 @@ bool UnwindHedgeByMargin()
       hedgeType = POSITION_TYPE_SELL;
    else
       return false;
-   // Find highest-cost hedge position (frees the most margin per lot when closed)
+   // Find largest hedge position (frees the most margin when closed), open price as tiebreaker
    ulong bestTicket = 0;
    double highestOpen = -1;
    double bestVolume = 0;
@@ -1300,11 +1161,12 @@ bool UnwindHedgeByMargin()
       if ((int)PositionGetInteger(POSITION_TYPE) != hedgeType)
          continue;
       double openPrice = PositionGetDouble(POSITION_PRICE_OPEN);
-      if (openPrice > highestOpen)
+      double vol = PositionGetDouble(POSITION_VOLUME);
+      if (vol > bestVolume || (vol == bestVolume && openPrice > highestOpen))
       {
          highestOpen = openPrice;
          bestTicket = PositionGetInteger(POSITION_TICKET);
-         bestVolume = PositionGetDouble(POSITION_VOLUME);
+         bestVolume = vol;
       }
    }
    if (bestTicket == 0)
@@ -1338,7 +1200,7 @@ bool ProtectivePartialCloseBias()
       biasType = POSITION_TYPE_BUY;
    else
       return false;
-   // Find highest-cost bias position (frees the most margin per lot when closed), volume as tiebreaker
+   // Find largest bias position (frees the most margin when closed), open price as tiebreaker
    ulong bestTicket = 0;
    double highestOpen = -1;
    double bestVolume = 0;
@@ -1353,7 +1215,7 @@ bool ProtectivePartialCloseBias()
          continue;
       double openPrice = PositionGetDouble(POSITION_PRICE_OPEN);
       double vol = PositionGetDouble(POSITION_VOLUME);
-      if (openPrice > highestOpen || (openPrice == highestOpen && vol > bestVolume))
+      if (vol > bestVolume || (vol == bestVolume && openPrice > highestOpen))
       {
          highestOpen = openPrice;
          bestTicket = PositionGetInteger(POSITION_TICKET);
@@ -1379,6 +1241,59 @@ bool ProtectivePartialCloseBias()
    }
    else
       Print("Martingale PROTECT: failed to close ", dir, " #", bestTicket, " error ", GetLastError());
+   return result;
+}
+bool HarvestProfitableBias()
+{
+   int biasType;
+   if (MartingaleMode == MG_SHORT)
+      biasType = POSITION_TYPE_SELL;
+   else if (MartingaleMode == MG_LONG)
+      biasType = POSITION_TYPE_BUY;
+   else
+      return false;
+   ulong bestTicket = 0;
+   double bestProfit = 0;
+   double bestVolume = 0;
+   double bestOpen = 0;
+   int total = PositionsTotal();
+   for (int i = 0; i < total; i++)
+   {
+      if (PositionGetSymbol(i) != _Symbol)
+         continue;
+      if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
+         continue;
+      if ((int)PositionGetInteger(POSITION_TYPE) != biasType)
+         continue;
+      double pl = PositionGetDouble(POSITION_PROFIT) + PositionGetDouble(POSITION_SWAP);
+      if (pl > bestProfit)
+      {
+         bestProfit = pl;
+         bestTicket = PositionGetInteger(POSITION_TICKET);
+         bestVolume = PositionGetDouble(POSITION_VOLUME);
+         bestOpen = PositionGetDouble(POSITION_PRICE_OPEN);
+      }
+   }
+   if (bestTicket == 0)
+      return false;
+   double closeLots = NormalizeDouble(MartingaleHarvestLotSize, OrderDigits);
+   string dir = (biasType == POSITION_TYPE_BUY) ? "LONG bias" : "SHORT bias";
+   bool result;
+   if (bestVolume <= closeLots)
+      result = Trade.PositionClose(bestTicket);
+   else
+      result = Trade.PositionClosePartial(bestTicket, closeLots);
+   if (result)
+   {
+      MartingaleHarvestCloses++;
+      double marginPct = CalculateMarginUsagePct();
+      Print("Martingale HARVEST: closed ", dir, " #", bestTicket,
+            " (", (bestVolume <= closeLots) ? bestVolume : closeLots, " of ", bestVolume, " lots, entry: ", DoubleToString(bestOpen, _Digits),
+            ", P/L: $", DoubleToString(bestProfit, 2),
+            ") margin: ", DoubleToString(marginPct, 1), "% | harvest closes: ", MartingaleHarvestCloses);
+   }
+   else
+      Print("Martingale HARVEST: failed to close ", dir, " #", bestTicket, " error ", GetLastError());
    return result;
 }
 void LogMartingaleUnwindStatus()
@@ -1409,10 +1324,11 @@ void LogMartingaleUnwindStatus()
    Print("=== Martingale Unwind Status [", biasDir, "] ===",
          " | Margin: ", DoubleToString(marginPct, 1), "%",
          " (TRIM>=", DoubleToString(MartingaleUnwindMarginPct, 1),
+         "% HARVEST>=", DoubleToString(MartingaleHarvestMarginPct, 1),
          "% PROTECT>=", DoubleToString(MartingaleDangerMarginPct, 1), "%)",
          " | Hedge: ", hedgeCount, " pos / ", DoubleToString(hedgeLots, OrderDigits), " lots",
          " | Bias: ", biasCount, " pos / ", DoubleToString(biasLots, OrderDigits), " lots",
-         " | Closes: trim=", MartingaleHedgeCloses, " protect=", MartingaleBiasCloses,
+         " | Closes: trim=", MartingaleHedgeCloses, " harvest=", MartingaleHarvestCloses, " protect=", MartingaleBiasCloses,
          " | Equity: $", DoubleToString(equity, 2), " Margin: $", DoubleToString(margin, 2));
 }
 void PrintMartingaleStrategyBriefing(MartingaleState state)
@@ -1437,6 +1353,15 @@ void PrintMartingaleStrategyBriefing(MartingaleState state)
       Print("  Threshold : DISABLED (MartingaleUnwindMarginPct=0)");
    Print("  Action    : partial close ", DoubleToString(MartingaleUnwindLotSize, OrderDigits), " lots of highest-cost ", hedgeType);
    Print("  Goal      : reduce margin usage by removing expensive hedges");
+   Print("");
+   Print("HARVEST (profit banking — post-trim):");
+   if (MartingaleHarvestMarginPct > 0)
+      Print("  Threshold : margin >= ", DoubleToString(MartingaleHarvestMarginPct, 1), "%");
+   else
+      Print("  Threshold : DISABLED (MartingaleHarvestMarginPct=0)");
+   Print("  Action    : partial close ", DoubleToString(MartingaleHarvestLotSize, OrderDigits), " lots of most profitable ", coreType);
+   Print("  Goal      : bank profits and reduce margin after hedges exhausted");
+   Print("  Toggle    : ", (HarvestEnabled ? "ENABLED" : "DISABLED"), " (button controlled)");
    Print("");
    Print("PROTECT (bias closure — emergency):");
    if (MartingaleDangerMarginPct > 0)
@@ -1502,6 +1427,16 @@ void ProcessMartingale()
          LastMartingaleTime = TimeCurrent();
          return;
       }
+      // TRIM found no hedges — fall through to HARVEST
+   }
+   // HARVEST: bank profit on bias positions when no hedges remain
+   if (HarvestEnabled && MartingaleHarvestMarginPct > 0 && marginUsage >= MartingaleHarvestMarginPct)
+   {
+      if (HarvestProfitableBias())
+      {
+         LastMartingaleTime = TimeCurrent();
+         return;
+      }
    }
 }
 void TyWindow::OnClickTrade(void)
@@ -1548,7 +1483,7 @@ void TyWindow::OnClickTrade(void)
    {
       if (dirBreakEven)
       {
-         order_risk_money = (AdditionalRiskRatio > 0) ? ((AccountBalance - MinAccountBalance) / (LossesToMinBalance / AdditionalRiskRatio)) : 0;
+         order_risk_money = (AdditionalRiskRatio > 0 && LossesToMinBalance > 0) ? ((AccountBalance - MinAccountBalance) / (LossesToMinBalance / AdditionalRiskRatio)) : 0;
       }
       else
       {
@@ -1685,9 +1620,17 @@ void TyWindow::OnClickTrade(void)
       if (estimated >= min_volume)
          OrderLots = estimated;
    }
+   int marginLoopIter = 0;
+   int marginLoopMax = (int)MathCeil(OrderLots / min_volume) + 10;
    while (required_margin > usable_margin && OrderLots > min_volume)
    {
+      request.volume = OrderLots;
       if (IsStopped()) return;
+      if (++marginLoopIter > marginLoopMax)
+      {
+         Print("Margin adjustment loop exceeded max iterations (", marginLoopMax, "). Aborting order.");
+         return;
+      }
       OrderLots = NormalizeDouble(OrderLots - min_volume, OrderDigits);
       usable_margin = marginBudget - AccountInfoDouble(ACCOUNT_MARGIN);
       if (PerformOrderCheck(request, check_result, OrderLots) < 0)
@@ -1700,11 +1643,13 @@ void TyWindow::OnClickTrade(void)
          Print("Failed to calculate required margin while adjusting OrderLots. Error:", GetLastError());
          return;
       }
-      if (OrderLots < min_volume)
+      if (OrderLots <= min_volume)
       {
          OrderLots = min_volume;
+         break;
       }
    }
+   request.volume = OrderLots;
    usable_margin = marginBudget - AccountInfoDouble(ACCOUNT_MARGIN);
    if (PerformOrderCheck(request, check_result, OrderLots) < 0)
    {
@@ -1777,6 +1722,7 @@ void UpdateMartingaleButton()
    }
    ExtDialog.MartingaleButtonText(label);
    ExtDialog.MartingaleButtonColor(clr);
+   UpdateHarvestButton();
 }
 void TyWindow::MartingaleButtonText(string text)
 {
@@ -1785,6 +1731,21 @@ void TyWindow::MartingaleButtonText(string text)
 void TyWindow::MartingaleButtonColor(color clr)
 {
    buttonMartingale.ColorBackground(clr);
+}
+void TyWindow::HarvestButtonColor(color clr)
+{
+   buttonHarvest.ColorBackground(clr);
+}
+void UpdateHarvestButton()
+{
+   color clr;
+   if (MartingaleMode == MG_OFF || MartingaleMode == MG_UNWIND)
+      clr = clrDarkGray;
+   else if (HarvestEnabled)
+      clr = clrLime;
+   else
+      clr = clrGray;
+   ExtDialog.HarvestButtonColor(clr);
 }
 void TyWindow::OnClickMartingale(void)
 {
@@ -1844,6 +1805,8 @@ void TyWindow::OnClickMartingale(void)
       MartingaleMode = nextState;
       MartingaleHedgeCloses = 0;
       MartingaleBiasCloses = 0;
+      MartingaleHarvestCloses = 0;
+      HarvestEnabled = false;
       UpdateMartingaleButton();
       Print("Martingale mode changed to ", EnumToString(MartingaleMode), " on ", _Symbol);
       if (nextState == MG_LONG || nextState == MG_SHORT)
@@ -1960,9 +1923,13 @@ void BubbleSort(PositionInfo &arr[])
       }
    }
 }
-void TyWindow::OnClickProtect(void)
+void TyWindow::OnClickHarvest(void)
 {
-   Protect();
+   if (MartingaleMode == MG_OFF || MartingaleMode == MG_UNWIND)
+      return;
+   HarvestEnabled = !HarvestEnabled;
+   UpdateHarvestButton();
+   Print("HARVEST ", (HarvestEnabled ? "ENABLED" : "DISABLED"), " on ", _Symbol);
 }
 void TyWindow::OnClickCloseAll(void)
 {
@@ -2196,7 +2163,6 @@ void TyWindow::OnClickSetSL(void)
         }
         ModifyPosition(SL, POSITION_SL, dirFilter);
     }
-    AutoProtectCalled = false;
 }
 void TyWindow::OnClickSetTP(void)
 {
@@ -2218,45 +2184,6 @@ void TyWindow::OnClickSetTP(void)
             dirFilter = POSITION_TYPE_SELL;
       }
       ModifyPosition(TP, POSITION_TP, dirFilter);
-   }
-}
-void Protect()
-{
-   Trade.SetAsyncMode(false);
-   // Determine direction from TP/SL line orientation
-   double tpLine = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
-   double slLine = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
-   int dirFilter = -1; // default: protect all (safe default for hedged with no lines)
-   if (tpLine > 0 && slLine > 0)
-   {
-      if (tpLine > slLine)
-         dirFilter = POSITION_TYPE_BUY;
-      else if (slLine > tpLine)
-         dirFilter = POSITION_TYPE_SELL;
-   }
-   double tickSize = TickSize(_Symbol);
-   if (tickSize <= 0) { Print("Invalid tick size"); return; }
-   int total = PositionsTotal();
-   for(int i = 0; i < total; i++)
-   {
-      ulong ticket = PositionGetTicket(i);
-      if (ProcessPositionCheck(ticket, _Symbol, MagicNumber))
-      {
-         // Skip positions that don't match the direction filter
-         if (dirFilter != -1 && (int)PositionGetInteger(POSITION_TYPE) != dirFilter)
-            continue;
-         double entryPrice = MathRound(PositionGetDouble(POSITION_PRICE_OPEN) / tickSize) * tickSize;
-         double originalSL = MathRound(PositionGetDouble(POSITION_SL) / tickSize) * tickSize;
-         if (originalSL != entryPrice)
-         {
-            ModifyPosition(entryPrice, POSITION_SL, dirFilter);
-            break; // ModifyPosition handles all matching positions
-         }
-         else
-         {
-            Print("SL for Position #", ticket, " is already at breakeven.");
-         }
-      }
    }
 }
 bool TyWindow::OnDialogDragStart(void)

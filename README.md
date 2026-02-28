@@ -10,8 +10,8 @@ A comprehensive MQL5/MQL4 trading toolkit featuring manual risk management, auto
 - [Components Overview](#components-overview)
 - [Architecture](#architecture)
 - [Expert Advisors](#expert-advisors)
-  - [TyphooN Risk Management EA](#typhoon-risk-management-ea-v1399)
-  - [TyAlgo NNFX Confluence EA](#tyalgo-nnfx-confluence-ea-v2105)
+  - [TyphooN Risk Management EA](#typhoon-risk-management-ea-v1403)
+  - [TyAlgo NNFX Confluence EA](#tyalgo-nnfx-confluence-ea-v2106)
 - [Indicators](#indicators)
   - [MTF_MA — Multi Timeframe Moving Average](#mtf_ma--multi-timeframe-moving-average-v1078)
   - [MultiKAMA — Multi Timeframe KAMA](#multikama--multi-timeframe-kama-v1009)
@@ -34,8 +34,8 @@ A comprehensive MQL5/MQL4 trading toolkit featuring manual risk management, auto
 
 | Component | Type | Version | Platform | Description |
 |-----------|------|---------|----------|-------------|
-| TyphooN | EA | 1.399 | MQL5 | Manual risk management with GUI panel |
-| TyAlgo | EA | 2.105 | MQL5 | Automated NNFX confluence trading |
+| TyphooN | EA | 1.403 | MQL5 | Manual risk management with GUI panel |
+| TyAlgo | EA | 2.106 | MQL5 | Automated NNFX confluence trading |
 | MTF_MA | Indicator | 1.078 | MQL5 | Multi-timeframe SMA bull/bear power dashboard |
 | MultiKAMA | Indicator | 1.009 | MQL5/MQL4 | Multi-timeframe KAMA overlay |
 | KAMA | Indicator | 1.03 | MQL5/MQL4 | Kaufman Adaptive Moving Average |
@@ -107,22 +107,21 @@ Indicators and EAs communicate through **MT5 GlobalVariables** — a shared key-
 
 ## Expert Advisors
 
-### TyphooN Risk Management EA (v1.399)
+### TyphooN Risk Management EA (v1.403)
 
-A manual trading EA with a GUI panel for order placement, position management, and risk monitoring. Supports four risk modes, martingale hedging, pyramid accumulation, equity protection, and Discord trade announcements.
+A manual trading EA with a GUI panel for order placement, position management, and risk monitoring. Supports four risk modes, martingale hedging with TRIM/HARVEST/PROTECT tiers, equity protection, and Discord trade announcements.
 
 ![Expert_Panel](Images/Expert_Panel.png)
 ![Expert_InfoText](Images/Expert_InfoText.png)
 
 #### Risk Management Panel Buttons
-- **Open Trade**: Market execution (or limit if Limit Line active). SL/TP set to red/green lines on chart.
+- **Open Trade**: Market execution. SL/TP set to red/green lines on chart.
 - **Buy Lines / Sell Lines**: Creates TP (green) and SL (red) lines. Locks to existing position levels if present.
-- **Destroy Lines**: Removes SL/TP/Limit lines from chart.
+- **Destroy Lines**: Removes SL/TP lines from chart.
 - **Close All**: Closes all positions and pending orders on the symbol.
 - **Close Partial**: Closes the smallest lot position on the symbol.
 - **Set TP / Set SL**: Modifies existing positions' TP or SL to the current line level.
-- **Limit Line**: Creates a white limit order line.
-- **Protect**: Moves all stop losses to break-even.
+- **HARVEST**: Toggles HARVEST tier on/off (only active when Martingale is Long or Short).
 - **Martingale**: Toggles martingale hedge mode (Long/Short/Unwind/Off).
 
 #### Dashboard InfoText
@@ -141,8 +140,9 @@ A manual trading EA with a GUI panel for order placement, position management, a
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | MagicNumber | 13 | Unique ID — EA only manages positions with matching magic number |
-| HorizontalLineThickness | 3 | Pixel width of SL/TP/Limit lines |
+| HorizontalLineThickness | 3 | Pixel width of SL/TP lines |
 | ManageAllPositions | false | If true, manages all positions regardless of magic number |
+| FontSize | 8 | Dashboard info text font size |
 
 ##### Order Placement Settings
 | Parameter | Default | Description |
@@ -182,32 +182,23 @@ A manual trading EA with a GUI panel for order placement, position management, a
 ##### Account Protection
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| EnableAutoProtect | false | Auto break-even when RR passes threshold |
-| APRRLevel | 1.0 | RR level that triggers auto-protect |
+| EnableUpdateEmptySLTP | false | Auto-copy SL/TP from another same-direction position |
 | EnableEquityTP | false | Close all positions when equity >= target |
 | TargetEquityTP | 110200 | Equity take-profit level |
 | EnableEquitySL | false | Close all positions when equity < target |
 | TargetEquitySL | 98000 | Equity stop-loss level |
 
-##### Pyramid Mode
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| EnablePyramid | false | Enable pyramid accumulation |
-| PyramidLotSize | 1.0 | Lots per pyramid order |
-| PyramidFreeMarginTrigger | 31337 | Free margin threshold to trigger |
-| PyramidFreeMarginBuffer | 9001 | Margin buffer to maintain |
-| PyramidTargetLots | 69 | Maximum lots to accumulate |
-| PyramidCooldown | 420 | Seconds between pyramid orders |
-
 ##### Martingale Mode
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| MartingaleCloseChunkSize | 50 | Lots per partial close |
-| MartingaleCooldown | 30 | Seconds between operations |
+| MartingaleCloseChunkSize | 50 | Lots per partial close (profit banking + PROTECT) |
+| MartingaleCooldown | 30 | Seconds between margin-based operations |
 | MartingaleEquityTP | 0 | Profit target in $ (0 = disabled) |
-| MartingaleUnwindLotSize | 1 | Lots per hedge unwind close |
-| MartingaleUnwindMarginPct | 0 | Unwind hedges above this margin % |
-| MartingaleDangerMarginPct | 0 | Protective bias close above this margin % |
+| MartingaleUnwindLotSize | 1 | TRIM: lots per hedge unwind close |
+| MartingaleUnwindMarginPct | 0 | TRIM: unwind hedges above this margin % (0 = off) |
+| MartingaleDangerMarginPct | 0 | PROTECT: emergency bias close above this margin % (0 = off) |
+| MartingaleHarvestMarginPct | 0 | HARVEST: bank profits on most profitable bias above this margin % (0 = off) |
+| MartingaleHarvestLotSize | 1 | HARVEST: lots per harvest close |
 
 ##### Discord Announcements
 | Parameter | Default | Description |
@@ -217,7 +208,7 @@ A manual trading EA with a GUI panel for order placement, position management, a
 
 ---
 
-### TyAlgo NNFX Confluence EA (v2.105)
+### TyAlgo NNFX Confluence EA (v2.106)
 
 An automated trading EA implementing the NNFX (No Nonsense Forex) method with a modular signal slot architecture. Each indicator role (Baseline, Confirmation, Volume, Exit) is a configurable "slot" that users can swap via dropdown menus or extend with custom GlobalVariables — no code changes required.
 
