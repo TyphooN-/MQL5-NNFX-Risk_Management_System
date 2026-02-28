@@ -1466,8 +1466,8 @@ void TyWindow::OnClickTrade(void)
             return;
          }
          potentialRisk = OrderRisk + percent_risk;
-         order_risk_money = (AccountBalance * (OrderRisk / 100));
       }
+      order_risk_money = (AccountBalance * (OrderRisk / 100));
       if (dirBreakEven && percent_risk > 0)
       {
          Print("Break Even positions found, and a risk position already placed. Not placing additional order.");
@@ -1586,22 +1586,24 @@ void TyWindow::OnClickTrade(void)
       Print("TP and SL are at the same price. Cannot determine order direction.");
       return;
    }
+   double marginAsk = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+   double marginBid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    if (TP > SL)
    {
       request.action = TRADE_ACTION_DEAL;
       request.type = ORDER_TYPE_BUY;
+      request.price = marginAsk;
    }
    else
    {
       request.action = TRADE_ACTION_DEAL;
       request.type = ORDER_TYPE_SELL;
+      request.price = marginBid;
    }
    MqlTradeCheckResult check_result;
    AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
    double marginBudget = AccountBalance * (1.0 - MarginBufferPercent / 100.0);
    usable_margin = marginBudget - AccountInfoDouble(ACCOUNT_MARGIN);
-   double marginAsk = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
-   double marginBid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    if (!OrderCalcMargin(request.type, _Symbol, OrderLots, (request.type == ORDER_TYPE_BUY) ? marginAsk : marginBid, required_margin))
    {
       Print("Failed to calculate required margin before the loop. Error:", GetLastError());

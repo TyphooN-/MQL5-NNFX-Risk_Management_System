@@ -420,7 +420,7 @@ void UpdateDashboard(LotsInfo &lots, double total_risk, double total_tp, double 
    // Position/VaR display — only recalculate VaR when lot sizes change
    bool hasBuy = lots.longLots > 0;
    bool hasSell = lots.shortLots > 0;
-   bool lotsChanged = (lots.longLots != g_prevLongLots || lots.shortLots != g_prevShortLots);
+   bool lotsChanged = (NormalizeDouble(lots.longLots - g_prevLongLots, OrderDigits) != 0 || NormalizeDouble(lots.shortLots - g_prevShortLots, OrderDigits) != 0);
    if (lotsChanged)
    {
       if (hasBuy || hasSell)
@@ -453,7 +453,7 @@ void UpdateDashboard(LotsInfo &lots, double total_risk, double total_tp, double 
             double netExposure = MathAbs(lots.longLots - lots.shortLots);
             if (netExposure > 0 && AccountEquity > 0 && PortfolioRisk.CalculateVaR(_Symbol, netExposure))
                g_cachedVaRStr = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR / AccountEquity * 100), 2) + " (net)";
-            else if (netExposure == 0)
+            else if (netExposure < SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN))
                g_cachedVaRStr = "VaR %: 0.00 (hedged)";
          }
       }
