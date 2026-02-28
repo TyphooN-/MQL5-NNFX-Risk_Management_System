@@ -11,11 +11,11 @@ EXPERT_FILES=(
     "TyAlgo.mq5"
 )
 
-# All indicator source files (.mq5, .mq4, .mqh)
+# All indicator source files (.mq5, .mq4, .mqh) — recursive, preserving subdirs
 INDICATOR_FILES=()
-for f in "$SRC_INDICATORS"/*.mq5 "$SRC_INDICATORS"/*.mq4 "$SRC_INDICATORS"/*.mqh; do
-    [ -f "$f" ] && INDICATOR_FILES+=("$(basename "$f")")
-done
+while IFS= read -r -d '' f; do
+    INDICATOR_FILES+=("${f#"$SRC_INDICATORS/"}")
+done < <(find "$SRC_INDICATORS" -type f \( -name '*.mqh' -o -name '*.mq5' -o -name '*.mq4' \) -print0 2>/dev/null)
 
 # Include files with relative paths preserved
 INCLUDE_FILES=()
@@ -65,17 +65,19 @@ for mt5_dir in /home/typhoon/.mt5_*/; do
         src="$SRC_INDICATORS/$f"
         dst="$DST_INDICATORS/$f"
         if [ ! -f "$src" ]; then
-            echo "FAIL  $inst: source $f not found"
+            echo "FAIL  $inst: source Indicators/$f not found"
             failed=$((failed + 1))
             continue
         fi
+        dst_dir="$(dirname "$dst")"
+        [ -d "$dst_dir" ] || mkdir -p "$dst_dir"
         if cmp -s "$src" "$dst" 2>/dev/null; then
             continue
         fi
         if cp "$src" "$dst"; then
             copied=$((copied + 1))
         else
-            echo "FAIL  $inst: could not copy $f"
+            echo "FAIL  $inst: could not copy Indicators/$f"
             failed=$((failed + 1))
         fi
     done
