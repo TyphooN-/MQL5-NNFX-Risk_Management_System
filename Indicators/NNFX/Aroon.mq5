@@ -24,6 +24,7 @@ double    upBuffer[];
 double    downBuffer[];
 int OnInit()
   {
+   if(periodInp <= 0) return INIT_PARAMETERS_INCORRECT;
    SetIndexBuffer(0, upBuffer, INDICATOR_DATA);
    SetIndexBuffer(1, downBuffer, INDICATOR_DATA);
    PlotIndexSetInteger(0, PLOT_SHIFT, shiftInp);

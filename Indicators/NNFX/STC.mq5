@@ -133,8 +133,27 @@ int OnCalculate(const int rates_total,
    
    if (shift < 0) shift = 0;
 
-   if(CopyBuffer(hMAShort, 0, 0, rates_total, MAShortBuf) != rates_total) return(0);
-   if(CopyBuffer(hMALong, 0, 0, rates_total, MALongBuf) != rates_total) return(0);
+   // Incremental MA buffer update: full copy on first run, partial on ticks
+   if (counted_bars == 0 || ArraySize(MAShortBuf) < rates_total)
+   {
+      if(CopyBuffer(hMAShort, 0, 0, rates_total, MAShortBuf) != rates_total) return(0);
+      if(CopyBuffer(hMALong, 0, 0, rates_total, MALongBuf) != rates_total) return(0);
+   }
+   else
+   {
+      int bars_to_copy = rates_total - counted_bars + 1;
+      if (bars_to_copy < 1) bars_to_copy = 1;
+      if (bars_to_copy > rates_total) bars_to_copy = rates_total;
+      double tempS[], tempL[];
+      if(CopyBuffer(hMAShort, 0, 0, bars_to_copy, tempS) != bars_to_copy) return(0);
+      if(CopyBuffer(hMALong, 0, 0, bars_to_copy, tempL) != bars_to_copy) return(0);
+      int base = rates_total - bars_to_copy;
+      for (int j = 0; j < bars_to_copy; j++)
+      {
+         MAShortBuf[base + j] = tempS[j];
+         MALongBuf[base + j] = tempL[j];
+      }
+   }
 
    while (shift < rates_total)
    {

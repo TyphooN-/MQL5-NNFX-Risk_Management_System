@@ -607,21 +607,7 @@ void OnTick()
    else
       percent_risk = 0;
    breakEvenFound = (breakEvenFoundLong || breakEvenFoundShort);
-   // Compute order_risk_money using fresh breakEvenFound (after position loop)
-   if (OrderMode == Standard)
-   {
-      if (breakEvenFound)
-         order_risk_money = (AccountBalance * ((Risk / 100) * AdditionalRiskRatio));
-      else
-         order_risk_money = (AccountBalance * (Risk / 100));
-   }
-   if (OrderMode == Dynamic)
-   {
-      if (breakEvenFound)
-         order_risk_money = (AdditionalRiskRatio > 0 && LossesToMinBalance > 0) ? ((AccountBalance - MinAccountBalance) / (LossesToMinBalance / AdditionalRiskRatio)) : 0;
-      else
-         order_risk_money = (LossesToMinBalance > 0) ? ((AccountBalance - MinAccountBalance) / LossesToMinBalance) : 0;
-   }
+   // order_risk_money is computed direction-specifically in OnClickTrade before use
    string infoRisk;
    string infoPL;
    string infoRR;
@@ -1455,7 +1441,7 @@ void TyWindow::OnClickTrade(void)
    double limit_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_LIMIT);
    double existing_volume = GetTotalVolumeForSymbol(_Symbol);
    double usable_margin = 0;
-   double potentialRisk = -1;
+   double potentialRisk = 0; // Only meaningful for Standard mode; other modes bypass MaxRisk check
    // Use direction-specific breakeven flag for the trade being placed
    bool dirBreakEven = (TP > SL) ? breakEvenFoundLong : breakEvenFoundShort;
    if (OrderMode == Standard)
