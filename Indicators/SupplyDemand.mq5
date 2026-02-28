@@ -81,6 +81,9 @@ datetime     g_lastAlertTime = 0;
 //+------------------------------------------------------------------+
 int OnInit()
 {
+   if(InpFractalLookback < 1 || InpBackLimit < 1)
+      return INIT_PARAMETERS_INCORRECT;
+
    IndicatorSetString(INDICATOR_SHORTNAME, "SupplyDemand(" +
       IntegerToString(InpFractalLookback) + "," +
       IntegerToString(InpBackLimit) + ")");
@@ -200,6 +203,8 @@ void FindZones(const double &open[], const double &high[],
          SZone zone;
          zone.hi         = high[i];
          zone.lo         = MathMin(close[i], open[i]);
+         if(zone.hi - zone.lo < _Point)
+            zone.lo = zone.hi - _Point;
          zone.startTime  = time[i];
          zone.fractalBar = i;
          zone.touchCount = 0;
@@ -214,6 +219,8 @@ void FindZones(const double &open[], const double &high[],
          SZone zone;
          zone.hi         = MathMax(close[i], open[i]);
          zone.lo         = low[i];
+         if(zone.hi - zone.lo < _Point)
+            zone.hi = zone.lo + _Point;
          zone.startTime  = time[i];
          zone.fractalBar = i;
          zone.touchCount = 0;
@@ -242,9 +249,9 @@ void TestZones(const double &high[], const double &low[],
 {
    for(int z = g_zoneCount - 1; z >= 0; z--)
    {
-      //--- Scan bars after the fractal (lower index = more recent in as-series)
-      //--- Skip the fractal bar itself and its lookback neighbors
-      int scanFrom = g_zones[z].fractalBar - 1;
+      //--- Scan bars after the fractal formation window
+      //--- Skip the fractal bar and its lookback neighbors to avoid inflating touches
+      int scanFrom = g_zones[z].fractalBar - InpFractalLookback;
       if(scanFrom < 0) scanFrom = 0;
 
       for(int b = scanFrom; b >= 0; b--)
@@ -306,54 +313,70 @@ void PurgeBrokenZones()
 }
 
 //+------------------------------------------------------------------+
-//| Merge overlapping zones of the same type                          |
+//| Merge overlapping zones of the same type (sort-and-sweep O(n lg n))
 //+------------------------------------------------------------------+
 void MergeZones()
 {
-   bool merged = true;
-   while(merged)
+   if(g_zoneCount < 2) return;
+
+   //--- Sort zones by type (supply first), then by lo ascending
+   SortZones();
+
+   int writeIdx = 0;
+   for(int i = 1; i < g_zoneCount; i++)
    {
-      merged = false;
-      for(int i = 0; i < g_zoneCount; i++)
+      //--- Same type and overlapping?
+      if(g_zones[i].type == g_zones[writeIdx].type &&
+         g_zones[i].lo <= g_zones[writeIdx].hi)
       {
+         //--- Merge into writeIdx
+         g_zones[writeIdx].hi = MathMax(g_zones[writeIdx].hi, g_zones[i].hi);
+         g_zones[writeIdx].lo = MathMin(g_zones[writeIdx].lo, g_zones[i].lo);
+         g_zones[writeIdx].touchCount += g_zones[i].touchCount;
+         if(g_zones[i].startTime < g_zones[writeIdx].startTime)
+            g_zones[writeIdx].startTime = g_zones[i].startTime;
          if(g_zones[i].strength == ZONE_BROKEN)
-            continue;
-
-         for(int j = i + 1; j < g_zoneCount; j++)
-         {
-            if(g_zones[j].strength == ZONE_BROKEN)
-               continue;
-            if(g_zones[i].type != g_zones[j].type)
-               continue;
-
-            //--- Check overlap
-            if(g_zones[i].hi >= g_zones[j].lo && g_zones[j].hi >= g_zones[i].lo)
-            {
-               //--- Merge: expand bounds, sum touches, keep earlier time
-               g_zones[i].hi = MathMax(g_zones[i].hi, g_zones[j].hi);
-               g_zones[i].lo = MathMin(g_zones[i].lo, g_zones[j].lo);
-               g_zones[i].touchCount += g_zones[j].touchCount;
-               if(g_zones[j].startTime < g_zones[i].startTime)
-                  g_zones[i].startTime = g_zones[j].startTime;
-
-               //--- Update strength after merge
-               if(g_zones[i].touchCount == 0)
-                  g_zones[i].strength = ZONE_UNTESTED;
-               else if(g_zones[i].touchCount <= 2)
-                  g_zones[i].strength = ZONE_TESTED;
-               else
-                  g_zones[i].strength = ZONE_PROVEN;
-
-               //--- Remove j by shifting
-               for(int k = j; k < g_zoneCount - 1; k++)
-                  g_zones[k] = g_zones[k + 1];
-               g_zoneCount--;
-               ArrayResize(g_zones, g_zoneCount, 128);
-               j--;
-               merged = true;
-            }
-         }
+            g_zones[writeIdx].strength = ZONE_BROKEN;
       }
+      else
+      {
+         writeIdx++;
+         if(writeIdx != i)
+            g_zones[writeIdx] = g_zones[i];
+      }
+   }
+   g_zoneCount = writeIdx + 1;
+   ArrayResize(g_zones, g_zoneCount, 128);
+
+   //--- Update strength for all merged zones
+   for(int i = 0; i < g_zoneCount; i++)
+   {
+      if(g_zones[i].strength == ZONE_BROKEN) continue;
+      if(g_zones[i].touchCount == 0)
+         g_zones[i].strength = ZONE_UNTESTED;
+      else if(g_zones[i].touchCount <= 2)
+         g_zones[i].strength = ZONE_TESTED;
+      else
+         g_zones[i].strength = ZONE_PROVEN;
+   }
+}
+
+//+------------------------------------------------------------------+
+//| Sort zones by type then lo ascending (insertion sort, stable)     |
+//+------------------------------------------------------------------+
+void SortZones()
+{
+   for(int i = 1; i < g_zoneCount; i++)
+   {
+      SZone key = g_zones[i];
+      int j = i - 1;
+      while(j >= 0 && (g_zones[j].type > key.type ||
+            (g_zones[j].type == key.type && g_zones[j].lo > key.lo)))
+      {
+         g_zones[j + 1] = g_zones[j];
+         j--;
+      }
+      g_zones[j + 1] = key;
    }
 }
 
