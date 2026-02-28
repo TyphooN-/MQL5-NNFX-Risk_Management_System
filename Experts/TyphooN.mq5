@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "https://www.marketwizardry.org/"
-#property version   "1.404"
+#property version   "1.405"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -1043,16 +1043,17 @@ void CloseAllSymbolPositions()
    }
    Trade.SetAsyncMode(false);
 }
-void CloseProfitableOppositePositions()
+bool CloseProfitableOppositePositions()
 {
-   if (TimeCurrent() - g_lastOppCloseTime < MartingaleCooldown) return;
+   if (TimeCurrent() - g_lastOppCloseTime < MartingaleCooldown) return false;
    int closeType;
    if (MartingaleMode == MG_LONG)
       closeType = POSITION_TYPE_SELL;
    else if (MartingaleMode == MG_SHORT)
       closeType = POSITION_TYPE_BUY;
    else
-      return;
+      return false;
+   bool closedAny = false;
    Trade.SetAsyncMode(true);
    int total = PositionsTotal();
    for (int i = total - 1; i >= 0; i--)
@@ -1076,6 +1077,7 @@ void CloseProfitableOppositePositions()
             {
                Print("Martingale: closed ", dir, " #", ticket, " (", posVolume, " lots) P/L: $", DoubleToString(pl, 2));
                g_lastOppCloseTime = TimeCurrent();
+               closedAny = true;
             }
             else
                Print("Martingale: failed to close #", ticket, " error ", GetLastError());
@@ -1086,6 +1088,7 @@ void CloseProfitableOppositePositions()
             {
                Print("Martingale: partial close ", dir, " #", ticket, " (", g_cachedChunkSize, " of ", posVolume, " lots)");
                g_lastOppCloseTime = TimeCurrent();
+               closedAny = true;
             }
             else
                Print("Martingale: failed to partial close #", ticket, " error ", GetLastError());
@@ -1093,6 +1096,7 @@ void CloseProfitableOppositePositions()
       }
    }
    Trade.SetAsyncMode(false);
+   return closedAny;
 }
 void UnwindMartingale()
 {
@@ -1393,9 +1397,9 @@ void ProcessMartingale()
       return;
    }
    // Bank profit on opposite-direction positions every tick
-   CloseProfitableOppositePositions();
-   // Equity TP on all symbol positions
-   if (MartingaleEquityTP > 0)
+   bool closedOpposites = CloseProfitableOppositePositions();
+   // Equity TP on all symbol positions (skip if async closes in flight — P/L is stale)
+   if (MartingaleEquityTP > 0 && !closedOpposites)
    {
       double mgPL = CalculateMartingalePL();
       if (mgPL >= MartingaleEquityTP)
@@ -1452,6 +1456,9 @@ void TyWindow::OnClickTrade(void)
       Print("SL and TP lines must both be placed on the chart before opening a trade.");
       return;
    }
+   // Refresh account state (may be stale if no ticks since last OnTick)
+   AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
+   AccountEquity  = AccountInfoDouble(ACCOUNT_EQUITY);
    double tickSize = TickSize(_Symbol);
    if (tickSize <= 0) { Print("Invalid tick size"); return; }
    SL = MathRound(SL / tickSize) * tickSize;
@@ -1649,7 +1656,9 @@ void TyWindow::OnClickTrade(void)
          Print("Margin adjustment loop exceeded max iterations (", marginLoopMax, "). Aborting order.");
          return;
       }
-      OrderLots = NormalizeDouble(OrderLots - min_volume, OrderDigits);
+      double volumeStepLocal = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_STEP);
+      if (volumeStepLocal <= 0) volumeStepLocal = min_volume;
+      OrderLots = NormalizeDouble(MathFloor((OrderLots - volumeStepLocal) / volumeStepLocal) * volumeStepLocal, OrderDigits);
       request.volume = OrderLots;
       usable_margin = marginBudget - AccountInfoDouble(ACCOUNT_MARGIN);
       if (PerformOrderCheck(request, check_result, OrderLots) < 0)
