@@ -235,9 +235,8 @@ void OnTick()
          Print("Error in OrderCalcProfit (SL): ", GetLastError());
       if (risk <= 0)
          sl_risk += risk;
-      if (swap > 0)
-         total_risk += swap;
-      if (swap > 0 && risk <= 0)
+      total_risk += swap;
+      if (risk <= 0)
          sl_risk += swap;
       total_risk += risk;
       total_pl += profit;
@@ -257,6 +256,11 @@ void OnTick()
       return;
    }
    double atrValue = atrBuffer[0];
+   if (atrValue <= 0)
+   {
+      ObjectSetString(0, "infoConfluence", OBJPROP_TEXT, "Confluence: ATR is zero");
+      return;
+   }
    // ── Read all signal slots ─────────────────────────────────────────────
    SignalResult sigBaseline = ReadBaselineSignal(BaselineType, g_slotBaseline);
    SignalResult sigConfirm1 = ReadConfirmSignal(Confirm1Type, g_slotConfirm1, C1_MTF_MinBullHTF, C1_MTF_MinBearHTF);
@@ -267,9 +271,9 @@ void OnTick()
    if (g_slotExit.active && sigExit.valid)
    {
       if (sigExit.direction < 0 && hasBuy)
-         ClosePositionsByType(POSITION_TYPE_BUY);
+         { ClosePositionsByType(POSITION_TYPE_BUY); return; }
       if (sigExit.direction > 0 && hasSell)
-         ClosePositionsByType(POSITION_TYPE_SELL);
+         { ClosePositionsByType(POSITION_TYPE_SELL); return; }
    }
    // Check for data errors on entry slots
    if ((g_slotBaseline.active && !sigBaseline.valid) ||
@@ -350,11 +354,15 @@ void OnTick()
          lotSize = NormalizeDouble(lotSize, OrderDigits);
       }
       double volumeMin = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
+      double volumeMax = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX);
+      double volumeStep = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_STEP);
       if (lotSize < volumeMin)
       {
          ObjectSetString(0, "infoConfluence", OBJPROP_TEXT, "Confluence: Lot size below minimum");
          return;
       }
+      if (lotSize > volumeMax) lotSize = volumeMax;
+      if (volumeStep > 0) lotSize = MathFloor(lotSize / volumeStep) * volumeStep;
       // Entry with ATR-based SL/TP (normalized to tick size)
       double tickSize = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
       if (tickSize <= 0) tickSize = SymbolInfoDouble(_Symbol, SYMBOL_POINT);

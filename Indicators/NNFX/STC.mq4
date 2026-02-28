@@ -179,7 +179,6 @@ int OnCalculate(const int rates_total,
             // Smoothing second Stochastic.
             if (st2_pass) ST2[shift] = Factor * (ST2[shift] - ST2[shift + 1]) + ST2[shift + 1];
             st2_pass = true;
-            Sleep(1);
          }
       }
       

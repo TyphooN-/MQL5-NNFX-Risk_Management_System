@@ -94,6 +94,10 @@ int OnCalculate(const int rates_total,
    if(CopyBuffer(hMAHigh, 0, 0, limit+1, MAHigh) != limit+1) return 0;
    if(CopyBuffer(hMALow, 0, 0, limit+1, MALow) != limit+1) return 0;
 
+   // Seed carry-forward value on first load (Hlv[limit+1] may be uninitialized)
+   if(counted_bars == 0 && limit+1 < rates_total)
+      Hlv[limit+1] = 0;
+
    for(i=limit; i>=0; i--)
    {
       Hlv[i]=Hlv[i+1];
