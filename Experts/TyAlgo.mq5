@@ -22,7 +22,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "https://www.marketwizardry.org/"
-#property version   "2.107"
+#property version   "2.108"
 #property description "NNFX Confluence Algo EA — Modular Signal Slots"
 #include <Trade\Trade.mqh>
 #include <Orchard\RiskCalc.mqh>
@@ -377,7 +377,7 @@ void OnTick()
          return;
       }
       if (lotSize > volumeMax) lotSize = volumeMax;
-      if (volumeStep > 0) lotSize = MathFloor(lotSize / volumeStep) * volumeStep;
+      if (volumeStep > 0) lotSize = NormalizeDouble(MathFloor(lotSize / volumeStep) * volumeStep, OrderDigits);
       if (lotSize < volumeMin)
       {
          ObjectSetString(0, "infoConfluence", OBJPROP_TEXT, "Confluence: Lot size below minimum");

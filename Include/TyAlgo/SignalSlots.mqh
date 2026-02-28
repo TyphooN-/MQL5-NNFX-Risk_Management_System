@@ -76,7 +76,10 @@ string GetKAMAGlobalName(ENUM_TIMEFRAMES tf)
       case PERIOD_D1:  tfStr = "D1";  break;
       case PERIOD_W1:  tfStr = "W1";  break;
       case PERIOD_MN1: tfStr = "MN1"; break;
-      default:         tfStr = "D1";  break;
+      default:
+         Print("WARNING: BL_KAMA_TF=", EnumToString(tf), " is not supported by MultiKAMA. Falling back to D1.");
+         tfStr = "D1";
+         break;
    }
    return "IsAbove_KAMA_" + tfStr;
 }
