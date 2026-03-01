@@ -97,6 +97,14 @@ int OnInit()
    SetIndexStyle(3, DRAW_HISTOGRAM, STYLE_SOLID, 2, InpClrChurn);
    SetIndexStyle(4, DRAW_HISTOGRAM, STYLE_SOLID, 2, InpClrClimaxCh);
    SetIndexStyle(5, DRAW_HISTOGRAM, STYLE_SOLID, 2, InpClrNormal);
+   // Tell MQL4 to treat EMPTY_VALUE as empty (default is 0 for histograms)
+   SetIndexEmptyValue(0, EMPTY_VALUE);
+   SetIndexEmptyValue(1, EMPTY_VALUE);
+   SetIndexEmptyValue(2, EMPTY_VALUE);
+   SetIndexEmptyValue(3, EMPTY_VALUE);
+   SetIndexEmptyValue(4, EMPTY_VALUE);
+   SetIndexEmptyValue(5, EMPTY_VALUE);
+   SetIndexEmptyValue(6, EMPTY_VALUE);
    if(InpShowAvg)
       SetIndexStyle(6, DRAW_LINE, STYLE_SOLID, 1, clrDodgerBlue);
    else
