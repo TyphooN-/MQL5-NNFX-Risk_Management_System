@@ -10,18 +10,12 @@ A comprehensive MQL5/MQL4 trading toolkit featuring manual risk management, auto
 - [Components Overview](#components-overview)
 - [Architecture](#architecture)
 - [Expert Advisors](#expert-advisors)
-  - [TyphooN Risk Management EA](#typhoon-risk-management-ea-v1403)
-  - [TyAlgo NNFX Confluence EA](#tyalgo-nnfx-confluence-ea-v2106)
+  - [TyphooN Risk Management EA](#typhoon-risk-management-ea-v1405)
+  - [TyAlgo NNFX Confluence EA](#tyalgo-nnfx-confluence-ea-v2108)
 - [Indicators](#indicators)
-  - [MTF_MA — Multi Timeframe Moving Average](#mtf_ma--multi-timeframe-moving-average-v1078)
-  - [MultiKAMA — Multi Timeframe KAMA](#multikama--multi-timeframe-kama-v1009)
-  - [KAMA — Kaufman Adaptive Moving Average](#kama--kaufman-adaptive-moving-average-v103)
-  - [Ehlers Fisher Transform](#ehlers-fisher-transform)
-  - [BetterVolume — Volume Classification](#bettervolume--volume-classification)
-  - [SupplyDemand — Supply and Demand Zones](#supplydemand--supply-and-demand-zones)
-  - [ATR Projection](#atr-projection-v1052)
-  - [Previous Candle Levels](#previous-candle-levels-v1056)
-  - [FakeCandle](#fakecandle-v105)
+  - [Homegrown Indicators](#homegrown-indicators)
+  - [NNFX Indicators](#nnfx-indicators)
+  - [Ehlers Indicators](#ehlers-indicators)
 - [Include Libraries](#include-libraries)
 - [Installation](#installation)
 - [Deployment](#deployment)
@@ -35,8 +29,8 @@ A comprehensive MQL5/MQL4 trading toolkit featuring manual risk management, auto
 
 | Component | Type | Version | Platform | Description |
 |-----------|------|---------|----------|-------------|
-| TyphooN | EA | 1.403 | MQL5 | Manual risk management with GUI panel |
-| TyAlgo | EA | 2.106 | MQL5 | Automated NNFX confluence trading |
+| TyphooN | EA | 1.405 | MQL5 | Manual risk management with GUI panel |
+| TyAlgo | EA | 2.108 | MQL5 | Automated NNFX confluence trading |
 | MTF_MA | Indicator | 1.078 | MQL5/MQL4 | Multi-timeframe SMA bull/bear power dashboard |
 | MultiKAMA | Indicator | 1.009 | MQL5/MQL4 | Multi-timeframe KAMA overlay |
 | KAMA | Indicator | 1.03 | MQL5/MQL4 | Kaufman Adaptive Moving Average |
@@ -46,6 +40,8 @@ A comprehensive MQL5/MQL4 trading toolkit featuring manual risk management, auto
 | ATR_Projection | Indicator | 1.052 | MQL5/MQL4 | ATR projection lines on chart |
 | PreviousCandleLevels | Indicator | 1.056 | MQL5/MQL4 | Previous candle high/low levels |
 | FakeCandle | Indicator | 1.05 | MQL5/MQL4 | Draws a user-defined candle on chart |
+| Ehlers (12) | Indicator | 1.01 | MQL5 | Dominant cycle adaptive indicators |
+| NNFX (26) | Indicator | Various | MQL5 | Third-party NNFX method indicators |
 
 ---
 
@@ -81,28 +77,33 @@ Indicators and EAs communicate through **MT5 GlobalVariables** — a shared key-
 
 ```
 ├── Experts/
-│   ├── TyphooN.mq5           # Manual risk management EA
-│   └── TyAlgo.mq5            # NNFX confluence algo EA
+│   ├── TyphooN.mq5              # Manual risk management EA
+│   └── TyAlgo.mq5               # NNFX confluence algo EA
 ├── Indicators/
-│   ├── MTF_MA.mq5/.mq4/.mqh        # Multi-TF SMA dashboard
-│   ├── MultiKAMA.mq5/.mq4/.mqh     # Multi-TF KAMA
-│   ├── KAMA.mq5/.mq4/.mqh          # Single KAMA
+│   ├── MTF_MA.mq5/.mq4/.mqh           # Multi-TF SMA dashboard
+│   ├── MultiKAMA.mq5/.mq4/.mqh        # Multi-TF KAMA
+│   ├── KAMA.mq5/.mq4/.mqh             # Single KAMA
 │   ├── EhlersFisherTransform.mq5/.mq4/.mqh  # Fisher Transform
-│   ├── BetterVolume.mq5/.mq4/.mqh  # Volume classification histogram
-│   ├── SupplyDemand.mq5/.mq4/.mqh  # Supply and demand zones
-│   ├── ATR_Projection.mq5/.mq4/.mqh  # ATR projection lines
+│   ├── BetterVolume.mq5/.mq4/.mqh     # Volume classification histogram
+│   ├── SupplyDemand.mq5/.mq4/.mqh     # Supply and demand zones
+│   ├── ATR_Projection.mq5/.mq4/.mqh   # ATR projection lines
 │   ├── PreviousCandleLevels.mq5/.mq4/.mqh  # Candle levels
-│   └── FakeCandle.mq5/.mq4/.mqh    # Fake candle overlay
+│   ├── FakeCandle.mq5/.mq4/.mqh       # Fake candle overlay
+│   ├── NNFX/                    # 26 third-party NNFX indicators (.mq5)
+│   │   └── BUGS.md              # Bug audit report
+│   ├── Ehlers/                  # 12 Ehlers dominant cycle indicators (.mq5)
+│   │   ├── EhlersCommon.mqh     # Shared dominant cycle detection library
+│   │   └── LICENSE_MIT.md       # MIT license (thetestspecimen)
+│   └── Retired/                 # Legacy indicators (RVOL, shved, etc.)
 ├── Include/
 │   ├── Darwinex/
-│   │   └── DWEX Portfolio Risk Man.mqh  # VaR calculations
+│   │   └── DWEX Portfolio Risk Man.mqh  # VaR calculations (v1.05)
 │   ├── Orchard/
-│   │   └── RiskCalc.mqh       # Risk utility functions
+│   │   └── RiskCalc.mqh         # Risk utility functions
 │   └── TyAlgo/
-│       └── SignalSlots.mqh    # Modular signal slot system
-│   └── Retired/                # Legacy indicators (RVOL, shved — not deployed)
-├── Images/                    # Screenshots for documentation
-├── deploy.sh                  # Deploy to all MT5 installations
+│       └── SignalSlots.mqh      # Modular signal slot system
+├── Images/                      # Screenshots for documentation
+├── deploy.sh                    # Deploy to all MT5 installations
 └── README.md
 ```
 
@@ -110,7 +111,7 @@ Indicators and EAs communicate through **MT5 GlobalVariables** — a shared key-
 
 ## Expert Advisors
 
-### TyphooN Risk Management EA (v1.403)
+### TyphooN Risk Management EA (v1.405)
 
 A manual trading EA with a GUI panel for order placement, position management, and risk monitoring. Supports four risk modes, martingale hedging with TRIM/HARVEST/PROTECT tiers, equity protection, and Discord trade announcements.
 
@@ -211,7 +212,7 @@ A manual trading EA with a GUI panel for order placement, position management, a
 
 ---
 
-### TyAlgo NNFX Confluence EA (v2.106)
+### TyAlgo NNFX Confluence EA (v2.108)
 
 An automated trading EA implementing the NNFX (No Nonsense Forex) method with a modular signal slot architecture. Each indicator role (Baseline, Confirmation, Volume, Exit) is a configurable "slot" that users can swap via dropdown menus or extend with custom GlobalVariables — no code changes required.
 
@@ -295,6 +296,8 @@ The EA uses 5 signal slots, each independently configurable:
 ---
 
 ## Indicators
+
+### Homegrown Indicators
 
 ### MTF_MA — Multi Timeframe Moving Average (v1.078)
 
@@ -482,9 +485,71 @@ Draws a user-defined candlestick on the chart as a visual overlay. Useful for pl
 
 ---
 
+### NNFX Indicators
+
+26 third-party indicators implementing the NNFX (No Nonsense Forex) method. Located in `Indicators/NNFX/`. MQL5 only.
+
+| Indicator | Role | Description |
+|-----------|------|-------------|
+| SSL_Channel | Baseline | SSL Channel trend direction |
+| SSL_Channel_Chart | Baseline | SSL Channel plotted on chart |
+| ALMA | Baseline | Arnaud Legoux Moving Average |
+| McGinleyDynamic | Baseline | McGinley Dynamic smoothing |
+| KijunSen | Baseline | Ichimoku Kijun-Sen midline |
+| HMA | Baseline | Hull Moving Average |
+| BraidFilter | Confirmation | 3-MA braid with ATR filter |
+| BraidFilter_Histogram | Confirmation | Braid Filter with 34 MA types |
+| STC | Confirmation | Schaff Trend Cycle |
+| QQE | Confirmation | Qualitative Quantitative Estimation |
+| RSX | Confirmation | Jurik RSX (raw + corrected) |
+| Blau_Ergodic_TSI | Confirmation | True Strength Index |
+| TDFI | Confirmation | Trend Direction Force Index |
+| WAE | Volume | Waddah Attar Explosion |
+| ASH | Volume | Absolute Strength Histogram |
+| VPCI | Volume | Volume Price Confirmation Indicator |
+| CMF | Volume | Chaikin Money Flow |
+| ForceIndex | Volume | Elder Force Index |
+| TTMS | Volume | TTM Squeeze (Bollinger/Keltner) |
+| Squeeze | Volume | Squeeze Momentum (mladen) |
+| Squeeze_Break | Volume | Squeeze Breakout variant |
+| SqueezeMomentum_LB | Volume | LazyBear Squeeze Momentum |
+| SolarWind | Exit | Solar Wind oscillator |
+| REX | Exit | REX oscillator |
+| Aroon | Exit | Aroon Up/Down |
+| Aroon_Oscillator | Exit | Aroon Oscillator |
+
+5 NNFX indicators also have MQL4 wrappers: BraidFilter, QQE, STC, Squeeze_Break, SqueezeMomentum_LB.
+
+See [`Indicators/NNFX/BUGS.md`](Indicators/NNFX/BUGS.md) for the full audit report of 12 bugs found and fixed in third-party code.
+
+---
+
+### Ehlers Indicators
+
+12 John Ehlers dominant cycle adaptive indicators. Located in `Indicators/Ehlers/`. MQL5 only. Based on code by thetestspecimen (MIT license) with shared `EhlersCommon.mqh` library for dominant cycle detection.
+
+| Indicator | Description |
+|-----------|-------------|
+| ehlers_adaptive_bandpass | Adaptive Bandpass Filter |
+| ehlers_adaptive_bandpass_cube | Adaptive Bandpass cubed (sharpened) |
+| ehlers_adaptive_cci | Adaptive CCI |
+| ehlers_adaptive_rsi | Adaptive RSI |
+| ehlers_adaptive_rsi_fischer | Adaptive RSI with Fisher Transform |
+| ehlers_adaptive_stochastic | Adaptive Stochastic |
+| ehlers_adaptive_stochastic_invfischer | Adaptive Stochastic with Inverse Fisher |
+| ehlers_autocorrelation_reversals | Autocorrelation Reversals |
+| ehlers_decycler_oscillator | Decycler Oscillator |
+| ehlers_even_better_sinewave | Even Better Sinewave |
+| ehlers_roofing_filter | Roofing Filter |
+| ehlers_supersmoother | Supersmoother Filter |
+
+All 12 share a common dominant cycle detection engine (`EhlersCommon.mqh`) using autocorrelation periodogram with configurable high-pass and low-pass periods.
+
+---
+
 ## Include Libraries
 
-### `DWEX Portfolio Risk Man.mqh` (v1.04)
+### `DWEX Portfolio Risk Man.mqh` (v1.05)
 Darwinex Portfolio Risk Management module. Provides VaR (Value at Risk) calculations using historical return standard deviation and inverse cumulative normal distribution. Used by both TyphooN and TyAlgo EAs for position sizing.
 
 ### `RiskCalc.mqh`
@@ -544,7 +609,7 @@ Platform-specific code uses `#ifdef __MQL5__` / `#ifdef __MQL4__` preprocessor g
 
 **Cross-platform indicators (MQL5 + MQL4):** MTF_MA, MultiKAMA, KAMA, EhlersFisherTransform, BetterVolume, SupplyDemand, ATR_Projection, PreviousCandleLevels, FakeCandle.
 
-**MQL5-only components:** TyphooN EA, TyAlgo EA, and all third-party NNFX/Ehlers indicators in `Indicators/NNFX/` and `Indicators/Ehlers/`. Third-party and NNFX indicators will not be converted to MQL4.
+**MQL5-only components:** TyphooN EA, TyAlgo EA, all 12 Ehlers indicators, and all 26 NNFX indicators (except 5 with MQL4 wrappers: BraidFilter, QQE, STC, Squeeze_Break, SqueezeMomentum_LB). Third-party and NNFX indicators will not be fully converted to MQL4.
 
 ---
 

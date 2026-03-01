@@ -60,13 +60,17 @@ When running an optimization with e.g. 100 parameter combinations:
 
 ## Summary of All Fixes Applied
 
-### Across 3 audit rounds (2026-02-28):
+### Across 12 audit passes (2026-02-28 through 2026-03-01):
 
 - **20 indicator handle leaks** sealed across 9 files
 - **12 original NNFX bugs** fixed (3 Critical, 4 High, 5 Medium)
 - **5 TyphooN.mq5 correctness fixes** (div-by-zero, position selection, magic filter, async race, volume sync)
-- **5 ATR_Projection.mqh fixes** (data ready gating, fetch dedup, cold-start guard, iTime cache, line drawing guard + BarsCalculated completeness)
-- **10 MEDIUM fixes in final pass** (timeout polling filter, MarginBufferPercent validation, MQL4 cache reset, SolarWind stale statics, TDFI _Point guard, Aroon sentinel, shved CopyClose/High/Low checks)
-- **4 additional include file fixes** (DWEX zScore guard, shved bounds checks)
+- **5 ATR_Projection.mqh fixes** (data ready gating, fetch dedup, cold-start guard, iTime cache, iOpen/iTime history guard)
+- **12 BraidFilter_Histogram.mq5 div-by-zero fixes** (RSI, CVMA, EVWMA, FWMA, PPWMA, VWMA, GWMA, HMA, SWMA, TWMA)
+- **3 MQL4 cross-platform fixes** (MTF_MA/BetterVolume hidden buffer visibility, SetIndexEmptyValue)
+- **3 visual/label fixes** (ALMA shortname comma, Blau_Ergodic_TSI color property, RSX independent color)
+- **2 guard fixes** (SupplyDemand g_lastBarTime reset, PreviousCandleLevels price<=0 guard)
+- **4 additional include file fixes** (DWEX zScore/accountEquity guards, RiskCalc tickSize/lotRisk guards)
+- **10 MEDIUM fixes** (timeout polling filter, MarginBufferPercent validation, MQL4 cache reset, SolarWind stale statics, TDFI _Point guard, Aroon sentinel, KijunSen bounds check, HMA m_weight3 guard, STC Cycle validation, SolarWind forward-ref fix)
 
-**Total: ~56 fixes across 20+ files — the codebase is now audit-clean.**
+**Total: ~70 fixes across 25+ files over 12 audit passes — the codebase is now audit-clean (4 consecutive clean passes).**

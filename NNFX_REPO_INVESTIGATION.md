@@ -1,6 +1,6 @@
 # NNFX Open-Source Repo Investigation
 
-Investigation of all notable open-source NNFX (No Nonsense Forex) repositories on GitHub, evaluated against the TyphooN Risk Management System (v1.403) for potential integration value.
+Investigation of all notable open-source NNFX (No Nonsense Forex) repositories on GitHub, evaluated against the TyphooN Risk Management System (v1.405) for potential integration value.
 
 **Verdict: None of these repos provide code worth integrating.** TyphooN is a production live-trading EA with sophisticated risk management; every repo found is either a backtesting harness, an educational template, or a trivial single-purpose indicator. The only actionable takeaways are architectural ideas (news filtering, currency exposure tracking) that would need to be implemented from scratch.
 
