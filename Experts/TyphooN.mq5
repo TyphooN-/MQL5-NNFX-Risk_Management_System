@@ -118,6 +118,9 @@ int MartingaleHedgeCloses = 0;
 int MartingaleBiasCloses = 0;
 bool HarvestEnabled = false;
 int MartingaleHarvestCloses = 0;
+bool TrimFired = false;
+bool HarvestFired = false;
+bool ProtectActive = false;
 datetime g_lastOppCloseTime = 0;
 double g_cachedChunkSize = 0, g_cachedUnwindLots = 0, g_cachedHarvestLots = 0;
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
@@ -1446,8 +1449,22 @@ void ProcessMartingale()
    // Periodic status log + single margin fetch for this tick
    double marginLevel = CalculateMarginLevelPct();
    LogMartingaleUnwindStatus(marginLevel);
-   // Tier 2: emergency bias close (check first — higher priority)
+   // Reset fired flags when margin recovers above TRIM threshold
+   if (MartingaleUnwindMarginPct > 0 && marginLevel > MartingaleUnwindMarginPct)
+   {
+      TrimFired = false;
+      if (ProtectActive)
+      {
+         ProtectActive = false;
+         Print("PROTECT deactivated — margin level ", DoubleToString(marginLevel, 1), "% recovered above TRIM threshold ", DoubleToString(MartingaleUnwindMarginPct, 1), "%");
+      }
+   }
+   if (MartingaleHarvestMarginPct > 0 && marginLevel > MartingaleHarvestMarginPct)
+      HarvestFired = false;
+   // Tier 2: emergency bias close — fires continuously until margin recovers above TRIM level
    if (MartingaleDangerMarginPct > 0 && marginLevel <= MartingaleDangerMarginPct)
+      ProtectActive = true;
+   if (ProtectActive)
    {
       if (ProtectivePartialCloseBias())
       {
@@ -1455,21 +1472,23 @@ void ProcessMartingale()
          return;
       }
    }
-   // Tier 1: unwind hedges
-   if (MartingaleUnwindMarginPct > 0 && marginLevel <= MartingaleUnwindMarginPct)
+   // Tier 1: unwind hedges — fires once per crossing below threshold
+   if (MartingaleUnwindMarginPct > 0 && !TrimFired && marginLevel <= MartingaleUnwindMarginPct)
    {
       if (UnwindHedgeByMargin())
       {
+         TrimFired = true;
          LastMartingaleTime = TimeCurrent();
          return;
       }
       // TRIM found no hedges — fall through to HARVEST
    }
-   // HARVEST: bank profit on bias positions when no hedges remain
-   if (HarvestEnabled && MartingaleHarvestMarginPct > 0 && marginLevel <= MartingaleHarvestMarginPct)
+   // HARVEST: bank profit on bias positions when no hedges remain — fires once per crossing
+   if (HarvestEnabled && MartingaleHarvestMarginPct > 0 && !HarvestFired && marginLevel <= MartingaleHarvestMarginPct)
    {
       if (HarvestProfitableBias())
       {
+         HarvestFired = true;
          LastMartingaleTime = TimeCurrent();
          return;
       }
@@ -1901,6 +1920,9 @@ void TyWindow::OnClickMartingale(void)
       MartingaleBiasCloses = 0;
       MartingaleHarvestCloses = 0;
       HarvestEnabled = false;
+      TrimFired = false;
+      HarvestFired = false;
+      ProtectActive = false;
       g_lastOppCloseTime = 0;
       UpdateMartingaleButton();
       Print("Martingale mode changed to ", EnumToString(MartingaleMode), " on ", _Symbol);
