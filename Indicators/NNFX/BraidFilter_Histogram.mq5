@@ -877,7 +877,7 @@ int maGuassianWeighted(const int rates_total,
             sum_weight += weight;
             sum_weight_price += weight * source_price[i - k];
            }
-         result_gwma[i] = sum_weight_price / sum_weight;
+         result_gwma[i] = (sum_weight != 0) ? sum_weight_price / sum_weight : source_price[i];
         }
      }
    return(rates_total);
@@ -961,7 +961,7 @@ int maHull(const int rates_total,
             sum_weight += weight;
             sum_weight_price += weight * source_price[i - k];
            }
-         temp_wma_1[i] = sum_weight_price / sum_weight;
+         temp_wma_1[i] = (sum_weight != 0) ? sum_weight_price / sum_weight : source_price[i];
          weight = 0.0;
          sum_weight = 0.0;
          sum_weight_price = 0.0;
@@ -1515,7 +1515,7 @@ int maSineWeighted(const int rates_total,
             sum_weight += weight;
             sum_weight_price += weight * source_price[i - k];
            }
-         result_swma[i] = sum_weight_price / sum_weight;
+         result_swma[i] = (sum_weight != 0) ? sum_weight_price / sum_weight : source_price[i];
         }
      }
    return(rates_total);
@@ -1636,7 +1636,7 @@ int maTriangularWeighted(const int rates_total,
             sum_weight += weight;
             sum_weight_price += weight * source_price[i - k];
            }
-         result_twma[i] = sum_weight_price / sum_weight;
+         result_twma[i] = (sum_weight != 0) ? sum_weight_price / sum_weight : source_price[i];
         }
      }
    return(rates_total);

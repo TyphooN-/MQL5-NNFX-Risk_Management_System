@@ -131,26 +131,30 @@ int OnCalculate(const int rates_total,
 }
 void UpdatePreviousData()
 {
-   Previous_H1_High = iHigh(_Symbol, PERIOD_H1, 1);
-   Previous_H1_Low = iLow(_Symbol, PERIOD_H1, 1);
-   Previous_H4_High = iHigh(_Symbol, PERIOD_H4, 1);
-   Previous_H4_Low = iLow(_Symbol, PERIOD_H4, 1);
-   Previous_D1_High = iHigh(_Symbol, PERIOD_D1, 1);
-   Previous_D1_Low = iLow(_Symbol, PERIOD_D1, 1);
-   Previous_W1_High = iHigh(_Symbol, PERIOD_W1, 1);
-   Previous_W1_Low = iLow(_Symbol, PERIOD_W1, 1);
-   Previous_MN1_High = iHigh(_Symbol, PERIOD_MN1, 1);
-   Previous_MN1_Low = iLow(_Symbol, PERIOD_MN1, 1);
+   // Guard against 0 returns (history not yet loaded) to prevent lines at price 0
+   double val;
+   val = iHigh(_Symbol, PERIOD_H1, 1);   if (val > 0) Previous_H1_High = val;
+   val = iLow(_Symbol, PERIOD_H1, 1);    if (val > 0) Previous_H1_Low = val;
+   val = iHigh(_Symbol, PERIOD_H4, 1);   if (val > 0) Previous_H4_High = val;
+   val = iLow(_Symbol, PERIOD_H4, 1);    if (val > 0) Previous_H4_Low = val;
+   val = iHigh(_Symbol, PERIOD_D1, 1);   if (val > 0) Previous_D1_High = val;
+   val = iLow(_Symbol, PERIOD_D1, 1);    if (val > 0) Previous_D1_Low = val;
+   val = iHigh(_Symbol, PERIOD_W1, 1);   if (val > 0) Previous_W1_High = val;
+   val = iLow(_Symbol, PERIOD_W1, 1);    if (val > 0) Previous_W1_Low = val;
+   val = iHigh(_Symbol, PERIOD_MN1, 1);  if (val > 0) Previous_MN1_High = val;
+   val = iLow(_Symbol, PERIOD_MN1, 1);   if (val > 0) Previous_MN1_Low = val;
 }
 void UpdateJudasData()
 {
    // Current bar (0) high/low for each timeframe -- replaces 6 iBarShift + 6 iTime calls
-   Current_D1_High = iHigh(_Symbol, PERIOD_D1, 0);
-   Current_D1_Low = iLow(_Symbol, PERIOD_D1, 0);
-   Current_W1_High = iHigh(_Symbol, PERIOD_W1, 0);
-   Current_W1_Low = iLow(_Symbol, PERIOD_W1, 0);
-   Current_MN1_High = iHigh(_Symbol, PERIOD_MN1, 0);
-   Current_MN1_Low = iLow(_Symbol, PERIOD_MN1, 0);
+   // Guard against 0 returns (history not yet loaded) to prevent false Judas triggers
+   double val;
+   val = iHigh(_Symbol, PERIOD_D1, 0);   if (val > 0) Current_D1_High = val;
+   val = iLow(_Symbol, PERIOD_D1, 0);    if (val > 0) Current_D1_Low = val;
+   val = iHigh(_Symbol, PERIOD_W1, 0);   if (val > 0) Current_W1_High = val;
+   val = iLow(_Symbol, PERIOD_W1, 0);    if (val > 0) Current_W1_Low = val;
+   val = iHigh(_Symbol, PERIOD_MN1, 0);  if (val > 0) Current_MN1_High = val;
+   val = iLow(_Symbol, PERIOD_MN1, 0);   if (val > 0) Current_MN1_Low = val;
 }
 void DeleteHorizontalLine(string label)
 {
@@ -166,6 +170,9 @@ void DrawLines()
    datetime prevD1Time = iTime(_Symbol, PERIOD_D1, 1);
    datetime prevW1Time = iTime(_Symbol, PERIOD_W1, 1);
    datetime prevMN1Time = iTime(_Symbol, PERIOD_MN1, 1);
+   if (prevH1Time == 0 || prevH4Time == 0 || prevD1Time == 0 ||
+       prevW1Time == 0 || prevMN1Time == 0)
+      return;
    if (_Period < PERIOD_H1)
    {
       DrawHorizontalLine(Previous_H1_High, g_prev_H1_High, PreviousCandleColour, prevH1Time, currentBarTime);
