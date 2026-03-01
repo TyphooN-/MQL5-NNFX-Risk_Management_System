@@ -1650,7 +1650,7 @@ void TyWindow::OnClickTrade(void)
    double volumeStepLocal = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_STEP);
    if (volumeStepLocal <= 0) volumeStepLocal = min_volume;
    int marginLoopIter = 0;
-   int marginLoopMax = (int)MathCeil(OrderLots / min_volume) + 10;
+   int marginLoopMax = (int)MathMin(MathCeil(OrderLots / min_volume) + 10, 1000);
    while (required_margin > usable_margin && OrderLots > min_volume)
    {
       if (IsStopped()) return;
@@ -2150,7 +2150,7 @@ void ModifyPosition(double newLevel, int modificationType, int positionTypeFilte
             targetPositions++;
             double originalLevel = (modificationType == POSITION_SL) ? PositionGetDouble(POSITION_SL) : PositionGetDouble(POSITION_TP);
             originalLevel = MathRound(originalLevel / tickSize) * tickSize;
-            if (originalLevel == newLevel)
+            if (MathAbs(originalLevel - newLevel) < tickSize * 0.5)
             {
                 Print(modLabel, " for Position #", ticket, " is already at the desired level.");
                 continue;
@@ -2185,6 +2185,7 @@ void TyWindow::OnClickSetSL(void)
         SL = newSL;
         // Determine direction from TP/SL line orientation for hedging support
         double tpLine = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
+        if (tpLine > 0) tpLine = MathRound(tpLine / tickSize) * tickSize;
         int dirFilter = -1; // default: modify all
         if (tpLine > 0 && newSL > 0)
         {
@@ -2207,6 +2208,7 @@ void TyWindow::OnClickSetTP(void)
       TP = newTP;
       // Determine direction from TP/SL line orientation for hedging support
       double slLine = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
+      if (slLine > 0) slLine = MathRound(slLine / tickSize) * tickSize;
       int dirFilter = -1; // default: modify all
       if (newTP > 0 && slLine > 0)
       {
