@@ -35,6 +35,7 @@
 bool NewBar( string symbol = NULL, int timeframe = 0, bool initToNow = false ) {
 
    datetime        currentBarTime  = iTime( symbol, ( ENUM_TIMEFRAMES )timeframe, 0 );
+   if ( currentBarTime == 0 ) return ( false ); // iTime failed (server disconnect, symbol unavailable)
    static datetime previousBarTime = initToNow ? currentBarTime : 0;
    if ( previousBarTime == currentBarTime ) return ( false );
    previousBarTime = currentBarTime;
