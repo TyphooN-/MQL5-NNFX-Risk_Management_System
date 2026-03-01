@@ -1442,12 +1442,10 @@ void ProcessMartingale()
          return;
       }
    }
-   // Cooldown gate for margin-based operations
-   if (TimeCurrent() - LastMartingaleTime < MartingaleCooldown)
-      return;
-   // Periodic status log + single margin fetch for this tick
+   // PROTECT runs outside cooldown — fires every tick to prevent margin call
    double marginLevel = CalculateMarginLevelPct();
-   LogMartingaleUnwindStatus(marginLevel);
+   if (MartingaleDangerMarginPct > 0 && marginLevel <= MartingaleDangerMarginPct)
+      ProtectActive = true;
    // Reset fired flags when margin recovers above TRIM threshold
    if (MartingaleUnwindMarginPct > 0 && marginLevel > MartingaleUnwindMarginPct)
    {
@@ -1460,17 +1458,15 @@ void ProcessMartingale()
    }
    if (MartingaleHarvestMarginPct > 0 && marginLevel > MartingaleHarvestMarginPct)
       HarvestFired = false;
-   // Tier 2: emergency bias close — fires continuously until margin recovers above TRIM level
-   if (MartingaleDangerMarginPct > 0 && marginLevel <= MartingaleDangerMarginPct)
-      ProtectActive = true;
    if (ProtectActive)
    {
       if (ProtectivePartialCloseBias())
-      {
-         LastMartingaleTime = TimeCurrent();
          return;
-      }
    }
+   // Cooldown gate for TRIM/HARVEST operations
+   if (TimeCurrent() - LastMartingaleTime < MartingaleCooldown)
+      return;
+   LogMartingaleUnwindStatus(marginLevel);
    // Tier 1: unwind hedges — fires once per crossing below threshold
    if (MartingaleUnwindMarginPct > 0 && !TrimFired && marginLevel <= MartingaleUnwindMarginPct)
    {
