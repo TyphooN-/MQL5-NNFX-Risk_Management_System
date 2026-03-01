@@ -146,6 +146,7 @@ class TyWindow : public CAppDialog
       void ExecuteSellOrder(double lots);
       void MartingaleButtonText(string text);
       void MartingaleButtonColor(color clr);
+      void HarvestButtonText(string text);
       void HarvestButtonColor(color clr);
       virtual bool      Create(const long chart,const string name,const int subwin,const int x1,const int y1,const int x2,const int y2);
       // handlers of drag
@@ -803,9 +804,9 @@ bool TyWindow::CreateButtonHarvest(void)
    int y1 = INDENT_TOP + 2 * CONTROLS_GAP_Y;
    int x2 = x1 + BUTTON_WIDTH;
    int y2 = y1 + BUTTON_HEIGHT;
-   if(!buttonHarvest.Create(0,"HARVEST",0,x1,y1,x2,y2))
+   if(!buttonHarvest.Create(0,"HV: OFF",0,x1,y1,x2,y2))
       return(false);
-   if(!buttonHarvest.Text("HARVEST"))
+   if(!buttonHarvest.Text("HV: OFF"))
       return(false);
    buttonHarvest.ColorBackground(clrDarkGray);
    if(!Add(buttonHarvest))
@@ -1791,19 +1792,34 @@ void TyWindow::MartingaleButtonColor(color clr)
 {
    buttonMartingale.ColorBackground(clr);
 }
+void TyWindow::HarvestButtonText(string text)
+{
+   buttonHarvest.Text(text);
+}
 void TyWindow::HarvestButtonColor(color clr)
 {
    buttonHarvest.ColorBackground(clr);
 }
 void UpdateHarvestButton()
 {
+   string label;
    color clr;
    if (MartingaleMode == MG_OFF || MartingaleMode == MG_UNWIND)
+   {
+      label = "HV: OFF";
       clr = clrDarkGray;
+   }
    else if (HarvestEnabled)
+   {
+      label = "HV: ON";
       clr = clrLime;
+   }
    else
+   {
+      label = "HV: OFF";
       clr = clrGray;
+   }
+   ExtDialog.HarvestButtonText(label);
    ExtDialog.HarvestButtonColor(clr);
 }
 void TyWindow::OnClickMartingale(void)
