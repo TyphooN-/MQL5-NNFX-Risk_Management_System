@@ -62,6 +62,10 @@ int OnInit()
    SetIndexStyle(1, DRAW_LINE, STYLE_SOLID, 2, clrOrangeRed);
    SetIndexStyle(2, DRAW_LINE, STYLE_SOLID, 2, clrDarkGray);
    SetIndexStyle(3, DRAW_LINE, STYLE_SOLID, 1, clrDarkGray);
+   // Tell MQL4 to skip drawing at EMPTY_VALUE (default empty is 0 for DRAW_LINE)
+   SetIndexEmptyValue(0, EMPTY_VALUE);
+   SetIndexEmptyValue(1, EMPTY_VALUE);
+   SetIndexEmptyValue(2, EMPTY_VALUE);
    SetIndexLabel(0, "Fisher Green");
    SetIndexLabel(1, "Fisher Red");
    SetIndexLabel(2, "Fisher Gray");
