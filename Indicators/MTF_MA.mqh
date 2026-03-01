@@ -22,18 +22,26 @@
  *
  **/
 // Input variables
+#ifdef __MQL5__
 input group  "[INFO TEXT SETTINGS]";
+#else
+input string __grp1__ = "=== INFO TEXT SETTINGS ==="; // [INFO TEXT SETTINGS]
+#endif
 input string FontName                      = "Courier New";
 input int    FontSize                      = 8;
 const ENUM_BASE_CORNER Corner              = CORNER_RIGHT_UPPER;
 input int    HorizPos                      = 310;
 input int    VertPos                       = 130;
 ENUM_APPLIED_PRICE MAPrice = PRICE_CLOSE;
-// Handles
+
+#ifdef __MQL5__
+// Handles (MQL5 only)
 int HandleM1_200SMA, HandleM1_50SMA, HandleM1_20SMA, HandleM1_10SMA, HandleM5_200SMA, HandleM5_50SMA, HandleM5_20SMA, HandleM5_10SMA, HandleM15_200SMA, HandleM15_50SMA, HandleM15_20SMA;
 int HandleM15_10SMA, HandleM30_200SMA, HandleM30_50SMA, HandleM30_20SMA, HandleM30_10SMA, HandleH1_200SMA, HandleH1_50SMA, HandleH1_20SMA, HandleH1_10SMA, HandleH4_200SMA;
 int HandleH4_50SMA, HandleH4_20SMA, HandleH4_10SMA, HandleD1_200SMA, HandleD1_50SMA, HandleD1_20SMA, HandleD1_10SMA, HandleW1_200SMA, HandleW1_50SMA, HandleW1_20SMA, HandleW1_10SMA;
 int HandleM1_100SMA, HandleM5_100SMA, HandleM15_100SMA, HandleM30_100SMA, HandleH1_100SMA, HandleH4_100SMA, HandleD1_100SMA, HandleW1_100SMA, HandleMN1_100SMA;
+#endif
+
 // Buffers
 double MABufferM1_200SMA[], MABufferM1_50SMA[], MABufferM1_20SMA[], MABufferM1_10SMA[], MABufferM5_200SMA[], MABufferM5_50SMA[], MABufferM5_20SMA[], MABufferM5_10SMA[], MABufferM15_200SMA[], MABufferM15_50SMA[], MABufferM15_20SMA[];
 double MABufferM15_10SMA[], MABufferM30_200SMA[], MABufferM30_50SMA[], MABufferM30_20SMA[], MABufferM30_10SMA[], MABufferH1_200SMA[], MABufferH1_50SMA[], MABufferH1_20SMA[], MABufferH1_10SMA[], MABufferH4_200SMA[], MABufferH4_50SMA[];
@@ -59,6 +67,7 @@ string g_nameBullLTF, g_nameBearLTF, g_nameBullHTF, g_nameBearHTF;
 string g_gvBullLTF, g_gvBearLTF, g_gvBullHTF, g_gvBearHTF;
 int OnInit()
 {
+#ifdef __MQL5__
    SetIndexBuffer(0, MABufferH1_200SMA, INDICATOR_DATA);
    SetIndexBuffer(1, MABufferH4_200SMA, INDICATOR_DATA);
    SetIndexBuffer(2, MABufferD1_200SMA, INDICATOR_DATA);
@@ -167,6 +176,63 @@ int OnInit()
       Print("Failed to create iMA handles");
       return INIT_FAILED;
    }
+#else
+   // MQL4: SetIndexBuffer with 2-arg form, set styles for 6 plotted lines
+   SetIndexBuffer(0, MABufferH1_200SMA);
+   SetIndexBuffer(1, MABufferH4_200SMA);
+   SetIndexBuffer(2, MABufferD1_200SMA);
+   SetIndexBuffer(3, MABufferW1_200SMA);
+   SetIndexBuffer(4, MABufferW1_100SMA);
+   SetIndexBuffer(5, MABufferMN1_100SMA);
+   SetIndexBuffer(6, MABufferM1_200SMA);
+   SetIndexBuffer(7, MABufferM5_200SMA);
+   SetIndexBuffer(8, MABufferH4_100SMA);
+   SetIndexBuffer(9, MABufferD1_100SMA);
+   SetIndexBuffer(10, MABufferM15_200SMA);
+   SetIndexBuffer(11, MABufferM30_200SMA);
+   SetIndexBuffer(12, MABufferM1_50SMA);
+   SetIndexBuffer(13, MABufferM5_50SMA);
+   SetIndexBuffer(14, MABufferM15_50SMA);
+   SetIndexBuffer(15, MABufferM30_50SMA);
+   SetIndexBuffer(16, MABufferH1_50SMA);
+   SetIndexBuffer(17, MABufferH4_50SMA);
+   SetIndexBuffer(18, MABufferD1_50SMA);
+   SetIndexBuffer(19, MABufferW1_50SMA);
+   SetIndexBuffer(20, MABufferM1_10SMA);
+   SetIndexBuffer(21, MABufferM5_10SMA);
+   SetIndexBuffer(22, MABufferM15_10SMA);
+   SetIndexBuffer(23, MABufferM30_10SMA);
+   SetIndexBuffer(24, MABufferH1_10SMA);
+   SetIndexBuffer(25, MABufferH4_10SMA);
+   SetIndexBuffer(26, MABufferD1_10SMA);
+   SetIndexBuffer(27, MABufferW1_10SMA);
+   SetIndexBuffer(28, MABufferM1_20SMA);
+   SetIndexBuffer(29, MABufferM5_20SMA);
+   SetIndexBuffer(30, MABufferM15_20SMA);
+   SetIndexBuffer(31, MABufferM30_20SMA);
+   SetIndexBuffer(32, MABufferH1_20SMA);
+   SetIndexBuffer(33, MABufferH4_20SMA);
+   SetIndexBuffer(34, MABufferD1_20SMA);
+   SetIndexBuffer(35, MABufferW1_20SMA);
+   SetIndexBuffer(36, MABufferM1_100SMA);
+   SetIndexBuffer(37, MABufferM5_100SMA);
+   SetIndexBuffer(38, MABufferM15_100SMA);
+   SetIndexBuffer(39, MABufferM30_100SMA);
+   SetIndexBuffer(40, MABufferH1_100SMA);
+   // Plot styles for 6 visible lines
+   SetIndexStyle(0, DRAW_LINE, STYLE_SOLID, 2, clrTomato);
+   SetIndexStyle(1, DRAW_LINE, STYLE_SOLID, 2, clrMagenta);
+   SetIndexStyle(2, DRAW_LINE, STYLE_SOLID, 2, clrMagenta);
+   SetIndexStyle(3, DRAW_LINE, STYLE_SOLID, 2, clrMagenta);
+   SetIndexStyle(4, DRAW_LINE, STYLE_SOLID, 2, clrMagenta);
+   SetIndexStyle(5, DRAW_LINE, STYLE_SOLID, 2, clrMagenta);
+   SetIndexLabel(0, "H1 200SMA");
+   SetIndexLabel(1, "H4 200SMA");
+   SetIndexLabel(2, "D1 200SMA");
+   SetIndexLabel(3, "W1 200SMA");
+   SetIndexLabel(4, "W1 100SMA");
+   SetIndexLabel(5, "MN1 100SMA");
+#endif
    // Reset counters on re-init (timeframe change, recompile)
    BullPowerLTF = 0;
    BullPowerHTF = 0;
@@ -203,6 +269,7 @@ int OnInit()
 void OnDeinit(const int pReason)
 {
    ObjectsDeleteAll(0, objname);
+#ifdef __MQL5__
    // Release all 41 iMA handles
    IndicatorRelease(HandleM1_200SMA);  IndicatorRelease(HandleM5_200SMA);
    IndicatorRelease(HandleM15_200SMA); IndicatorRelease(HandleM30_200SMA);
@@ -225,6 +292,7 @@ void OnDeinit(const int pReason)
    IndicatorRelease(HandleH1_100SMA);  IndicatorRelease(HandleH4_100SMA);
    IndicatorRelease(HandleD1_100SMA);  IndicatorRelease(HandleW1_100SMA);
    IndicatorRelease(HandleMN1_100SMA);
+#endif
    // Clean up GlobalVariables
    GlobalVariableDel(g_gvBullLTF);
    GlobalVariableDel(g_gvBearLTF);
@@ -320,8 +388,13 @@ int OnCalculate(const int rates_total,
 {
    if (rates_total <= 0) return 0;
    // Get the current bid and ask prices
+#ifdef __MQL5__
    double currentBidPrice = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    double currentAskPrice = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+#else
+   double currentBidPrice = MarketInfo(_Symbol, MODE_BID);
+   double currentAskPrice = MarketInfo(_Symbol, MODE_ASK);
+#endif
    // Check if both bid and ask prices have changed from the previous tick
    if (currentBidPrice == prevBidPrice && currentAskPrice == prevAskPrice)
    {
@@ -331,7 +404,11 @@ int OnCalculate(const int rates_total,
    // Update the previous bid and ask prices with the current prices
    prevBidPrice = currentBidPrice;
    prevAskPrice = currentAskPrice;
+#ifdef __MQL5__
    datetime currentTime = TimeTradeServer();
+#else
+   datetime currentTime = TimeCurrent();
+#endif
    // Once buffers have loaded once, trust cached buffer data on intermediate ticks
    bool buffersOk = g_buffersLoaded;
    if (lastCheckedCandle != rates_total - 1)
@@ -347,6 +424,7 @@ int OnCalculate(const int rates_total,
    }
    if (!g_dataReady)
    {
+#ifdef __MQL5__
       if (BarsCalculated(HandleM1_200SMA) <= 0 || BarsCalculated(HandleW1_200SMA) <= 0)
          buffersOk = false;
       else
@@ -354,6 +432,15 @@ int OnCalculate(const int rates_total,
          g_dataReady = true;
          if (!buffersOk) buffersOk = UpdateBuffers();
       }
+#else
+      if (iBars(_Symbol, PERIOD_M1) <= 0 || iBars(_Symbol, PERIOD_W1) <= 0)
+         buffersOk = false;
+      else
+      {
+         g_dataReady = true;
+         if (!buffersOk) buffersOk = UpdateBuffers();
+      }
+#endif
    }
    if (!g_objectsCreated)
    {
@@ -538,16 +625,22 @@ int OnCalculate(const int rates_total,
    } // objectsCreated
    if (!buffersOk) return prev_calculated;
    if (!g_buffersLoaded) g_buffersLoaded = true;
+#ifdef __MQL5__
    double currentPrice = close[rates_total - 1];
+   int lastBar = rates_total - 1;
+#else
+   double currentPrice = close[0];
+   int lastBar = 0;
+#endif
    // Check the relationship of the current price with the 200-period SMAs
-   bool isAbove_M1_200SMA = currentPrice > MABufferM1_200SMA[rates_total - 1];
-   bool isAbove_M5_200SMA = currentPrice > MABufferM5_200SMA[rates_total - 1];
-   bool isAbove_M15_200SMA = currentPrice > MABufferM15_200SMA[rates_total - 1];
-   bool isAbove_M30_200SMA = currentPrice > MABufferM30_200SMA[rates_total - 1];
-   bool isAbove_H1_200SMA = currentPrice > MABufferH1_200SMA[rates_total - 1];
-   bool isAbove_H4_200SMA = currentPrice > MABufferH4_200SMA[rates_total - 1];
-   bool isAbove_D1_200SMA = currentPrice > MABufferD1_200SMA[rates_total - 1];
-   bool isAbove_W1_200SMA = currentPrice > MABufferW1_200SMA[rates_total - 1];
+   bool isAbove_M1_200SMA = currentPrice > MABufferM1_200SMA[lastBar];
+   bool isAbove_M5_200SMA = currentPrice > MABufferM5_200SMA[lastBar];
+   bool isAbove_M15_200SMA = currentPrice > MABufferM15_200SMA[lastBar];
+   bool isAbove_M30_200SMA = currentPrice > MABufferM30_200SMA[lastBar];
+   bool isAbove_H1_200SMA = currentPrice > MABufferH1_200SMA[lastBar];
+   bool isAbove_H4_200SMA = currentPrice > MABufferH4_200SMA[lastBar];
+   bool isAbove_D1_200SMA = currentPrice > MABufferD1_200SMA[lastBar];
+   bool isAbove_W1_200SMA = currentPrice > MABufferW1_200SMA[lastBar];
    UpdateInfoLabel(g_objNames[0][0], isAbove_M1_200SMA, true, false);
    UpdateInfoLabel(g_objNames[1][0], isAbove_M5_200SMA, true, false);
    UpdateInfoLabel(g_objNames[2][0], isAbove_M15_200SMA, true, false);
@@ -557,14 +650,14 @@ int OnCalculate(const int rates_total,
    UpdateInfoLabel(g_objNames[6][0], isAbove_D1_200SMA, false, true);
    UpdateInfoLabel(g_objNames[7][0], isAbove_W1_200SMA, false, true);
    // Check for DEATH and GOLDEN crosses
-   bool isOnDeathRow_M1 = MABufferM1_50SMA[rates_total - 1] > MABufferM1_200SMA[rates_total - 1];
-   bool isOnDeathRow_M5 = MABufferM5_50SMA[rates_total - 1] > MABufferM5_200SMA[rates_total - 1];
-   bool isOnDeathRow_M15 = MABufferM15_50SMA[rates_total - 1] > MABufferM15_200SMA[rates_total - 1];
-   bool isOnDeathRow_M30 = MABufferM30_50SMA[rates_total - 1] > MABufferM30_200SMA[rates_total - 1];
-   bool isOnDeathRow_H1 = MABufferH1_50SMA[rates_total - 1] > MABufferH1_200SMA[rates_total - 1];
-   bool isOnDeathRow_H4 = MABufferH4_50SMA[rates_total - 1] > MABufferH4_200SMA[rates_total - 1];
-   bool isOnDeathRow_D1 = MABufferD1_50SMA[rates_total - 1] > MABufferD1_200SMA[rates_total - 1];
-   bool isOnDeathRow_W1 = MABufferW1_50SMA[rates_total - 1] > MABufferW1_200SMA[rates_total - 1];
+   bool isOnDeathRow_M1 = MABufferM1_50SMA[lastBar] > MABufferM1_200SMA[lastBar];
+   bool isOnDeathRow_M5 = MABufferM5_50SMA[lastBar] > MABufferM5_200SMA[lastBar];
+   bool isOnDeathRow_M15 = MABufferM15_50SMA[lastBar] > MABufferM15_200SMA[lastBar];
+   bool isOnDeathRow_M30 = MABufferM30_50SMA[lastBar] > MABufferM30_200SMA[lastBar];
+   bool isOnDeathRow_H1 = MABufferH1_50SMA[lastBar] > MABufferH1_200SMA[lastBar];
+   bool isOnDeathRow_H4 = MABufferH4_50SMA[lastBar] > MABufferH4_200SMA[lastBar];
+   bool isOnDeathRow_D1 = MABufferD1_50SMA[lastBar] > MABufferD1_200SMA[lastBar];
+   bool isOnDeathRow_W1 = MABufferW1_50SMA[lastBar] > MABufferW1_200SMA[lastBar];
    UpdateInfoLabel(g_objNames[0][1], isOnDeathRow_M1, true, false);
    UpdateInfoLabel(g_objNames[1][1], isOnDeathRow_M5, true, false);
    UpdateInfoLabel(g_objNames[2][1], isOnDeathRow_M15, true, false);
@@ -574,14 +667,14 @@ int OnCalculate(const int rates_total,
    UpdateInfoLabel(g_objNames[6][1], isOnDeathRow_D1, false, true);
    UpdateInfoLabel(g_objNames[7][1], isOnDeathRow_W1, false, true);
    // Check for 100/200 SMA crosses
-   bool is100_200cross_M1 = MABufferM1_100SMA[rates_total - 1] > MABufferM1_200SMA[rates_total - 1];
-   bool is100_200cross_M5 = MABufferM5_100SMA[rates_total - 1] > MABufferM5_200SMA[rates_total - 1];
-   bool is100_200cross_M15 = MABufferM15_100SMA[rates_total - 1] > MABufferM15_200SMA[rates_total - 1];
-   bool is100_200cross_M30 = MABufferM30_100SMA[rates_total - 1] > MABufferM30_200SMA[rates_total - 1];
-   bool is100_200cross_H1 = MABufferH1_100SMA[rates_total - 1] > MABufferH1_200SMA[rates_total - 1];
-   bool is100_200cross_H4 = MABufferH4_100SMA[rates_total - 1] > MABufferH4_200SMA[rates_total - 1];
-   bool is100_200cross_D1 = MABufferD1_100SMA[rates_total - 1] > MABufferD1_200SMA[rates_total - 1];
-   bool is100_200cross_W1 = MABufferW1_100SMA[rates_total - 1] > MABufferW1_200SMA[rates_total - 1];
+   bool is100_200cross_M1 = MABufferM1_100SMA[lastBar] > MABufferM1_200SMA[lastBar];
+   bool is100_200cross_M5 = MABufferM5_100SMA[lastBar] > MABufferM5_200SMA[lastBar];
+   bool is100_200cross_M15 = MABufferM15_100SMA[lastBar] > MABufferM15_200SMA[lastBar];
+   bool is100_200cross_M30 = MABufferM30_100SMA[lastBar] > MABufferM30_200SMA[lastBar];
+   bool is100_200cross_H1 = MABufferH1_100SMA[lastBar] > MABufferH1_200SMA[lastBar];
+   bool is100_200cross_H4 = MABufferH4_100SMA[lastBar] > MABufferH4_200SMA[lastBar];
+   bool is100_200cross_D1 = MABufferD1_100SMA[lastBar] > MABufferD1_200SMA[lastBar];
+   bool is100_200cross_W1 = MABufferW1_100SMA[lastBar] > MABufferW1_200SMA[lastBar];
    UpdateInfoLabel(g_objNames[0][2], is100_200cross_M1, true, false);
    UpdateInfoLabel(g_objNames[1][2], is100_200cross_M5, true, false);
    UpdateInfoLabel(g_objNames[2][2], is100_200cross_M15, true, false);
@@ -591,14 +684,14 @@ int OnCalculate(const int rates_total,
    UpdateInfoLabel(g_objNames[6][2], is100_200cross_D1, false, true);
    UpdateInfoLabel(g_objNames[7][2], is100_200cross_W1, false, true);
    // Check for 20 SMA / 50 SMA crosses
-   bool is20_50cross_M1 = MABufferM1_20SMA[rates_total - 1] > MABufferM1_50SMA[rates_total - 1];
-   bool is20_50cross_M5 = MABufferM5_20SMA[rates_total - 1] > MABufferM5_50SMA[rates_total - 1];
-   bool is20_50cross_M15 = MABufferM15_20SMA[rates_total - 1] > MABufferM15_50SMA[rates_total - 1];
-   bool is20_50cross_M30 = MABufferM30_20SMA[rates_total - 1] > MABufferM30_50SMA[rates_total - 1];
-   bool is20_50cross_H1 = MABufferH1_20SMA[rates_total - 1] > MABufferH1_50SMA[rates_total - 1];
-   bool is20_50cross_H4 = MABufferH4_20SMA[rates_total - 1] > MABufferH4_50SMA[rates_total - 1];
-   bool is20_50cross_D1 = MABufferD1_20SMA[rates_total - 1] > MABufferD1_50SMA[rates_total - 1];
-   bool is20_50cross_W1 = MABufferW1_20SMA[rates_total - 1] > MABufferW1_50SMA[rates_total - 1];
+   bool is20_50cross_M1 = MABufferM1_20SMA[lastBar] > MABufferM1_50SMA[lastBar];
+   bool is20_50cross_M5 = MABufferM5_20SMA[lastBar] > MABufferM5_50SMA[lastBar];
+   bool is20_50cross_M15 = MABufferM15_20SMA[lastBar] > MABufferM15_50SMA[lastBar];
+   bool is20_50cross_M30 = MABufferM30_20SMA[lastBar] > MABufferM30_50SMA[lastBar];
+   bool is20_50cross_H1 = MABufferH1_20SMA[lastBar] > MABufferH1_50SMA[lastBar];
+   bool is20_50cross_H4 = MABufferH4_20SMA[lastBar] > MABufferH4_50SMA[lastBar];
+   bool is20_50cross_D1 = MABufferD1_20SMA[lastBar] > MABufferD1_50SMA[lastBar];
+   bool is20_50cross_W1 = MABufferW1_20SMA[lastBar] > MABufferW1_50SMA[lastBar];
    UpdateInfoLabel(g_objNames[0][3], is20_50cross_M1, true, false);
    UpdateInfoLabel(g_objNames[1][3], is20_50cross_M5, true, false);
    UpdateInfoLabel(g_objNames[2][3], is20_50cross_M15, true, false);
@@ -608,14 +701,14 @@ int OnCalculate(const int rates_total,
    UpdateInfoLabel(g_objNames[6][3], is20_50cross_D1, false, true);
    UpdateInfoLabel(g_objNames[7][3], is20_50cross_W1, false, true);
    // Check for 10 SMA / 20 SMA crosses
-   bool is10_20cross_M1 = MABufferM1_10SMA[rates_total - 1] > MABufferM1_20SMA[rates_total - 1];
-   bool is10_20cross_M5 = MABufferM5_10SMA[rates_total - 1] > MABufferM5_20SMA[rates_total - 1];
-   bool is10_20cross_M15 = MABufferM15_10SMA[rates_total - 1] > MABufferM15_20SMA[rates_total - 1];
-   bool is10_20cross_M30 = MABufferM30_10SMA[rates_total - 1] > MABufferM30_20SMA[rates_total - 1];
-   bool is10_20cross_H1 = MABufferH1_10SMA[rates_total - 1] > MABufferH1_20SMA[rates_total - 1];
-   bool is10_20cross_H4 = MABufferH4_10SMA[rates_total - 1] > MABufferH4_20SMA[rates_total - 1];
-   bool is10_20cross_D1 = MABufferD1_10SMA[rates_total - 1] > MABufferD1_20SMA[rates_total - 1];
-   bool is10_20cross_W1 = MABufferW1_10SMA[rates_total - 1] > MABufferW1_20SMA[rates_total - 1];
+   bool is10_20cross_M1 = MABufferM1_10SMA[lastBar] > MABufferM1_20SMA[lastBar];
+   bool is10_20cross_M5 = MABufferM5_10SMA[lastBar] > MABufferM5_20SMA[lastBar];
+   bool is10_20cross_M15 = MABufferM15_10SMA[lastBar] > MABufferM15_20SMA[lastBar];
+   bool is10_20cross_M30 = MABufferM30_10SMA[lastBar] > MABufferM30_20SMA[lastBar];
+   bool is10_20cross_H1 = MABufferH1_10SMA[lastBar] > MABufferH1_20SMA[lastBar];
+   bool is10_20cross_H4 = MABufferH4_10SMA[lastBar] > MABufferH4_20SMA[lastBar];
+   bool is10_20cross_D1 = MABufferD1_10SMA[lastBar] > MABufferD1_20SMA[lastBar];
+   bool is10_20cross_W1 = MABufferW1_10SMA[lastBar] > MABufferW1_20SMA[lastBar];
    UpdateInfoLabel(g_objNames[0][4], is10_20cross_M1, true, false);
    UpdateInfoLabel(g_objNames[1][4], is10_20cross_M5, true, false);
    UpdateInfoLabel(g_objNames[2][4], is10_20cross_M15, true, false);
@@ -633,9 +726,11 @@ int OnCalculate(const int rates_total,
    if (bearHTF != g_prevBearHTF) { GlobalVariableSet(g_gvBearHTF, bearHTF); g_prevBearHTF = bearHTF; }
    return rates_total;
 }
+
 bool UpdateBuffers()
 {
    bool ok = true;
+#ifdef __MQL5__
    ok &= (CopyBuffer(HandleM1_200SMA, 0, 0, ArraySize(MABufferM1_200SMA), MABufferM1_200SMA) > 0);
    ok &= (CopyBuffer(HandleM5_200SMA, 0, 0, ArraySize(MABufferM5_200SMA), MABufferM5_200SMA) > 0);
    ok &= (CopyBuffer(HandleM15_200SMA, 0, 0, ArraySize(MABufferM15_200SMA), MABufferM15_200SMA) > 0);
@@ -676,7 +771,59 @@ bool UpdateBuffers()
    ok &= (CopyBuffer(HandleH4_100SMA, 0, 0, ArraySize(MABufferH4_100SMA), MABufferH4_100SMA) > 0);
    ok &= (CopyBuffer(HandleD1_100SMA, 0, 0, ArraySize(MABufferD1_100SMA), MABufferD1_100SMA) > 0);
    ok &= (CopyBuffer(HandleW1_100SMA, 0, 0, ArraySize(MABufferW1_100SMA), MABufferW1_100SMA) > 0);
-   // MN1 100SMA is a plotted line only (not used in bull/bear power grid) — don't let it block the dashboard
+   // MN1 100SMA is a plotted line only (not used in bull/bear power grid) -- don't let it block the dashboard
    CopyBuffer(HandleMN1_100SMA, 0, 0, ArraySize(MABufferMN1_100SMA), MABufferMN1_100SMA);
+#else
+   // MQL4: direct iMA() calls -- only fetch bar 0 for calc-only buffers (dashboard grid)
+   // Plotted buffers (6): fill all visible bars for chart line rendering
+   int total = ArraySize(MABufferH1_200SMA);
+   for (int i = 0; i < total; i++)
+   {
+      MABufferH1_200SMA[i]  = iMA(NULL, PERIOD_H1,  200, 0, MODE_SMA, PRICE_CLOSE, i);
+      MABufferH4_200SMA[i]  = iMA(NULL, PERIOD_H4,  200, 0, MODE_SMA, PRICE_CLOSE, i);
+      MABufferD1_200SMA[i]  = iMA(NULL, PERIOD_D1,  200, 0, MODE_SMA, PRICE_CLOSE, i);
+      MABufferW1_200SMA[i]  = iMA(NULL, PERIOD_W1,  200, 0, MODE_SMA, PRICE_CLOSE, i);
+      MABufferW1_100SMA[i]  = iMA(NULL, PERIOD_W1,  100, 0, MODE_SMA, PRICE_CLOSE, i);
+      MABufferMN1_100SMA[i] = iMA(NULL, PERIOD_MN1, 100, 0, MODE_SMA, PRICE_CLOSE, i);
+   }
+   // Calculation-only buffers: only bar 0 matters for the dashboard grid
+   MABufferM1_200SMA[0]  = iMA(NULL, PERIOD_M1,  200, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferM5_200SMA[0]  = iMA(NULL, PERIOD_M5,  200, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferM15_200SMA[0] = iMA(NULL, PERIOD_M15, 200, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferM30_200SMA[0] = iMA(NULL, PERIOD_M30, 200, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferM1_50SMA[0]   = iMA(NULL, PERIOD_M1,   50, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferM5_50SMA[0]   = iMA(NULL, PERIOD_M5,   50, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferM15_50SMA[0]  = iMA(NULL, PERIOD_M15,  50, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferM30_50SMA[0]  = iMA(NULL, PERIOD_M30,  50, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferH1_50SMA[0]   = iMA(NULL, PERIOD_H1,   50, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferH4_50SMA[0]   = iMA(NULL, PERIOD_H4,   50, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferD1_50SMA[0]   = iMA(NULL, PERIOD_D1,   50, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferW1_50SMA[0]   = iMA(NULL, PERIOD_W1,   50, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferM1_20SMA[0]   = iMA(NULL, PERIOD_M1,   20, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferM5_20SMA[0]   = iMA(NULL, PERIOD_M5,   20, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferM15_20SMA[0]  = iMA(NULL, PERIOD_M15,  20, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferM30_20SMA[0]  = iMA(NULL, PERIOD_M30,  20, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferH1_20SMA[0]   = iMA(NULL, PERIOD_H1,   20, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferH4_20SMA[0]   = iMA(NULL, PERIOD_H4,   20, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferD1_20SMA[0]   = iMA(NULL, PERIOD_D1,   20, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferW1_20SMA[0]   = iMA(NULL, PERIOD_W1,   20, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferM1_10SMA[0]   = iMA(NULL, PERIOD_M1,   10, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferM5_10SMA[0]   = iMA(NULL, PERIOD_M5,   10, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferM15_10SMA[0]  = iMA(NULL, PERIOD_M15,  10, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferM30_10SMA[0]  = iMA(NULL, PERIOD_M30,  10, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferH1_10SMA[0]   = iMA(NULL, PERIOD_H1,   10, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferH4_10SMA[0]   = iMA(NULL, PERIOD_H4,   10, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferD1_10SMA[0]   = iMA(NULL, PERIOD_D1,   10, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferW1_10SMA[0]   = iMA(NULL, PERIOD_W1,   10, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferM1_100SMA[0]  = iMA(NULL, PERIOD_M1,  100, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferM5_100SMA[0]  = iMA(NULL, PERIOD_M5,  100, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferM15_100SMA[0] = iMA(NULL, PERIOD_M15, 100, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferM30_100SMA[0] = iMA(NULL, PERIOD_M30, 100, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferH1_100SMA[0]  = iMA(NULL, PERIOD_H1,  100, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferH4_100SMA[0]  = iMA(NULL, PERIOD_H4,  100, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferD1_100SMA[0]  = iMA(NULL, PERIOD_D1,  100, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferW1_100SMA[0]  = iMA(NULL, PERIOD_W1,  100, 0, MODE_SMA, PRICE_CLOSE, 0);
+   MABufferMN1_100SMA[0] = iMA(NULL, PERIOD_MN1, 100, 0, MODE_SMA, PRICE_CLOSE, 0);
+#endif
    return ok;
 }

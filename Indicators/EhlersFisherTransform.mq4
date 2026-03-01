@@ -1,4 +1,4 @@
-/**=             EhlersFisherTransform.mq5  (Ehlers' Fisher Transform)
+/**=             EhlersFisherTransform.mq4  (Ehlers' Fisher Transform)
  *               Copyright 2023, mladen/TyphooN (https://www.marketwizardry.org/)
  *
  * Disclaimer and Licence
@@ -21,19 +21,12 @@
  * See the README.MD file for more information and before using this software.
  *
  **/
-#property copyright   "\x00A9 mladen, 2018"
-#property link        "mladenfx@gmail.com"
+#property strict
+#property copyright   "mladen/TyphooN"
+#property link        "https://www.marketwizardry.org/"
 #property description "Fisher transform (v1.001+ by TyphooN)"
-#property version   "1.002"
+#property version     "1.002"
 #property indicator_separate_window
-#property indicator_buffers 5
-#property indicator_plots   2
-#property indicator_label1  "Fisher transform"
-#property indicator_type1   DRAW_COLOR_LINE
-#property indicator_color1  clrDarkGray,clrMediumSeaGreen,clrOrangeRed
-#property indicator_width1  2
-#property indicator_label2  "Signal"
-#property indicator_type2   DRAW_LINE
-#property indicator_color2  clrDarkGray
-#property indicator_width2  1
+#property indicator_buffers 6
+#property indicator_plots   4
 #include "EhlersFisherTransform.mqh"

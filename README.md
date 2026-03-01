@@ -37,15 +37,15 @@ A comprehensive MQL5/MQL4 trading toolkit featuring manual risk management, auto
 |-----------|------|---------|----------|-------------|
 | TyphooN | EA | 1.403 | MQL5 | Manual risk management with GUI panel |
 | TyAlgo | EA | 2.106 | MQL5 | Automated NNFX confluence trading |
-| MTF_MA | Indicator | 1.078 | MQL5 | Multi-timeframe SMA bull/bear power dashboard |
+| MTF_MA | Indicator | 1.078 | MQL5/MQL4 | Multi-timeframe SMA bull/bear power dashboard |
 | MultiKAMA | Indicator | 1.009 | MQL5/MQL4 | Multi-timeframe KAMA overlay |
 | KAMA | Indicator | 1.03 | MQL5/MQL4 | Kaufman Adaptive Moving Average |
-| EhlersFisherTransform | Indicator | — | MQL5 | Fisher Transform oscillator with bias GV |
-| BetterVolume | Indicator | 1.00 | MQL5 | Volume classification histogram (climax/churn/low) |
-| SupplyDemand | Indicator | 1.00 | MQL5 | Supply and demand zone detection |
+| EhlersFisherTransform | Indicator | 1.002 | MQL5/MQL4 | Fisher Transform oscillator with bias GV |
+| BetterVolume | Indicator | 1.00 | MQL5/MQL4 | Volume classification histogram (climax/churn/low) |
+| SupplyDemand | Indicator | 1.00 | MQL5/MQL4 | Supply and demand zone detection |
 | ATR_Projection | Indicator | 1.052 | MQL5/MQL4 | ATR projection lines on chart |
 | PreviousCandleLevels | Indicator | 1.056 | MQL5/MQL4 | Previous candle high/low levels |
-| FakeCandle | Indicator | 1.05 | MQL5 | Draws a user-defined candle on chart |
+| FakeCandle | Indicator | 1.05 | MQL5/MQL4 | Draws a user-defined candle on chart |
 
 ---
 
@@ -84,15 +84,15 @@ Indicators and EAs communicate through **MT5 GlobalVariables** — a shared key-
 │   ├── TyphooN.mq5           # Manual risk management EA
 │   └── TyAlgo.mq5            # NNFX confluence algo EA
 ├── Indicators/
-│   ├── MTF_MA.mq5 / .mqh     # Multi-TF SMA dashboard
-│   ├── MultiKAMA.mq5/.mq4/.mqh  # Multi-TF KAMA
-│   ├── KAMA.mq5 / .mq4 / .mqh   # Single KAMA
-│   ├── EhlersFisherTransform.mq5/.mqh  # Fisher Transform
-│   ├── BetterVolume.mq5          # Volume classification histogram
-│   ├── SupplyDemand.mq5          # Supply and demand zones
+│   ├── MTF_MA.mq5/.mq4/.mqh        # Multi-TF SMA dashboard
+│   ├── MultiKAMA.mq5/.mq4/.mqh     # Multi-TF KAMA
+│   ├── KAMA.mq5/.mq4/.mqh          # Single KAMA
+│   ├── EhlersFisherTransform.mq5/.mq4/.mqh  # Fisher Transform
+│   ├── BetterVolume.mq5/.mq4/.mqh  # Volume classification histogram
+│   ├── SupplyDemand.mq5/.mq4/.mqh  # Supply and demand zones
 │   ├── ATR_Projection.mq5/.mq4/.mqh  # ATR projection lines
 │   ├── PreviousCandleLevels.mq5/.mq4/.mqh  # Candle levels
-│   └── FakeCandle.mq5 / .mqh # Fake candle overlay
+│   └── FakeCandle.mq5/.mq4/.mqh    # Fake candle overlay
 ├── Include/
 │   ├── Darwinex/
 │   │   └── DWEX Portfolio Risk Man.mqh  # VaR calculations
@@ -532,7 +532,7 @@ Files are only copied when they differ from the destination (`cmp -s` check), mi
 
 ## Cross-Platform Support
 
-Most indicators support both MQL5 and MQL4 via the shared `.mqh` pattern:
+All homegrown TyphooN indicators support both MQL5 and MQL4 via the shared `.mqh` pattern:
 
 ```
 IndicatorName.mq5  ─┐
@@ -540,9 +540,11 @@ IndicatorName.mq5  ─┐
 IndicatorName.mq4  ─┘
 ```
 
-Platform-specific code uses `#ifdef __MQL5__` / `#ifdef __MQL4__` preprocessor guards. The `.mq5` file is a thin wrapper setting plot properties, while `.mqh` contains all logic.
+Platform-specific code uses `#ifdef __MQL5__` / `#ifdef __MQL4__` preprocessor guards. The `.mq5` and `.mq4` files are thin wrappers setting `#property` directives and plot properties, while `.mqh` contains all logic.
 
-**MQL5-only components:** TyphooN EA, TyAlgo EA, MTF_MA, EhlersFisherTransform, FakeCandle, BetterVolume, SupplyDemand.
+**Cross-platform indicators (MQL5 + MQL4):** MTF_MA, MultiKAMA, KAMA, EhlersFisherTransform, BetterVolume, SupplyDemand, ATR_Projection, PreviousCandleLevels, FakeCandle.
+
+**MQL5-only components:** TyphooN EA, TyAlgo EA, and all third-party NNFX/Ehlers indicators in `Indicators/NNFX/` and `Indicators/Ehlers/`. Third-party and NNFX indicators will not be converted to MQL4.
 
 ---
 

@@ -354,6 +354,7 @@ string TimeTilNextBar(ENUM_TIMEFRAMES tf=PERIOD_CURRENT)
 {
    datetime now = TimeCurrent();
    datetime bartime = iTime(NULL, tf, 0);
+   if (bartime == 0) return "N/A";
    long remainingTime = (long)(bartime + PeriodSeconds(tf) - now);
    // Ensure non-negativity
    if (remainingTime < 0) remainingTime = 0;
@@ -413,6 +414,7 @@ bool CloseAllPositionsOnAllSymbols()
       {
          ulong t = PositionGetTicket(j);
          if (t == 0) continue;
+         if (!PositionSelectByTicket(t)) continue;
          if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
          remaining++;
       }
@@ -426,6 +428,7 @@ bool CloseAllPositionsOnAllSymbols()
    {
       ulong t = PositionGetTicket(j);
       if (t == 0) continue;
+      if (!PositionSelectByTicket(t)) continue;
       if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
       finalRemaining++;
    }
@@ -1106,6 +1109,7 @@ bool CloseProfitableOppositePositions()
          {
             ulong t = PositionGetTicket(j);
             if (t == 0) continue;
+            if (!PositionSelectByTicket(t)) continue;
             if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
             if ((int)PositionGetInteger(POSITION_TYPE) == closeType)
             {

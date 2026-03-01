@@ -174,7 +174,7 @@ class CHull
                   m_weight3        += w3;
                }
             }         
-         return(m_array[i].wsum3/m_weight3);
+         return(m_weight3 != 0 ? m_array[i].wsum3/m_weight3 : 0);
       }
 };
 CHull iHull;
