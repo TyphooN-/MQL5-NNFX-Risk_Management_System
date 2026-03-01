@@ -1862,20 +1862,20 @@ void TyWindow::OnClickMartingale(void)
          else if (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL)
             shortCount++;
       }
-      if (longCount > 0 && shortCount == 0)
-      {
-         nextState = MG_LONG;
-         prompt = "Enable Martingale LONG on " + _Symbol + "? (auto-detected from open longs)";
-      }
-      else if (shortCount > 0 && longCount == 0)
+      if (shortCount > longCount)
       {
          nextState = MG_SHORT;
-         prompt = "Enable Martingale SHORT on " + _Symbol + "? (auto-detected from open shorts)";
+         prompt = "Enable Martingale SHORT on " + _Symbol + "? (detected " + IntegerToString(shortCount) + " shorts vs " + IntegerToString(longCount) + " longs)";
+      }
+      else if (longCount > shortCount)
+      {
+         nextState = MG_LONG;
+         prompt = "Enable Martingale LONG on " + _Symbol + "? (detected " + IntegerToString(longCount) + " longs vs " + IntegerToString(shortCount) + " shorts)";
       }
       else
       {
          nextState = MG_LONG;
-         prompt = "Enable Martingale LONG on " + _Symbol + "?";
+         prompt = "Enable Martingale LONG on " + _Symbol + "? (equal positions — click again for SHORT)";
       }
    }
    else if (MartingaleMode == MG_LONG)
@@ -1906,6 +1906,26 @@ void TyWindow::OnClickMartingale(void)
       Print("Martingale mode changed to ", EnumToString(MartingaleMode), " on ", _Symbol);
       if (nextState == MG_LONG || nextState == MG_SHORT)
          PrintMartingaleStrategyBriefing(nextState);
+   }
+   else if (MartingaleMode == MG_OFF && (nextState == MG_LONG || nextState == MG_SHORT))
+   {
+      // User declined auto-detected bias — offer the opposite
+      MartingaleState altState = (nextState == MG_LONG) ? MG_SHORT : MG_LONG;
+      string altDir = (altState == MG_LONG) ? "LONG" : "SHORT";
+      string altPrompt = "Enable Martingale " + altDir + " on " + _Symbol + " instead?";
+      int altResult = MessageBox(altPrompt, "Martingale Mode", MB_YESNO | MB_ICONQUESTION);
+      if (altResult == IDYES)
+      {
+         MartingaleMode = altState;
+         MartingaleHedgeCloses = 0;
+         MartingaleBiasCloses = 0;
+         MartingaleHarvestCloses = 0;
+         HarvestEnabled = false;
+         g_lastOppCloseTime = 0;
+         UpdateMartingaleButton();
+         Print("Martingale mode changed to ", EnumToString(MartingaleMode), " on ", _Symbol);
+         PrintMartingaleStrategyBriefing(altState);
+      }
    }
 }
 void OrderLines(bool isBuy)
