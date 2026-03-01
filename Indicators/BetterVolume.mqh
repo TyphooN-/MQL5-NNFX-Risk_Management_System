@@ -105,10 +105,12 @@ int OnInit()
    SetIndexEmptyValue(4, EMPTY_VALUE);
    SetIndexEmptyValue(5, EMPTY_VALUE);
    SetIndexEmptyValue(6, EMPTY_VALUE);
+   SetIndexEmptyValue(7, EMPTY_VALUE);
    if(InpShowAvg)
       SetIndexStyle(6, DRAW_LINE, STYLE_SOLID, 1, clrDodgerBlue);
    else
       SetIndexStyle(6, DRAW_NONE);
+   SetIndexStyle(7, DRAW_NONE);
    SetIndexLabel(0, "Low Volume");
    SetIndexLabel(1, "Climax Up");
    SetIndexLabel(2, "Climax Down");
