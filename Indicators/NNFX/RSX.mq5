@@ -59,7 +59,7 @@ int OnCalculate(const int rates_total,const int prev_calculated,const datetime &
       rsi[i]  = iRsx(getPrice(inpPrice,open,close,high,low,i,rates_total),inpRsiPeriod,i);
       val[i]  = iCorrMa(rsi[i],rsi[i],inpRsiPeriod,i,rates_total);
       valc[i] = (i>0) ? (val[i]>val[i-1]) ? 1 :(val[i]<val[i-1]) ? 2 : valc[i-1] : 0;
-      rsic[i] = valc[i];
+      rsic[i] = (i>0) ? (rsi[i]>rsi[i-1]) ? 1 : (rsi[i]<rsi[i-1]) ? 2 : rsic[i-1] : 0;
      }
    return (i);
   }
