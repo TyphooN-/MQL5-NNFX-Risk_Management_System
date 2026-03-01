@@ -81,12 +81,12 @@ input double          TargetEquityTP             = 110200;
 input bool            EnableEquitySL             = false;
 input double          TargetEquitySL             = 98000;
 input group           "[MARTINGALE MODE SETTINGS]"
-input double          MartingaleCloseChunkSize = 50;  // lots per partial close
+input double          MartingaleCloseChunkSize = 10;  // lots per partial close
 input int             MartingaleCooldown = 30;        // seconds between orders
 input double          MartingaleEquityTP = 0;         // $ profit target (0 = disabled)
-input double          MartingaleUnwindLotSize = 1;    // lots per hedge unwind close
-input double          MartingaleUnwindMarginPct = 0;  // % margin level — unwind hedges below this (0=off)
-input double          MartingaleDangerMarginPct = 0;  // % margin level — protective bias close below this (0=off)
+input double          MartingaleUnwindLotSize = 5;    // lots per hedge unwind close
+input double          MartingaleUnwindMarginPct = 64;  // % margin level — unwind hedges below this (0=off)
+input double          MartingaleDangerMarginPct = 56;  // % margin level — protective bias close below this (0=off)
 input double          MartingaleHarvestMarginPct = 0; // % margin level — harvest profits below this (0=off)
 input double          MartingaleHarvestLotSize = 1;   // lots per harvest close
 input group           "[DISCORD ANNOUNCEMENT SETTINGS]"
