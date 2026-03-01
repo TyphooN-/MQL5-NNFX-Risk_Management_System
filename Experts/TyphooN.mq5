@@ -1062,10 +1062,10 @@ bool CloseProfitableOppositePositions()
       closeType = POSITION_TYPE_BUY;
    else
       return false;
-   // Find the single most profitable opposite position
+   // Find the smallest profitable opposite position (consume partial positions first)
    ulong bestTicket = 0;
    double bestPL = 0;
-   double bestVolume = 0;
+   double bestVolume = DBL_MAX;
    int total = PositionsTotal();
    for (int i = 0; i < total; i++)
    {
@@ -1078,11 +1078,15 @@ bool CloseProfitableOppositePositions()
       if ((int)PositionGetInteger(POSITION_TYPE) != closeType)
          continue;
       double pl = PositionGetDouble(POSITION_PROFIT) + PositionGetDouble(POSITION_SWAP);
-      if (pl > 0 && pl > bestPL)
+      if (pl > 0)
       {
-         bestPL = pl;
-         bestTicket = ticket;
-         bestVolume = PositionGetDouble(POSITION_VOLUME);
+         double vol = PositionGetDouble(POSITION_VOLUME);
+         if (vol < bestVolume || (vol == bestVolume && pl > bestPL))
+         {
+            bestPL = pl;
+            bestTicket = ticket;
+            bestVolume = vol;
+         }
       }
    }
    if (bestTicket == 0)
