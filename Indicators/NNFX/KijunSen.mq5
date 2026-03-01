@@ -119,7 +119,7 @@ void manageAlerts(const datetime& time[], double& trend[], int bars)
       //
       //
          
-      if (trend[whichBar] != trend[whichBar-1])
+      if (whichBar > 0 && trend[whichBar] != trend[whichBar-1])
       {
          if (trend[whichBar] == 0) doAlert(time1,"up");
          if (trend[whichBar] == 1) doAlert(time1,"down");

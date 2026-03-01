@@ -294,8 +294,8 @@ void MakeWindLine(const int& firstWorkBar, const double& calcOne[], double& calc
       {
          windLine[i]  = 0;
          histogram[i] = windLine[i];
-         windClr[i]   = windClr[i+1]; // No Color Change
-         histoClr[i]  = histoClr[i+1]; 
+         windClr[i]   = (i > 0) ? windClr[i-1] : 0; // No Color Change
+         histoClr[i]  = (i > 0) ? histoClr[i-1] : 0;
       }
    }
  } //----===== END MakeWindLine =====

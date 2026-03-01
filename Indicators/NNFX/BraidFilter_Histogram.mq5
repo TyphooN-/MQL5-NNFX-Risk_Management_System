@@ -395,7 +395,8 @@ int maAdaptiveExponential(const int rates_total,
             hh = source_high[i - k] > hh ? source_high[i - k] : hh;
             ll = source_low[i - k] < ll ? source_low[i - k] : ll;
            }
-         double mltp2 = fabs((source_price[i] - ll) - (hh - source_price[i])) / (hh - ll);
+         double hl_range = hh - ll;
+         double mltp2 = (hl_range > 0) ? fabs((source_price[i] - ll) - (hh - source_price[i])) / hl_range : 0;
          result_aema[i] = value_length == 1 ? source_price[i] : result_aema[i - 1] + mltp1 * (1 + mltp2) * (source_price[i] - result_aema[i - 1]);
         }
      }
@@ -434,8 +435,13 @@ int inRelativeStrengthIndex(const int rates_total,
         {
          temp_avg_gain[i] = gain * alpha + temp_avg_gain[i - 1] * (1.0 - alpha);
          temp_avg_loss[i] = loss * alpha + temp_avg_loss[i - 1] * (1.0 - alpha);
-         double rs = temp_avg_gain[i] / temp_avg_loss[i];
-         result_rsi[i] = temp_avg_loss[i] == 0.0 ? 100.0 : 100.0 - (100.0 / (1.0 + rs));
+         if (temp_avg_loss[i] == 0.0)
+            result_rsi[i] = 100.0;
+         else
+           {
+            double rs = temp_avg_gain[i] / temp_avg_loss[i];
+            result_rsi[i] = 100.0 - (100.0 / (1.0 + rs));
+           }
         }
      }
    return(rates_total);
@@ -496,13 +502,15 @@ int maArnaudLegoux(const int rates_total,
       else
         {
          double weight = 0.0, sum_weight = 0.0, sum_weight_price = 0.0;
+         double two_s_sq = 2.0 * s * s;
          for(int k = 0; k < value_length; k++)
            {
-            weight = exp(-1.0 * pow(k - m, 2.0) / (2.0 * pow(s, 2.0)));
+            double km = k - m;
+            weight = (two_s_sq > 0) ? exp(-1.0 * km * km / two_s_sq) : 1.0;
             sum_weight += weight;
             sum_weight_price += weight * source_price[i - k];
            }
-         result_alma[i] = sum_weight_price / sum_weight;
+         result_alma[i] = (sum_weight != 0) ? sum_weight_price / sum_weight : source_price[i];
         }
      }
    return(rates_total);
@@ -607,11 +615,19 @@ int maChandeVariable(const int rates_total,
          temp_pdmS[i] = ((1 - k) * temp_pdmS[i - 1] + k * fmax((source_price[i] - source_price[i - 1]), 0.0));
          temp_mdmS[i] = ((1 - k) * temp_mdmS[i - 1] + k * fmax((source_price[i - 1] - source_price[i]), 0.0));
          double s = temp_pdmS[i] + temp_mdmS[i];
-         temp_pdiS[i] = ((1 - k) * temp_pdiS[i - 1] + k * (temp_pdmS[i] / s));
-         temp_mdiS[i] = ((1 - k) * temp_mdiS[i - 1] + k * (temp_mdmS[i] / s));
+         if (s != 0)
+           {
+            temp_pdiS[i] = ((1 - k) * temp_pdiS[i - 1] + k * (temp_pdmS[i] / s));
+            temp_mdiS[i] = ((1 - k) * temp_mdiS[i - 1] + k * (temp_mdmS[i] / s));
+           }
+         else
+           {
+            temp_pdiS[i] = temp_pdiS[i - 1];
+            temp_mdiS[i] = temp_mdiS[i - 1];
+           }
          double d = fabs(temp_pdiS[i] - temp_mdiS[i]);
          double s1 = temp_pdiS[i] + temp_mdiS[i];
-         temp_iS[i] = ((1 - k) * temp_iS[i - 1] + k * (d / s1));
+         temp_iS[i] = (s1 != 0) ? ((1 - k) * temp_iS[i - 1] + k * (d / s1)) : temp_iS[i - 1];
          double hhv = -DBL_MAX, llv = DBL_MAX;
          for(int m = 0; m < value_length; m++)
            {
@@ -619,7 +635,7 @@ int maChandeVariable(const int rates_total,
             llv = temp_iS[i - m] < llv ? temp_iS[i - m] : llv;
            }
          double d1 = hhv - llv;
-         double vI = (temp_iS[i] - llv) / d1;
+         double vI = (d1 != 0) ? (temp_iS[i] - llv) / d1 : 0;
          result_cvma[i] = k == 1 ? k * vI * source_price[i] : (1.0 - k * vI) * result_cvma[i - 1] + k * vI * source_price[i];
         }
      }
@@ -660,7 +676,7 @@ int maCongAdaptive(const int rates_total,
             ll = source_low[i - k] < ll ? source_low[i - k] : ll;
            }
          double result = hh - ll;
-         double alpha = result / effort;
+         double alpha = (effort > 0) ? result / effort : 1.0;
          result_cama[i] = alpha == 1.0 ? alpha * source_price[i] : alpha * source_price[i] + (1.0 - alpha) * result_cama[i - 1];
         }
      }
@@ -728,7 +744,10 @@ int maElasticVolumeWeighted(const int rates_total,
          double sum = 0.0;
          for(int k = 0; k < value_length; k++)
             sum += double(source_volume[i - k]);
-         result_evwma[i] = (result_evwma[i - 1] * (sum - double(source_volume[i])) / sum) + (double(source_volume[i]) * source_price[i] / sum);
+         if (sum != 0)
+            result_evwma[i] = (result_evwma[i - 1] * (sum - double(source_volume[i])) / sum) + (double(source_volume[i]) * source_price[i] / sum);
+         else
+            result_evwma[i] = source_price[i];
         }
      }
    return(rates_total);
@@ -789,7 +808,7 @@ int maFibonacciWeighted(const int rates_total,
             sum_weight += weight;
             sum_weight_price += weight * source_price[i - k];
            }
-         result_fwma[i] = sum_weight_price / sum_weight;
+         result_fwma[i] = (sum_weight != 0) ? sum_weight_price / sum_weight : source_price[i];
         }
      }
    return(rates_total);
@@ -875,7 +894,10 @@ int maHendersonWeighted(const int rates_total,
 //--- bar index start
    int bar_index;
    double multiplier = floor(double(value_length - 1) / 2.0);
-   double denominator = 8.0 * (multiplier + 2.0) * (pow(multiplier + 2.0, 2.0) - 1.0) * (4.0 * pow(multiplier + 2.0, 2.0) - 1.0) * (4.0 * pow(multiplier + 2.0, 2.0) - 9.0) * (4.0 * pow(multiplier + 2.0, 2.0) - 25.0);
+   double mp2 = multiplier + 2.0;
+   double mp2_sq = mp2 * mp2;
+   double four_mp2_sq = 4.0 * mp2_sq;
+   double denominator = 8.0 * mp2 * (mp2_sq - 1.0) * (four_mp2_sq - 1.0) * (four_mp2_sq - 9.0) * (four_mp2_sq - 25.0);
    if(prev_calculated == 0)
       bar_index = 0;
    else
@@ -888,14 +910,18 @@ int maHendersonWeighted(const int rates_total,
       else
         {
          double numerator = 0.0, weight = 0.0, sum_weight = 0.0, sum_weight_price = 0.0;
+         double mp1_sq = (multiplier + 1.0) * (multiplier + 1.0);
+         double mp3_sq = (multiplier + 3.0) * (multiplier + 3.0);
          for(int k = 0; k < value_length; k++)
            {
-            numerator = 315.0 * (pow(multiplier + 1.0, 2.0) - pow(k - multiplier, 2.0)) * (pow(multiplier + 2.0, 2.0) - pow(k - multiplier, 2.0)) * (pow(multiplier + 3.0, 2.0) - pow(k - multiplier, 2.0)) * (3.0 * pow(multiplier + 2.0, 2.0) - 11.0 * pow(k - multiplier, 2.0) - 16.0);
-            weight = denominator == 0.0 ? 0.0 : numerator / denominator;;
+            double km = k - multiplier;
+            double km_sq = km * km;
+            numerator = 315.0 * (mp1_sq - km_sq) * (mp2_sq - km_sq) * (mp3_sq - km_sq) * (3.0 * mp2_sq - 11.0 * km_sq - 16.0);
+            weight = denominator == 0.0 ? 0.0 : numerator / denominator;
             sum_weight += weight;
             sum_weight_price += weight * source_price[i - k];
            }
-         result_hwma[i] = sum_weight_price / sum_weight;
+         result_hwma[i] = (sum_weight != 0) ? sum_weight_price / sum_weight : source_price[i];
         }
      }
    return(rates_total);
@@ -994,7 +1020,8 @@ int maIntegralEndpoint2(const int rates_total,
             sumxy += (i - k) * source_price[i - k];
             sumxx += (i - k) * (i - k);
            }
-         double slope = (double(value_length) * sumxy - sumx * sumy) / (double(value_length) * sumx - sumx * sumx);
+         double lsma_denom = double(value_length) * sumxx - sumx * sumx;
+         double slope = (lsma_denom != 0) ? (double(value_length) * sumxy - sumx * sumy) / lsma_denom : 0;
          double intercept = (sumy / double(value_length)) - slope * (sumx / double(value_length));
          temp_lsma[i] = slope * i + intercept;
          double sma = sumy / double(value_length);
@@ -1211,7 +1238,8 @@ int maLeastSquares(const int rates_total,
             sumxy += (i - k) * source_price[i - k];
             sumxx += (i - k) * (i - k);
            }
-         double slope = (double(value_length) * sumxy - sumx * sumy) / (double(value_length) * sumx - sumx * sumx);
+         double lsma_denom = double(value_length) * sumxx - sumx * sumx;
+         double slope = (lsma_denom != 0) ? (double(value_length) * sumxy - sumx * sumy) / lsma_denom : 0;
          double intercept = (sumy / double(value_length)) - slope * (sumx / double(value_length));
          result_lsma[i] = slope * i + intercept;
         }
@@ -1397,7 +1425,7 @@ int maPivotPointWeighted(const int rates_total,
             sum_weight += weight;
             sum_weight_price += weight * source_price[i - k];
            }
-         result_ppwma[i] = sum_weight_price / sum_weight;
+         result_ppwma[i] = (sum_weight != 0) ? sum_weight_price / sum_weight : source_price[i];
         }
      }
    return(rates_total);
@@ -1683,7 +1711,7 @@ int maVolumeWeighted(const int rates_total,
            }
          sma_price_volume = sum_price_volume / double(value_length);
          sma_volume = sum_volume / double(value_length);
-         result_vwma[i] = sma_price_volume / sma_volume;
+         result_vwma[i] = (sma_volume != 0) ? sma_price_volume / sma_volume : source_price[i];
         }
      }
    return(rates_total);

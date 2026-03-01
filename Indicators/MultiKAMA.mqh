@@ -208,6 +208,7 @@ int OnCalculate(const int rates_total,
                 const long &volume[],
                 const int &spread[])
 {
+   if (rates_total <= 0) return 0;
    int calculated = prev_calculated - 1;
    if (calculated < 0)
       calculated = 0;

@@ -40,6 +40,7 @@ int OnCalculate(const int rates_total,
                 const long &volume[],
                 const int &spread[])
 {
+   if (rates_total <= 0) return 0;
    // Nothing changes between bars since inputs are constant
    if (prev_calculated == rates_total)
       return rates_total;

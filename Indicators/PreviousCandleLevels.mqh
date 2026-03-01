@@ -97,7 +97,7 @@ int OnCalculate(const int rates_total,
       drewThisTick = true;
       g_PrevTradeServerTime = CurrentTradeServerTime;
    }
-   // Judas check runs intrabar (when price breaks D1 high/low) — skip on W1/MN1 where D1 objects are deleted
+   // Judas check runs intrabar (when price breaks D1 high/low) -- skip on W1/MN1 where D1 objects are deleted
    if (_Period < PERIOD_W1 && ((Ask > Current_D1_High) || (Bid < Current_D1_Low)))
    {
       double prevD1H = Current_D1_High, prevD1L = Current_D1_Low;
@@ -144,7 +144,7 @@ void UpdatePreviousData()
 }
 void UpdateJudasData()
 {
-   // Current bar (0) high/low for each timeframe — replaces 6 iBarShift + 6 iTime calls
+   // Current bar (0) high/low for each timeframe -- replaces 6 iBarShift + 6 iTime calls
    Current_D1_High = iHigh(_Symbol, PERIOD_D1, 0);
    Current_D1_Low = iLow(_Symbol, PERIOD_D1, 0);
    Current_W1_High = iHigh(_Symbol, PERIOD_W1, 0);
@@ -159,7 +159,8 @@ void DeleteHorizontalLine(string label)
 void DrawLines()
 {
    // Cache iTime values to avoid redundant calls
-   datetime currentBarTime = iTime(_Symbol, PERIOD_CURRENT, 0);
+   datetime currentBarTime = iTime(_Symbol, (ENUM_TIMEFRAMES)_Period, 0);
+   if (currentBarTime == 0) return;
    datetime prevH1Time = iTime(_Symbol, PERIOD_H1, 1);
    datetime prevH4Time = iTime(_Symbol, PERIOD_H4, 1);
    datetime prevD1Time = iTime(_Symbol, PERIOD_D1, 1);
