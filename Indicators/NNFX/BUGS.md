@@ -1,8 +1,8 @@
 # NNFX Third-Party Indicator Bug Report
 
-Audit date: 2026-02-28
-Scope: All 26+ indicators in `Indicators/NNFX/`
-Status: **ALL FIXED** (2026-02-28)
+Audit date: 2026-02-28 (initial), updated 2026-03-01
+Scope: All 26 indicators in `Indicators/NNFX/`
+Status: **ALL FIXED** — 12 original bugs + additional fixes from 12 audit passes
 
 ---
 
@@ -318,3 +318,61 @@ The following indicators passed the audit with no significant issues:
 | CLEAN | 16 | See table above |
 
 All 12 bugs have been fixed in-place.
+
+---
+
+## Additional Bugs Found in Audit Passes 2-12 (2026-03-01)
+
+### KijunSen.mq5 — Array Out-of-Bounds in Trend Comparison
+**Line:** trend comparison `trend[whichBar] != trend[whichBar-1]`
+**Fix:** Added `whichBar > 0` guard before backward access.
+**Status:** FIXED
+
+### SolarWind.mq5 — Forward-Reference in Color Assignment
+**Line:** `windClr[i+1]` accessed uncomputed bar in ascending loop.
+**Fix:** Changed to `windClr[i-1]` with `i > 0` guard.
+**Status:** FIXED
+
+### HMA.mq5 — Division by Zero in m_weight3
+**Line:** `m_array[i].wsum3/m_weight3` when m_weight3 could be 0.
+**Fix:** Added `m_weight3 != 0` guard.
+**Status:** FIXED
+
+### STC.mq5 — Missing Cycle Input Validation
+**Impact:** Cycle < 2 causes array out-of-bounds in Stochastic lookback.
+**Fix:** Added `if (Cycle < 2) return INIT_PARAMETERS_INCORRECT` in OnInit.
+**Status:** FIXED
+
+### BraidFilter_Histogram.mq5 — 12 Division-by-Zero Bugs
+**Impact:** Multiple weighted MA functions (FWMA, PPWMA, VWMA, GWMA, SWMA, TWMA, HMA, EVWMA) had unguarded `sum_weight` denominators. RSI had division before guard. CVMA had 3 cascading unguarded divisions.
+**Fix:** All 12 denominators guarded with `!= 0` checks and fallback values.
+**Status:** FIXED
+
+### ALMA.mq5 — Missing Comma in INDICATOR_SHORTNAME
+**Impact:** Short name displayed `6.0000000.850000` instead of `6.000000,0.850000`.
+**Fix:** Added missing `","` separator between AlmaSigma and AlmaSample.
+**Status:** FIXED
+
+### Blau_Ergodic_TSI.mq5 — Wrong Color Property Index
+**Impact:** `#property indicator_color3` should be `indicator_color2` — signal line got default color.
+**Fix:** Changed to `indicator_color2`.
+**Status:** FIXED
+
+### RSX.mq5 — Raw RSX Line Color Copied from Corrected
+**Impact:** Both lines always showed the same color (corrected RSX trend).
+**Fix:** Raw RSX line now colored independently based on its own slope.
+**Status:** FIXED
+
+---
+
+## Updated Summary
+
+| Severity | Count | Indicators Affected |
+|----------|-------|---------------------|
+| CRITICAL | 3 | STC, CMF, TTMS |
+| HIGH | 4 | SolarWind (2), WAE, SSL_Channel |
+| MEDIUM | 5 | BraidFilter, ASH (2), SSL_Channel_Chart, SSL_Channel |
+| ADDITIONAL | 8 | KijunSen, SolarWind, HMA, STC, BraidFilter_Histogram (12 fixes), ALMA, Blau_Ergodic_TSI, RSX |
+| CLEAN | 16 | See table above |
+
+All 20 bugs (plus 12 BraidFilter_Histogram sub-fixes) have been fixed in-place. Verified clean across 4 consecutive audit passes.
