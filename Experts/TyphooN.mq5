@@ -890,7 +890,7 @@ void BroadcastDiscordAnnouncement(string announcement)
    {
       ArrayResize(jsonArray, arrSize - 1);
    }
-   int httpCode = WebRequest("POST", DiscordAPIKey, headers, 10, jsonArray, result, result_headers);
+   int httpCode = WebRequest("POST", DiscordAPIKey, headers, 5000, jsonArray, result, result_headers);
    if (httpCode == -1)
       Print("Discord webhook failed: ", GetLastError());
    else if (httpCode != 200 && httpCode != 204)
@@ -1094,6 +1094,27 @@ bool CloseProfitableOppositePositions()
             else
                Print("Martingale: failed to partial close #", ticket, " error ", GetLastError());
          }
+      }
+   }
+   if (closedAny)
+   {
+      for (int poll = 0; poll < 50; poll++)
+      {
+         int remaining = 0;
+         int posTotal = PositionsTotal();
+         for (int j = posTotal - 1; j >= 0; j--)
+         {
+            ulong t = PositionGetTicket(j);
+            if (t == 0) continue;
+            if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
+            if ((int)PositionGetInteger(POSITION_TYPE) == closeType)
+            {
+               double pl2 = PositionGetDouble(POSITION_PROFIT) + PositionGetDouble(POSITION_SWAP);
+               if (pl2 > 0) remaining++;
+            }
+         }
+         if (remaining == 0) break;
+         Sleep(100);
       }
    }
    Trade.SetAsyncMode(false);
@@ -1532,6 +1553,11 @@ void TyWindow::OnClickTrade(void)
    }
    double available_volume;
    double min_volume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
+   if (min_volume <= 0)
+   {
+      Print("SYMBOL_VOLUME_MIN is zero or negative. Cannot place order.");
+      return;
+   }
    if (limit_volume > 0 && existing_volume >= limit_volume)
    {
       Print("Existing volume (", existing_volume, ") already at or above limit volume (", limit_volume, "). Not placing additional order.");
@@ -1697,6 +1723,16 @@ void TyWindow::OnClickTrade(void)
    }
    if (OrderMode != Standard || potentialRisk <= MaxRisk)
    {
+      if (TP > SL && HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
+      {
+         Print("Sell position is already open. Cannot place Buy order.");
+         return;
+      }
+      if (SL > TP && HasOpenPosition(_Symbol, POSITION_TYPE_BUY))
+      {
+         Print("Buy position is already open. Cannot place Sell order.");
+         return;
+      }
       bool useAsync = (OrderMode == Fixed && FixedOrdersToPlace >= 2);
       Trade.SetAsyncMode(useAsync);
       int numOrders = useAsync ? FixedOrdersToPlace : 1;
@@ -1704,11 +1740,6 @@ void TyWindow::OnClickTrade(void)
       {
          if (TP > SL)
          {
-            if (HasOpenPosition(_Symbol, POSITION_TYPE_SELL))
-            {
-               Print("Sell position is already open. Cannot place Buy order.");
-               break;
-            }
             if (PerformOrderCheck(request, check_result, OrderLots) < 0)
             {
                Print("Buy OrderCheck failed, retcode=", check_result.retcode);
@@ -1718,11 +1749,6 @@ void TyWindow::OnClickTrade(void)
          }
          else if (SL > TP)
          {
-            if (HasOpenPosition(_Symbol, POSITION_TYPE_BUY))
-            {
-               Print("Buy position is already open. Cannot place Sell order.");
-               break;
-            }
             if (PerformOrderCheck(request, check_result, OrderLots) < 0)
             {
                Print("Sell OrderCheck failed, retcode=", check_result.retcode);
