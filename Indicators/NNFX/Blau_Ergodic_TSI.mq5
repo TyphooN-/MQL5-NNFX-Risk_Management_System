@@ -12,7 +12,7 @@
 #property indicator_width1  2
 #property indicator_label2  "TSI signal line"
 #property indicator_type2   DRAW_LINE
-#property indicator_color3  clrDarkGray
+#property indicator_color2  clrDarkGray
 #property indicator_style2  STYLE_DOT
 
 //

@@ -106,7 +106,7 @@ int OnInit()
    SetIndexBuffer(4,levdn,INDICATOR_DATA);
    SetIndexBuffer(0,MaBuffer,INDICATOR_DATA);
    SetIndexBuffer(1,ColorBuffer,INDICATOR_COLOR_INDEX);
-   IndicatorSetString(INDICATOR_SHORTNAME,"Alma ("+(string)AlmaPeriod+","+(string)AlmaSigma+(string)AlmaSample+")");
+   IndicatorSetString(INDICATOR_SHORTNAME,"Alma ("+(string)AlmaPeriod+","+(string)AlmaSigma+","+(string)AlmaSample+")");
    return(0);
 }
 
