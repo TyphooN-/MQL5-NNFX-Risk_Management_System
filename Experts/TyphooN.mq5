@@ -81,6 +81,7 @@ input double          TargetEquityTP             = 110200;
 input bool            EnableEquitySL             = false;
 input double          TargetEquitySL             = 98000;
 input group           "[MARTINGALE MODE SETTINGS]"
+input bool            EnableMartingale = false;       // Enable Martingale (master switch)
 input double          MartingaleCloseChunkSize = 10;  // lots per partial close
 input int             MartingaleCooldown = 30;        // seconds between orders
 input double          MartingaleEquityTP = 0;         // $ profit target (0 = disabled)
@@ -1416,7 +1417,7 @@ void PrintMartingaleStrategyBriefing(MartingaleState state)
 }
 void ProcessMartingale()
 {
-   if (MartingaleMode == MG_OFF)
+   if (!EnableMartingale || MartingaleMode == MG_OFF)
       return;
    if (MartingaleMode == MG_UNWIND)
    {
@@ -1773,12 +1774,20 @@ void UpdateMartingaleButton()
 {
    string label;
    color clr;
-   switch (MartingaleMode)
+   if (!EnableMartingale)
    {
-      case MG_LONG:   label = "MG: LONG";   clr = clrLime;     break;
-      case MG_SHORT:  label = "MG: SHORT";  clr = clrRed;      break;
-      case MG_UNWIND: label = "MG: UNWIND"; clr = clrYellow;   break;
-      default:        label = "MG: OFF";    clr = clrDarkGray;  break;
+      label = "MG: ---";
+      clr = clrBlack;
+   }
+   else
+   {
+      switch (MartingaleMode)
+      {
+         case MG_LONG:   label = "MG: LONG";   clr = clrLime;     break;
+         case MG_SHORT:  label = "MG: SHORT";  clr = clrRed;      break;
+         case MG_UNWIND: label = "MG: UNWIND"; clr = clrYellow;   break;
+         default:        label = "MG: OFF";    clr = clrDarkGray;  break;
+      }
    }
    ExtDialog.MartingaleButtonText(label);
    ExtDialog.MartingaleButtonColor(clr);
@@ -1804,7 +1813,12 @@ void UpdateHarvestButton()
 {
    string label;
    color clr;
-   if (MartingaleMode == MG_OFF || MartingaleMode == MG_UNWIND)
+   if (!EnableMartingale)
+   {
+      label = "HV: ---";
+      clr = clrBlack;
+   }
+   else if (MartingaleMode == MG_OFF || MartingaleMode == MG_UNWIND)
    {
       label = "HV: OFF";
       clr = clrDarkGray;
@@ -1824,6 +1838,11 @@ void UpdateHarvestButton()
 }
 void TyWindow::OnClickMartingale(void)
 {
+   if (!EnableMartingale)
+   {
+      Print("Martingale DISABLED in inputs. Set EnableMartingale=true to use.");
+      return;
+   }
    MartingaleState nextState;
    string prompt;
    if (MartingaleMode == MG_OFF)
@@ -2001,6 +2020,8 @@ void BubbleSort(PositionInfo &arr[])
 }
 void TyWindow::OnClickHarvest(void)
 {
+   if (!EnableMartingale)
+      return;
    if (MartingaleMode == MG_OFF || MartingaleMode == MG_UNWIND)
       return;
    HarvestEnabled = !HarvestEnabled;
