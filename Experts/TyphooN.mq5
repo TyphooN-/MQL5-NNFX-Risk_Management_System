@@ -285,6 +285,7 @@ int OnInit()
          volumeStepStr = StringSubstr(volumeStepStr, 0, StringLen(volumeStepStr) - 1);
          OrderDigits--;
       }
+      if (OrderDigits < 0) OrderDigits = 0;
    }
    // Cache NormalizeDouble on input constants (invariant at runtime)
    g_cachedChunkSize = NormalizeDouble(MartingaleCloseChunkSize, OrderDigits);
@@ -564,7 +565,7 @@ void OnTick()
          // Tick-round both sides to avoid ECN sub-tick fill mismatches
          double roundedSL = (tickSz > 0) ? MathRound(sl / tickSz) * tickSz : sl;
          double roundedOpen = (tickSz > 0) ? MathRound(posOpenPrice / tickSz) * tickSz : posOpenPrice;
-         if (roundedSL == roundedOpen)
+         if (MathAbs(roundedSL - roundedOpen) < tickSz * 0.5)
          {
             if (posType == POSITION_TYPE_BUY)
                breakEvenFoundLong = true;
@@ -1659,6 +1660,7 @@ void TyWindow::OnClickTrade(void)
          return;
       }
       OrderLots = NormalizeDouble(MathFloor((OrderLots - volumeStepLocal) / volumeStepLocal) * volumeStepLocal, OrderDigits);
+      if (OrderLots < min_volume) { OrderLots = min_volume; break; }
       request.volume = OrderLots;
       usable_margin = marginBudget - AccountInfoDouble(ACCOUNT_MARGIN);
       double marginResult = PerformOrderCheck(request, check_result, OrderLots);

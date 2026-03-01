@@ -47,7 +47,7 @@ int OnInit() {
    PlotIndexSetString( 1, PLOT_LABEL, "Trailing" );
    ArraySetAsSeries( TrailingBuffer, true );
 
-   SetIndexBuffer( 2, DirectionBuffer );
+   SetIndexBuffer( 2, DirectionBuffer, INDICATOR_CALCULATIONS );
    ArraySetAsSeries( DirectionBuffer, true );
 
    HighHandle = iMA( Symbol(), Period(), InpPeriod, 0, MODE_SMA, PRICE_HIGH );

@@ -288,9 +288,9 @@ SignalResult ReadBaselineSignal(ENUM_BASELINE_TYPE type, SlotState &state)
             r.label = "BL:Err";
             return r;
          }
-         double bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
-         if (bid > ssBuf[0])       r.direction = +1;
-         else if (bid < ssBuf[0])  r.direction = -1;
+         double prevClose = iClose(_Symbol, PERIOD_CURRENT, 1);
+         if (prevClose > ssBuf[0])       r.direction = +1;
+         else if (prevClose < ssBuf[0])  r.direction = -1;
          else                      r.direction = 0;
          r.label = "BL:" + (r.direction > 0 ? "Above" : (r.direction < 0 ? "Below" : "?"));
          break;
