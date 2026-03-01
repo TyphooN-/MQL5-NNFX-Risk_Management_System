@@ -1861,8 +1861,8 @@ void TyWindow::OnClickMartingale(void)
    string prompt;
    if (MartingaleMode == MG_OFF)
    {
-      // Auto-detect bias from open positions
-      int longCount = 0, shortCount = 0;
+      // Auto-detect bias from lot volume
+      double longLots = 0, shortLots = 0;
       int total = PositionsTotal();
       for (int i = 0; i < total; i++)
       {
@@ -1871,25 +1871,26 @@ void TyWindow::OnClickMartingale(void)
          if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
          if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
             continue;
+         double vol = PositionGetDouble(POSITION_VOLUME);
          if (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
-            longCount++;
+            longLots += vol;
          else if (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL)
-            shortCount++;
+            shortLots += vol;
       }
-      if (shortCount > longCount)
+      if (shortLots > longLots)
       {
          nextState = MG_SHORT;
-         prompt = "Enable Martingale SHORT on " + _Symbol + "? (detected " + IntegerToString(shortCount) + " shorts vs " + IntegerToString(longCount) + " longs)";
+         prompt = "Enable Martingale SHORT on " + _Symbol + "? (detected " + DoubleToString(shortLots, 0) + " short lots vs " + DoubleToString(longLots, 0) + " long lots)";
       }
-      else if (longCount > shortCount)
+      else if (longLots > shortLots)
       {
          nextState = MG_LONG;
-         prompt = "Enable Martingale LONG on " + _Symbol + "? (detected " + IntegerToString(longCount) + " longs vs " + IntegerToString(shortCount) + " shorts)";
+         prompt = "Enable Martingale LONG on " + _Symbol + "? (detected " + DoubleToString(longLots, 0) + " long lots vs " + DoubleToString(shortLots, 0) + " short lots)";
       }
       else
       {
          nextState = MG_LONG;
-         prompt = "Enable Martingale LONG on " + _Symbol + "? (equal positions — click again for SHORT)";
+         prompt = "Enable Martingale LONG on " + _Symbol + "? (equal lots — click again for SHORT)";
       }
    }
    else if (MartingaleMode == MG_LONG)
