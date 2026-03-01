@@ -85,9 +85,9 @@ input double          MartingaleCloseChunkSize = 50;  // lots per partial close
 input int             MartingaleCooldown = 30;        // seconds between orders
 input double          MartingaleEquityTP = 0;         // $ profit target (0 = disabled)
 input double          MartingaleUnwindLotSize = 1;    // lots per hedge unwind close
-input double          MartingaleUnwindMarginPct = 0;  // % margin usage — unwind hedges above this (0=off)
-input double          MartingaleDangerMarginPct = 0;  // % margin usage — protective bias close above this (0=off)
-input double          MartingaleHarvestMarginPct = 0; // % margin — harvest profits above this (0=off)
+input double          MartingaleUnwindMarginPct = 0;  // % margin level — unwind hedges below this (0=off)
+input double          MartingaleDangerMarginPct = 0;  // % margin level — protective bias close below this (0=off)
+input double          MartingaleHarvestMarginPct = 0; // % margin level — harvest profits below this (0=off)
 input double          MartingaleHarvestLotSize = 1;   // lots per harvest close
 input group           "[DISCORD ANNOUNCEMENT SETTINGS]"
 input string          DiscordAPIKey =  "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
@@ -1161,11 +1161,11 @@ void UnwindMartingale()
       Print("Martingale unwind: failed to close #", worstTicket, " error ", GetLastError());
    LastMartingaleTime = TimeCurrent();
 }
-double CalculateMarginUsagePct()
+double CalculateMarginLevelPct()
 {
-   double freshEquity = AccountInfoDouble(ACCOUNT_EQUITY);
-   if (freshEquity <= 0.01) return 100.0;
-   return AccountInfoDouble(ACCOUNT_MARGIN) / freshEquity * 100.0;
+   double margin = AccountInfoDouble(ACCOUNT_MARGIN);
+   if (margin <= 0.01) return 999.0;
+   return AccountInfoDouble(ACCOUNT_EQUITY) / margin * 100.0;
 }
 bool UnwindHedgeByMargin()
 {
@@ -1212,10 +1212,10 @@ bool UnwindHedgeByMargin()
    if (result)
    {
       MartingaleHedgeCloses++;
-      double marginPct = CalculateMarginUsagePct();
+      double marginPct = CalculateMarginLevelPct();
       Print("Martingale TRIM: closed ", dir, " #", bestTicket,
             " (", (bestVolume <= g_cachedUnwindLots) ? bestVolume : g_cachedUnwindLots, " lots, entry: ", DoubleToString(highestOpen, _Digits),
-            ") margin: ", DoubleToString(marginPct, 1), "% | trim closes: ", MartingaleHedgeCloses);
+            ") margin level: ", DoubleToString(marginPct, 1), "% | trim closes: ", MartingaleHedgeCloses);
    }
    else
       Print("Martingale TRIM: failed to close ", dir, " #", bestTicket, " error ", GetLastError());
@@ -1266,10 +1266,10 @@ bool ProtectivePartialCloseBias()
    if (result)
    {
       MartingaleBiasCloses++;
-      double marginPct = CalculateMarginUsagePct();
+      double marginPct = CalculateMarginLevelPct();
       Print("Martingale PROTECT: closed ", dir, " #", bestTicket,
             " (", (bestVolume <= g_cachedChunkSize) ? bestVolume : g_cachedChunkSize, " of ", bestVolume, " lots, entry: ", DoubleToString(highestOpen, _Digits),
-            ") margin: ", DoubleToString(marginPct, 1), "% | protect closes: ", MartingaleBiasCloses);
+            ") margin level: ", DoubleToString(marginPct, 1), "% | protect closes: ", MartingaleBiasCloses);
    }
    else
       Print("Martingale PROTECT: failed to close ", dir, " #", bestTicket, " error ", GetLastError());
@@ -1319,11 +1319,11 @@ bool HarvestProfitableBias()
    if (result)
    {
       MartingaleHarvestCloses++;
-      double marginPct = CalculateMarginUsagePct();
+      double marginPct = CalculateMarginLevelPct();
       Print("Martingale HARVEST: closed ", dir, " #", bestTicket,
             " (", (bestVolume <= g_cachedHarvestLots) ? bestVolume : g_cachedHarvestLots, " of ", bestVolume, " lots, entry: ", DoubleToString(bestOpen, _Digits),
             ", P/L: $", DoubleToString(bestProfit, 2),
-            ") margin: ", DoubleToString(marginPct, 1), "% | harvest closes: ", MartingaleHarvestCloses);
+            ") margin level: ", DoubleToString(marginPct, 1), "% | harvest closes: ", MartingaleHarvestCloses);
    }
    else
       Print("Martingale HARVEST: failed to close ", dir, " #", bestTicket, " error ", GetLastError());
@@ -1353,14 +1353,14 @@ void LogMartingaleUnwindStatus(double marginPctArg = -1)
       if (pType == hedgeType) { hedgeCount++; hedgeLots += vol; }
       else if (pType == biasType) { biasCount++; biasLots += vol; }
    }
-   double marginPct = (marginPctArg >= 0) ? marginPctArg : CalculateMarginUsagePct();
+   double marginPct = (marginPctArg >= 0) ? marginPctArg : CalculateMarginLevelPct();
    double equity = AccountInfoDouble(ACCOUNT_EQUITY);
    double margin = AccountInfoDouble(ACCOUNT_MARGIN);
    Print("=== Martingale Unwind Status [", biasDir, "] ===",
-         " | Margin: ", DoubleToString(marginPct, 1), "%",
-         " (TRIM>=", DoubleToString(MartingaleUnwindMarginPct, 1),
-         "% HARVEST>=", DoubleToString(MartingaleHarvestMarginPct, 1),
-         "% PROTECT>=", DoubleToString(MartingaleDangerMarginPct, 1), "%)",
+         " | Margin Level: ", DoubleToString(marginPct, 1), "%",
+         " (TRIM<=", DoubleToString(MartingaleUnwindMarginPct, 1),
+         "% HARVEST<=", DoubleToString(MartingaleHarvestMarginPct, 1),
+         "% PROTECT<=", DoubleToString(MartingaleDangerMarginPct, 1), "%)",
          " | Hedge: ", hedgeCount, " pos / ", DoubleToString(hedgeLots, OrderDigits), " lots",
          " | Bias: ", biasCount, " pos / ", DoubleToString(biasLots, OrderDigits), " lots",
          " | Closes: trim=", MartingaleHedgeCloses, " harvest=", MartingaleHarvestCloses, " protect=", MartingaleBiasCloses,
@@ -1371,7 +1371,7 @@ void PrintMartingaleStrategyBriefing(MartingaleState state)
    string biasDir = (state == MG_LONG) ? "LONG" : "SHORT";
    string coreType = (state == MG_LONG) ? "BUY" : "SELL";
    string hedgeType = (state == MG_LONG) ? "SELL" : "BUY";
-   double marginPct = CalculateMarginUsagePct();
+   double marginPct = CalculateMarginLevelPct();
    // Dry run detection: check if market is closed
    datetime lastTick = (datetime)SymbolInfoInteger(_Symbol, SYMBOL_TIME);
    bool marketClosed = (TimeCurrent() - lastTick > 60);
@@ -1383,24 +1383,24 @@ void PrintMartingaleStrategyBriefing(MartingaleState state)
    Print("");
    Print("TRIM  (hedge removal):");
    if (MartingaleUnwindMarginPct > 0)
-      Print("  Threshold : margin >= ", DoubleToString(MartingaleUnwindMarginPct, 1), "%");
+      Print("  Threshold : margin level <= ", DoubleToString(MartingaleUnwindMarginPct, 1), "%");
    else
       Print("  Threshold : DISABLED (MartingaleUnwindMarginPct=0)");
    Print("  Action    : partial close ", DoubleToString(MartingaleUnwindLotSize, OrderDigits), " lots of highest-cost ", hedgeType);
-   Print("  Goal      : reduce margin usage by removing expensive hedges");
+   Print("  Goal      : improve margin level by removing expensive hedges");
    Print("");
    Print("HARVEST (profit banking — post-trim):");
    if (MartingaleHarvestMarginPct > 0)
-      Print("  Threshold : margin >= ", DoubleToString(MartingaleHarvestMarginPct, 1), "%");
+      Print("  Threshold : margin level <= ", DoubleToString(MartingaleHarvestMarginPct, 1), "%");
    else
       Print("  Threshold : DISABLED (MartingaleHarvestMarginPct=0)");
    Print("  Action    : partial close ", DoubleToString(MartingaleHarvestLotSize, OrderDigits), " lots of most profitable ", coreType);
-   Print("  Goal      : bank profits and reduce margin after hedges exhausted");
+   Print("  Goal      : bank profits and improve margin after hedges exhausted");
    Print("  Toggle    : ", (HarvestEnabled ? "ENABLED" : "DISABLED"), " (button controlled)");
    Print("");
    Print("PROTECT (bias closure — emergency):");
    if (MartingaleDangerMarginPct > 0)
-      Print("  Threshold : margin >= ", DoubleToString(MartingaleDangerMarginPct, 1), "%");
+      Print("  Threshold : margin level <= ", DoubleToString(MartingaleDangerMarginPct, 1), "%");
    else
       Print("  Threshold : DISABLED (MartingaleDangerMarginPct=0)");
    Print("  Action    : partial close ", DoubleToString(MartingaleCloseChunkSize, OrderDigits), " lots of highest-cost ", coreType);
@@ -1412,7 +1412,7 @@ void PrintMartingaleStrategyBriefing(MartingaleState state)
    else
       Print("Equity TP      : DISABLED (MartingaleEquityTP=0)");
    Print("Cooldown       : ", MartingaleCooldown, "s between margin operations");
-   Print("Current margin : ", DoubleToString(marginPct, 1), "%");
+   Print("Current margin level: ", DoubleToString(marginPct, 1), "%");
 }
 void ProcessMartingale()
 {
@@ -1443,10 +1443,10 @@ void ProcessMartingale()
    if (TimeCurrent() - LastMartingaleTime < MartingaleCooldown)
       return;
    // Periodic status log + single margin fetch for this tick
-   double marginUsage = CalculateMarginUsagePct();
-   LogMartingaleUnwindStatus(marginUsage);
+   double marginLevel = CalculateMarginLevelPct();
+   LogMartingaleUnwindStatus(marginLevel);
    // Tier 2: emergency bias close (check first — higher priority)
-   if (MartingaleDangerMarginPct > 0 && marginUsage >= MartingaleDangerMarginPct)
+   if (MartingaleDangerMarginPct > 0 && marginLevel <= MartingaleDangerMarginPct)
    {
       if (ProtectivePartialCloseBias())
       {
@@ -1455,7 +1455,7 @@ void ProcessMartingale()
       }
    }
    // Tier 1: unwind hedges
-   if (MartingaleUnwindMarginPct > 0 && marginUsage >= MartingaleUnwindMarginPct)
+   if (MartingaleUnwindMarginPct > 0 && marginLevel <= MartingaleUnwindMarginPct)
    {
       if (UnwindHedgeByMargin())
       {
@@ -1465,7 +1465,7 @@ void ProcessMartingale()
       // TRIM found no hedges — fall through to HARVEST
    }
    // HARVEST: bank profit on bias positions when no hedges remain
-   if (HarvestEnabled && MartingaleHarvestMarginPct > 0 && marginUsage >= MartingaleHarvestMarginPct)
+   if (HarvestEnabled && MartingaleHarvestMarginPct > 0 && marginLevel <= MartingaleHarvestMarginPct)
    {
       if (HarvestProfitableBias())
       {
