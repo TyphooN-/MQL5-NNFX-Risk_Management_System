@@ -171,6 +171,15 @@ void InitDominantCycle(DominantCycleState &s, int lp, int hp)
    for (int j = 0; j <= hp; j++) { s.r[j][0] = 0; s.r[j][1] = 0; }
 }
 
+void ResetDominantCycle(DominantCycleState &s)
+{
+   s.maxPwr = 0;
+   ArrayInitialize(s.corr,  0);
+   ArrayInitialize(s.sqSum, 0);
+   ArrayInitialize(s.pwr,   0);
+   for (int j = 0; j <= s.hpPeriod; j++) { s.r[j][0] = 0; s.r[j][1] = 0; }
+}
+
 double ComputeDominantCycle(DominantCycleState &s, const double &filt[], int i, int avgLength)
 {
    int lp = s.lpPeriod;

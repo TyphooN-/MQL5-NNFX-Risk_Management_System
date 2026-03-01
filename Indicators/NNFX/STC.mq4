@@ -111,6 +111,8 @@ int OnCalculate(const int rates_total,
    {
       for (i = 1; i <= BarsRequired; i++) ST2[Bars - i] = 0;
       for (i = 1; i <= BarsRequired; i++) ST[Bars - i] = 0;
+      st1_pass = false;
+      st2_pass = false;
    }
 
    if (counted_bars > 0) counted_bars--;

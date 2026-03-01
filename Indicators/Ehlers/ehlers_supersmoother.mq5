@@ -31,6 +31,7 @@ int OnInit()
 {
    SetIndexBuffer(0, result, INDICATOR_DATA);
    IndicatorSetString(INDICATOR_SHORTNAME, "SSmoother(" + IntegerToString(lpPeriod) + ")");
+   if (lpPeriod < 1) return INIT_PARAMETERS_INCORRECT;
    ComputeLPCoeffs(lpPeriod, g_lp);
    return INIT_SUCCEEDED;
 }

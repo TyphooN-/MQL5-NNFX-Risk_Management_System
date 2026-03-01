@@ -54,6 +54,7 @@ int OnInit()
    SetIndexBuffer(3, highPassBuf, INDICATOR_CALCULATIONS);
    SetIndexBuffer(4, bandPassBuf, INDICATOR_CALCULATIONS);
    IndicatorSetString(INDICATOR_SHORTNAME, "ABPCube(" + IntegerToString(lpPeriod) + "," + IntegerToString(hpPeriod) + ")");
+   if (lpPeriod < 1 || hpPeriod < 1) return INIT_PARAMETERS_INCORRECT;
    ComputeHPCoeffs(hpPeriod, g_hp);
    ComputeLPCoeffs(lpPeriod, g_lp);
    InitDominantCycle(g_dc, lpPeriod, hpPeriod);
@@ -75,6 +76,7 @@ int OnCalculate(const int rates_total,
    if (ArrayRange(work, 0) != rates_total)
       ArrayResize(work, rates_total);
 
+   if (prev_calculated == 0) { ResetDominantCycle(g_dc); g_peak = 0; }
    int start = (int)MathMax(prev_calculated - 1, 0);
    for (int i = start; i < rates_total && !IsStopped(); i++)
    {

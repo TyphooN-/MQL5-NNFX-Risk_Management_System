@@ -47,6 +47,7 @@ int OnInit()
    SetIndexBuffer(3, ratioBuf,    INDICATOR_CALCULATIONS);
    SetIndexBuffer(4, avePriceBuf, INDICATOR_CALCULATIONS);
    IndicatorSetString(INDICATOR_SHORTNAME, "ACCI(" + IntegerToString(lpPeriod) + "," + IntegerToString(hpPeriod) + ")");
+   if (lpPeriod < 1 || hpPeriod < 1) return INIT_PARAMETERS_INCORRECT;
    ComputeHPCoeffs(hpPeriod, g_hp);
    ComputeLPCoeffs(lpPeriod, g_lp);
    InitDominantCycle(g_dc, lpPeriod, hpPeriod);
@@ -68,6 +69,7 @@ int OnCalculate(const int rates_total,
    if (ArrayRange(work, 0) != rates_total)
       ArrayResize(work, rates_total);
 
+   if (prev_calculated == 0) ResetDominantCycle(g_dc);
    int start = (int)MathMax(prev_calculated - 1, 0);
    for (int i = start; i < rates_total && !IsStopped(); i++)
    {
@@ -101,7 +103,7 @@ int OnCalculate(const int rates_total,
 
       double num   = filtBuf[i] - avePrice;
       double denom = 0.015 * rms;
-      ratioBuf[i] = num / denom;
+      ratioBuf[i] = (denom != 0) ? num / denom : 0;
 
       // Supersmoother on ratio
       result[i] = g_lp.c1 * (ratioBuf[i] + ratioBuf[i-1]) / 2.0

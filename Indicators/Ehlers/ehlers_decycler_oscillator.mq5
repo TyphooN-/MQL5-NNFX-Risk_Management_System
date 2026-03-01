@@ -38,6 +38,7 @@ int OnInit()
    SetIndexBuffer(1, hpBuf,  INDICATOR_CALCULATIONS);
    SetIndexBuffer(2, lpBuf,  INDICATOR_CALCULATIONS);
    IndicatorSetString(INDICATOR_SHORTNAME, "DecOsc(" + IntegerToString(lpPeriod) + "," + IntegerToString(hpPeriod) + ")");
+   if (lpPeriod < 1 || hpPeriod < 1) return INIT_PARAMETERS_INCORRECT;
    ComputeHPCoeffs(lpPeriod, g_hpLP);
    ComputeHPCoeffs(hpPeriod, g_hpHP);
    return INIT_SUCCEEDED;
