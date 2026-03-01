@@ -136,6 +136,7 @@ int OnInit()
          volumeStepStr = StringSubstr(volumeStepStr, 0, StringLen(volumeStepStr) - 1);
          OrderDigits--;
       }
+      if (OrderDigits < 0) OrderDigits = 0;
    }
    // ATR handle (always needed for SL/TP)
    handle_iATR = iATR(_Symbol, PERIOD_CURRENT, ATR_Period);
@@ -204,7 +205,10 @@ int OnInit()
 void OnDeinit(const int reason)
 {
    if (handle_iATR != INVALID_HANDLE)
+   {
       IndicatorRelease(handle_iATR);
+      handle_iATR = INVALID_HANDLE;
+   }
    DeinitSlot(g_slotBaseline);
    DeinitSlot(g_slotConfirm1);
    DeinitSlot(g_slotConfirm2);

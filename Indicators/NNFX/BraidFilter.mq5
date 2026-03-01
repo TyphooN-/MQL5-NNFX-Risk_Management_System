@@ -52,6 +52,7 @@ int OnInit()
    ArraySetAsSeries(CrossUp,true);
    ArraySetAsSeries(CrossDown,true);
    ArraySetAsSeries(Filter,true);
+   ArraySetAsSeries(ATRData,true);
    ArraySetAsSeries(EmaFast,true);
    ArraySetAsSeries(EmaMedium,true);
    ArraySetAsSeries(EmaSlow,true);
