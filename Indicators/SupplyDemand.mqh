@@ -78,6 +78,9 @@ int OnInit()
    if(InpFractalLookback < 1 || InpBackLimit < 1)
       return INIT_PARAMETERS_INCORRECT;
 
+   g_lastBarTime = 0;
+   g_lastAlertTime = 0;
+
 #ifdef __MQL5__
    IndicatorSetString(INDICATOR_SHORTNAME, "SupplyDemand(" +
       IntegerToString(InpFractalLookback) + "," +
@@ -144,8 +147,8 @@ int OnCalculate(const int rates_total,
       if(InpMergeZones)
          MergeZones();
 
-      //--- Draw
-      datetime currentTime = time[0] + PeriodSeconds() * 10;
+      //--- Draw zones to the current bar (right edge)
+      datetime currentTime = time[0];
       DrawAllZones(currentTime);
 
       if(InpShowLabels)

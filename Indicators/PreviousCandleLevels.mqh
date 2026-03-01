@@ -279,6 +279,7 @@ void DrawLines()
 }
 void DrawHorizontalLine(double price, string label, color clr, datetime startTime, datetime endTime)
 {
+   if(price <= 0) return;  // Don't draw lines at invalid prices
    if(ObjectFind(0, label) != -1)
    {
       ObjectMove(0, label, 0, startTime, price);
