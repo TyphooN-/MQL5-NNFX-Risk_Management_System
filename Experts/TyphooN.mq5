@@ -2021,7 +2021,10 @@ void BubbleSort(PositionInfo &arr[])
 void TyWindow::OnClickHarvest(void)
 {
    if (!EnableMartingale)
+   {
+      Print("Martingale DISABLED in inputs. Set EnableMartingale=true to use.");
       return;
+   }
    if (MartingaleMode == MG_OFF || MartingaleMode == MG_UNWIND)
       return;
    HarvestEnabled = !HarvestEnabled;
