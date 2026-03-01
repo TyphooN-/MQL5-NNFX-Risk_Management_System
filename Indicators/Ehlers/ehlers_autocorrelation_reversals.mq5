@@ -9,7 +9,7 @@
 #property version   "1.01"
 #property description "Autocorrelation Reversals - Ehlers Cycle Analytics"
 #property indicator_separate_window
-#property indicator_buffers 4
+#property indicator_buffers 3
 #property indicator_plots   1
 #property indicator_maximum  1.2
 #property indicator_minimum  0
@@ -29,24 +29,26 @@ input int      lpPeriod  = 10;       // Low Pass Period
 double result[];
 double filtBuf[];
 double highPassBuf[];
-double corrPrevBuf[];
 double work[];
 
 EhlersHPCoeffs g_hp;
 EhlersLPCoeffs g_lp;
 double g_corr[];      // current bar Pearson correlations (scaled 0..1)
+double g_corrPrev[];  // previous bar correlations (file-scope to avoid per-bar heap alloc)
 
 int OnInit()
 {
    SetIndexBuffer(0, result,      INDICATOR_DATA);
    SetIndexBuffer(1, filtBuf,     INDICATOR_CALCULATIONS);
    SetIndexBuffer(2, highPassBuf, INDICATOR_CALCULATIONS);
-   SetIndexBuffer(3, corrPrevBuf, INDICATOR_CALCULATIONS);
    IndicatorSetString(INDICATOR_SHORTNAME, "ACRev(" + IntegerToString(lpPeriod) + "," + IntegerToString(hpPeriod) + ")");
+   if (lpPeriod < 1 || hpPeriod < 1) return INIT_PARAMETERS_INCORRECT;
    ComputeHPCoeffs(hpPeriod, g_hp);
    ComputeLPCoeffs(lpPeriod, g_lp);
    ArrayResize(g_corr, hpPeriod + 1);
+   ArrayResize(g_corrPrev, hpPeriod + 1);
    ArrayInitialize(g_corr, 0);
+   ArrayInitialize(g_corrPrev, 0);
    return INIT_SUCCEEDED;
 }
 
@@ -67,6 +69,7 @@ int OnCalculate(const int rates_total,
 
    int avLen = (avgLength == 0) ? hpPeriod : avgLength;
 
+   if (prev_calculated == 0) { ArrayInitialize(g_corr, 0); ArrayInitialize(g_corrPrev, 0); }
    int start = (int)MathMax(prev_calculated - 1, 0);
    for (int i = start; i < rates_total && !IsStopped(); i++)
    {
@@ -81,12 +84,9 @@ int OnCalculate(const int rates_total,
       }
 
       // Pearson correlation with lagged copy tracking
-      double corrPrev[];
-      ArrayResize(corrPrev, hpPeriod + 1);
-
       for (int lag = 0; lag <= hpPeriod; lag++)
       {
-         corrPrev[lag] = g_corr[lag]; // save previous bar's correlation
+         g_corrPrev[lag] = g_corr[lag]; // save previous bar's correlation
 
          double m = (avgLength == 0) ? (double)lag : (double)avgLength;
          double Sx=0, Sy=0, Sxx=0, Syy=0, Sxy=0;
@@ -110,8 +110,8 @@ int OnCalculate(const int rates_total,
       int sumDeltas = 0;
       for (int lag = 3; lag <= hpPeriod; lag++)
       {
-         if ((g_corr[lag] > 0.5 && corrPrev[lag] < 0.5) ||
-             (g_corr[lag] < 0.5 && corrPrev[lag] > 0.5))
+         if ((g_corr[lag] > 0.5 && g_corrPrev[lag] < 0.5) ||
+             (g_corr[lag] < 0.5 && g_corrPrev[lag] > 0.5))
             sumDeltas++;
       }
 

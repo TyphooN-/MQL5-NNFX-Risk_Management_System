@@ -41,6 +41,7 @@ int OnInit()
    SetIndexBuffer(1, highPassBuf, INDICATOR_CALCULATIONS);
    SetIndexBuffer(2, filtBuf,     INDICATOR_CALCULATIONS);
    IndicatorSetString(INDICATOR_SHORTNAME, "EBSW(" + IntegerToString(lpPeriod) + "," + IntegerToString(hpPeriod) + ")");
+   if (lpPeriod < 1 || hpPeriod < 1) return INIT_PARAMETERS_INCORRECT;
    ComputeHPCoeffs(hpPeriod, g_hp);
    ComputeLPCoeffs(lpPeriod, g_lp);
    return INIT_SUCCEEDED;

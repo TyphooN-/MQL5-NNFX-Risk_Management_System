@@ -87,7 +87,7 @@ string GetKAMAGlobalName(ENUM_TIMEFRAMES tf)
          tfStr = "D1";
          break;
    }
-   return "IsAbove_KAMA_" + tfStr;
+   return "IsAbove_KAMA_" + tfStr + "_" + _Symbol;
 }
 // ── Init Functions ───────────────────────────────────────────────────────────
 bool InitBaselineSlot(ENUM_BASELINE_TYPE type, ENUM_TIMEFRAMES kamaTF, string customGV, SlotState &state)

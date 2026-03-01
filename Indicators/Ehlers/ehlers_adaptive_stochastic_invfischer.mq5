@@ -53,6 +53,7 @@ int OnInit()
    SetIndexBuffer(4, stochBuf,     INDICATOR_CALCULATIONS);
    SetIndexBuffer(5, adapStochBuf, INDICATOR_CALCULATIONS);
    IndicatorSetString(INDICATOR_SHORTNAME, "AStochIF(" + IntegerToString(lpPeriod) + "," + IntegerToString(hpPeriod) + ")");
+   if (lpPeriod < 1 || hpPeriod < 1) return INIT_PARAMETERS_INCORRECT;
    ComputeHPCoeffs(hpPeriod, g_hp);
    ComputeLPCoeffs(lpPeriod, g_lp);
    InitDominantCycle(g_dc, lpPeriod, hpPeriod);
@@ -74,6 +75,7 @@ int OnCalculate(const int rates_total,
    if (ArrayRange(work, 0) != rates_total)
       ArrayResize(work, rates_total);
 
+   if (prev_calculated == 0) ResetDominantCycle(g_dc);
    int start = (int)MathMax(prev_calculated - 1, 0);
    for (int i = start; i < rates_total && !IsStopped(); i++)
    {
@@ -110,7 +112,8 @@ int OnCalculate(const int rates_total,
 
       // Inverse Fischer transform
       double value1 = 2.0 * (adapStochBuf[i] - 0.5);
-      result[i] = (MathExp(2.0 * 3.0 * value1) - 1.0) / (MathExp(2.0 * 3.0 * value1) + 1.0);
+      double expVal = MathExp(6.0 * value1);
+      result[i] = (expVal - 1.0) / (expVal + 1.0);
       signalBuf[i] = 0.9 * result[i-1];
    }
    return rates_total;

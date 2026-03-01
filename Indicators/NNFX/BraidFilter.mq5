@@ -45,9 +45,9 @@ int OnInit()
    SetIndexBuffer(0,CrossUp,INDICATOR_DATA);
    SetIndexBuffer(1,CrossDown,INDICATOR_DATA);
    SetIndexBuffer(2,Filter,INDICATOR_DATA);
-   SetIndexBuffer(3,EmaFast,INDICATOR_DATA);
-   SetIndexBuffer(4,EmaMedium,INDICATOR_DATA);
-   SetIndexBuffer(5,EmaSlow,INDICATOR_DATA);
+   SetIndexBuffer(3,EmaFast,INDICATOR_CALCULATIONS);
+   SetIndexBuffer(4,EmaMedium,INDICATOR_CALCULATIONS);
+   SetIndexBuffer(5,EmaSlow,INDICATOR_CALCULATIONS);
 
    ArraySetAsSeries(CrossUp,true);
    ArraySetAsSeries(CrossDown,true);

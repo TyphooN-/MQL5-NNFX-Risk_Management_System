@@ -29,7 +29,9 @@ double ExtAMABuffer_H4[];
 double ExtAMABuffer_D1[];
 double ExtAMABuffer_W1[];
 double ExtAMABuffer_MN1[];
-// File-scope GV change detection (reset on reinit)
+// File-scope GV name caches (symbol-qualified to prevent cross-chart contamination)
+string g_gvIsAbove_H1, g_gvIsAbove_H4, g_gvIsAbove_D1, g_gvIsAbove_W1, g_gvIsAbove_MN1;
+string g_gvRecent_H1, g_gvRecent_H4, g_gvRecent_D1, g_gvRecent_W1, g_gvRecent_MN1;
 bool g_prevKAMA_H1 = false, g_prevKAMA_H4 = false, g_prevKAMA_D1 = false;
 bool g_prevKAMA_W1 = false, g_prevKAMA_MN1 = false;
 bool g_kamaInitialized = false;
@@ -91,6 +93,17 @@ int OnInit()
       return(INIT_FAILED);
    }
 #endif
+   //--- Cache symbol-qualified GV names
+   g_gvIsAbove_H1  = "IsAbove_KAMA_H1_"  + _Symbol;
+   g_gvIsAbove_H4  = "IsAbove_KAMA_H4_"  + _Symbol;
+   g_gvIsAbove_D1  = "IsAbove_KAMA_D1_"  + _Symbol;
+   g_gvIsAbove_W1  = "IsAbove_KAMA_W1_"  + _Symbol;
+   g_gvIsAbove_MN1 = "IsAbove_KAMA_MN1_" + _Symbol;
+   g_gvRecent_H1   = "recent_KAMA_H1_"   + _Symbol;
+   g_gvRecent_H4   = "recent_KAMA_H4_"   + _Symbol;
+   g_gvRecent_D1   = "recent_KAMA_D1_"   + _Symbol;
+   g_gvRecent_W1   = "recent_KAMA_W1_"   + _Symbol;
+   g_gvRecent_MN1  = "recent_KAMA_MN1_"  + _Symbol;
    //--- Reset GV change detection on reinit
    g_prevKAMA_H1 = false; g_prevKAMA_H4 = false; g_prevKAMA_D1 = false;
    g_prevKAMA_W1 = false; g_prevKAMA_MN1 = false;
@@ -109,16 +122,16 @@ void OnDeinit(const int reason)
    IndicatorRelease(handle_KAMA_W1);
    IndicatorRelease(handle_KAMA_MN1);
 #endif
-   GlobalVariableDel("IsAbove_KAMA_H1");
-   GlobalVariableDel("IsAbove_KAMA_H4");
-   GlobalVariableDel("IsAbove_KAMA_D1");
-   GlobalVariableDel("IsAbove_KAMA_W1");
-   GlobalVariableDel("IsAbove_KAMA_MN1");
-   GlobalVariableDel("recent_KAMA_H1");
-   GlobalVariableDel("recent_KAMA_H4");
-   GlobalVariableDel("recent_KAMA_D1");
-   GlobalVariableDel("recent_KAMA_W1");
-   GlobalVariableDel("recent_KAMA_MN1");
+   GlobalVariableDel(g_gvIsAbove_H1);
+   GlobalVariableDel(g_gvIsAbove_H4);
+   GlobalVariableDel(g_gvIsAbove_D1);
+   GlobalVariableDel(g_gvIsAbove_W1);
+   GlobalVariableDel(g_gvIsAbove_MN1);
+   GlobalVariableDel(g_gvRecent_H1);
+   GlobalVariableDel(g_gvRecent_H4);
+   GlobalVariableDel(g_gvRecent_D1);
+   GlobalVariableDel(g_gvRecent_W1);
+   GlobalVariableDel(g_gvRecent_MN1);
 }
 #ifdef __MQL5__
 int OnCalculate(const int rates_total, const int prev_calculated, const int begin, const double &price[])
@@ -142,11 +155,11 @@ int OnCalculate(const int rates_total, const int prev_calculated, const int begi
       int latestIndex = rates_total - 1;
       if (allCopied)
       {
-         if (ExtAMABuffer_H1[latestIndex] != g_prevRecentKAMA_H1) { GlobalVariableSet("recent_KAMA_H1", ExtAMABuffer_H1[latestIndex]); g_prevRecentKAMA_H1 = ExtAMABuffer_H1[latestIndex]; }
-         if (ExtAMABuffer_H4[latestIndex] != g_prevRecentKAMA_H4) { GlobalVariableSet("recent_KAMA_H4", ExtAMABuffer_H4[latestIndex]); g_prevRecentKAMA_H4 = ExtAMABuffer_H4[latestIndex]; }
-         if (ExtAMABuffer_D1[latestIndex] != g_prevRecentKAMA_D1) { GlobalVariableSet("recent_KAMA_D1", ExtAMABuffer_D1[latestIndex]); g_prevRecentKAMA_D1 = ExtAMABuffer_D1[latestIndex]; }
-         if (ExtAMABuffer_W1[latestIndex] != g_prevRecentKAMA_W1) { GlobalVariableSet("recent_KAMA_W1", ExtAMABuffer_W1[latestIndex]); g_prevRecentKAMA_W1 = ExtAMABuffer_W1[latestIndex]; }
-         if (ExtAMABuffer_MN1[latestIndex] != g_prevRecentKAMA_MN1) { GlobalVariableSet("recent_KAMA_MN1", ExtAMABuffer_MN1[latestIndex]); g_prevRecentKAMA_MN1 = ExtAMABuffer_MN1[latestIndex]; }
+         if (ExtAMABuffer_H1[latestIndex] != g_prevRecentKAMA_H1) { GlobalVariableSet(g_gvRecent_H1, ExtAMABuffer_H1[latestIndex]); g_prevRecentKAMA_H1 = ExtAMABuffer_H1[latestIndex]; }
+         if (ExtAMABuffer_H4[latestIndex] != g_prevRecentKAMA_H4) { GlobalVariableSet(g_gvRecent_H4, ExtAMABuffer_H4[latestIndex]); g_prevRecentKAMA_H4 = ExtAMABuffer_H4[latestIndex]; }
+         if (ExtAMABuffer_D1[latestIndex] != g_prevRecentKAMA_D1) { GlobalVariableSet(g_gvRecent_D1, ExtAMABuffer_D1[latestIndex]); g_prevRecentKAMA_D1 = ExtAMABuffer_D1[latestIndex]; }
+         if (ExtAMABuffer_W1[latestIndex] != g_prevRecentKAMA_W1) { GlobalVariableSet(g_gvRecent_W1, ExtAMABuffer_W1[latestIndex]); g_prevRecentKAMA_W1 = ExtAMABuffer_W1[latestIndex]; }
+         if (ExtAMABuffer_MN1[latestIndex] != g_prevRecentKAMA_MN1) { GlobalVariableSet(g_gvRecent_MN1, ExtAMABuffer_MN1[latestIndex]); g_prevRecentKAMA_MN1 = ExtAMABuffer_MN1[latestIndex]; }
       }
    }
    // Check price vs KAMA on every tick, but only update globals when values change
@@ -159,11 +172,11 @@ int OnCalculate(const int rates_total, const int prev_calculated, const int begi
    if (!g_kamaInitialized || isAbove_KAMA_H1 != g_prevKAMA_H1 || isAbove_KAMA_H4 != g_prevKAMA_H4 ||
        isAbove_KAMA_D1 != g_prevKAMA_D1 || isAbove_KAMA_W1 != g_prevKAMA_W1 || isAbove_KAMA_MN1 != g_prevKAMA_MN1)
    {
-      GlobalVariableSet("IsAbove_KAMA_H1", isAbove_KAMA_H1);
-      GlobalVariableSet("IsAbove_KAMA_H4", isAbove_KAMA_H4);
-      GlobalVariableSet("IsAbove_KAMA_D1", isAbove_KAMA_D1);
-      GlobalVariableSet("IsAbove_KAMA_W1", isAbove_KAMA_W1);
-      GlobalVariableSet("IsAbove_KAMA_MN1", isAbove_KAMA_MN1);
+      GlobalVariableSet(g_gvIsAbove_H1, isAbove_KAMA_H1);
+      GlobalVariableSet(g_gvIsAbove_H4, isAbove_KAMA_H4);
+      GlobalVariableSet(g_gvIsAbove_D1, isAbove_KAMA_D1);
+      GlobalVariableSet(g_gvIsAbove_W1, isAbove_KAMA_W1);
+      GlobalVariableSet(g_gvIsAbove_MN1, isAbove_KAMA_MN1);
       g_prevKAMA_H1 = isAbove_KAMA_H1;
       g_prevKAMA_H4 = isAbove_KAMA_H4;
       g_prevKAMA_D1 = isAbove_KAMA_D1;
@@ -213,11 +226,11 @@ int OnCalculate(const int rates_total,
    // Only update recent_KAMA GVs on new bar (KAMA values don't change intra-bar)
    if (prev_calculated != rates_total)
    {
-      GlobalVariableSet("recent_KAMA_H1", ExtAMABuffer_H1[latestIndex]);
-      GlobalVariableSet("recent_KAMA_H4", ExtAMABuffer_H4[latestIndex]);
-      GlobalVariableSet("recent_KAMA_D1", ExtAMABuffer_D1[latestIndex]);
-      GlobalVariableSet("recent_KAMA_W1", ExtAMABuffer_W1[latestIndex]);
-      GlobalVariableSet("recent_KAMA_MN1", ExtAMABuffer_MN1[latestIndex]);
+      GlobalVariableSet(g_gvRecent_H1, ExtAMABuffer_H1[latestIndex]);
+      GlobalVariableSet(g_gvRecent_H4, ExtAMABuffer_H4[latestIndex]);
+      GlobalVariableSet(g_gvRecent_D1, ExtAMABuffer_D1[latestIndex]);
+      GlobalVariableSet(g_gvRecent_W1, ExtAMABuffer_W1[latestIndex]);
+      GlobalVariableSet(g_gvRecent_MN1, ExtAMABuffer_MN1[latestIndex]);
    }
    // Check price vs KAMA on every tick (price changes intra-bar)
    {
@@ -230,11 +243,11 @@ int OnCalculate(const int rates_total,
       if (!g_kamaInitialized || isAbove_H1 != g_prevKAMA_H1 || isAbove_H4 != g_prevKAMA_H4 ||
           isAbove_D1 != g_prevKAMA_D1 || isAbove_W1 != g_prevKAMA_W1 || isAbove_MN1 != g_prevKAMA_MN1)
       {
-         GlobalVariableSet("IsAbove_KAMA_H1", isAbove_H1);
-         GlobalVariableSet("IsAbove_KAMA_H4", isAbove_H4);
-         GlobalVariableSet("IsAbove_KAMA_D1", isAbove_D1);
-         GlobalVariableSet("IsAbove_KAMA_W1", isAbove_W1);
-         GlobalVariableSet("IsAbove_KAMA_MN1", isAbove_MN1);
+         GlobalVariableSet(g_gvIsAbove_H1, isAbove_H1);
+         GlobalVariableSet(g_gvIsAbove_H4, isAbove_H4);
+         GlobalVariableSet(g_gvIsAbove_D1, isAbove_D1);
+         GlobalVariableSet(g_gvIsAbove_W1, isAbove_W1);
+         GlobalVariableSet(g_gvIsAbove_MN1, isAbove_MN1);
          g_prevKAMA_H1 = isAbove_H1;
          g_prevKAMA_H4 = isAbove_H4;
          g_prevKAMA_D1 = isAbove_D1;
