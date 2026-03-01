@@ -226,6 +226,9 @@ int OnInit()
    SetIndexStyle(3, DRAW_LINE, STYLE_SOLID, 2, clrMagenta);
    SetIndexStyle(4, DRAW_LINE, STYLE_SOLID, 2, clrMagenta);
    SetIndexStyle(5, DRAW_LINE, STYLE_SOLID, 2, clrMagenta);
+   // Hide calculation-only buffers (MQL4 draws first 8 buffers by default)
+   for (int hidx = 6; hidx < 41; hidx++)
+      SetIndexStyle(hidx, DRAW_NONE);
    SetIndexLabel(0, "H1 200SMA");
    SetIndexLabel(1, "H4 200SMA");
    SetIndexLabel(2, "D1 200SMA");

@@ -188,18 +188,21 @@ void OnDeinit(const int pReason)
 }
 void UpdateCandlestickData()
 {
-   currentOpenD1 = iOpen(_Symbol, PERIOD_D1, 0);
-   currentOpenW1 = iOpen(_Symbol, PERIOD_W1, 0);
-   currentOpenMN1 = iOpen(_Symbol, PERIOD_MN1, 0);
-   currentOpenH4 = iOpen(_Symbol, PERIOD_H4, 0);
-   currentOpenH1 = iOpen(_Symbol, PERIOD_H1, 0);
-   currentOpenM15 = iOpen(_Symbol, PERIOD_M15, 0);
-   g_startTimeD1 = iTime(_Symbol, PERIOD_D1, 7);
-   g_startTimeW1 = iTime(_Symbol, PERIOD_W1, 4);
-   g_startTimeMN1 = iTime(_Symbol, PERIOD_MN1, 2);
-   g_startTimeH4 = iTime(_Symbol, PERIOD_H4, 11);
-   g_startTimeH1 = iTime(_Symbol, PERIOD_H1, 12);
-   g_startTimeM15 = iTime(_Symbol, PERIOD_M15, 7);
+   // Guard against iOpen/iTime returning 0 when HTF history is not loaded
+   double val;
+   val = iOpen(_Symbol, PERIOD_D1, 0);    if (val > 0) currentOpenD1 = val;
+   val = iOpen(_Symbol, PERIOD_W1, 0);    if (val > 0) currentOpenW1 = val;
+   val = iOpen(_Symbol, PERIOD_MN1, 0);   if (val > 0) currentOpenMN1 = val;
+   val = iOpen(_Symbol, PERIOD_H4, 0);    if (val > 0) currentOpenH4 = val;
+   val = iOpen(_Symbol, PERIOD_H1, 0);    if (val > 0) currentOpenH1 = val;
+   val = iOpen(_Symbol, PERIOD_M15, 0);   if (val > 0) currentOpenM15 = val;
+   datetime t;
+   t = iTime(_Symbol, PERIOD_D1, 7);      if (t > 0) g_startTimeD1 = t;
+   t = iTime(_Symbol, PERIOD_W1, 4);      if (t > 0) g_startTimeW1 = t;
+   t = iTime(_Symbol, PERIOD_MN1, 2);     if (t > 0) g_startTimeMN1 = t;
+   t = iTime(_Symbol, PERIOD_H4, 11);     if (t > 0) g_startTimeH4 = t;
+   t = iTime(_Symbol, PERIOD_H1, 12);     if (t > 0) g_startTimeH1 = t;
+   t = iTime(_Symbol, PERIOD_M15, 7);     if (t > 0) g_startTimeM15 = t;
 }
 void UpdateATRData()
 {
