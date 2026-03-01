@@ -72,6 +72,8 @@ int OnInit()
    PlotIndexSetInteger(0, PLOT_DRAW_BEGIN, MALong + Cycle * 2);
    IndicatorSetInteger(INDICATOR_DIGITS, 0);
 
+   if (Cycle < 2) { Print("Cycle must be >= 2"); return INIT_PARAMETERS_INCORRECT; }
+
    BarsRequired = MALong + Cycle * 2;
 
    hMAShort = iMA(NULL, 0, MAShort, 0, MODE_EMA, PRICE_CLOSE);

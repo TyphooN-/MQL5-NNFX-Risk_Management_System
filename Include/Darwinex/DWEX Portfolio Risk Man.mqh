@@ -107,6 +107,7 @@ bool CPortfolioRiskMan::CalculateLotSizeBasedOnVaR(string Asset, double confiden
    //CALCULATE THE VaR FOR A SINGLE UNIT OF THE ASSET
    double unitVaR = zScore * stdDevReturns * nominalValuePerUnitPerLot * currentPrice;
    //CALCULATE THE MAXIMUM VaR BASED ON THE ACCOUNT EQUITY AND VaR PERCENTAGE
+   if (accountEquity <= 0) { lotSize = 0; return false; }
    double maxVaR = (VaRPercent / 100.0) * accountEquity;
    //CALCULATE THE LOT SIZE BASED ON THE MAXIMUM VaR
    if (unitVaR < 1e-10) { lotSize = 0; return false; }
