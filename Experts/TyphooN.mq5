@@ -82,14 +82,14 @@ input bool            EnableEquitySL             = false;
 input double          TargetEquitySL             = 98000;
 input group           "[MARTINGALE MODE SETTINGS]"
 input bool            EnableMartingale = false;       // Enable Martingale (master switch)
-input double          MartingaleCloseChunkSize = 10;  // lots per partial close
 input int             MartingaleCooldown = 30;        // seconds between orders
 input double          MartingaleEquityTP = 0;         // $ profit target (0 = disabled)
-input double          MartingaleUnwindLotSize = 5;    // lots per hedge unwind close
-input double          MartingaleUnwindMarginPct = 64;  // % margin level — unwind hedges below this (0=off)
-input double          MartingaleDangerMarginPct = 56;  // % margin level — protective bias close below this (0=off)
-input double          MartingaleHarvestMarginPct = 0; // % margin level — harvest profits below this (0=off)
-input double          MartingaleHarvestLotSize = 1;   // lots per harvest close
+input double          MartingaleUnwindMarginPct = 64;  // TRIM — % margin level to start (0=off)
+input double          MartingaleUnwindLotSize = 5;    // TRIM — lots per hedge close
+input double          MartingaleHarvestMarginPct = 0; // HARVEST — % margin level to start (0=off)
+input double          MartingaleHarvestLotSize = 1;   // HARVEST — lots per profit close
+input double          MartingaleDangerMarginPct = 56;  // PROTECT — % margin level to start (0=off)
+input double          MartingaleCloseChunkSize = 10;  // PROTECT — lots per bias close
 input group           "[DISCORD ANNOUNCEMENT SETTINGS]"
 input string          DiscordAPIKey =  "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
 input bool            EnableBroadcast = false;
