@@ -1062,10 +1062,17 @@ bool CloseProfitableOppositePositions()
       closeType = POSITION_TYPE_BUY;
    else
       return false;
-   // Find the smallest profitable opposite position (consume partial positions first)
+   // Find best opposite hedge to close (regardless of P/L — goal is margin recovery):
+   // 1. Prioritize partial positions (< 1000 lots) to consume them first
+   // 2. Among same priority, pick highest-cost entry (most margin freed)
+   //    MG_SHORT hedges are BUYs → highest entry price first
+   //    MG_LONG  hedges are SELLs → lowest entry price first
+   bool preferHighEntry = (MartingaleMode == MG_SHORT);
    ulong bestTicket = 0;
    double bestPL = 0;
-   double bestVolume = DBL_MAX;
+   double bestVolume = 0;
+   double bestEntry = preferHighEntry ? -1 : DBL_MAX;
+   bool bestIsPartial = false;
    int total = PositionsTotal();
    for (int i = 0; i < total; i++)
    {
@@ -1077,16 +1084,26 @@ bool CloseProfitableOppositePositions()
          continue;
       if ((int)PositionGetInteger(POSITION_TYPE) != closeType)
          continue;
+      double vol = PositionGetDouble(POSITION_VOLUME);
+      double entry = PositionGetDouble(POSITION_PRICE_OPEN);
       double pl = PositionGetDouble(POSITION_PROFIT) + PositionGetDouble(POSITION_SWAP);
-      if (pl > 0)
+      bool isPartial = (vol < 1000);
+      // Partials always beat full positions
+      if (bestIsPartial && !isPartial) continue;
+      bool better = false;
+      if (isPartial && !bestIsPartial)
+         better = true;
+      else if (preferHighEntry)
+         better = (entry > bestEntry);
+      else
+         better = (entry < bestEntry);
+      if (better)
       {
-         double vol = PositionGetDouble(POSITION_VOLUME);
-         if (vol < bestVolume || (vol == bestVolume && pl > bestPL))
-         {
-            bestPL = pl;
-            bestTicket = ticket;
-            bestVolume = vol;
-         }
+         bestPL = pl;
+         bestTicket = ticket;
+         bestVolume = vol;
+         bestEntry = entry;
+         bestIsPartial = isPartial;
       }
    }
    if (bestTicket == 0)
