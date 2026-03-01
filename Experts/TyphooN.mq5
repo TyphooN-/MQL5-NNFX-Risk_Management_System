@@ -84,11 +84,11 @@ input group           "[MARTINGALE MODE SETTINGS]"
 input bool            EnableMartingale = false;       // Enable Martingale (master switch)
 input int             MartingaleCooldown = 30;        // seconds between orders
 input double          MartingaleEquityTP = 0;         // $ profit target (0 = disabled)
-input double          MartingaleUnwindMarginPct = 64;  // TRIM — % margin level to start (0=off)
+input double          MartingaleUnwindMarginPct = 70;  // TRIM — % margin level to start (0=off)
 input double          MartingaleUnwindLotSize = 5;    // TRIM — lots per hedge close
 input double          MartingaleHarvestMarginPct = 0; // HARVEST — % margin level to start (0=off)
 input double          MartingaleHarvestLotSize = 1;   // HARVEST — lots per profit close
-input double          MartingaleDangerMarginPct = 56;  // PROTECT — % margin level to start (0=off)
+input double          MartingaleDangerMarginPct = 65;  // PROTECT — % margin level to start (0=off)
 input double          MartingaleCloseChunkSize = 10;  // PROTECT — lots per bias close
 input group           "[DISCORD ANNOUNCEMENT SETTINGS]"
 input string          DiscordAPIKey =  "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
