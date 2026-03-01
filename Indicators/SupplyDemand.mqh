@@ -435,7 +435,7 @@ void DrawAllLabels(datetime endTime)
       ObjectSetString(0, name, OBJPROP_TEXT, text);
       ObjectSetString(0, name, OBJPROP_FONT, "Arial");
       ObjectSetInteger(0, name, OBJPROP_FONTSIZE, 8);
-      ObjectSetInteger(0, name, OBJPROP_COLOR, GetZoneColor(i));
+      ObjectSetInteger(0, name, OBJPROP_COLOR, clrWhite);
       ObjectSetInteger(0, name, OBJPROP_ANCHOR, ANCHOR_RIGHT);
       ObjectSetInteger(0, name, OBJPROP_SELECTABLE, false);
    }
