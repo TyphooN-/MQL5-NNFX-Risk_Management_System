@@ -1062,10 +1062,12 @@ bool CloseProfitableOppositePositions()
       closeType = POSITION_TYPE_BUY;
    else
       return false;
-   bool closedAny = false;
-   Trade.SetAsyncMode(true);
+   // Find the single most profitable opposite position
+   ulong bestTicket = 0;
+   double bestPL = 0;
+   double bestVolume = 0;
    int total = PositionsTotal();
-   for (int i = total - 1; i >= 0; i--)
+   for (int i = 0; i < total; i++)
    {
       ulong ticket = PositionGetTicket(i);
       if (ticket == 0) continue;
@@ -1076,58 +1078,34 @@ bool CloseProfitableOppositePositions()
       if ((int)PositionGetInteger(POSITION_TYPE) != closeType)
          continue;
       double pl = PositionGetDouble(POSITION_PROFIT) + PositionGetDouble(POSITION_SWAP);
-      if (pl > 0)
+      if (pl > 0 && pl > bestPL)
       {
-         double posVolume = PositionGetDouble(POSITION_VOLUME);
-         string dir = (closeType == POSITION_TYPE_BUY) ? "LONG" : "SHORT";
-         if (posVolume <= g_cachedChunkSize)
-         {
-            if (Trade.PositionClose(ticket))
-            {
-               Print("Martingale: closed ", dir, " #", ticket, " (", posVolume, " lots) P/L: $", DoubleToString(pl, 2));
-               g_lastOppCloseTime = TimeCurrent();
-               closedAny = true;
-            }
-            else
-               Print("Martingale: failed to close #", ticket, " error ", GetLastError());
-         }
-         else
-         {
-            if (Trade.PositionClosePartial(ticket, g_cachedChunkSize))
-            {
-               Print("Martingale: partial close ", dir, " #", ticket, " (", g_cachedChunkSize, " of ", posVolume, " lots)");
-               g_lastOppCloseTime = TimeCurrent();
-               closedAny = true;
-            }
-            else
-               Print("Martingale: failed to partial close #", ticket, " error ", GetLastError());
-         }
+         bestPL = pl;
+         bestTicket = ticket;
+         bestVolume = PositionGetDouble(POSITION_VOLUME);
       }
    }
-   if (closedAny)
+   if (bestTicket == 0)
+      return false;
+   string dir = (closeType == POSITION_TYPE_BUY) ? "LONG" : "SHORT";
+   bool result;
+   if (bestVolume <= g_cachedChunkSize)
    {
-      for (int poll = 0; poll < 50; poll++)
-      {
-         int remaining = 0;
-         int posTotal = PositionsTotal();
-         for (int j = posTotal - 1; j >= 0; j--)
-         {
-            ulong t = PositionGetTicket(j);
-            if (t == 0) continue;
-            if (!PositionSelectByTicket(t)) continue;
-            if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
-            if ((int)PositionGetInteger(POSITION_TYPE) == closeType)
-            {
-               double pl2 = PositionGetDouble(POSITION_PROFIT) + PositionGetDouble(POSITION_SWAP);
-               if (pl2 > 0) remaining++;
-            }
-         }
-         if (remaining == 0) break;
-         Sleep(100);
-      }
+      result = Trade.PositionClose(bestTicket);
+      if (result)
+         Print("Martingale: closed ", dir, " #", bestTicket, " (", bestVolume, " lots) P/L: $", DoubleToString(bestPL, 2));
    }
-   Trade.SetAsyncMode(false);
-   return closedAny;
+   else
+   {
+      result = Trade.PositionClosePartial(bestTicket, g_cachedChunkSize);
+      if (result)
+         Print("Martingale: partial close ", dir, " #", bestTicket, " (", g_cachedChunkSize, " of ", bestVolume, " lots) P/L: $", DoubleToString(bestPL, 2));
+   }
+   if (result)
+      g_lastOppCloseTime = TimeCurrent();
+   else
+      Print("Martingale: failed to close ", dir, " #", bestTicket, " error ", GetLastError());
+   return result;
 }
 void UnwindMartingale()
 {
