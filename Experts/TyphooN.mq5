@@ -1361,8 +1361,8 @@ void LogMartingaleUnwindStatus(double marginPctArg = -1)
    double margin = AccountInfoDouble(ACCOUNT_MARGIN);
    Print("=== Martingale Unwind Status [", biasDir, "] ===",
          " | Margin Level: ", DoubleToString(marginPct, 1), "%",
-         " (TRIM<=", DoubleToString(MartingaleUnwindMarginPct, 1),
-         "% HARVEST<=", DoubleToString(MartingaleHarvestMarginPct, 1),
+         " (TRIM>=", DoubleToString(MartingaleUnwindMarginPct, 1),
+         "% DEAD ", DoubleToString(MartingaleDangerMarginPct, 1), "-", DoubleToString(MartingaleUnwindMarginPct, 1),
          "% PROTECT<=", DoubleToString(MartingaleDangerMarginPct, 1), "%)",
          " | Hedge: ", hedgeCount, " pos / ", DoubleToString(hedgeLots, OrderDigits), " lots",
          " | Bias: ", biasCount, " pos / ", DoubleToString(biasLots, OrderDigits), " lots",
@@ -1384,37 +1384,27 @@ void PrintMartingaleStrategyBriefing(MartingaleState state)
    Print("Bias direction : ", biasDir, " — we hold ", coreType, " positions as core");
    Print("Hedge direction: ", hedgeType, " — opposite positions to be trimmed");
    Print("");
-   Print("TRIM  (hedge removal):");
-   if (MartingaleUnwindMarginPct > 0)
-      Print("  Threshold : margin level <= ", DoubleToString(MartingaleUnwindMarginPct, 1), "%");
-   else
-      Print("  Threshold : DISABLED (MartingaleUnwindMarginPct=0)");
-   Print("  Action    : partial close ", DoubleToString(MartingaleUnwindLotSize, OrderDigits), " lots of highest-cost ", hedgeType);
-   Print("  Goal      : improve margin level by removing expensive hedges");
+   Print("ZONES:");
+   Print("  Above ", DoubleToString(MartingaleUnwindMarginPct, 1), "% : TRIM hedges + close ", hedgeType, " (one per ", MartingaleCooldown, "s)");
+   Print("  ", DoubleToString(MartingaleDangerMarginPct, 1), "%-", DoubleToString(MartingaleUnwindMarginPct, 1), "% : DEAD ZONE — EA does nothing");
+   Print("  Below ", DoubleToString(MartingaleDangerMarginPct, 1), "% : PROTECT — close ", coreType, " every tick (no cooldown)");
    Print("");
-   Print("HARVEST (profit banking — post-trim):");
+   Print("TRIM  (above ", DoubleToString(MartingaleUnwindMarginPct, 1), "% — hedge removal):");
+   Print("  Action    : close ", hedgeType, " positions (partial ", DoubleToString(MartingaleUnwindLotSize, OrderDigits), " lots, smallest first, highest-cost entry)");
+   Print("");
    if (MartingaleHarvestMarginPct > 0)
-      Print("  Threshold : margin level <= ", DoubleToString(MartingaleHarvestMarginPct, 1), "%");
-   else
-      Print("  Threshold : DISABLED (MartingaleHarvestMarginPct=0)");
-   Print("  Action    : partial close ", DoubleToString(MartingaleHarvestLotSize, OrderDigits), " lots of most profitable ", coreType);
-   Print("  Goal      : bank profits and improve margin after hedges exhausted");
-   Print("  Toggle    : ", (HarvestEnabled ? "ENABLED" : "DISABLED"), " (button controlled)");
+   {
+      Print("HARVEST (above ", DoubleToString(MartingaleHarvestMarginPct, 1), "% — profit banking):");
+      Print("  Action    : partial close ", DoubleToString(MartingaleHarvestLotSize, OrderDigits), " lots of most profitable ", coreType);
+      Print("  Toggle    : ", (HarvestEnabled ? "ENABLED" : "DISABLED"), " (button controlled)");
+      Print("");
+   }
+   Print("PROTECT (below ", DoubleToString(MartingaleDangerMarginPct, 1), "% — emergency):");
+   Print("  Action    : partial close ", DoubleToString(MartingaleCloseChunkSize, OrderDigits), " lots of highest-cost ", coreType, " every tick");
+   Print("  Stops     : when margin recovers above ", DoubleToString(MartingaleUnwindMarginPct, 1), "%");
    Print("");
-   Print("PROTECT (bias closure — emergency):");
-   if (MartingaleDangerMarginPct > 0)
-      Print("  Threshold : margin level <= ", DoubleToString(MartingaleDangerMarginPct, 1), "%");
-   else
-      Print("  Threshold : DISABLED (MartingaleDangerMarginPct=0)");
-   Print("  Action    : partial close ", DoubleToString(MartingaleCloseChunkSize, OrderDigits), " lots of highest-cost ", coreType);
-   Print("  Goal      : prevent margin call by reducing core position size");
-   Print("");
-   Print("Profit banking : close profitable ", hedgeType, " positions every tick");
    if (MartingaleEquityTP > 0)
       Print("Equity TP      : close all at $", DoubleToString(MartingaleEquityTP, 2), " profit");
-   else
-      Print("Equity TP      : DISABLED (MartingaleEquityTP=0)");
-   Print("Cooldown       : ", MartingaleCooldown, "s between margin operations");
    Print("Current margin level: ", DoubleToString(marginPct, 1), "%");
 }
 void ProcessMartingale()
@@ -1426,10 +1416,10 @@ void ProcessMartingale()
       UnwindMartingale();
       return;
    }
-   // Bank profit on opposite-direction positions every tick
-   bool closedOpposites = CloseProfitableOppositePositions();
-   // Equity TP on all symbol positions (skip if async closes in flight — P/L is stale)
-   if (MartingaleEquityTP > 0 && !closedOpposites)
+   // Fetch margin level once per tick — all decisions based on this
+   double marginLevel = CalculateMarginLevelPct();
+   // Equity TP check
+   if (MartingaleEquityTP > 0)
    {
       double mgPL = CalculateMartingalePL();
       if (mgPL >= MartingaleEquityTP)
@@ -1442,48 +1432,42 @@ void ProcessMartingale()
          return;
       }
    }
-   // PROTECT runs outside cooldown — fires every tick to prevent margin call
-   double marginLevel = CalculateMarginLevelPct();
+   // === PROTECT: below danger level — fire every tick, no cooldown ===
    if (MartingaleDangerMarginPct > 0 && marginLevel <= MartingaleDangerMarginPct)
       ProtectActive = true;
-   // Reset fired flags when margin recovers above TRIM threshold
-   if (MartingaleUnwindMarginPct > 0 && marginLevel > MartingaleUnwindMarginPct)
+   if (ProtectActive)
    {
-      TrimFired = false;
-      if (ProtectActive)
+      // Deactivate when margin recovers above TRIM level
+      if (MartingaleUnwindMarginPct > 0 && marginLevel > MartingaleUnwindMarginPct)
       {
          ProtectActive = false;
          Print("PROTECT deactivated — margin level ", DoubleToString(marginLevel, 1), "% recovered above TRIM threshold ", DoubleToString(MartingaleUnwindMarginPct, 1), "%");
       }
+      else
+      {
+         if (ProtectivePartialCloseBias())
+            return;
+      }
    }
-   if (MartingaleHarvestMarginPct > 0 && marginLevel > MartingaleHarvestMarginPct)
-      HarvestFired = false;
-   if (ProtectActive)
-   {
-      if (ProtectivePartialCloseBias())
-         return;
-   }
-   // Cooldown gate for TRIM/HARVEST operations
+   // === DEAD ZONE: between PROTECT and TRIM — do nothing ===
+   if (MartingaleUnwindMarginPct > 0 && marginLevel <= MartingaleUnwindMarginPct)
+      return;
+   // === ABOVE TRIM: margin is healthy — close hedges and harvest ===
+   // Cooldown gate
    if (TimeCurrent() - LastMartingaleTime < MartingaleCooldown)
       return;
    LogMartingaleUnwindStatus(marginLevel);
-   // Tier 1: unwind hedges — fires once per crossing below threshold
-   if (MartingaleUnwindMarginPct > 0 && !TrimFired && marginLevel <= MartingaleUnwindMarginPct)
+   // Close one hedge position per cooldown cycle
+   if (CloseProfitableOppositePositions())
    {
-      if (UnwindHedgeByMargin())
-      {
-         TrimFired = true;
-         LastMartingaleTime = TimeCurrent();
-         return;
-      }
-      // TRIM found no hedges — fall through to HARVEST
+      LastMartingaleTime = TimeCurrent();
+      return;
    }
-   // HARVEST: bank profit on bias positions when no hedges remain — fires once per crossing
-   if (HarvestEnabled && MartingaleHarvestMarginPct > 0 && !HarvestFired && marginLevel <= MartingaleHarvestMarginPct)
+   // HARVEST: bank profit on bias when no hedges remain
+   if (HarvestEnabled && MartingaleHarvestMarginPct > 0 && marginLevel >= MartingaleHarvestMarginPct)
    {
       if (HarvestProfitableBias())
       {
-         HarvestFired = true;
          LastMartingaleTime = TimeCurrent();
          return;
       }
