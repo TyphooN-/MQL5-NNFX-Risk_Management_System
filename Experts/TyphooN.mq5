@@ -1234,10 +1234,13 @@ bool ProtectivePartialCloseBias()
       biasType = POSITION_TYPE_BUY;
    else
       return false;
-   // Find largest bias position (frees the most margin when closed), open price as tiebreaker
+   // Find best bias position to close:
+   // 1. Partials (<1000 lots) first — preserve full positions (400 pos limit)
+   // 2. Among same priority, highest-cost entry (most margin freed)
    ulong bestTicket = 0;
    double highestOpen = -1;
    double bestVolume = 0;
+   bool bestIsPartial = false;
    int total = PositionsTotal();
    for (int i = 0; i < total; i++)
    {
@@ -1251,11 +1254,19 @@ bool ProtectivePartialCloseBias()
          continue;
       double openPrice = PositionGetDouble(POSITION_PRICE_OPEN);
       double vol = PositionGetDouble(POSITION_VOLUME);
-      if (vol > bestVolume || (vol == bestVolume && openPrice > highestOpen))
+      bool isPartial = (vol < 1000);
+      if (bestIsPartial && !isPartial) continue;
+      bool better = false;
+      if (isPartial && !bestIsPartial)
+         better = true;
+      else
+         better = (openPrice > highestOpen);
+      if (better)
       {
          highestOpen = openPrice;
          bestTicket = ticket;
          bestVolume = vol;
+         bestIsPartial = isPartial;
       }
    }
    if (bestTicket == 0)
