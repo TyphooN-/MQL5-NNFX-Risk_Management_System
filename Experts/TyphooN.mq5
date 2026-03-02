@@ -680,23 +680,28 @@ void OnTick()
    // Only update labels when text actually changes (avoid redundant ObjectSetString calls)
    if (infoPL != g_prevInfoPL) { ObjectSetString(0,"infoPL",OBJPROP_TEXT,infoPL); g_prevInfoPL = infoPL; }
    if (infoRisk != g_prevInfoRisk) { ObjectSetString(0,"infoRisk",OBJPROP_TEXT,infoRisk); g_prevInfoRisk = infoRisk; }
-   // Rows 4-5: MG status when active, otherwise original SL/TP/RR
-   if (EnableMartingale && MartingaleMode != MG_OFF)
+   // Rows 4-5: hedged/MG dashboard when hedge detected or MG active, otherwise original SL/TP/RR
+   bool mgActive = (EnableMartingale && MartingaleMode != MG_OFF);
+   bool hedgeDetected = (hasLongs && hasShorts);
+   if (mgActive || hedgeDetected)
    {
       double marginPct = CalculateMarginLevelPct();
-      string zone;
-      color zoneClr;
-      if (MartingaleUnwindMarginPct > 0 && marginPct > MartingaleUnwindMarginPct)
-      { zone = "TRIM"; zoneClr = clrLime; }
-      else if (MartingaleDangerMarginPct > 0 && marginPct <= MartingaleDangerMarginPct)
-      { zone = "PROTECT"; zoneClr = clrRed; }
-      else
-      { zone = "DEAD"; zoneClr = clrGray; }
-      string biasDir = (MartingaleMode == MG_LONG) ? "LONG" : "SHORT";
+      color zoneClr = clrWhite;
+      string zone = "";
+      if (mgActive)
+      {
+         if (MartingaleUnwindMarginPct > 0 && marginPct > MartingaleUnwindMarginPct)
+         { zone = " [TRIM]"; zoneClr = clrLime; }
+         else if (MartingaleDangerMarginPct > 0 && marginPct <= MartingaleDangerMarginPct)
+         { zone = " [PROTECT]"; zoneClr = clrRed; }
+         else
+         { zone = " [DEAD]"; zoneClr = clrGray; }
+      }
       double netLots = MathAbs(lots.shortLots - lots.longLots);
+      string netDir = (lots.shortLots > lots.longLots) ? "SHORT" : "LONG";
       // Row 4: Margin level + zone (left), Net exposure (right)
-      string infoTP = "ML: " + DoubleToString(marginPct, 1) + "% [" + zone + "]";
-      string infoSLPL = "Net " + biasDir + ": " + DoubleToString(netLots, OrderDigits);
+      string infoTP = "ML: " + DoubleToString(marginPct, 1) + "%" + zone;
+      string infoSLPL = "Net " + netDir + ": " + DoubleToString(netLots, OrderDigits);
       if (infoTP != g_prevInfoTP)
       {
          ObjectSetString(0,"infoTP",OBJPROP_TEXT,infoTP);
@@ -704,8 +709,12 @@ void OnTick()
          g_prevInfoTP = infoTP;
       }
       if (infoSLPL != g_prevInfoSLPL) { ObjectSetString(0,"infoSLPL",OBJPROP_TEXT,infoSLPL); g_prevInfoSLPL = infoSLPL; }
-      // Row 5: Trim/Protect/Harvest counters (left), Equity (right)
-      string infoRR = "T:" + IntegerToString(MartingaleHedgeCloses) + " H:" + IntegerToString(MartingaleHarvestCloses) + " P:" + IntegerToString(MartingaleBiasCloses);
+      // Row 5: counters if MG active, else P/L breakdown; always show equity
+      string infoRR;
+      if (mgActive)
+         infoRR = "T:" + IntegerToString(MartingaleHedgeCloses) + " H:" + IntegerToString(MartingaleHarvestCloses) + " P:" + IntegerToString(MartingaleBiasCloses);
+      else
+         infoRR = "Bal: $" + DoubleToString(AccountBalance, 0);
       string infoTPRR = "Eq: $" + DoubleToString(AccountEquity, 0);
       if (infoRR != g_prevInfoRR)
       {
@@ -722,7 +731,7 @@ void OnTick()
    }
    else
    {
-      // Original rows 4-5 when MG is off
+      // Original rows 4-5 when no hedge and MG off
       if (infoRR != g_prevInfoRR) { ObjectSetString(0,"infoRR",OBJPROP_TEXT,infoRR); g_prevInfoRR = infoRR; }
       if (infoSLPL != g_prevInfoSLPL) { ObjectSetString(0,"infoSLPL",OBJPROP_TEXT,infoSLPL); g_prevInfoSLPL = infoSLPL; }
       string infoTP = "TP P/L : $" + DoubleToString(total_tp, 2);
