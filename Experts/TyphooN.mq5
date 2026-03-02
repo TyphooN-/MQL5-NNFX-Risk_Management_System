@@ -350,10 +350,35 @@ int OnInit()
    ExtDialog.Run();
    UpdateMartingaleButton();
    ChartRedraw(0);
+   // Log status on every reinit (timeframe change, input change, recompile)
+   double marginPct = CalculateMarginLevelPct();
+   double equity = AccountInfoDouble(ACCOUNT_EQUITY);
+   double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+   double margin = AccountInfoDouble(ACCOUNT_MARGIN);
+   Print("=== EA Initialized on ", _Symbol, " ", EnumToString(_Period), " ===",
+         " | Margin Level: ", DoubleToString(marginPct, 1), "%",
+         " | Equity: $", DoubleToString(equity, 2),
+         " | Balance: $", DoubleToString(balance, 2),
+         " | Margin: $", DoubleToString(margin, 2));
+   Print("  Martingale: ", EnableMartingale ? "ENABLED" : "DISABLED",
+         " | Mode: ", EnumToString(MartingaleMode),
+         " | TRIM: ", DoubleToString(MartingaleUnwindMarginPct, 1), "% (", g_cachedUnwindLots, " lots/", MartingaleCooldown, "s)",
+         " | PROTECT: ", DoubleToString(MartingaleDangerMarginPct, 1), "% (", g_cachedChunkSize, " lots/tick)",
+         " | Dead zone: ", DoubleToString(MartingaleDangerMarginPct, 1), "%-", DoubleToString(MartingaleUnwindMarginPct, 1), "%");
+   if (MartingaleMode == MG_LONG || MartingaleMode == MG_SHORT)
+   {
+      Print("  Closes: trim=", MartingaleHedgeCloses,
+            " harvest=", MartingaleHarvestCloses,
+            " protect=", MartingaleBiasCloses);
+   }
       return(INIT_SUCCEEDED);
 }
 void OnDeinit(const int reason)
 {
+   string reasons[] = {"PROGRAM","REMOVE","RECOMPILE","CHARTCHANGE","CHARTCLOSE",
+                       "PARAMETERS","ACCOUNT","CLOSE","INITFAILED"};
+   string reasonStr = (reason >= 0 && reason < ArraySize(reasons)) ? reasons[reason] : IntegerToString(reason);
+   Print("=== EA Deinitialized: ", reasonStr, " on ", _Symbol, " ", EnumToString(_Period), " ===");
    ExtDialog.Destroy(reason);
    ObjectsDeleteAll(0, "info");
 }
