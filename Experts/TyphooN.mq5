@@ -356,16 +356,32 @@ int OnInit()
    ExtDialog.Run();
    UpdateMartingaleButton();
    ChartRedraw(0);
+   // Scan positions for init log
+   double initLong = 0, initShort = 0;
+   for (int i = PositionsTotal() - 1; i >= 0; i--)
+   {
+      ulong ticket = PositionGetTicket(i);
+      if (ticket == 0) continue;
+      if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
+      if (PositionGetInteger(POSITION_MAGIC) != MagicNumber && MagicNumber != 0) continue;
+      if (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
+         initLong += PositionGetDouble(POSITION_VOLUME);
+      else
+         initShort += PositionGetDouble(POSITION_VOLUME);
+   }
    // Log status on every reinit (timeframe change, input change, recompile)
    double marginPct = CalculateMarginLevelPct();
    double equity = AccountInfoDouble(ACCOUNT_EQUITY);
    double balance = AccountInfoDouble(ACCOUNT_BALANCE);
    double margin = AccountInfoDouble(ACCOUNT_MARGIN);
+   double initNet = MathAbs(initLong - initShort);
+   string initBias = (initShort > initLong) ? " net SHORT" : (initLong > initShort) ? " net LONG" : " hedged";
    Print("=== EA Initialized on ", _Symbol, " ", EnumToString(_Period), " ===",
          " | Margin Level: ", DoubleToString(marginPct, 1), "%",
          " | Equity: $", DoubleToString(equity, 2),
          " | Balance: $", DoubleToString(balance, 2),
-         " | Margin: $", DoubleToString(margin, 2));
+         " | Margin: $", DoubleToString(margin, 2),
+         " | Long: ", DoubleToString(initLong, 0), " Short: ", DoubleToString(initShort, 0), " Net: ", DoubleToString(initNet, 0), initBias);
    Print("  Martingale: ", EnableMartingale ? "ENABLED" : "DISABLED",
          " | Mode: ", EnumToString(MartingaleMode),
          " | TRIM: ", DoubleToString(MartingaleUnwindMarginPct, 1), "% (", g_cachedUnwindLots, " lots/", MartingaleCooldown, "s)",
