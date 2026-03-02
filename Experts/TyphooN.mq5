@@ -1304,46 +1304,89 @@ bool UnwindHedgeByMargin()
       Print("Martingale TRIM: failed to close ", dir, " #", bestTicket, " error ", GetLastError());
    return result;
 }
-bool ProtectivePartialCloseBias()
+bool ProtectiveClose()
 {
-   // Determine bias type: MG_SHORT → bias is SELLs, MG_LONG → bias is BUYs
-   int biasType;
+   // PROTECT priority: close HEDGE first (frees margin + preserves bias), then BIAS as last resort
+   int hedgeType, biasType;
    if (MartingaleMode == MG_SHORT)
-      biasType = POSITION_TYPE_SELL;
+   { hedgeType = POSITION_TYPE_BUY; biasType = POSITION_TYPE_SELL; }
    else if (MartingaleMode == MG_LONG)
-      biasType = POSITION_TYPE_BUY;
+   { hedgeType = POSITION_TYPE_SELL; biasType = POSITION_TYPE_BUY; }
    else
       return false;
-   // Find best bias position to close:
-   // 1. Partials (<1000 lots) first — preserve full positions (400 pos limit)
-   // 2. Among same priority, highest-cost entry (most margin freed)
+   // 1. Try closing hedge first — partials (<1000) first, highest-cost entry
    ulong bestTicket = 0;
-   double highestOpen = -1;
+   double bestEntry = -1;
    double bestVolume = 0;
    bool bestIsPartial = false;
+   bool preferHighEntry = (MartingaleMode == MG_SHORT);
    int total = PositionsTotal();
    for (int i = 0; i < total; i++)
    {
       ulong ticket = PositionGetTicket(i);
       if (ticket == 0) continue;
-      if (PositionGetString(POSITION_SYMBOL) != _Symbol)
-         continue;
-      if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
-         continue;
-      if ((int)PositionGetInteger(POSITION_TYPE) != biasType)
-         continue;
-      double openPrice = PositionGetDouble(POSITION_PRICE_OPEN);
+      if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
+      if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
+      if ((int)PositionGetInteger(POSITION_TYPE) != hedgeType) continue;
+      double entry = PositionGetDouble(POSITION_PRICE_OPEN);
       double vol = PositionGetDouble(POSITION_VOLUME);
       bool isPartial = (vol < 1000);
       if (bestIsPartial && !isPartial) continue;
       bool better = false;
-      if (isPartial && !bestIsPartial)
-         better = true;
-      else
-         better = (openPrice > highestOpen);
+      if (isPartial && !bestIsPartial) better = true;
+      else if (preferHighEntry) better = (entry > bestEntry);
+      else better = (entry < bestEntry);
       if (better)
       {
-         highestOpen = openPrice;
+         bestEntry = entry;
+         bestTicket = ticket;
+         bestVolume = vol;
+         bestIsPartial = isPartial;
+      }
+   }
+   if (bestTicket != 0)
+   {
+      string dir = (hedgeType == POSITION_TYPE_BUY) ? "LONG hedge" : "SHORT hedge";
+      bool result;
+      double closeLots = (bestVolume <= g_cachedChunkSize) ? bestVolume : g_cachedChunkSize;
+      if (bestVolume <= g_cachedChunkSize)
+         result = Trade.PositionClose(bestTicket);
+      else
+         result = Trade.PositionClosePartial(bestTicket, g_cachedChunkSize);
+      if (result)
+      {
+         MartingaleHedgeCloses++;
+         double marginPct = CalculateMarginLevelPct();
+         Print("Martingale PROTECT: closed ", dir, " #", bestTicket,
+               " (", closeLots, " of ", bestVolume, " lots, entry: ", DoubleToString(bestEntry, _Digits),
+               ") margin level: ", DoubleToString(marginPct, 1), "% | hedge closes: ", MartingaleHedgeCloses);
+      }
+      else
+         Print("Martingale PROTECT: failed to close ", dir, " #", bestTicket, " error ", GetLastError());
+      return result;
+   }
+   // 2. No hedges left — fall back to closing bias (last resort)
+   bestTicket = 0;
+   bestEntry = -1;
+   bestVolume = 0;
+   bestIsPartial = false;
+   for (int i = 0; i < total; i++)
+   {
+      ulong ticket = PositionGetTicket(i);
+      if (ticket == 0) continue;
+      if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
+      if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
+      if ((int)PositionGetInteger(POSITION_TYPE) != biasType) continue;
+      double entry = PositionGetDouble(POSITION_PRICE_OPEN);
+      double vol = PositionGetDouble(POSITION_VOLUME);
+      bool isPartial = (vol < 1000);
+      if (bestIsPartial && !isPartial) continue;
+      bool better = false;
+      if (isPartial && !bestIsPartial) better = true;
+      else better = (entry > bestEntry);
+      if (better)
+      {
+         bestEntry = entry;
          bestTicket = ticket;
          bestVolume = vol;
          bestIsPartial = isPartial;
@@ -1353,6 +1396,7 @@ bool ProtectivePartialCloseBias()
       return false;
    string dir = (biasType == POSITION_TYPE_BUY) ? "LONG bias" : "SHORT bias";
    bool result;
+   double closeLots = (bestVolume <= g_cachedChunkSize) ? bestVolume : g_cachedChunkSize;
    if (bestVolume <= g_cachedChunkSize)
       result = Trade.PositionClose(bestTicket);
    else
@@ -1362,8 +1406,8 @@ bool ProtectivePartialCloseBias()
       MartingaleBiasCloses++;
       double marginPct = CalculateMarginLevelPct();
       Print("Martingale PROTECT: closed ", dir, " #", bestTicket,
-            " (", (bestVolume <= g_cachedChunkSize) ? bestVolume : g_cachedChunkSize, " of ", bestVolume, " lots, entry: ", DoubleToString(highestOpen, _Digits),
-            ") margin level: ", DoubleToString(marginPct, 1), "% | protect closes: ", MartingaleBiasCloses);
+            " (", closeLots, " of ", bestVolume, " lots, entry: ", DoubleToString(bestEntry, _Digits),
+            ") margin level: ", DoubleToString(marginPct, 1), "% | bias closes: ", MartingaleBiasCloses, " (LAST RESORT)");
    }
    else
       Print("Martingale PROTECT: failed to close ", dir, " #", bestTicket, " error ", GetLastError());
@@ -1493,7 +1537,8 @@ void PrintMartingaleStrategyBriefing(MartingaleState state)
       Print("");
    }
    Print("PROTECT (below ", DoubleToString(MartingaleDangerMarginPct, 1), "% — emergency):");
-   Print("  Action    : partial close ", DoubleToString(MartingaleCloseChunkSize, OrderDigits), " lots of highest-cost ", coreType, " every tick");
+   Print("  Priority 1: close ", hedgeType, " hedge (", DoubleToString(MartingaleCloseChunkSize, OrderDigits), " lots/tick, frees margin + preserves bias)");
+   Print("  Priority 2: close ", coreType, " bias (", DoubleToString(MartingaleCloseChunkSize, OrderDigits), " lots/tick, LAST RESORT if no hedges)");
    double protectDeactivate = (MartingaleDangerMarginPct + MartingaleUnwindMarginPct) / 2.0;
    Print("  Stops     : when margin recovers above ", DoubleToString(protectDeactivate, 1), "% (dead zone midpoint)");
    Print("");
@@ -1540,7 +1585,7 @@ void ProcessMartingale()
       }
       else
       {
-         if (ProtectivePartialCloseBias())
+         if (ProtectiveClose())
             return;
       }
    }
