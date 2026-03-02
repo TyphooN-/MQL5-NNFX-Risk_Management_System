@@ -82,14 +82,16 @@ input bool            EnableEquitySL             = false;
 input double          TargetEquitySL             = 98000;
 input group           "[MARTINGALE MODE SETTINGS]"
 input bool            EnableMartingale = false;       // Enable Martingale (master switch)
-input int             MartingaleCooldown = 15;        // seconds between orders
+input int             MartingaleCooldown = 10;        // seconds between orders
 input double          MartingaleEquityTP = 0;         // $ profit target (0 = disabled)
 input double          MartingaleUnwindMarginPct = 64;  // TRIM — % margin level to start (0=off)
-input double          MartingaleUnwindLotSize = 10;   // TRIM — lots per hedge close
+input double          MartingaleUnwindLotSize = 20;   // TRIM — lots per hedge close
 input double          MartingaleHarvestMarginPct = 0; // HARVEST — % margin level to start (0=off)
 input double          MartingaleHarvestLotSize = 1;   // HARVEST — lots per profit close
-input double          MartingaleDangerMarginPct = 60;  // PROTECT — % margin level to start (0=off)
-input double          MartingaleCloseChunkSize = 10;  // PROTECT — lots per bias close
+input double          MartingaleDangerMarginPct = 58;  // PROTECT — % margin level to start (0=off)
+input double          MartingaleCloseChunkSize = 10;  // PROTECT — lots per side (balanced close)
+input double          MartingaleMarginFloor = 10;     // PROTECT — hard floor %, stop below this (broker handles it)
+input int             MartingaleMaxProtectFires = 30; // PROTECT — circuit breaker, max fires before auto-disable
 input group           "[DISCORD ANNOUNCEMENT SETTINGS]"
 input string          DiscordAPIKey =  "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
 input bool            EnableBroadcast = false;
@@ -110,6 +112,7 @@ string g_prevInfoRR = "", g_prevInfoPL = "", g_prevInfoSLPL = "",
 datetime g_lastTimerUpdate = 0;
 double g_prevLongLots = -1, g_prevShortLots = -1;
 string g_cachedVaRStr = "VaR %: 0.00", g_cachedPositionStr = "";
+datetime g_lastVaRUpdate = 0;
 enum MartingaleState { MG_OFF, MG_LONG, MG_SHORT, MG_UNWIND };
 MartingaleState MartingaleMode = MG_OFF;
 datetime LastMartingaleTime = 0;
@@ -121,6 +124,8 @@ int MartingaleHarvestCloses = 0;
 bool TrimFired = false;
 bool HarvestFired = false;
 bool ProtectActive = false;
+int ProtectFireCount = 0;
+bool ProtectCircuitBroken = false;
 datetime g_lastOppCloseTime = 0;
 double g_cachedChunkSize = 0, g_cachedUnwindLots = 0, g_cachedHarvestLots = 0;
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
@@ -334,6 +339,7 @@ int OnInit()
    g_prevInfoTP = ""; g_prevInfoRisk = ""; g_prevInfoTPRR = "";
    g_prevInfoH4 = ""; g_prevInfoW1 = ""; g_prevInfoD1 = ""; g_prevInfoMN1 = "";
    g_lastTimerUpdate = 0;
+   g_lastVaRUpdate = 0;
    g_prevLongLots = -1; g_prevShortLots = -1;
    g_cachedVaRStr = "VaR %: 0.00"; g_cachedPositionStr = "";
    g_lastMGLogTime = 0;
@@ -363,7 +369,7 @@ int OnInit()
    Print("  Martingale: ", EnableMartingale ? "ENABLED" : "DISABLED",
          " | Mode: ", EnumToString(MartingaleMode),
          " | TRIM: ", DoubleToString(MartingaleUnwindMarginPct, 1), "% (", g_cachedUnwindLots, " lots/", MartingaleCooldown, "s)",
-         " | PROTECT: ", DoubleToString(MartingaleDangerMarginPct, 1), "% (", g_cachedChunkSize, " lots/tick)",
+         " | PROTECT: ", DoubleToString(MartingaleDangerMarginPct, 1), "% (", g_cachedChunkSize, " lots/side, floor=", DoubleToString(MartingaleMarginFloor, 0), "%, max=", MartingaleMaxProtectFires, " fires)",
          " | Dead zone: ", DoubleToString(MartingaleDangerMarginPct, 1), "%-", DoubleToString(MartingaleUnwindMarginPct, 1), "%");
    if (MartingaleMode == MG_LONG || MartingaleMode == MG_SHORT)
    {
@@ -371,7 +377,15 @@ int OnInit()
             " harvest=", MartingaleHarvestCloses,
             " protect=", MartingaleBiasCloses);
    }
+      EventSetTimer(1);
       return(INIT_SUCCEEDED);
+}
+bool g_timerTick = false;
+void OnTimer()
+{
+   g_timerTick = true;
+   OnTick();
+   g_timerTick = false;
 }
 void OnDeinit(const int reason)
 {
@@ -379,6 +393,7 @@ void OnDeinit(const int reason)
                        "PARAMETERS","ACCOUNT","CLOSE","INITFAILED"};
    string reasonStr = (reason >= 0 && reason < ArraySize(reasons)) ? reasons[reason] : IntegerToString(reason);
    Print("=== EA Deinitialized: ", reasonStr, " on ", _Symbol, " ", EnumToString(_Period), " ===");
+   EventKillTimer();
    ExtDialog.Destroy(reason);
    ObjectsDeleteAll(0, "info");
 }
@@ -524,15 +539,20 @@ void OnTick()
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    // Check if both bid and ask prices have changed from the previous tick
-   if (Bid == prevBidPrice && Ask == prevAskPrice)
+   // Timer-driven ticks bypass this to refresh dashboard when market isn't ticking
+   if (Bid == prevBidPrice && Ask == prevAskPrice && !g_timerTick)
    {
       return;
    }
    AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
    AccountEquity = AccountInfoDouble(ACCOUNT_EQUITY);
-   ProcessMartingale();
-   prevBidPrice = Bid;
-   prevAskPrice = Ask;
+   bool priceChanged = (Bid != prevBidPrice || Ask != prevAskPrice);
+   if (priceChanged)
+   {
+      ProcessMartingale();
+      prevBidPrice = Bid;
+      prevAskPrice = Ask;
+   }
    double total_risk = 0;
    double total_pl = 0;
    double total_tp = 0;
@@ -753,7 +773,7 @@ void OnTick()
       string infoMN1 = "MN1: " + TimeTilNextBar(PERIOD_MN1);
       if (infoMN1 != g_prevInfoMN1) { ObjectSetString(0,"infoMN1",OBJPROP_TEXT,infoMN1); g_prevInfoMN1 = infoMN1; }
    }
-   // Cache position display and VaR: only update when lot sizes change
+   // Position display: only update when lot sizes change
    bool lotsChanged = (lots.longLots != g_prevLongLots || lots.shortLots != g_prevShortLots);
    if (lotsChanged)
    {
@@ -762,28 +782,56 @@ void OnTick()
          g_cachedPositionStr = "Long " + DoubleToString(lots.longLots, OrderDigits) + " Lots";
          ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrLime);
          ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrLime);
-         if (AccountEquity > 0 && PortfolioRisk.CalculateVaR(_Symbol, lots.longLots))
-            g_cachedVaRStr = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2);
       }
       else if (lots.shortLots > 0 && lots.longLots == 0)
       {
          g_cachedPositionStr = "Short " + DoubleToString(lots.shortLots, OrderDigits) + " Lots";
          ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrRed);
          ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrRed);
-         if (AccountEquity > 0 && PortfolioRisk.CalculateVaR(_Symbol, lots.shortLots))
-            g_cachedVaRStr = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2);
       }
       else if (lots.shortLots > 0 && lots.longLots > 0)
       {
-         double netExposure = MathAbs(lots.longLots - lots.shortLots);
          g_cachedPositionStr = DoubleToString(lots.longLots, 0) + " L / " + DoubleToString(lots.shortLots, 0) + " S";
          color netClr = (lots.shortLots > lots.longLots) ? clrRed : clrLime;
          ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,netClr);
          ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,netClr);
-         if (netExposure > 0 && AccountEquity > 0 && PortfolioRisk.CalculateVaR(_Symbol, netExposure))
-            g_cachedVaRStr = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2) + " (net)";
+      }
+      else
+      {
+         g_cachedPositionStr = "No Positions Detected";
+         ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrWhite);
+         ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrWhite);
+      }
+      ObjectSetString(0,"infoPosition",OBJPROP_TEXT,g_cachedPositionStr);
+      g_prevLongLots = lots.longLots;
+      g_prevShortLots = lots.shortLots;
+   }
+   // VaR: recalculate every second (equity and volatility change per tick/bar)
+   if (now != g_lastVaRUpdate)
+   {
+      g_lastVaRUpdate = now;
+      string newVaR;
+      if (lots.longLots > 0 && lots.shortLots == 0)
+      {
+         if (AccountEquity > 0 && PortfolioRisk.CalculateVaR(_Symbol, lots.longLots))
+            newVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2);
          else
-            g_cachedVaRStr = "VaR %: 0.00 (hedged)";
+            newVaR = g_cachedVaRStr;
+      }
+      else if (lots.shortLots > 0 && lots.longLots == 0)
+      {
+         if (AccountEquity > 0 && PortfolioRisk.CalculateVaR(_Symbol, lots.shortLots))
+            newVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2);
+         else
+            newVaR = g_cachedVaRStr;
+      }
+      else if (lots.shortLots > 0 && lots.longLots > 0)
+      {
+         double netExposure = MathAbs(lots.longLots - lots.shortLots);
+         if (netExposure > 0 && AccountEquity > 0 && PortfolioRisk.CalculateVaR(_Symbol, netExposure))
+            newVaR = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2) + " (net)";
+         else
+            newVaR = "VaR %: 0.00 (hedged)";
       }
       else
       {
@@ -791,18 +839,19 @@ void OnTick()
          if(PortfolioRisk.CalculateVaR(_Symbol, 1.0))
          {
             var_1_lot = PortfolioRisk.SinglePositionVaR;
-            g_cachedPositionStr = "VaR 1 lot: " + DoubleToString(var_1_lot, 2);
+            if (lotsChanged)
+            {
+               g_cachedPositionStr = "VaR 1 lot: " + DoubleToString(var_1_lot, 2);
+               ObjectSetString(0,"infoPosition",OBJPROP_TEXT,g_cachedPositionStr);
+            }
          }
-         else
-            g_cachedPositionStr = "No Positions Detected";
-         g_cachedVaRStr = "VaR %: 0.00";
-         ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrWhite);
-         ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrWhite);
+         newVaR = "VaR %: 0.00";
       }
-      ObjectSetString(0,"infoPosition",OBJPROP_TEXT,g_cachedPositionStr);
-      ObjectSetString(0,"infoVaR",OBJPROP_TEXT,g_cachedVaRStr);
-      g_prevLongLots = lots.longLots;
-      g_prevShortLots = lots.shortLots;
+      if (newVaR != g_cachedVaRStr)
+      {
+         g_cachedVaRStr = newVaR;
+         ObjectSetString(0,"infoVaR",OBJPROP_TEXT,g_cachedVaRStr);
+      }
    }
 }
 void OnChartEvent(const int id,         // event ID  
@@ -1306,7 +1355,8 @@ bool UnwindHedgeByMargin()
 }
 bool ProtectiveClose()
 {
-   // PROTECT priority: close HEDGE first (frees margin + preserves bias), then BIAS as last resort
+   // PROTECT: balanced gross reduction — close BOTH sides equally to preserve net bias
+   // Closing only one side un-hedges the position, worsening margin due to hedge netting
    int hedgeType, biasType;
    if (MartingaleMode == MG_SHORT)
    { hedgeType = POSITION_TYPE_BUY; biasType = POSITION_TYPE_SELL; }
@@ -1314,13 +1364,12 @@ bool ProtectiveClose()
    { hedgeType = POSITION_TYPE_SELL; biasType = POSITION_TYPE_BUY; }
    else
       return false;
-   // 1. Try closing hedge first — partials (<1000) first, highest-cost entry
-   ulong bestTicket = 0;
-   double bestEntry = -1;
-   double bestVolume = 0;
-   bool bestIsPartial = false;
    bool preferHighEntry = (MartingaleMode == MG_SHORT);
    int total = PositionsTotal();
+   // Find best hedge position (partials first, highest-cost entry)
+   ulong hedgeTicket = 0;
+   double hedgeEntry = -1, hedgeVolume = 0;
+   bool hedgeIsPartial = false;
    for (int i = 0; i < total; i++)
    {
       ulong ticket = PositionGetTicket(i);
@@ -1331,45 +1380,18 @@ bool ProtectiveClose()
       double entry = PositionGetDouble(POSITION_PRICE_OPEN);
       double vol = PositionGetDouble(POSITION_VOLUME);
       bool isPartial = (vol < 1000);
-      if (bestIsPartial && !isPartial) continue;
+      if (hedgeIsPartial && !isPartial) continue;
       bool better = false;
-      if (isPartial && !bestIsPartial) better = true;
-      else if (preferHighEntry) better = (entry > bestEntry);
-      else better = (entry < bestEntry);
+      if (isPartial && !hedgeIsPartial) better = true;
+      else if (preferHighEntry) better = (entry > hedgeEntry);
+      else better = (entry < hedgeEntry);
       if (better)
-      {
-         bestEntry = entry;
-         bestTicket = ticket;
-         bestVolume = vol;
-         bestIsPartial = isPartial;
-      }
+      { hedgeEntry = entry; hedgeTicket = ticket; hedgeVolume = vol; hedgeIsPartial = isPartial; }
    }
-   if (bestTicket != 0)
-   {
-      string dir = (hedgeType == POSITION_TYPE_BUY) ? "LONG hedge" : "SHORT hedge";
-      bool result;
-      double closeLots = (bestVolume <= g_cachedChunkSize) ? bestVolume : g_cachedChunkSize;
-      if (bestVolume <= g_cachedChunkSize)
-         result = Trade.PositionClose(bestTicket);
-      else
-         result = Trade.PositionClosePartial(bestTicket, g_cachedChunkSize);
-      if (result)
-      {
-         MartingaleHedgeCloses++;
-         double marginPct = CalculateMarginLevelPct();
-         Print("Martingale PROTECT: closed ", dir, " #", bestTicket,
-               " (", closeLots, " of ", bestVolume, " lots, entry: ", DoubleToString(bestEntry, _Digits),
-               ") margin level: ", DoubleToString(marginPct, 1), "% | hedge closes: ", MartingaleHedgeCloses);
-      }
-      else
-         Print("Martingale PROTECT: failed to close ", dir, " #", bestTicket, " error ", GetLastError());
-      return result;
-   }
-   // 2. No hedges left — fall back to closing bias (last resort)
-   bestTicket = 0;
-   bestEntry = -1;
-   bestVolume = 0;
-   bestIsPartial = false;
+   // Find best bias position (partials first, highest-cost entry)
+   ulong biasTicket = 0;
+   double biasEntry = -1, biasVolume = 0;
+   bool biasIsPartial = false;
    for (int i = 0; i < total; i++)
    {
       ulong ticket = PositionGetTicket(i);
@@ -1380,38 +1402,72 @@ bool ProtectiveClose()
       double entry = PositionGetDouble(POSITION_PRICE_OPEN);
       double vol = PositionGetDouble(POSITION_VOLUME);
       bool isPartial = (vol < 1000);
-      if (bestIsPartial && !isPartial) continue;
+      if (biasIsPartial && !isPartial) continue;
       bool better = false;
-      if (isPartial && !bestIsPartial) better = true;
-      else better = (entry > bestEntry);
+      if (isPartial && !biasIsPartial) better = true;
+      else better = (entry > biasEntry);
       if (better)
-      {
-         bestEntry = entry;
-         bestTicket = ticket;
-         bestVolume = vol;
-         bestIsPartial = isPartial;
-      }
+      { biasEntry = entry; biasTicket = ticket; biasVolume = vol; biasIsPartial = isPartial; }
    }
-   if (bestTicket == 0)
-      return false;
-   string dir = (biasType == POSITION_TYPE_BUY) ? "LONG bias" : "SHORT bias";
-   bool result;
-   double closeLots = (bestVolume <= g_cachedChunkSize) ? bestVolume : g_cachedChunkSize;
-   if (bestVolume <= g_cachedChunkSize)
-      result = Trade.PositionClose(bestTicket);
-   else
-      result = Trade.PositionClosePartial(bestTicket, g_cachedChunkSize);
-   if (result)
+   // Balanced close: both sides when hedged, single side if only one remains
+   bool hedgeClosed = false, biasClosed = false;
+   if (hedgeTicket != 0)
    {
-      MartingaleBiasCloses++;
-      double marginPct = CalculateMarginLevelPct();
-      Print("Martingale PROTECT: closed ", dir, " #", bestTicket,
-            " (", closeLots, " of ", bestVolume, " lots, entry: ", DoubleToString(bestEntry, _Digits),
-            ") margin level: ", DoubleToString(marginPct, 1), "% | bias closes: ", MartingaleBiasCloses, " (LAST RESORT)");
+      bool result;
+      if (hedgeVolume <= g_cachedChunkSize)
+         result = Trade.PositionClose(hedgeTicket);
+      else
+         result = Trade.PositionClosePartial(hedgeTicket, g_cachedChunkSize);
+      if (result)
+      {
+         MartingaleHedgeCloses++;
+         hedgeClosed = true;
+      }
+      else
+         Print("Martingale PROTECT: failed to close hedge #", hedgeTicket, " error ", GetLastError());
    }
-   else
-      Print("Martingale PROTECT: failed to close ", dir, " #", bestTicket, " error ", GetLastError());
-   return result;
+   if (biasTicket != 0 && hedgeTicket != 0)
+   {
+      // Balanced: close bias side to match hedge close (preserves net)
+      bool result;
+      if (biasVolume <= g_cachedChunkSize)
+         result = Trade.PositionClose(biasTicket);
+      else
+         result = Trade.PositionClosePartial(biasTicket, g_cachedChunkSize);
+      if (result)
+      {
+         MartingaleBiasCloses++;
+         biasClosed = true;
+      }
+      else
+         Print("Martingale PROTECT: failed to close bias #", biasTicket, " error ", GetLastError());
+   }
+   else if (hedgeTicket == 0)
+   {
+      // SAFEGUARD 2: No hedges left — NEVER close bias in a crisis
+      // Closing bias at low margin just locks in losses. Let broker handle stop-out.
+      Print("PROTECT: no hedges remaining — refusing to close bias. Standing down.");
+      return false;
+   }
+   if (hedgeClosed || biasClosed)
+   {
+      double marginPct = CalculateMarginLevelPct();
+      double hedgeLots = (hedgeClosed) ? MathMin(hedgeVolume, g_cachedChunkSize) : 0;
+      double biasLots = (biasClosed) ? MathMin(biasVolume, g_cachedChunkSize) : 0;
+      if (hedgeClosed && biasClosed)
+         Print("Martingale PROTECT: balanced close ", hedgeLots, "L + ", biasLots, "S"
+               " (-", hedgeLots + biasLots, " gross, net preserved)"
+               " margin: ", DoubleToString(marginPct, 1), "%"
+               " | fires: ", ProtectFireCount + 1, "/", MartingaleMaxProtectFires,
+               " | closes: h=", MartingaleHedgeCloses, " b=", MartingaleBiasCloses);
+      else if (hedgeClosed)
+         Print("Martingale PROTECT: closed hedge ", hedgeLots, " lots"
+               " margin: ", DoubleToString(marginPct, 1), "%"
+               " | fires: ", ProtectFireCount + 1, "/", MartingaleMaxProtectFires,
+               " | hedge closes: ", MartingaleHedgeCloses);
+      return true;
+   }
+   return false;
 }
 bool HarvestProfitableBias()
 {
@@ -1524,7 +1580,7 @@ void PrintMartingaleStrategyBriefing(MartingaleState state)
    Print("ZONES:");
    Print("  Above ", DoubleToString(MartingaleUnwindMarginPct, 1), "% : TRIM hedges + close ", hedgeType, " (one per ", MartingaleCooldown, "s)");
    Print("  ", DoubleToString(MartingaleDangerMarginPct, 1), "%-", DoubleToString(MartingaleUnwindMarginPct, 1), "% : DEAD ZONE — EA does nothing");
-   Print("  Below ", DoubleToString(MartingaleDangerMarginPct, 1), "% : PROTECT — close ", coreType, " every tick (no cooldown)");
+   Print("  Below ", DoubleToString(MartingaleDangerMarginPct, 1), "% : PROTECT — balanced close both sides every tick (no cooldown)");
    Print("");
    Print("TRIM  (above ", DoubleToString(MartingaleUnwindMarginPct, 1), "% — hedge removal):");
    Print("  Action    : close ", hedgeType, " positions (partial ", DoubleToString(MartingaleUnwindLotSize, OrderDigits), " lots, smallest first, highest-cost entry)");
@@ -1536,11 +1592,13 @@ void PrintMartingaleStrategyBriefing(MartingaleState state)
       Print("  Toggle    : ", (HarvestEnabled ? "ENABLED" : "DISABLED"), " (button controlled)");
       Print("");
    }
-   Print("PROTECT (below ", DoubleToString(MartingaleDangerMarginPct, 1), "% — emergency):");
-   Print("  Priority 1: close ", hedgeType, " hedge (", DoubleToString(MartingaleCloseChunkSize, OrderDigits), " lots/tick, frees margin + preserves bias)");
-   Print("  Priority 2: close ", coreType, " bias (", DoubleToString(MartingaleCloseChunkSize, OrderDigits), " lots/tick, LAST RESORT if no hedges)");
+   Print("PROTECT (below ", DoubleToString(MartingaleDangerMarginPct, 1), "% — emergency balanced close):");
+   Print("  Hedged    : close ", DoubleToString(MartingaleCloseChunkSize, OrderDigits), " ", hedgeType, " + ", DoubleToString(MartingaleCloseChunkSize, OrderDigits), " ", coreType, " per tick (balanced gross reduction, net preserved)");
+   Print("  No hedges : STOP — never close bias in crisis (broker handles stop-out)");
    double protectDeactivate = (MartingaleDangerMarginPct + MartingaleUnwindMarginPct) / 2.0;
    Print("  Stops     : when margin recovers above ", DoubleToString(protectDeactivate, 1), "% (dead zone midpoint)");
+   Print("  Hard floor: ", DoubleToString(MartingaleMarginFloor, 1), "% — PROTECT halts below this (broker in control)");
+   Print("  Circuit   : max ", MartingaleMaxProtectFires, " fires before auto-disable");
    Print("");
    if (MartingaleEquityTP > 0)
       Print("Equity TP      : close all at $", DoubleToString(MartingaleEquityTP, 2), " profit");
@@ -1572,21 +1630,41 @@ void ProcessMartingale()
       }
    }
    // === PROTECT: below danger level — fire every tick, no cooldown ===
-   if (MartingaleDangerMarginPct > 0 && marginLevel <= MartingaleDangerMarginPct)
+   if (MartingaleDangerMarginPct > 0 && marginLevel <= MartingaleDangerMarginPct && !ProtectCircuitBroken)
       ProtectActive = true;
    if (ProtectActive)
    {
+      // SAFEGUARD 1: Hard margin floor — broker is in control, EA stops
+      if (MartingaleMarginFloor > 0 && marginLevel <= MartingaleMarginFloor)
+      {
+         if (!ProtectCircuitBroken)
+            Print("PROTECT HALTED — margin ", DoubleToString(marginLevel, 1), "% below hard floor ", DoubleToString(MartingaleMarginFloor, 1), "%. Broker handles stop-out. EA standing down.");
+         ProtectActive = false;
+         ProtectCircuitBroken = true;
+         return;
+      }
+      // SAFEGUARD 3: Circuit breaker — max fires exceeded
+      if (MartingaleMaxProtectFires > 0 && ProtectFireCount >= MartingaleMaxProtectFires)
+      {
+         Print("PROTECT CIRCUIT BREAKER — ", ProtectFireCount, " fires reached limit of ", MartingaleMaxProtectFires, ". PROTECT disabled until manual reset.");
+         ProtectActive = false;
+         ProtectCircuitBroken = true;
+         return;
+      }
       // Deactivate when margin recovers to midpoint of dead zone
       double protectDeactivate = (MartingaleDangerMarginPct + MartingaleUnwindMarginPct) / 2.0;
       if (marginLevel > protectDeactivate)
       {
          ProtectActive = false;
-         Print("PROTECT deactivated — margin level ", DoubleToString(marginLevel, 1), "% recovered above dead zone midpoint ", DoubleToString(protectDeactivate, 1), "%");
+         Print("PROTECT deactivated — margin level ", DoubleToString(marginLevel, 1), "% recovered above dead zone midpoint ", DoubleToString(protectDeactivate, 1), "% | fires: ", ProtectFireCount);
       }
       else
       {
          if (ProtectiveClose())
+         {
+            ProtectFireCount++;
             return;
+         }
       }
    }
    // === DEAD ZONE: between PROTECT and TRIM — do nothing ===
@@ -2043,6 +2121,8 @@ void TyWindow::OnClickMartingale(void)
       TrimFired = false;
       HarvestFired = false;
       ProtectActive = false;
+      ProtectFireCount = 0;
+      ProtectCircuitBroken = false;
       g_lastOppCloseTime = 0;
       UpdateMartingaleButton();
       Print("Martingale mode changed to ", EnumToString(MartingaleMode), " on ", _Symbol);
@@ -2063,6 +2143,9 @@ void TyWindow::OnClickMartingale(void)
          MartingaleBiasCloses = 0;
          MartingaleHarvestCloses = 0;
          HarvestEnabled = false;
+         ProtectActive = false;
+         ProtectFireCount = 0;
+         ProtectCircuitBroken = false;
          g_lastOppCloseTime = 0;
          UpdateMartingaleButton();
          Print("Martingale mode changed to ", EnumToString(MartingaleMode), " on ", _Symbol);
