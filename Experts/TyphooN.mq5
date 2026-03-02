@@ -1400,13 +1400,15 @@ void LogMartingaleUnwindStatus(double marginPctArg = -1)
    double marginPct = (marginPctArg >= 0) ? marginPctArg : CalculateMarginLevelPct();
    double equity = AccountInfoDouble(ACCOUNT_EQUITY);
    double margin = AccountInfoDouble(ACCOUNT_MARGIN);
+   double netShort = biasLots - hedgeLots;
    Print("=== Martingale Unwind Status [", biasDir, "] ===",
          " | Margin Level: ", DoubleToString(marginPct, 1), "%",
          " (TRIM>=", DoubleToString(MartingaleUnwindMarginPct, 1),
          "% DEAD ", DoubleToString(MartingaleDangerMarginPct, 1), "-", DoubleToString(MartingaleUnwindMarginPct, 1),
          "% PROTECT<=", DoubleToString(MartingaleDangerMarginPct, 1), "%)",
-         " | Hedge: ", hedgeCount, " pos / ", DoubleToString(hedgeLots, OrderDigits), " lots",
-         " | Bias: ", biasCount, " pos / ", DoubleToString(biasLots, OrderDigits), " lots",
+         " | Hedge: ", DoubleToString(hedgeLots, OrderDigits), " lots",
+         " | Bias: ", DoubleToString(biasLots, OrderDigits), " lots",
+         " | Net ", biasDir, ": ", DoubleToString(netShort, OrderDigits), " lots",
          " | Closes: trim=", MartingaleHedgeCloses, " harvest=", MartingaleHarvestCloses, " protect=", MartingaleBiasCloses,
          " | Equity: $", DoubleToString(equity, 2), " Margin: $", DoubleToString(margin, 2));
 }
