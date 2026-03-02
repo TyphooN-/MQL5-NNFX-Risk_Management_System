@@ -348,6 +348,8 @@ int OnInit()
    if(!ExtDialog.Create(0,"TyphooN Risk Management",0,40,40,272,200))
       return(INIT_FAILED);
    ExtDialog.Run();
+   UpdateMartingaleButton();
+   ChartRedraw(0);
       return(INIT_SUCCEEDED);
 }
 void OnDeinit(const int reason)
