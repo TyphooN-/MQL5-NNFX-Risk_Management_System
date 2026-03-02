@@ -1125,7 +1125,10 @@ bool CloseProfitableOppositePositions()
          Print("Martingale TRIM: partial close ", dir, " #", bestTicket, " (", g_cachedUnwindLots, " of ", bestVolume, " lots) P/L: $", DoubleToString(bestPL, 2));
    }
    if (result)
+   {
+      MartingaleHedgeCloses++;
       g_lastOppCloseTime = TimeCurrent();
+   }
    else
       Print("Martingale: failed to close ", dir, " #", bestTicket, " error ", GetLastError());
    return result;
