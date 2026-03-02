@@ -776,9 +776,10 @@ void OnTick()
       else if (lots.shortLots > 0 && lots.longLots > 0)
       {
          double netExposure = MathAbs(lots.longLots - lots.shortLots);
-         g_cachedPositionStr = DoubleToString(lots.longLots, OrderDigits) + " Long / " + DoubleToString(lots.shortLots, OrderDigits) + " Short";
-         ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,clrWhite);
-         ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,clrWhite);
+         g_cachedPositionStr = DoubleToString(lots.longLots, 0) + " L / " + DoubleToString(lots.shortLots, 0) + " S";
+         color netClr = (lots.shortLots > lots.longLots) ? clrRed : clrLime;
+         ObjectSetInteger(0,"infoPosition",OBJPROP_COLOR,netClr);
+         ObjectSetInteger(0,"infoVaR",OBJPROP_COLOR,netClr);
          if (netExposure > 0 && AccountEquity > 0 && PortfolioRisk.CalculateVaR(_Symbol, netExposure))
             g_cachedVaRStr = "VaR %: " + DoubleToString((PortfolioRisk.SinglePositionVaR/AccountEquity * 100), 2) + " (net)";
          else
