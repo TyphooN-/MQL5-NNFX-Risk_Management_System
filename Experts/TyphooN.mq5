@@ -363,7 +363,7 @@ int OnInit()
       ulong ticket = PositionGetTicket(i);
       if (ticket == 0) continue;
       if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
-      if (PositionGetInteger(POSITION_MAGIC) != MagicNumber && MagicNumber != 0) continue;
+      if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
       if (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY)
          initLong += PositionGetDouble(POSITION_VOLUME);
       else
