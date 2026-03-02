@@ -678,14 +678,58 @@ void OnTick()
    if(!hasLongs && !hasShorts)
       percent_risk = 0;
    // Only update labels when text actually changes (avoid redundant ObjectSetString calls)
-   if (infoRR != g_prevInfoRR) { ObjectSetString(0,"infoRR",OBJPROP_TEXT,infoRR); g_prevInfoRR = infoRR; }
    if (infoPL != g_prevInfoPL) { ObjectSetString(0,"infoPL",OBJPROP_TEXT,infoPL); g_prevInfoPL = infoPL; }
-   if (infoSLPL != g_prevInfoSLPL) { ObjectSetString(0,"infoSLPL",OBJPROP_TEXT,infoSLPL); g_prevInfoSLPL = infoSLPL; }
-   string infoTP = "TP P/L : $" + DoubleToString(total_tp, 2);
-   if (infoTP != g_prevInfoTP) { ObjectSetString(0,"infoTP",OBJPROP_TEXT,infoTP); g_prevInfoTP = infoTP; }
    if (infoRisk != g_prevInfoRisk) { ObjectSetString(0,"infoRisk",OBJPROP_TEXT,infoRisk); g_prevInfoRisk = infoRisk; }
-   string infoTPRR = "TP RR: " + DoubleToString(tprr, 2);
-   if (infoTPRR != g_prevInfoTPRR) { ObjectSetString(0,"infoTPRR",OBJPROP_TEXT,infoTPRR); g_prevInfoTPRR = infoTPRR; }
+   // Rows 4-5: MG status when active, otherwise original SL/TP/RR
+   if (EnableMartingale && MartingaleMode != MG_OFF)
+   {
+      double marginPct = CalculateMarginLevelPct();
+      string zone;
+      color zoneClr;
+      if (MartingaleUnwindMarginPct > 0 && marginPct > MartingaleUnwindMarginPct)
+      { zone = "TRIM"; zoneClr = clrLime; }
+      else if (MartingaleDangerMarginPct > 0 && marginPct <= MartingaleDangerMarginPct)
+      { zone = "PROTECT"; zoneClr = clrRed; }
+      else
+      { zone = "DEAD"; zoneClr = clrGray; }
+      string biasDir = (MartingaleMode == MG_LONG) ? "LONG" : "SHORT";
+      double netLots = MathAbs(lots.shortLots - lots.longLots);
+      // Row 4: Margin level + zone (left), Net exposure (right)
+      string infoTP = "ML: " + DoubleToString(marginPct, 1) + "% [" + zone + "]";
+      string infoSLPL = "Net " + biasDir + ": " + DoubleToString(netLots, OrderDigits);
+      if (infoTP != g_prevInfoTP)
+      {
+         ObjectSetString(0,"infoTP",OBJPROP_TEXT,infoTP);
+         ObjectSetInteger(0,"infoTP",OBJPROP_COLOR,zoneClr);
+         g_prevInfoTP = infoTP;
+      }
+      if (infoSLPL != g_prevInfoSLPL) { ObjectSetString(0,"infoSLPL",OBJPROP_TEXT,infoSLPL); g_prevInfoSLPL = infoSLPL; }
+      // Row 5: Trim/Protect/Harvest counters (left), Equity (right)
+      string infoRR = "T:" + IntegerToString(MartingaleHedgeCloses) + " H:" + IntegerToString(MartingaleHarvestCloses) + " P:" + IntegerToString(MartingaleBiasCloses);
+      string infoTPRR = "Eq: $" + DoubleToString(AccountEquity, 0);
+      if (infoRR != g_prevInfoRR)
+      {
+         ObjectSetString(0,"infoRR",OBJPROP_TEXT,infoRR);
+         ObjectSetInteger(0,"infoRR",OBJPROP_COLOR,clrWhite);
+         g_prevInfoRR = infoRR;
+      }
+      if (infoTPRR != g_prevInfoTPRR)
+      {
+         ObjectSetString(0,"infoTPRR",OBJPROP_TEXT,infoTPRR);
+         ObjectSetInteger(0,"infoTPRR",OBJPROP_COLOR,clrWhite);
+         g_prevInfoTPRR = infoTPRR;
+      }
+   }
+   else
+   {
+      // Original rows 4-5 when MG is off
+      if (infoRR != g_prevInfoRR) { ObjectSetString(0,"infoRR",OBJPROP_TEXT,infoRR); g_prevInfoRR = infoRR; }
+      if (infoSLPL != g_prevInfoSLPL) { ObjectSetString(0,"infoSLPL",OBJPROP_TEXT,infoSLPL); g_prevInfoSLPL = infoSLPL; }
+      string infoTP = "TP P/L : $" + DoubleToString(total_tp, 2);
+      if (infoTP != g_prevInfoTP) { ObjectSetString(0,"infoTP",OBJPROP_TEXT,infoTP); g_prevInfoTP = infoTP; }
+      string infoTPRR = "TP RR: " + DoubleToString(tprr, 2);
+      if (infoTPRR != g_prevInfoTPRR) { ObjectSetString(0,"infoTPRR",OBJPROP_TEXT,infoTPRR); g_prevInfoTPRR = infoTPRR; }
+   }
    // Only update countdown timers once per second (iTime is expensive)
    datetime now = TimeCurrent();
    if (now != g_lastTimerUpdate)
