@@ -1444,7 +1444,8 @@ void PrintMartingaleStrategyBriefing(MartingaleState state)
    }
    Print("PROTECT (below ", DoubleToString(MartingaleDangerMarginPct, 1), "% — emergency):");
    Print("  Action    : partial close ", DoubleToString(MartingaleCloseChunkSize, OrderDigits), " lots of highest-cost ", coreType, " every tick");
-   Print("  Stops     : when margin recovers above ", DoubleToString(MartingaleUnwindMarginPct, 1), "%");
+   double protectDeactivate = (MartingaleDangerMarginPct + MartingaleUnwindMarginPct) / 2.0;
+   Print("  Stops     : when margin recovers above ", DoubleToString(protectDeactivate, 1), "% (dead zone midpoint)");
    Print("");
    if (MartingaleEquityTP > 0)
       Print("Equity TP      : close all at $", DoubleToString(MartingaleEquityTP, 2), " profit");
@@ -1480,11 +1481,12 @@ void ProcessMartingale()
       ProtectActive = true;
    if (ProtectActive)
    {
-      // Deactivate when margin recovers above TRIM level
-      if (MartingaleUnwindMarginPct > 0 && marginLevel > MartingaleUnwindMarginPct)
+      // Deactivate when margin recovers to midpoint of dead zone
+      double protectDeactivate = (MartingaleDangerMarginPct + MartingaleUnwindMarginPct) / 2.0;
+      if (marginLevel > protectDeactivate)
       {
          ProtectActive = false;
-         Print("PROTECT deactivated — margin level ", DoubleToString(marginLevel, 1), "% recovered above TRIM threshold ", DoubleToString(MartingaleUnwindMarginPct, 1), "%");
+         Print("PROTECT deactivated — margin level ", DoubleToString(marginLevel, 1), "% recovered above dead zone midpoint ", DoubleToString(protectDeactivate, 1), "%");
       }
       else
       {
