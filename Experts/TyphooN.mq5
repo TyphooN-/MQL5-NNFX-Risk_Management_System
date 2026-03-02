@@ -1110,17 +1110,17 @@ bool CloseProfitableOppositePositions()
       return false;
    string dir = (closeType == POSITION_TYPE_BUY) ? "LONG" : "SHORT";
    bool result;
-   if (bestVolume <= g_cachedChunkSize)
+   if (bestVolume <= g_cachedUnwindLots)
    {
       result = Trade.PositionClose(bestTicket);
       if (result)
-         Print("Martingale: closed ", dir, " #", bestTicket, " (", bestVolume, " lots) P/L: $", DoubleToString(bestPL, 2));
+         Print("Martingale TRIM: closed ", dir, " #", bestTicket, " (", bestVolume, " lots) P/L: $", DoubleToString(bestPL, 2));
    }
    else
    {
-      result = Trade.PositionClosePartial(bestTicket, g_cachedChunkSize);
+      result = Trade.PositionClosePartial(bestTicket, g_cachedUnwindLots);
       if (result)
-         Print("Martingale: partial close ", dir, " #", bestTicket, " (", g_cachedChunkSize, " of ", bestVolume, " lots) P/L: $", DoubleToString(bestPL, 2));
+         Print("Martingale TRIM: partial close ", dir, " #", bestTicket, " (", g_cachedUnwindLots, " of ", bestVolume, " lots) P/L: $", DoubleToString(bestPL, 2));
    }
    if (result)
       g_lastOppCloseTime = TimeCurrent();
