@@ -126,6 +126,9 @@ bool HarvestFired = false;
 bool ProtectActive = false;
 int ProtectFireCount = 0;
 bool ProtectCircuitBroken = false;
+// Init-time baselines for tracking progress
+double g_initEquity = 0, g_initBalance = 0, g_initMarginPct = 0;
+double g_initHedgeLots = 0, g_initBiasLots = 0, g_initNetLots = 0;
 datetime g_lastOppCloseTime = 0;
 double g_cachedChunkSize = 0, g_cachedUnwindLots = 0, g_cachedHarvestLots = 0;
 #define INDENT_LEFT       (10)      // indent from left (with allowance for border width)
@@ -376,6 +379,14 @@ int OnInit()
    double margin = AccountInfoDouble(ACCOUNT_MARGIN);
    double initNet = MathAbs(initLong - initShort);
    string initBias = (initShort > initLong) ? " net SHORT" : (initLong > initShort) ? " net LONG" : " hedged";
+   // Store baselines for progress tracking
+   g_initEquity = equity;
+   g_initBalance = balance;
+   g_initMarginPct = marginPct;
+   if (MartingaleMode == MG_SHORT)
+   { g_initHedgeLots = initLong; g_initBiasLots = initShort; g_initNetLots = initShort - initLong; }
+   else if (MartingaleMode == MG_LONG)
+   { g_initHedgeLots = initShort; g_initBiasLots = initLong; g_initNetLots = initLong - initShort; }
    Print("=== EA Initialized on ", _Symbol, " ", EnumToString(_Period), " ===",
          " | Margin Level: ", DoubleToString(marginPct, 1), "%",
          " | Equity: $", DoubleToString(equity, 2),
@@ -1577,6 +1588,24 @@ void LogMartingaleUnwindStatus(double marginPctArg = -1)
          " | Net ", biasDir, ": ", DoubleToString(netShort, OrderDigits), " lots",
          " | Closes: trim=", MartingaleHedgeCloses, " harvest=", MartingaleHarvestCloses, " protect=", MartingaleBiasCloses,
          " | Equity: $", DoubleToString(equity, 2), " Margin: $", DoubleToString(margin, 2));
+   // Progress deltas since init
+   if (g_initEquity > 0)
+   {
+      double dEquity = equity - g_initEquity;
+      double dML = marginPct - g_initMarginPct;
+      double dNet = netShort - g_initNetLots;
+      double dHedge = hedgeLots - g_initHedgeLots;
+      double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+      double dBalance = balance - g_initBalance;
+      string sEq = (dEquity >= 0) ? "+" : ""; string sBal = (dBalance >= 0) ? "+" : "";
+      string sML = (dML >= 0) ? "+" : ""; string sNet = (dNet >= 0) ? "+" : "";
+      string sHedge = (dHedge >= 0) ? "+" : "";
+      Print("  Δ since init: Equity ", sEq, "$", DoubleToString(dEquity, 2),
+            " | Balance ", sBal, "$", DoubleToString(dBalance, 2),
+            " | ML ", sML, DoubleToString(dML, 1), "%",
+            " | Net ", sNet, DoubleToString(dNet, 0), " lots",
+            " | Hedge ", sHedge, DoubleToString(dHedge, 0), " lots");
+   }
 }
 void PrintMartingaleStrategyBriefing(MartingaleState state)
 {
