@@ -399,9 +399,9 @@ int OnCalculate(const int rates_total,
    double currentAskPrice = MarketInfo(_Symbol, MODE_ASK);
 #endif
    // Check if both bid and ask prices have changed from the previous tick
-   if (currentBidPrice == prevBidPrice && currentAskPrice == prevAskPrice)
+   if (currentBidPrice == prevBidPrice && currentAskPrice == prevAskPrice && prev_calculated == rates_total)
    {
-      // If both bid and ask prices are the same as the previous tick, return prev_calculated
+      // If both bid and ask prices are the same as the previous tick AND no new bar, skip
       return prev_calculated;
    }
    // Update the previous bid and ask prices with the current prices
