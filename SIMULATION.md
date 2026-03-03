@@ -4,9 +4,9 @@
 
 | | Value |
 |---|---|
-| Account Equity | $82,027 |
-| Account Balance | $89,792 |
-| Margin Level | 60.0% |
+| Account Equity | $81,000 |
+| Account Balance | $88,090 |
+| Margin Level | 57.1% |
 | Margin Call Level | 50% |
 
 ### EA Configuration
@@ -14,11 +14,11 @@
 | Parameter | Value |
 |---|---|
 | Mode | MG: SHORT |
-| TRIM threshold | 63% margin level |
+| TRIM threshold | 61% margin level |
 | TRIM lots | 20 per close (10s cooldown) |
-| PROTECT threshold | 58% margin level |
+| PROTECT threshold | 56% margin level |
 | PROTECT lots | 10 per side (balanced close, no cooldown) |
-| Dead zone | 58%–63% (EA does nothing) |
+| Dead zone | 56%–61% (EA does nothing) |
 | Hard floor | 10% — PROTECT halts, broker handles it |
 | Circuit breaker | 30 fires max before auto-disable |
 | Bias protection | Never closes bias (shorts) in crisis |
@@ -27,33 +27,35 @@
 
 | Asset | Price | Long Lots | Short Lots | Net Short |
 |-------|-------|-----------|------------|-----------|
-| SOLUSD | ~$86 | 10,960 | 12,180 | 1,220 |
-| DOGEUSD | ~$0.098 | 0 | 384,000 | 384,000 |
+| SOLUSD | ~$84 | 8,720 | 10,000 | 1,280 |
+| DOGEUSD | ~$0.097 | 0 | 384,000 | 384,000 |
+
+**Note on DOGE:** The DOGE short is actively managed — profits are taken when it makes sense to add to balance, then redeployed if conditions warrant. The 384K figure is the current snapshot, not a fixed hold-to-zero position.
 
 ---
 
 ## Scenario A: Standard Short (No Hedging)
 
-With $82,027 equity, 1:1 crypto margin, and 100% margin level (all equity committed):
+With $81,000 equity, 1:1 crypto margin, and 100% margin level (all equity committed):
 
 **Maximum position at open:**
-- SOLUSD: 762 lots short @ $86 (using 80% allocation = $65,622)
-- DOGEUSD: 169,128 lots short @ $0.097 (using 20% allocation = $16,405)
+- SOLUSD: 771 lots short @ $84 (using 80% allocation = $64,800)
+- DOGEUSD: 167,010 lots short @ $0.097 (using 20% allocation = $16,200)
 
 **No margin buffer.** A 1% spike upward triggers margin call. Realistically, you'd need 200% margin level minimum to survive any volatility, cutting the position in half:
 
-- SOLUSD: ~381 lots short
-- DOGEUSD: ~84,564 lots short
+- SOLUSD: ~386 lots short
+- DOGEUSD: ~83,505 lots short
 
 ### Profit if SOL and DOGE hit $0
 
 | Asset | Short Lots | Entry | Profit |
 |-------|-----------|-------|--------|
-| SOLUSD | 381 | $86 | $32,766 |
-| DOGEUSD | 84,564 | $0.097 | $8,203 |
-| **Total** | | | **$40,969** |
+| SOLUSD | 386 | $84 | $32,424 |
+| DOGEUSD | 83,505 | $0.097 | $8,100 |
+| **Total** | | | **$40,524** |
 
-**Return: $40,969 on $82,027 = 0.50x (50% return)**
+**Return: $40,524 on $81,000 = 0.50x (50% return)**
 
 The position can't grow because there's no mechanism to add lots. You hold a fixed position and wait.
 
@@ -63,85 +65,85 @@ The position can't grow because there's no mechanism to add lots. You hold a fix
 
 ### Current Position Structure
 
-The hedge is significant: 10,960 long lots vs 12,180 short lots on SOLUSD. Net short exposure is 1,220 lots, but the gross exposure creates margin requirement — which is why margin level sits at 60.0% despite having $82K equity.
+The hedge is significant: 8,720 long lots vs 10,000 short lots on SOLUSD. Net short exposure is 1,280 lots, but the gross exposure creates margin requirement — which is why margin level sits at 57.1% despite having $81K equity.
 
 The EA manages this automatically:
-- **Above 63%**: TRIM — close 20 lots of hedge (BUY) every 10s, freeing margin
-- **58%–63%**: Dead zone — EA does nothing, allows normal price action
-- **Below 58%**: PROTECT — balanced close 10L + 10S every tick (preserves net short)
+- **Above 61%**: TRIM — close 20 lots of hedge (BUY) every 10s, freeing margin
+- **56%–61%**: Dead zone — EA does nothing, allows normal price action
+- **Below 56%**: PROTECT — balanced close 10L + 10S every tick (preserves net short)
 - **Below 10%**: Hard floor — EA halts entirely, broker handles stop-out
 - **After 30 fires**: Circuit breaker — PROTECT auto-disables
 - **No hedges left**: EA refuses to close bias — shorts are sacred
 
-### Why 2 Phases Instead of 3
+### Why Tighter Settings Work Now
 
-With only 10,960 longs to unwind (vs 18K+ in earlier snapshots), the path to pure short is roughly half as long. Fewer longs = fewer bounces needed to consume them. The unwind completes in ~8 bounces across 2 phases instead of 15 bounces across 3.
+With a less intense martingale (8,720 longs vs 18K+ in earlier snapshots), the gross exposure is smaller and margin moves are less extreme. This allows tighter thresholds:
+- **TRIM at 61%** (was 63%) — starts trimming sooner, faster unwind
+- **PROTECT at 56%** (was 58%) — leaves 6% buffer above 50% margin call, closest comfortable level
+- **Dead zone still 5%** — same width, just shifted down
+- **Fewer longs = fewer bounces** — unwind completes in ~7 bounces across 2 phases
 
-### Phase 1: $84 → $40 (52% drop with 5 bounces)
+### Phase 1: $84 → $40 (52% drop with 4 bounces)
 
-SOL doesn't drop straight. It bounces. Each bounce is a harvest cycle. The EA trims longs above 63% margin, building net short exposure.
+SOL doesn't drop straight. It bounces. Each bounce is a harvest cycle. The EA trims longs above 61% margin, building net short exposure.
 
-**Bounce 1: $84 → $90 → $75**
-- Spike to $90: margin improves (longs gain), EA trims longs above 63%
+**Bounce 1: $84 → $90 → $72**
+- Spike to $90: margin improves (longs gain), EA trims longs above 61%
 - ~1,500 long lots trimmed at profit during the spike
-- Drop to $75: shorts profit massively, net short exposure grows
+- Drop to $72: shorts profit massively, net short exposure grows
 - Harvested: **~$9,000** from trimmed longs
 
-**Bounce 2: $75 → $82 → $65**
-- Spike to $82: EA trims more longs, ~2,000 lots closed
-- Harvested: **~$14,000**
+**Bounce 2: $72 → $80 → $58**
+- Spike to $80: EA trims more longs, ~2,500 lots closed
+- Harvested: **~$12,500**
 
-**Bounce 3: $65 → $73 → $55**
-- Harvest: **~$14,000** from trimmed longs
+**Bounce 3: $58 → $66 → $48**
+- Harvest: **~$10,000** from trimmed longs
 
-**Bounce 4: $55 → $63 → $48**
-- Harvest: **~$12,000**
-- Net short growing rapidly as longs consumed
-
-**Bounce 5: $48 → $55 → $40**
-- Harvest: **~$8,000**
+**Bounce 4: $48 → $55 → $40**
+- Harvest: **~$6,000**
 - Most longs consumed
 
 **Phase 1 subtotal:**
-- Harvested long profits: ~$57,000
-- Long lots trimmed: ~9,000 (10,960 → ~2,000)
-- Net short exposure: ~10,180 lots (up from 1,220)
-- Balance now: $89,792 + $57,000 = **~$147,000**
+- Harvested long profits: ~$37,500
+- Long lots trimmed: ~8,000 (8,720 → ~720)
+- Net short exposure: ~9,280 lots (up from 1,280)
+- Balance now: $88,090 + $37,500 + DOGE trading profits = **~$135,000+**
 - Equity recovering as unrealized short P/L grows
 
 ### Phase 2: $40 → $0 (final collapse with 3 bounces)
 
-Remaining ~2,000 longs consumed. Position becomes pure short. VaR collapsing.
+Remaining ~720 longs consumed. Position becomes pure short. VaR collapsing.
 
-**Bounce 6: $40 → $46 → $25**
-- Final longs (~2,000) fully consumed during spike
-- Harvested: **~$5,000**
+**Bounce 5: $40 → $46 → $25**
+- Final longs (~720) fully consumed during spike
+- Harvested: **~$3,000**
 - Once longs gone: pure short, no more hedge volatility
 
-**Bounces 7-8: $25 → $10 → $0**
-- Pure short — each dollar down = 12,180 × $1 = **$12,180 profit per dollar**
-- DOGE contributing ~$19,000 as DOGE follows crypto lower
+**Bounces 6-7: $25 → $10 → $0**
+- Pure short — each dollar down = 10,000 × $1 = **$10,000 profit per dollar**
+- DOGE contributing additional profit if still deployed
 
-**Balance before final close: ~$190,000**
+**Balance before final close: ~$170,000**
 
 ### Final Close at $0
 
 | Component | Lots | Avg Entry | Profit |
 |-----------|------|-----------|--------|
-| SOLUSD shorts | 12,180 | ~$84 avg | $1,023,120 |
+| SOLUSD shorts | 10,000 | ~$84 avg | $840,000 |
 | DOGEUSD shorts | 384,000 | ~$0.097 avg | $37,248 |
-| Long hedge losses (consumed) | 10,960 | — | -$133,000 |
-| Harvested long profits (8 cycles) | — | — | $62,000 |
-| **Net Total** | | | **$989,368** |
+| Long hedge losses (consumed) | 8,720 | — | -$106,000 |
+| Harvested long profits (7 cycles) | — | — | $49,000 |
+| **Net Total** | | | **$820,248** |
 
 ### Total Cumulative Profit
 
 | Component | Amount |
 |-----------|--------|
-| Harvested long profits (8 cycles) | $62,000 |
-| Final short close at $0 | $1,060,368 |
-| Long hedge losses consumed along the way | -$133,000 |
-| **Total Profit** | **$989,368** |
+| Harvested long profits (7 cycles) | $49,000 |
+| Final short close at $0 | $877,248 |
+| Long hedge losses consumed along the way | -$106,000 |
+| **Total Profit** | **$820,248** |
 
 ---
 
@@ -149,47 +151,46 @@ Remaining ~2,000 longs consumed. Position becomes pure short. VaR collapsing.
 
 | | Standard Short | Hedged Martingale |
 |---|---|---|
-| Starting equity | $82,027 | $82,027 |
-| Max short lots (SOL) | 381 | 12,180 (already held) |
-| Max short lots (DOGE) | 84,564 | 384,000 (already held) |
-| Survives 10% spike? | NO (margin call) | YES (11K long hedge absorbs) |
+| Starting equity | $81,000 | $81,000 |
+| Max short lots (SOL) | 386 | 10,000 (already held) |
+| Max short lots (DOGE) | 83,505 | 384,000 (already held) |
+| Survives 10% spike? | NO (margin call) | YES (8.7K long hedge absorbs) |
 | Position grows over time? | NO (fixed) | YES (longs trimmed → net short grows) |
-| Profits from volatility? | NO | YES ($62K harvested) |
-| Profit if SOL/DOGE → $0 | **$40,969** | **$989,368** |
-| Return multiple | **0.50x** | **12.1x** |
-| Final account value | ~$122,996 | **~$1,071,395** |
+| Profits from volatility? | NO | YES ($49K harvested) |
+| Profit if SOL/DOGE → $0 | **$40,524** | **$820,248** |
+| Return multiple | **0.50x** | **10.1x** |
+| Final account value | ~$121,524 | **~$901,248** |
 
 
 ---
 
 ## Key Assumptions
 
-1. **Volatility**: 8 significant bounces (5-15%) on the way to zero — conservative for crypto
-2. **Execution**: EA trims longs automatically (20 lots/10s above 63% margin), balanced PROTECT below 58%
+1. **Volatility**: 7 significant bounces (5-15%) on the way to zero — conservative for crypto
+2. **Execution**: EA trims longs automatically (20 lots/10s above 61% margin), balanced PROTECT below 56%
 3. **Spread cost**: ~$500-$1,000 per full harvest cycle (negligible vs profits)
 4. **No black swan recovery**: SOL and DOGE do not recover permanently
-5. **Margin management**: EA's zone-based system prevents margin call (broker stop-out at 50%)
-6. **DOGE**: 384,000 short lots held without hedge — contributes ~$37,248 if DOGE → $0, will be rebuilt to 400K+ after short-term profit taking
-7. **Position structure**: Lots already held (11K long / 12K short SOL, 384K short DOGE). No new lots added — EA only trims the hedge to grow net short exposure
+5. **Margin management**: EA's zone-based system prevents margin call (broker stop-out at 50%, PROTECT at 56% leaves 6% buffer)
+6. **DOGE**: 384,000 short lots actively managed — profits taken and redeployed as conditions warrant, contributing to balance growth throughout
+7. **Position structure**: Lots already held (8.7K long / 10K short SOL, 384K short DOGE). No new lots added — EA only trims the hedge to grow net short exposure
 8. **PROTECT safeguards**: Hard floor (10%), circuit breaker (30 fires), never closes bias — prevents the death spiral that destroyed the previous account
 
 ## The Multiplier Effect Visualized
 
 ```
 Standard Short:
-  $82K equity → 381 SOL lots → hold → $41K profit
+  $81K equity → 386 SOL lots → hold → $41K profit
   [Fixed position, no growth, no volatility capture]
 
 Hedged Martingale:
-  $82K equity → 12,180 SOL short lots (hedged with 10,960 longs)
-    → Net short: 1,220 lots (nearly flat — survives any spike)
-    → Bounce 1:  EA trims 1.5K longs → net short:  2,720 lots
-    → Bounce 2:  EA trims 2K longs   → net short:  4,720 lots
-    → Bounce 3:  EA trims 2K longs   → net short:  6,720 lots
-    → Bounce 4:  EA trims 2K longs   → net short:  8,720 lots
-    → Bounce 5:  EA trims 1.5K longs → net short: 10,180 lots
-    → Bounce 6:  final longs consumed → net short: 12,180 lots (PURE SHORT)
-    → SOL hits $0: close all          → $989K profit
+  $81K equity → 10,000 SOL short lots (hedged with 8,720 longs)
+    → Net short: 1,280 lots (nearly flat — survives any spike)
+    → Bounce 1:  EA trims 1.5K longs → net short:  2,780 lots
+    → Bounce 2:  EA trims 2.5K longs → net short:  5,280 lots
+    → Bounce 3:  EA trims 2.5K longs → net short:  7,780 lots
+    → Bounce 4:  EA trims 1.5K longs → net short:  9,280 lots
+    → Bounce 5:  final longs consumed → net short: 10,000 lots (PURE SHORT)
+    → SOL hits $0: close all          → $820K profit
   [Same lots, just removing the hedge. Volatility = fuel for trimming.]
 ```
 
@@ -211,15 +212,15 @@ NominalValue = |PositionSize| × (TickValue / TickSize) × CurrentPrice
 
 #### Phase 1: SOL $84 → $40
 
-Current net short: 1,220 lots (but growing as EA trims longs)
+Current net short: 1,280 lots (but growing as EA trims longs)
 
 | SOL Price | Net Short Lots | Nominal Value | VaR (est. 5% daily vol) | Equity (est.) | VaR % of Equity |
 |-----------|---------------|---------------|------------------------|---------------|-----------------|
-| $86 | 1,220 | $104,920 | $8,656 | $82,027 | 10.6% |
-| $75 | 3,000 | $225,000 | $18,563 | $95,000* | 19.5% |
-| $65 | 5,500 | $357,500 | $29,494 | $110,000* | 26.8% |
-| $55 | 8,000 | $440,000 | $36,300 | $125,000* | 29.0% |
-| $40 | 10,200 | $408,000 | $33,660 | $147,000* | 22.9% |
+| $84 | 1,280 | $107,520 | $8,870 | $81,000 | 10.9% |
+| $72 | 3,000 | $216,000 | $17,820 | $93,000* | 19.2% |
+| $58 | 5,500 | $319,000 | $26,318 | $107,000* | 24.6% |
+| $48 | 7,800 | $374,400 | $30,888 | $120,000* | 25.7% |
+| $40 | 9,300 | $372,000 | $30,690 | $140,000* | 21.9% |
 
 *Equity grows from harvested longs + unrealized short P/L. VaR rises as net exposure grows, but the hedge is absorbing upside shocks.*
 
@@ -229,13 +230,13 @@ Current net short: 1,220 lots (but growing as EA trims longs)
 
 | SOL Price | Net Short Lots | Nominal Value | VaR (est.) | Equity (est.) | VaR % of Equity |
 |-----------|---------------|---------------|------------|---------------|-----------------|
-| $40 | 12,180 | $487,200 | $40,194 | $175,000 | 23.0% |
-| $30 | 12,180 | $365,400 | $30,146 | $300,000 | 10.0% |
-| $20 | 12,180 | $243,600 | $20,097 | $450,000 | 4.5% |
-| $10 | 12,180 | $121,800 | $10,049 | $700,000 | 1.4% |
-| $5 | 12,180 | $60,900 | $5,024 | $900,000 | 0.6% |
-| $2 | 12,180 | $24,360 | $2,010 | $980,000 | 0.2% |
-| $0 | 12,180 | $0 | $0 | $1,071,000 | 0.00% |
+| $40 | 10,000 | $400,000 | $33,000 | $160,000 | 20.6% |
+| $30 | 10,000 | $300,000 | $24,750 | $280,000 | 8.8% |
+| $20 | 10,000 | $200,000 | $16,500 | $430,000 | 3.8% |
+| $10 | 10,000 | $100,000 | $8,250 | $650,000 | 1.3% |
+| $5 | 10,000 | $50,000 | $4,125 | $800,000 | 0.5% |
+| $2 | 10,000 | $20,000 | $1,650 | $870,000 | 0.2% |
+| $0 | 10,000 | $0 | $0 | $901,000 | 0.00% |
 
 **Once longs are unwound, VaR can only decrease.** Every tick down:
 - Nominal value shrinks → VaR shrinks
@@ -256,12 +257,12 @@ Risk Multiplier = Target VaR / Strategy VaR
 
 **Phase 1 ($84 → $40): Moderate VaR, Multiplier ≤ 1.0**
 
-Strategy VaR is moderate due to gross exposure (23K total lots). The Darwinex risk engine **dampens** the DARWIN:
+Strategy VaR is moderate due to gross exposure (19K total lots). The Darwinex risk engine **dampens** the DARWIN:
 
 | Strategy VaR % | Target VaR (est.) | Risk Multiplier | Effect |
 |----------------|-------------------|-----------------|--------|
-| 10.6% | ~6.0% | 0.57x | DARWIN shows 57% of raw returns |
-| 29.0% | ~6.5% | 0.22x | Dampened during hedge unwinding |
+| 10.9% | ~6.0% | 0.55x | DARWIN shows 55% of raw returns |
+| 25.7% | ~6.5% | 0.25x | Dampened during hedge unwinding |
 
 Returns are real but dampened on the DARWIN while hedge is active.
 
@@ -271,10 +272,10 @@ As longs are consumed and VaR compresses, the Darwinex system works in your favo
 
 | SOL Price | Strategy VaR % | Target VaR (est.) | Risk Multiplier | Effect |
 |-----------|----------------|-------------------|-----------------|--------|
-| $30 | 10.0% | ~6.0% | 0.60x | Still dampened |
-| $20 | 4.5% | ~5.0% | 1.11x | **Parity reached** |
-| $10 | 1.4% | ~4.0% | 2.86x | **2.9x amplification** |
-| $5 | 0.6% | ~3.3% | 5.5x | **5.5x amplification** |
+| $30 | 8.8% | ~6.0% | 0.68x | Still dampened |
+| $20 | 3.8% | ~5.0% | 1.32x | **Parity reached** |
+| $10 | 1.3% | ~4.0% | 3.08x | **3.1x amplification** |
+| $5 | 0.5% | ~3.3% | 6.6x | **6.6x amplification** |
 | $2 | 0.2% | ~3.25% | 16.3x | **Capped at 9.75x** |
 
 **D-Leverage caps at 9.75x for positions held > 60 minutes.** So the maximum practical multiplier is **~9.75x**.
@@ -338,10 +339,10 @@ At peak amplification with a 375K EUR SILVER allocation:
 
 | Component | Signal Account | DARWIN (amplified) |
 |-----------|---------------|-------------------|
-| Phase 1 profits ($84→$40) | $57,000 | ~$14,000 (dampened) |
-| Phase 2 profits ($40→$0) | $932,368 | ~$3,730,000+ (amplified ~4x avg) |
+| Phase 1 profits ($84→$40) | $37,500 | ~$9,400 (dampened) |
+| Phase 2 profits ($40→$0) | $782,748 | ~$3,130,000+ (amplified ~4x avg) |
 | DarwinIA performance fees | — | $100,000 — $500,000 |
-| **Total** | **$989,368** | **$3,730,000+** |
+| **Total** | **$820,248** | **$3,130,000+** |
 
 The DARWIN doesn't generate separate profit for your signal account, but:
 1. **DarwinIA performance fees** are real cash (15% of profits on allocated capital)
@@ -354,16 +355,16 @@ The DARWIN doesn't generate separate profit for your signal account, but:
 
 | | Standard Short | Hedged Martingale | Hedged + Darwinex |
 |---|---|---|---|
-| Starting equity | $82,027 | $82,027 | $82,027 |
-| Max short lots (SOL) | 381 | 12,180 (held now) | 12,180 (held now) |
-| Survives 10% spike? | NO | YES (11K long hedge) | YES |
+| Starting equity | $81,000 | $81,000 | $81,000 |
+| Max short lots (SOL) | 386 | 10,000 (held now) | 10,000 (held now) |
+| Survives 10% spike? | NO | YES (8.7K long hedge) | YES |
 | Position grows? | NO | YES (net short grows) | YES |
 | VaR trajectory | Flat | High → compressing | High → compressing → amplified |
-| Risk multiplier | N/A | N/A | 0.22x → 9.75x |
-| Signal profit | $40,969 | $989,368 | $989,368 |
-| DARWIN amplified returns | N/A | N/A | $3,730,000+ on DARWIN |
+| Risk multiplier | N/A | N/A | 0.25x → 9.75x |
+| Signal profit | $40,524 | $820,248 | $820,248 |
+| DARWIN amplified returns | N/A | N/A | $3,130,000+ on DARWIN |
 | DarwinIA fee income | N/A | N/A | $100,000 — $500,000 |
-| Return multiple | 0.50x | **12.1x** | 12.1x + fee income |
+| Return multiple | 0.50x | **10.1x** | 10.1x + fee income |
 
 ---
 
@@ -434,7 +435,7 @@ If the three safeguards had been active during the 03:12 crash:
 
 ### Lessons Learned
 
-1. **PROTECT threshold must be well below the operating margin range.** At 57% with margin hovering at 62-64%, PROTECT fired on every spread dip. The new threshold of 58% with TRIM at 63% gives a 5% dead zone.
+1. **PROTECT threshold must be well below the operating margin range.** At 57% with margin hovering at 62-64%, PROTECT fired on every spread dip. The new threshold of 56% with TRIM at 61% gives a 5% dead zone while leaving 6% buffer above the 50% margin call.
 
 2. **Balanced close works but slowly consumes positions.** Over hours of repeated firing, both sides shrink. The circuit breaker (30 fires) caps this consumption.
 
@@ -446,12 +447,12 @@ If the three safeguards had been active during the 03:12 crash:
 
 ## Bottom Line
 
-The hedged martingale turns a **0.50x return** into a **12.1x return** on the same thesis and starting capital. The difference is entirely due to:
+The hedged martingale turns a **0.50x return** into a **10.1x return** on the same thesis and starting capital. The difference is entirely due to:
 
-1. **Large gross exposure**: 12,180 short lots already held (vs 381 lots a pure short could afford)
-2. **Hedge protection**: 10,960 long lots absorb upside spikes — no margin call
-3. **EA-managed unwinding**: TRIM zone automatically removes hedge on bounces above 63% margin
-4. **Survivability**: PROTECT zone fires balanced closes below 58% with three safeguards:
+1. **Large gross exposure**: 10,000 short lots already held (vs 386 lots a pure short could afford)
+2. **Hedge protection**: 8,720 long lots absorb upside spikes — no margin call
+3. **EA-managed unwinding**: TRIM zone automatically removes hedge on bounces above 61% margin
+4. **Survivability**: PROTECT zone fires balanced closes below 56% with three safeguards:
    - Hard floor (10%) — EA halts below this, broker handles stop-out
    - Never closes bias — shorts are sacred, only balanced close when hedged
    - Circuit breaker (30 fires) — prevents death spiral
@@ -464,4 +465,4 @@ The **VaR compression** as price approaches zero creates a secondary amplifier t
 8. **DarwinIA magnetism**: Extreme return/drawdown ratio attracts maximum allocation
 9. **Performance fees**: 15% of profits on up to 875K EUR allocated capital
 
-**The strategy doesn't just profit from the short — it holds 32x more short lots than a pure short could afford. The hedge makes this possible by neutralizing directional risk while the EA systematically strips the hedge away on every bounce, growing net short exposure until the position is pure profit. With fewer longs to unwind (11K vs 18K+), the path to pure short is half as long — 8 bounces instead of 15.**
+**The strategy doesn't just profit from the short — it holds 26x more short lots than a pure short could afford. The hedge makes this possible by neutralizing directional risk while the EA systematically strips the hedge away on every bounce, growing net short exposure until the position is pure profit. With fewer longs to unwind (8.7K) and tighter settings (61/56), the path to pure short is fast — 7 bounces across 2 phases. DOGE contributes additional balance growth through active profit-taking and redeployment.**

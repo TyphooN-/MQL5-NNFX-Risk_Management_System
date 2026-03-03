@@ -91,6 +91,7 @@ input double          MartingaleHarvestLotSize = 1;   // HARVEST — lots per pr
 input double          MartingaleDangerMarginPct = 58;  // PROTECT — % margin level to start (0=off)
 input double          MartingaleCloseChunkSize = 10;  // PROTECT — lots per side (balanced close)
 input double          MartingaleMarginFloor = 10;     // PROTECT — hard floor %, stop below this (broker handles it)
+input int             MartingaleProtectCooldown = 1;  // PROTECT — seconds between fires (0 = every tick)
 input int             MartingaleMaxProtectFires = 30; // PROTECT — circuit breaker, max fires before auto-disable
 input group           "[DISCORD ANNOUNCEMENT SETTINGS]"
 input string          DiscordAPIKey =  "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
@@ -126,6 +127,7 @@ bool HarvestFired = false;
 bool ProtectActive = false;
 int ProtectFireCount = 0;
 bool ProtectCircuitBroken = false;
+datetime LastProtectTime = 0;
 // Init-time baselines for tracking progress
 double g_initEquity = 0, g_initBalance = 0, g_initMarginPct = 0;
 double g_initHedgeLots = 0, g_initBiasLots = 0, g_initNetLots = 0;
@@ -1625,7 +1627,7 @@ void PrintMartingaleStrategyBriefing(MartingaleState state)
    Print("ZONES:");
    Print("  Above ", DoubleToString(MartingaleUnwindMarginPct, 1), "% : TRIM hedges + close ", hedgeType, " (one per ", MartingaleCooldown, "s)");
    Print("  ", DoubleToString(MartingaleDangerMarginPct, 1), "%-", DoubleToString(MartingaleUnwindMarginPct, 1), "% : DEAD ZONE — EA does nothing");
-   Print("  Below ", DoubleToString(MartingaleDangerMarginPct, 1), "% : PROTECT — balanced close both sides every tick (no cooldown)");
+   Print("  Below ", DoubleToString(MartingaleDangerMarginPct, 1), "% : PROTECT — balanced close both sides (", MartingaleProtectCooldown, "s cooldown)");
    Print("");
    Print("TRIM  (above ", DoubleToString(MartingaleUnwindMarginPct, 1), "% — hedge removal):");
    Print("  Action    : close ", hedgeType, " positions (partial ", DoubleToString(MartingaleUnwindLotSize, OrderDigits), " lots, smallest first, highest-cost entry)");
@@ -1674,7 +1676,7 @@ void ProcessMartingale()
          return;
       }
    }
-   // === PROTECT: below danger level — fire every tick, no cooldown ===
+   // === PROTECT: below danger level ===
    if (MartingaleDangerMarginPct > 0 && marginLevel <= MartingaleDangerMarginPct && !ProtectCircuitBroken)
       ProtectActive = true;
    if (ProtectActive)
@@ -1705,9 +1707,12 @@ void ProcessMartingale()
       }
       else
       {
+         if (MartingaleProtectCooldown > 0 && TimeCurrent() - LastProtectTime < MartingaleProtectCooldown)
+            return;
          if (ProtectiveClose())
          {
             ProtectFireCount++;
+            LastProtectTime = TimeCurrent();
             return;
          }
       }
@@ -2168,6 +2173,7 @@ void TyWindow::OnClickMartingale(void)
       ProtectActive = false;
       ProtectFireCount = 0;
       ProtectCircuitBroken = false;
+      LastProtectTime = 0;
       g_lastOppCloseTime = 0;
       UpdateMartingaleButton();
       Print("Martingale mode changed to ", EnumToString(MartingaleMode), " on ", _Symbol);
@@ -2191,6 +2197,7 @@ void TyWindow::OnClickMartingale(void)
          ProtectActive = false;
          ProtectFireCount = 0;
          ProtectCircuitBroken = false;
+         LastProtectTime = 0;
          g_lastOppCloseTime = 0;
          UpdateMartingaleButton();
          Print("Martingale mode changed to ", EnumToString(MartingaleMode), " on ", _Symbol);
