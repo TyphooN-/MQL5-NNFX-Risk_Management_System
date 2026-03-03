@@ -427,15 +427,20 @@ void DrawAllLabels(datetime endTime)
       string name = PREFIX + "L" + IntegerToString(i);
       string text = (g_zones[i].type == ZONE_SUPPLY ? "Supply" : "Demand") +
                     " [" + StrengthLabel(g_zones[i].strength) + "]";
-      double vpos = g_zones[i].hi - (g_zones[i].hi - g_zones[i].lo) * 0.33;
+      // Supply labels at top of zone, Demand labels at bottom — prevents overlap confusion
+      double vpos;
+      if(g_zones[i].type == ZONE_SUPPLY)
+         vpos = g_zones[i].hi - (g_zones[i].hi - g_zones[i].lo) * 0.15;
+      else
+         vpos = g_zones[i].lo + (g_zones[i].hi - g_zones[i].lo) * 0.15;
 
       ObjectCreate(0, name, OBJ_TEXT, 0, 0, 0);
       ObjectSetInteger(0, name, OBJPROP_TIME, endTime);
       ObjectSetDouble(0, name, OBJPROP_PRICE, vpos);
       ObjectSetString(0, name, OBJPROP_TEXT, text);
-      ObjectSetString(0, name, OBJPROP_FONT, "Arial");
+      ObjectSetString(0, name, OBJPROP_FONT, "Arial Bold");
       ObjectSetInteger(0, name, OBJPROP_FONTSIZE, 8);
-      ObjectSetInteger(0, name, OBJPROP_COLOR, clrWhite);
+      ObjectSetInteger(0, name, OBJPROP_COLOR, GetZoneColor(i));
       ObjectSetInteger(0, name, OBJPROP_ANCHOR, ANCHOR_RIGHT);
       ObjectSetInteger(0, name, OBJPROP_SELECTABLE, false);
    }
