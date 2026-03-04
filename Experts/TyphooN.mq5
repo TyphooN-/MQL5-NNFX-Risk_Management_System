@@ -1642,8 +1642,7 @@ void PrintMartingaleStrategyBriefing(MartingaleState state)
    Print("PROTECT (below ", DoubleToString(MartingaleDangerMarginPct, 1), "% — emergency balanced close):");
    Print("  Hedged    : close ", DoubleToString(MartingaleCloseChunkSize, OrderDigits), " ", hedgeType, " + ", DoubleToString(MartingaleCloseChunkSize, OrderDigits), " ", coreType, " per tick (balanced gross reduction, net preserved)");
    Print("  No hedges : STOP — never close bias in crisis (broker handles stop-out)");
-   double protectDeactivate = (MartingaleDangerMarginPct + MartingaleUnwindMarginPct) / 2.0;
-   Print("  Stops     : when margin recovers above ", DoubleToString(protectDeactivate, 1), "% (dead zone midpoint)");
+   Print("  Stops     : when margin recovers above ", DoubleToString(MartingaleDangerMarginPct, 1), "% (PROTECT threshold)");
    Print("  Hard floor: ", DoubleToString(MartingaleMarginFloor, 1), "% — PROTECT halts below this (broker in control)");
    Print("  Circuit   : max ", MartingaleMaxProtectFires, " fires before auto-disable");
    Print("");
@@ -1698,12 +1697,11 @@ void ProcessMartingale()
          ProtectCircuitBroken = true;
          return;
       }
-      // Deactivate when margin recovers to midpoint of dead zone
-      double protectDeactivate = (MartingaleDangerMarginPct + MartingaleUnwindMarginPct) / 2.0;
-      if (marginLevel > protectDeactivate)
+      // Deactivate when margin recovers above PROTECT threshold
+      if (marginLevel > MartingaleDangerMarginPct)
       {
          ProtectActive = false;
-         Print("PROTECT deactivated — margin level ", DoubleToString(marginLevel, 1), "% recovered above dead zone midpoint ", DoubleToString(protectDeactivate, 1), "% | fires: ", ProtectFireCount);
+         Print("PROTECT deactivated — margin level ", DoubleToString(marginLevel, 1), "% recovered above ", DoubleToString(MartingaleDangerMarginPct, 1), "% | fires: ", ProtectFireCount);
       }
       else
       {
