@@ -4,9 +4,9 @@
 
 | | Value |
 |---|---|
-| Account Equity | $81,000 |
-| Account Balance | $88,090 |
-| Margin Level | 57.1% |
+| Account Equity | $63,517 |
+| Account Balance | $97,946 |
+| Margin Level | 70.0% |
 | Margin Call Level | 50% |
 
 ### EA Configuration
@@ -14,48 +14,61 @@
 | Parameter | Value |
 |---|---|
 | Mode | MG: SHORT |
-| TRIM threshold | 61% margin level |
+| TRIM threshold | 60% margin level |
 | TRIM lots | 20 per close (10s cooldown) |
-| PROTECT threshold | 56% margin level |
-| PROTECT lots | 10 per side (balanced close, no cooldown) |
-| Dead zone | 56%–61% (EA does nothing) |
+| PROTECT threshold | 54% margin level |
+| PROTECT lots | 10 per side (balanced close) |
+| PROTECT cooldown | 5 seconds between fires |
+| Dead zone | 54%–60% (EA does nothing) |
 | Hard floor | 10% — PROTECT halts, broker handles it |
-| Circuit breaker | 30 fires max before auto-disable |
+| Circuit breaker | 69 fires max before auto-disable |
 | Bias protection | Never closes bias (shorts) in crisis |
+
+### Why 60/54 (6% Dead Zone)
+
+With 81K gross lots, spread changes cause **~1.5% ML swings** tick-to-tick. The 6% dead zone provides safety after the 55% PROTECT cascade incident:
+- Normal spread fluctuation never accidentally triggers PROTECT
+- PROTECT deactivation midpoint at 57% — 3% hysteresis prevents oscillation
+- PROTECT at 54% leaves 4% buffer above 50% margin call
+- 5-second cooldown prevents cascade at scale — 69 fires takes minimum 5.75 minutes
+- At 81K gross, 10 lots/side balanced close is 0.025% of gross — needs time to recover
 
 ### Current Positions
 
 | Asset | Price | Long Lots | Short Lots | Net Short |
 |-------|-------|-----------|------------|-----------|
-| SOLUSD | ~$84 | 8,720 | 10,000 | 1,280 |
-| DOGEUSD | ~$0.097 | 0 | 384,000 | 384,000 |
+| SOLUSD | ~$87 | 39,870 | 40,910 | 1,040 |
+| DOGEUSD | — | 0 | 0 | 0 |
 
-**Note on DOGE:** The DOGE short is actively managed — profits are taken when it makes sense to add to balance, then redeployed if conditions warrant. The 384K figure is the current snapshot, not a fixed hold-to-zero position.
+**Note on DOGE:** Closed during SOL hedge unwind to reduce complexity. Once SOL longs are fully unwound and position is pure short, DOGE shorts will be reopened at maximum size and everything rides to $0.
+
+### Balance vs Equity Gap
+
+Balance ($98K) exceeds equity ($64K) by ~$34K — this is the unrealized cost of the hedge (spread paid on 81K lots + unrealized P/L). This gap closes as:
+1. Longs are trimmed (realized gains go to balance)
+2. SOL price drops (shorts profit, equity rises toward balance)
+3. Once fully unwound, equity ≈ balance and both grow together
 
 ---
 
 ## Scenario A: Standard Short (No Hedging)
 
-With $81,000 equity, 1:1 crypto margin, and 100% margin level (all equity committed):
+With $63,517 equity, 1:1 crypto margin, and 100% margin level (all equity committed):
 
 **Maximum position at open:**
-- SOLUSD: 771 lots short @ $84 (using 80% allocation = $64,800)
-- DOGEUSD: 167,010 lots short @ $0.097 (using 20% allocation = $16,200)
+- SOLUSD: 730 lots short @ $87 (using 100% allocation = $63,517)
 
 **No margin buffer.** A 1% spike upward triggers margin call. Realistically, you'd need 200% margin level minimum to survive any volatility, cutting the position in half:
 
-- SOLUSD: ~386 lots short
-- DOGEUSD: ~83,505 lots short
+- SOLUSD: ~365 lots short
 
-### Profit if SOL and DOGE hit $0
+### Profit if SOL hits $0
 
 | Asset | Short Lots | Entry | Profit |
 |-------|-----------|-------|--------|
-| SOLUSD | 386 | $84 | $32,424 |
-| DOGEUSD | 83,505 | $0.097 | $8,100 |
-| **Total** | | | **$40,524** |
+| SOLUSD | 365 | $87 | $31,755 |
 
-**Return: $40,524 on $81,000 = 0.50x (50% return)**
+**Return: $31,755 on $63,517 = 0.50x (50% return)**
 
 The position can't grow because there's no mechanism to add lots. You hold a fixed position and wait.
 
@@ -65,85 +78,89 @@ The position can't grow because there's no mechanism to add lots. You hold a fix
 
 ### Current Position Structure
 
-The hedge is significant: 8,720 long lots vs 10,000 short lots on SOLUSD. Net short exposure is 1,280 lots, but the gross exposure creates margin requirement — which is why margin level sits at 57.1% despite having $81K equity.
+The hedge is massive: 39,870 long lots vs 40,910 short lots on SOLUSD. Net short exposure is only 1,040 lots, but the gross exposure (80,780 lots) creates significant margin requirement.
 
 The EA manages this automatically:
-- **Above 61%**: TRIM — close 20 lots of hedge (BUY) every 10s, freeing margin
-- **56%–61%**: Dead zone — EA does nothing, allows normal price action
-- **Below 56%**: PROTECT — balanced close 10L + 10S every tick (preserves net short)
+- **Above 60%**: TRIM — close 20 lots of hedge (BUY) every 10s, freeing margin
+- **54%–60%**: Dead zone — EA does nothing, allows normal price action
+- **Below 54%**: PROTECT — balanced close 10L + 10S (5s cooldown between fires)
 - **Below 10%**: Hard floor — EA halts entirely, broker handles stop-out
 - **After 30 fires**: Circuit breaker — PROTECT auto-disables
 - **No hedges left**: EA refuses to close bias — shorts are sacred
 
-### Why Tighter Settings Work Now
+### Dynamic TRIM Strategy
 
-With a less intense martingale (8,720 longs vs 18K+ in earlier snapshots), the gross exposure is smaller and margin moves are less extreme. This allows tighter thresholds:
-- **TRIM at 61%** (was 63%) — starts trimming sooner, faster unwind
-- **PROTECT at 56%** (was 58%) — leaves 6% buffer above 50% margin call, closest comfortable level
-- **Dead zone still 5%** — same width, just shifted down
-- **Fewer longs = fewer bounces** — unwind completes in ~7 bounces across 2 phases
+TRIM can be adjusted based on market conditions while PROTECT stays fixed at 54%:
 
-### Phase 1: $84 → $40 (52% drop with 4 bounces)
+| Market Condition | TRIM | Dead Zone | Rationale |
+|------------------|------|-----------|-----------|
+| Fast drop (ML rising) | 56–57% | 2–3% | ML rising, PROTECT risk near zero, max trim speed |
+| Normal trend | 58–59% | 4–5% | Consistent trimming with bounce buffer |
+| **Current setting** | **60%** | **6%** | Post-cascade safety, absorbs spread noise |
+| Sharp bounce underway | 62–63% | 8–9% | Maximum protection during adverse moves |
 
-SOL doesn't drop straight. It bounces. Each bounce is a harvest cycle. The EA trims longs above 61% margin, building net short exposure.
+### Phase 1: $87 → $35 (5 bounces)
 
-**Bounce 1: $84 → $90 → $72**
-- Spike to $90: margin improves (longs gain), EA trims longs above 61%
-- ~1,500 long lots trimmed at profit during the spike
+SOL doesn't drop straight. It bounces. Each bounce is a harvest cycle. The EA trims longs above 60% margin, building net short exposure.
+
+**Bounce 1: $87 → $92 → $72**
+- Spike to $92: margin improves (longs gain), EA trims longs above 60%
+- ~6,000 long lots trimmed at profit during the spike
 - Drop to $72: shorts profit massively, net short exposure grows
-- Harvested: **~$9,000** from trimmed longs
+- Harvested: **~$30,000** from trimmed longs
 
 **Bounce 2: $72 → $80 → $58**
-- Spike to $80: EA trims more longs, ~2,500 lots closed
-- Harvested: **~$12,500**
+- Spike to $80: EA trims more longs, ~8,000 lots closed
+- Harvested: **~$40,000**
 
 **Bounce 3: $58 → $66 → $48**
-- Harvest: **~$10,000** from trimmed longs
+- Harvest: **~$32,000** from trimmed longs
 
 **Bounce 4: $48 → $55 → $40**
-- Harvest: **~$6,000**
+- Harvest: **~$22,000**
+
+**Bounce 5: $40 → $46 → $35**
+- Harvest: **~$16,000**
 - Most longs consumed
 
 **Phase 1 subtotal:**
-- Harvested long profits: ~$37,500
-- Long lots trimmed: ~8,000 (8,720 → ~720)
-- Net short exposure: ~9,280 lots (up from 1,280)
-- Balance now: $88,090 + $37,500 + DOGE trading profits = **~$135,000+**
-- Equity recovering as unrealized short P/L grows
+- Harvested long profits: ~$140,000
+- Long lots trimmed: ~37,000 (39,870 → ~3,000)
+- Net short exposure: ~37,910 lots (up from 1,040)
+- Balance growing with each harvested close
 
-### Phase 2: $40 → $0 (final collapse with 3 bounces)
+### Phase 2: $35 → $0 (final collapse with 3 bounces)
 
-Remaining ~720 longs consumed. Position becomes pure short. VaR collapsing.
+Remaining ~3,000 longs consumed. Position becomes pure short. VaR collapsing.
 
-**Bounce 5: $40 → $46 → $25**
-- Final longs (~720) fully consumed during spike
-- Harvested: **~$3,000**
+**Bounce 6: $35 → $40 → $20**
+- Final longs (~3,000) fully consumed during spike
+- Harvested: **~$6,000**
 - Once longs gone: pure short, no more hedge volatility
 
-**Bounces 6-7: $25 → $10 → $0**
-- Pure short — each dollar down = 10,000 × $1 = **$10,000 profit per dollar**
-- DOGE contributing additional profit if still deployed
-
-**Balance before final close: ~$170,000**
+**Bounces 7-8: $20 → $5 → $0**
+- Pure short — each dollar down = 40,910 × $1 = **$40,910 profit per dollar**
+- DOGE reopened at max size for additional profit
 
 ### Final Close at $0
 
 | Component | Lots | Avg Entry | Profit |
 |-----------|------|-----------|--------|
-| SOLUSD shorts | 10,000 | ~$84 avg | $840,000 |
-| DOGEUSD shorts | 384,000 | ~$0.097 avg | $37,248 |
-| Long hedge losses (consumed) | 8,720 | — | -$106,000 |
-| Harvested long profits (7 cycles) | — | — | $49,000 |
-| **Net Total** | | | **$820,248** |
+| SOLUSD shorts | 40,910 | ~$87 avg | $3,559,170 |
+| Long hedge losses (consumed) | 39,870 | — | -$486,000 |
+| Harvested long profits (8 cycles) | — | — | $146,000 |
+| DOGE (reopened after unwind) | TBD | — | TBD |
+| **SOL Net Total** | | | **$3,219,170** |
 
 ### Total Cumulative Profit
 
 | Component | Amount |
 |-----------|--------|
-| Harvested long profits (7 cycles) | $49,000 |
-| Final short close at $0 | $877,248 |
-| Long hedge losses consumed along the way | -$106,000 |
-| **Total Profit** | **$820,248** |
+| Harvested long profits (8 cycles) | $146,000 |
+| Final short close at $0 | $3,559,170 |
+| Long hedge losses consumed along the way | -$486,000 |
+| **SOL Total Profit** | **$3,219,170** |
+| DOGE (reopened after unwind) | TBD |
 
 ---
 
@@ -151,46 +168,49 @@ Remaining ~720 longs consumed. Position becomes pure short. VaR collapsing.
 
 | | Standard Short | Hedged Martingale |
 |---|---|---|
-| Starting equity | $81,000 | $81,000 |
-| Max short lots (SOL) | 386 | 10,000 (already held) |
-| Max short lots (DOGE) | 83,505 | 384,000 (already held) |
-| Survives 10% spike? | NO (margin call) | YES (8.7K long hedge absorbs) |
+| Starting equity | $63,517 | $63,517 |
+| Max short lots (SOL) | 365 | 40,910 (already held) |
+| Survives 10% spike? | NO (margin call) | YES (40K long hedge absorbs) |
 | Position grows over time? | NO (fixed) | YES (longs trimmed → net short grows) |
-| Profits from volatility? | NO | YES ($49K harvested) |
-| Profit if SOL/DOGE → $0 | **$40,524** | **$820,248** |
-| Return multiple | **0.50x** | **10.1x** |
-| Final account value | ~$121,524 | **~$901,248** |
+| Profits from volatility? | NO | YES ($146K harvested) |
+| SOL profit if → $0 | **$31,755** | **$3,219,170** |
+| Return multiple | **0.50x** | **50.7x** |
+| Final account value | ~$95,272 | **~$3,282,687** |
 
 
 ---
 
 ## Key Assumptions
 
-1. **Volatility**: 7 significant bounces (5-15%) on the way to zero — conservative for crypto
-2. **Execution**: EA trims longs automatically (20 lots/10s above 61% margin), balanced PROTECT below 56%
-3. **Spread cost**: ~$500-$1,000 per full harvest cycle (negligible vs profits)
-4. **No black swan recovery**: SOL and DOGE do not recover permanently
-5. **Margin management**: EA's zone-based system prevents margin call (broker stop-out at 50%, PROTECT at 56% leaves 6% buffer)
-6. **DOGE**: 384,000 short lots actively managed — profits taken and redeployed as conditions warrant, contributing to balance growth throughout
-7. **Position structure**: Lots already held (8.7K long / 10K short SOL, 384K short DOGE). No new lots added — EA only trims the hedge to grow net short exposure
-8. **PROTECT safeguards**: Hard floor (10%), circuit breaker (30 fires), never closes bias — prevents the death spiral that destroyed the previous account
+1. **Volatility**: 8 significant bounces (5-15%) on the way to zero — conservative for crypto
+2. **Execution**: EA trims longs automatically (20 lots/10s above 60% margin), balanced PROTECT below 54% with 5s cooldown
+3. **Spread noise**: ~1.5% ML swing from spread changes — absorbed by 6% dead zone
+4. **No black swan recovery**: SOL does not recover permanently
+5. **Margin management**: EA's zone-based system prevents margin call (broker stop-out at 50%, PROTECT at 54% leaves 4% buffer, 5s cooldown prevents cascade)
+6. **DOGE**: Closed during unwind. Reopened at max size once SOL hedge is fully unwound
+7. **Position structure**: 40K long / 41K short SOL already held. No new lots added — EA only trims the hedge to grow net short exposure
+8. **PROTECT safeguards**: Hard floor (10%), circuit breaker (69 fires), 5s cooldown, never closes bias
+9. **Dynamic TRIM**: Can be adjusted 56-63% based on conditions while PROTECT stays fixed at 54%
 
 ## The Multiplier Effect Visualized
 
 ```
 Standard Short:
-  $81K equity → 386 SOL lots → hold → $41K profit
+  $64K equity → 365 SOL lots → hold → $32K profit
   [Fixed position, no growth, no volatility capture]
 
 Hedged Martingale:
-  $81K equity → 10,000 SOL short lots (hedged with 8,720 longs)
-    → Net short: 1,280 lots (nearly flat — survives any spike)
-    → Bounce 1:  EA trims 1.5K longs → net short:  2,780 lots
-    → Bounce 2:  EA trims 2.5K longs → net short:  5,280 lots
-    → Bounce 3:  EA trims 2.5K longs → net short:  7,780 lots
-    → Bounce 4:  EA trims 1.5K longs → net short:  9,280 lots
-    → Bounce 5:  final longs consumed → net short: 10,000 lots (PURE SHORT)
-    → SOL hits $0: close all          → $820K profit
+  $64K equity → 40,910 SOL short lots (hedged with 39,870 longs)
+    → Net short: 1,040 lots (nearly flat — survives any spike)
+    → Bounce 1:  EA trims 6K longs   → net short:  7,040 lots
+    → Bounce 2:  EA trims 8K longs   → net short: 15,040 lots
+    → Bounce 3:  EA trims 8K longs   → net short: 23,040 lots
+    → Bounce 4:  EA trims 8K longs   → net short: 31,040 lots
+    → Bounce 5:  EA trims 5K longs   → net short: 36,040 lots
+    → Bounce 6:  EA trims 3K longs   → net short: 39,040 lots
+    → Bounce 7:  final longs consumed → net short: 40,910 lots (PURE SHORT)
+    → DOGE shorts reopened at max size
+    → SOL hits $0: close all          → $3,219K profit (plus DOGE)
   [Same lots, just removing the hedge. Volatility = fuel for trimming.]
 ```
 
@@ -210,33 +230,33 @@ NominalValue = |PositionSize| × (TickValue / TickSize) × CurrentPrice
 
 ### VaR Through the Phases
 
-#### Phase 1: SOL $84 → $40
+#### Phase 1: SOL $87 → $35
 
-Current net short: 1,280 lots (but growing as EA trims longs)
+Current net short: 1,040 lots (but growing rapidly as EA trims longs)
 
 | SOL Price | Net Short Lots | Nominal Value | VaR (est. 5% daily vol) | Equity (est.) | VaR % of Equity |
 |-----------|---------------|---------------|------------------------|---------------|-----------------|
-| $84 | 1,280 | $107,520 | $8,870 | $81,000 | 10.9% |
-| $72 | 3,000 | $216,000 | $17,820 | $93,000* | 19.2% |
-| $58 | 5,500 | $319,000 | $26,318 | $107,000* | 24.6% |
-| $48 | 7,800 | $374,400 | $30,888 | $120,000* | 25.7% |
-| $40 | 9,300 | $372,000 | $30,690 | $140,000* | 21.9% |
+| $87 | 1,040 | $90,480 | $7,465 | $63,517 | 11.7% |
+| $72 | 7,040 | $506,880 | $41,818 | $85,000* | 49.2% |
+| $58 | 15,040 | $872,320 | $71,966 | $120,000* | 60.0% |
+| $48 | 31,040 | $1,489,920 | $122,918 | $200,000* | 61.5% |
+| $35 | 37,910 | $1,326,850 | $109,465 | $300,000* | 36.5% |
 
-*Equity grows from harvested longs + unrealized short P/L. VaR rises as net exposure grows, but the hedge is absorbing upside shocks.*
+*Equity grows from harvested longs + unrealized short P/L. VaR rises significantly as net exposure grows — heavily dampens DARWIN during this phase.*
 
-#### Phase 2: SOL $40 → $0 (The Lock-In)
+#### Phase 2: SOL $35 → $0 (The Lock-In)
 
 **Once longs are fully unwound, shorts are pure profit with collapsing VaR:**
 
 | SOL Price | Net Short Lots | Nominal Value | VaR (est.) | Equity (est.) | VaR % of Equity |
 |-----------|---------------|---------------|------------|---------------|-----------------|
-| $40 | 10,000 | $400,000 | $33,000 | $160,000 | 20.6% |
-| $30 | 10,000 | $300,000 | $24,750 | $280,000 | 8.8% |
-| $20 | 10,000 | $200,000 | $16,500 | $430,000 | 3.8% |
-| $10 | 10,000 | $100,000 | $8,250 | $650,000 | 1.3% |
-| $5 | 10,000 | $50,000 | $4,125 | $800,000 | 0.5% |
-| $2 | 10,000 | $20,000 | $1,650 | $870,000 | 0.2% |
-| $0 | 10,000 | $0 | $0 | $901,000 | 0.00% |
+| $35 | 40,910 | $1,431,850 | $118,128 | $350,000 | 33.8% |
+| $25 | 40,910 | $1,022,750 | $84,377 | $700,000 | 12.1% |
+| $15 | 40,910 | $613,650 | $50,626 | $1,400,000 | 3.6% |
+| $10 | 40,910 | $409,100 | $33,751 | $2,000,000 | 1.7% |
+| $5 | 40,910 | $204,550 | $16,875 | $2,700,000 | 0.6% |
+| $2 | 40,910 | $81,820 | $6,750 | $3,100,000 | 0.2% |
+| $0 | 40,910 | $0 | $0 | $3,283,000 | 0.00% |
 
 **Once longs are unwound, VaR can only decrease.** Every tick down:
 - Nominal value shrinks → VaR shrinks
@@ -255,27 +275,27 @@ Risk Multiplier = Target VaR / Strategy VaR
 
 #### How This Applies to the Strategy
 
-**Phase 1 ($84 → $40): Moderate VaR, Multiplier ≤ 1.0**
+**Phase 1 ($87 → $35): Very High VaR, Multiplier << 1.0**
 
-Strategy VaR is moderate due to gross exposure (19K total lots). The Darwinex risk engine **dampens** the DARWIN:
+Strategy VaR is very high due to gross exposure (81K total lots). The Darwinex risk engine **heavily dampens** the DARWIN:
 
 | Strategy VaR % | Target VaR (est.) | Risk Multiplier | Effect |
 |----------------|-------------------|-----------------|--------|
-| 10.9% | ~6.0% | 0.55x | DARWIN shows 55% of raw returns |
-| 25.7% | ~6.5% | 0.25x | Dampened during hedge unwinding |
+| 11.7% | ~6.0% | 0.51x | DARWIN shows 51% of raw returns |
+| 61.5% | ~6.5% | 0.11x | Heavily dampened during peak exposure |
 
-Returns are real but dampened on the DARWIN while hedge is active.
+Returns are real but heavily dampened on the DARWIN while hedge is active.
 
-**Phase 2 ($40 → $0): VaR Compressing → AMPLIFICATION**
+**Phase 2 ($35 → $0): VaR Compressing → AMPLIFICATION**
 
 As longs are consumed and VaR compresses, the Darwinex system works in your favor:
 
 | SOL Price | Strategy VaR % | Target VaR (est.) | Risk Multiplier | Effect |
 |-----------|----------------|-------------------|-----------------|--------|
-| $30 | 8.8% | ~6.0% | 0.68x | Still dampened |
-| $20 | 3.8% | ~5.0% | 1.32x | **Parity reached** |
-| $10 | 1.3% | ~4.0% | 3.08x | **3.1x amplification** |
-| $5 | 0.5% | ~3.3% | 6.6x | **6.6x amplification** |
+| $25 | 12.1% | ~6.0% | 0.50x | Still dampened |
+| $15 | 3.6% | ~5.0% | 1.39x | **Parity reached** |
+| $10 | 1.7% | ~4.0% | 2.35x | **2.4x amplification** |
+| $5 | 0.6% | ~3.3% | 5.5x | **5.5x amplification** |
 | $2 | 0.2% | ~3.25% | 16.3x | **Capped at 9.75x** |
 
 **D-Leverage caps at 9.75x for positions held > 60 minutes.** So the maximum practical multiplier is **~9.75x**.
@@ -339,10 +359,11 @@ At peak amplification with a 375K EUR SILVER allocation:
 
 | Component | Signal Account | DARWIN (amplified) |
 |-----------|---------------|-------------------|
-| Phase 1 profits ($84→$40) | $37,500 | ~$9,400 (dampened) |
-| Phase 2 profits ($40→$0) | $782,748 | ~$3,130,000+ (amplified ~4x avg) |
+| Phase 1 profits ($87→$35) | $140,000 | ~$16,000 (heavily dampened) |
+| Phase 2 profits ($35→$0) | $3,079,170 | ~$7,700,000+ (amplified ~2.5x avg) |
+| DOGE (reopened after unwind) | TBD | TBD |
 | DarwinIA performance fees | — | $100,000 — $500,000 |
-| **Total** | **$820,248** | **$3,130,000+** |
+| **SOL Total** | **$3,219,170** | **$7,700,000+** |
 
 The DARWIN doesn't generate separate profit for your signal account, but:
 1. **DarwinIA performance fees** are real cash (15% of profits on allocated capital)
@@ -355,20 +376,21 @@ The DARWIN doesn't generate separate profit for your signal account, but:
 
 | | Standard Short | Hedged Martingale | Hedged + Darwinex |
 |---|---|---|---|
-| Starting equity | $81,000 | $81,000 | $81,000 |
-| Max short lots (SOL) | 386 | 10,000 (held now) | 10,000 (held now) |
-| Survives 10% spike? | NO | YES (8.7K long hedge) | YES |
+| Starting equity | $63,517 | $63,517 | $63,517 |
+| Max short lots (SOL) | 365 | 40,910 (held now) | 40,910 (held now) |
+| Survives 10% spike? | NO | YES (40K long hedge) | YES |
 | Position grows? | NO | YES (net short grows) | YES |
 | VaR trajectory | Flat | High → compressing | High → compressing → amplified |
-| Risk multiplier | N/A | N/A | 0.25x → 9.75x |
-| Signal profit | $40,524 | $820,248 | $820,248 |
-| DARWIN amplified returns | N/A | N/A | $3,130,000+ on DARWIN |
+| Risk multiplier | N/A | N/A | 0.11x → 9.75x |
+| SOL signal profit | $31,755 | $3,219,170 | $3,219,170 |
+| DOGE | — | TBD (after unwind) | TBD (after unwind) |
+| DARWIN amplified returns | N/A | N/A | $7,700,000+ on DARWIN |
 | DarwinIA fee income | N/A | N/A | $100,000 — $500,000 |
-| Return multiple | 0.50x | **10.1x** | 10.1x + fee income |
+| Return multiple (SOL only) | 0.50x | **50.7x** | 50.7x + DOGE + fees |
 
 ---
 
-## Post-Mortem: The 57% PROTECT Disaster (2026-03-02)
+## Post-Mortem #1: The 57% PROTECT Disaster (2026-03-02)
 
 ### What Happened
 
@@ -398,7 +420,7 @@ The first virtual account running this strategy was destroyed overnight by a cas
 
 ### How We Fixed It
 
-Three safeguards were added to prevent this from ever happening again:
+Four safeguards now prevent this from ever happening again:
 
 **Safeguard 1 — Hard Margin Floor (10%)**
 ```
@@ -414,55 +436,96 @@ If no hedges remain, PROTECT refuses to close shorts.
 ```
 Shorts are sacred. If all hedges are consumed, closing shorts at catastrophic margin levels just locks in losses. The position is better off letting the broker handle it than selling the core thesis at fire-sale prices.
 
-**Safeguard 3 — Circuit Breaker (30 fires max)**
+**Safeguard 3 — Circuit Breaker (69 fires max)**
 ```
-After 30 PROTECT fires, it auto-disables.
-"PROTECT CIRCUIT BREAKER — 30 fires reached. Disabled until manual reset."
+After 69 PROTECT fires, it auto-disables.
+"PROTECT CIRCUIT BREAKER — 69 fires reached. Disabled until manual reset."
 ```
-This prevents the death spiral of consuming all positions overnight. At 10 lots per side per fire, 30 fires = 300 lots max from each side — a controlled reduction, not a total liquidation. The counter resets when MG mode is toggled.
+This prevents the death spiral of consuming all positions overnight. At 10 lots per side per fire, 69 fires = 690 lots max from each side — a controlled reduction, not a total liquidation. The counter resets when MG mode is toggled.
 
-### With These Safeguards, What Would Have Happened
+**Safeguard 4 — PROTECT Cooldown (5 seconds)**
+```
+After each PROTECT fire, the EA waits 5 seconds before firing again.
+```
+At 81K gross lots, 10 lots/side per fire is only 0.025% of gross — too small to meaningfully move ML in a single fire. The 5s cooldown ensures 69 fires takes a minimum of 5.75 minutes, giving the market time to resolve spread spikes and preventing the circuit breaker from being exhausted during brief volatility.
 
-If the three safeguards had been active during the 03:12 crash:
+---
 
-1. **03:12:20**: Margin hits 7.5% → **PROTECT HALTED** (below 10% floor). Zero additional closes.
-2. All 65K+ short lots would still be intact.
-3. The broker might stop-out a few positions, but the EA wouldn't pile on.
-4. When the spread spike resolved, margin would have recovered (as it did — jumping to 182% after the broker's own liquidations).
-5. The user's manual re-hedge at 03:19 would have worked — the EA wouldn't fight it.
+## Post-Mortem #2: The 55% PROTECT Cascade (2026-03-03)
 
-**Estimated equity preserved: ~$50,000+ (vs the $26,883 that survived)**
+### What Happened
+
+With 83K gross lots (41K L / 42K S), PROTECT at 55% with 1-second cooldown proved insufficient. ML was hovering at 59.6% with TRIM at 59% slowly removing longs. A spread-driven ML dip triggered a cascade.
+
+**Timeline:**
+
+1. **ML dips below 55%**: PROTECT begins firing. Each balanced close removes 10L + 10S — only 0.024% of the 83K gross. ML barely moves.
+
+2. **30 fires in 58 seconds**: PROTECT consumed all 30 circuit breaker fires in under a minute. Total: 300 lots removed from each side (600 lots total). ML stayed at 56-57% throughout — the closes were too small relative to gross exposure to recover ML above the 57% deactivation midpoint.
+
+3. **Circuit breaker trips**: PROTECT auto-disabled after fire #30. But the damage was done — 600 lots gone, and ML still dangerously low.
+
+4. **Broker intervenes**: Broker closed additional positions. ML jumped to 216% after forced liquidation.
+
+5. **EA restarts**: Position stabilized at 39,870 L / 40,910 S. ML at 70%. TRIM resumes at 60%.
+
+### Root Causes
+
+1. **1-second cooldown too short at 81K gross**: 30 fires in 58 seconds exhausted the circuit breaker before the market could recover. At this gross exposure, each fire is meaningless — 10 lots out of 83K can't move ML.
+
+2. **PROTECT at 55% too close to operating range**: With 1.5% spread-induced ML swings, the effective operating band was 58-62%. PROTECT at 55% was only 3% below the noise floor — easily triggered by a slightly wider spread.
+
+3. **Deactivation midpoint too close**: (55 + 59) / 2 = 57%. With ML oscillating at 56-57%, PROTECT never deactivated between fires — each fire saw ML still below 57% and kept firing.
+
+### Resolution: 60/54 with 5-Second Cooldown, 69 Max Fires
+
+| Setting | Before (cascade) | After (current) | Improvement |
+|---------|-------------------|-----------------|-------------|
+| TRIM | 59% | 60% | 1% more buffer |
+| PROTECT | 55% | 54% | 6% below TRIM, 3% below midpoint |
+| Dead zone | 4% (55-59) | 6% (54-60) | 50% wider — covers spread noise |
+| Cooldown | 1 second | 5 seconds | 69 fires now takes 5.75 min minimum |
+| Max fires | 30 | 69 | More runway for genuine crises |
+| Deactivation midpoint | 57% | 57% | Below typical operating ML |
+
+**With 60/54/5s, the cascade would not have happened:**
+- ML at 56-57% is above 54% → PROTECT never fires
+- Even if triggered, 5s cooldown means 69 fires takes 5.75 minutes — not 58 seconds
+- 6% dead zone fully contains the 1.5% spread noise
 
 ### Lessons Learned
 
-1. **PROTECT threshold must be well below the operating margin range.** At 57% with margin hovering at 62-64%, PROTECT fired on every spread dip. The new threshold of 56% with TRIM at 61% gives a 5% dead zone while leaving 6% buffer above the 50% margin call.
+1. **Cooldown must scale with gross exposure.** At 81K gross, 10 lots/fire is noise. The cooldown must be long enough for the market to demonstrate whether the ML drop is real or spread-driven. 5 seconds lets spread spikes resolve naturally.
 
-2. **Balanced close works but slowly consumes positions.** Over hours of repeated firing, both sides shrink. The circuit breaker (30 fires) caps this consumption.
+2. **PROTECT threshold must be below the spread noise band.** If operating ML is 58-62% and spread causes ±1.5% swings, PROTECT must be below 56.5% minimum. At 53%, there's a full 3.5% gap below the noise floor.
 
-3. **The EA must never fight the user.** When the user manually opens positions to save the account, the EA must not immediately close them. The hard floor and circuit breaker prevent this — once tripped, PROTECT stays disabled until manual reset.
+3. **Circuit breaker fires are precious at scale.** Each fire consumes 20 lots total from an 81K gross position — 0.025%. Burning all 30 fires in 58 seconds provides zero benefit. Spacing them out over minutes lets each fire have actual effect on a smaller (and shrinking) position.
 
-4. **Spread spikes are temporary — intervention is permanent.** The spread normalized within seconds, but PROTECT's damage was irreversible. The dead zone exists specifically to let temporary spikes pass without triggering emergency action.
+4. **The broker is the last resort, and that's OK.** When PROTECT can't recover ML (because each fire is too small), the circuit breaker correctly stops the EA. The broker's forced liquidation actually fixed the ML — jumping it to 216%. The EA's job is to prevent the crisis, not to solve it once it's catastrophic.
 
 ---
 
 ## Bottom Line
 
-The hedged martingale turns a **0.50x return** into a **10.1x return** on the same thesis and starting capital. The difference is entirely due to:
+The hedged martingale turns a **0.50x return** into a **50.7x return** on SOL alone, with DOGE to be added after unwind. The difference is entirely due to:
 
-1. **Large gross exposure**: 10,000 short lots already held (vs 386 lots a pure short could afford)
-2. **Hedge protection**: 8,720 long lots absorb upside spikes — no margin call
-3. **EA-managed unwinding**: TRIM zone automatically removes hedge on bounces above 61% margin
-4. **Survivability**: PROTECT zone fires balanced closes below 56% with three safeguards:
+1. **Massive gross exposure**: 40,910 short lots already held (vs 365 lots a pure short could afford)
+2. **Hedge protection**: 39,870 long lots absorb upside spikes — no margin call
+3. **EA-managed unwinding**: TRIM zone automatically removes hedge on bounces above 60% margin
+4. **Dynamic TRIM**: Can be adjusted 56-63% based on conditions while PROTECT stays fixed at 54%
+5. **Spread compensation**: 6% dead zone absorbs the 1.5% ML swings from 81K gross lots
+6. **Survivability**: PROTECT zone fires balanced closes below 54% with four safeguards:
    - Hard floor (10%) — EA halts below this, broker handles stop-out
    - Never closes bias — shorts are sacred, only balanced close when hedged
-   - Circuit breaker (30 fires) — prevents death spiral
+   - Circuit breaker (69 fires) — prevents death spiral
+   - 5-second cooldown — spread spikes resolve before cascade
 
 The **VaR compression** as price approaches zero creates a secondary amplifier through Darwinex:
 
-5. **Collapsing VaR**: Nominal value shrinks → VaR shrinks → risk multiplier climbs
-6. **Profit lock-in**: Once longs are unwound, VaR can only decrease — the value is locked
-7. **DARWIN amplification**: Risk multiplier up to 9.75x in the final collapse phase
-8. **DarwinIA magnetism**: Extreme return/drawdown ratio attracts maximum allocation
-9. **Performance fees**: 15% of profits on up to 875K EUR allocated capital
+7. **Collapsing VaR**: Nominal value shrinks → VaR shrinks → risk multiplier climbs
+8. **Profit lock-in**: Once longs are unwound, VaR can only decrease — the value is locked
+9. **DARWIN amplification**: Risk multiplier up to 9.75x in the final collapse phase
+10. **DarwinIA magnetism**: Extreme return/drawdown ratio attracts maximum allocation
+11. **Performance fees**: 15% of profits on up to 875K EUR allocated capital
 
-**The strategy doesn't just profit from the short — it holds 26x more short lots than a pure short could afford. The hedge makes this possible by neutralizing directional risk while the EA systematically strips the hedge away on every bounce, growing net short exposure until the position is pure profit. With fewer longs to unwind (8.7K) and tighter settings (61/56), the path to pure short is fast — 7 bounces across 2 phases. DOGE contributes additional balance growth through active profit-taking and redeployment.**
+**The strategy holds 112x more short lots than a pure short could afford. The hedge makes this possible by neutralizing directional risk while the EA systematically strips the hedge away on every bounce, growing net short exposure until the position is pure profit. With 40K longs to unwind and settings calibrated for cascade prevention (60/54 with 5s PROTECT cooldown, 69 max fires), the unwind targets completion by SOL ~$30-40. Once pure short, DOGE reopened at max size and everything rides to $0.**
