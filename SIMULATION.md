@@ -788,6 +788,93 @@ Spread spikes don't appear on price charts. They last 1-5 seconds. At safe sizin
 
 ---
 
+## Liquidation Triggers: Known, Observed, and Speculated
+
+Four post-mortems have revealed that **margin level is cosmetic with net-based margin** — the broker charges margin on net exposure only, so ML can show 60%+ while the position is fatally exposed to spread risk on the full gross. This section catalogs every known and suspected way the broker can liquidate a position.
+
+### Known Triggers (Confirmed from 4 Post-Mortems)
+
+| Trigger | Mechanism | Confirmed In |
+|---|---|---|
+| **ML < 50% stop-out** | Broker's published margin call level. Once equity/margin < 50%, broker begins force-liquidating | All PMs |
+| **Spread spike → equity collapse** | Spread widens on ALL lots (gross-based), not just net. At $0.87/lot tolerance, a sub-$1 spread wipe = total margin failure | PM#3, PM#4 |
+| **Full position liquidation** | Broker closes EVERYTHING — not partial, not just enough to restore ML. All longs and all shorts gone in seconds | PM#3, PM#4 |
+| **Invisible on chart** | Spread spikes don't appear on price charts. No abnormal candle, no wick, no gap. Lasts 1-5 seconds | PM#4 |
+
+### Known Broker Behaviors (Observed)
+
+| Behavior | Details |
+|---|---|
+| **Liquidates entire position** | Even when closing half would restore ML, broker closes all. Possible risk-aversion policy for crypto |
+| **Speed of execution** | PM#4: from 66% ML to 0 lots in ~2 seconds. No human reaction possible |
+| **Balance increases on liquidation** | Closing profitable shorts realizes gains. PM#4: balance went UP by $8,098 even as equity dropped $30K |
+| **Net-based margin is cosmetic** | ML shows 62-126% on heavily hedged positions, but spread tolerance is $0.47-0.87/lot — fatal |
+| **No warning** | No margin call email, no alert, no pre-liquidation notice. Just gone |
+
+### The Real Risk Metric
+
+**ML is NOT the survival metric. Spread tolerance is.**
+
+```
+Spread tolerance = Equity / Gross lots
+
+$33,332 / 71,600 gross = $0.47/lot  ← current position
+$72,264 / 83,450 gross = $0.87/lot  ← PM#4 (liquidated)
+$60,000 / 89,000 gross = $0.67/lot  ← PM#3 (liquidated)
+
+Safe minimum: $2.00/lot (survives overnight spreads)
+```
+
+ML can show 62% (looks safe) while spread tolerance is $0.47/lot (instantly fatal). The broker's margin calculation uses net exposure, but spread risk hits gross exposure. These are fundamentally different numbers.
+
+### Speculated Triggers (To Research and Avoid)
+
+| Trigger | Speculation | Risk Level |
+|---|---|---|
+| **Overnight margin multiplier** | Some brokers increase margin requirements outside market hours (crypto is 24/7 but liquidity drops on weekends). Higher margin → lower ML → stop-out at "normal" positioning | Medium — test by observing weekend ML behavior |
+| **Max notional value limits** | Broker may cap total notional exposure (gross × price). At 71.6K lots × $89 = $6.4M notional — some brokers flag positions above $1-5M | Medium — would explain why smaller positions survive longer |
+| **Negative balance protection** | EU/ASIC brokers must prevent negative balance. If the broker's model predicts a position COULD go negative, they may liquidate preemptively before the published 50% stop-out | High — would explain "why did it liquidate at 60%+ ML" |
+| **Dynamic margin requirements** | Broker may silently increase margin requirements during high-volatility periods. A position that required $53K margin yesterday may require $80K today with no visible change in settings | High — completely invisible to the trader |
+| **Broker discretion clause** | Most broker agreements include "we may close positions at our discretion to manage risk." Large crypto hedges may trigger manual risk desk intervention | Medium — unpredictable but likely at $6M+ notional |
+| **Swap/financing drain** | Daily swap charges on large gross positions erode equity over time. At 71.6K gross, even a small per-lot swap compounds to significant daily costs | Low — visible in account history, can be tracked |
+| **Position count limits** | Some brokers limit the number of open positions or total lots. Hitting the limit may prevent new hedges or trigger forced reduction | Low — typically disclosed in account terms |
+| **Liquidity provider rejection** | The broker's LP may reject or partially fill orders at extreme sizes. During a spread spike, LP may pull quotes entirely, leaving the broker to liquidate at whatever price is available | Medium — explains why liquidation prices are often worse than expected |
+
+### Fresh Account Safety Framework
+
+For the next fresh account (or recovery of this one), the safety framework is:
+
+| Rule | Value | Why |
+|---|---|---|
+| **Max gross** | Equity / $2.00 | Survives $2.00 overnight spread spikes |
+| **Opening size** | Safe from day one | Never "open big, trim down" — the spike comes before trimming finishes |
+| **PROTECT** | 56% fixed | Below this, balanced close to preserve net and reduce gross |
+| **TRIM** | Dynamic, 8-10% above PROTECT | Covers spread noise + trim ML impact |
+| **Hard floor** | 10% | Below this, broker handles it — EA intervention only makes it worse |
+| **Monitor spread tolerance** | Log equity/gross daily | If tolerance drops below $2.00, stop opening new lots |
+| **Weekend caution** | Reduce gross Friday or accept risk | Crypto weekend liquidity is thinner → wider spreads |
+| **Notional awareness** | Track gross × price | If notional exceeds $2M, consider whether broker risk desk may intervene |
+
+### The Paradox of Net-Based Margin
+
+Net-based margin creates a dangerous illusion:
+
+```
+Position: 35,500 L / 36,100 S (net 300 short)
+Margin:   $26,698 (net × price = 300 × $89)
+ML:       126% ($33,332 / $26,698)
+Spread tolerance: $33,332 / 71,600 = $0.47/lot
+
+ML says:  "Safe — 126% is way above 50% stop-out"
+Reality:  "Dead — a $0.47 spread wipe = total margin failure"
+```
+
+**ML measures net risk. Spreads hit gross.** These diverge proportionally to hedge ratio. A perfectly hedged position (net = 0) would show **infinite ML** (zero margin) while still being destroyed by a spread spike on gross.
+
+This is why the $2.00/lot rule ignores ML entirely. The only number that matters for survival is equity divided by gross lots.
+
+---
+
 ## Fresh Account Sizing
 
 The position sizing rule must be respected from the first trade. No exceptions.
