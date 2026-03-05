@@ -84,7 +84,7 @@ input group           "[MARTINGALE MODE SETTINGS]"
 input bool            EnableMartingale = false;       // Enable Martingale (master switch)
 input int             MartingaleCooldown = 10;        // seconds between orders
 input double          MartingaleEquityTP = 0;         // $ profit target (0 = disabled)
-input double          MartingaleUnwindMarginPct = 66;  // TRIM — % margin level to start (0=off)
+input double          MartingaleUnwindMarginPct = 65;  // TRIM — % margin level to start (0=off)
 input double          MartingaleUnwindLotSize = 20;   // TRIM — lots per hedge close
 input double          MartingaleHarvestMarginPct = 0; // HARVEST — % margin level to start (0=off)
 input double          MartingaleHarvestLotSize = 1;   // HARVEST — lots per profit close
