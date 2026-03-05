@@ -4,10 +4,10 @@
 
 | | Value |
 |---|---|
-| Account Equity | $67,905 |
-| Account Balance | $37,677 |
-| Floating P/L | +$30,228 (equity leads — shorts printing) |
-| Margin Level | 60.1% |
+| Account Equity | $33,332 |
+| Account Balance | $42,470 |
+| Floating P/L | -$9,138 (rebuild in progress) |
+| Margin Level | 62.4% |
 | Margin Call Level | 50% |
 
 ### EA Configuration
@@ -15,44 +15,56 @@
 | Parameter | Value |
 |---|---|
 | Mode | MG: SHORT |
-| TRIM threshold | 66% margin level (65% when actively monitoring; scaled to gross) |
+| TRIM threshold | 65% margin level (64% when actively monitoring; scaled to net) |
 | TRIM lots | 20 per close (10s cooldown) |
 | PROTECT threshold | 56% margin level (static — never lower after 54% broker liquidation) |
 | PROTECT lots | 10 per side (balanced close) |
 | PROTECT cooldown | 15 seconds between fires |
-| Dead zone | 56%–66% (EA does nothing) |
+| Dead zone | 56%–65% (EA does nothing) |
 | Hard floor | 10% — PROTECT halts, broker handles it |
 | Circuit breaker | 1000 fires max before auto-disable |
 | Bias protection | Never closes bias (shorts) in crisis |
 
-### Why 66/56 (10% Dead Zone)
+### Why 64/56 (8% Dead Zone)
 
-With 84K gross lots on $68K equity, spread changes cause **~1.5% ML swings** tick-to-tick. The TRIM threshold is scaled to gross exposure:
+With 35.5K L / 36.1K S (net 600) on $33.3K equity, the broker charges margin on **net exposure only** — not gross, not max(longs, shorts). This fundamentally changes the risk profile:
+
+**Net-based margin discovery (2026-03-05):**
+- At 35,800L / 36,100S (net 300): margin = $26,698, ML = 126%
+- At 35,500L / 36,100S (net 600): margin = $53,397, ML = 62.4%
+- Margin ≈ net lots × current price ($89 × 600 = $53,400 ✓)
+
+**Key implications:**
+- **Trimming longs INCREASES margin** (grows net short → more margin required → ML drops)
+- **PROTECT balanced close (10L + 10S) preserves net** → margin unchanged → ML recovers from equity preservation
+- **The position is safest when most hedged** (low net = low margin)
+- **ML headroom comes from net exposure, not gross** — 71.6K gross is fine if net is small
+
+**Spread still affects equity based on gross:** A spread change of $0.07/lot on 71.6K gross = $5K equity swing. But since margin is net-based, ML doesn't crash as severely as with gross-based margin.
 
 - **PROTECT deactivates** at 56% (same as threshold — no midpoint, fires only when genuinely below danger level)
 - PROTECT at 56% leaves 6% buffer above 50% margin call
 - 15-second cooldown prevents cascade at scale — 1000 fires takes minimum 250 minutes (~4 hours)
-- TRIM at 66% prevents trimming from pushing ML toward PROTECT
+- TRIM at 64% — each trim grows net, which increases margin, so TRIM must fire only when ML has headroom
 
-**Dynamic TRIM tuning:** PROTECT stays fixed at 56%. TRIM is scaled to gross exposure — tighten 1% for every ~10K gross reduction:
+**Dynamic TRIM tuning:** PROTECT stays fixed at 56%. TRIM is more conservative than with gross-based margin because each trim grows net (increases margin). As equity grows from net short P/L, TRIM can be tightened:
 
-| Gross Level | TRIM | Dead Zone | Spread Noise |
+| Net Short | Margin (est.) | Equity Needed for 64% ML | TRIM |
 |---|---|---|---|
-| **84K (now)** | **66%** | **10%** | ~1.5% |
-| 80K | 63% | 7% | ~1.5% |
-| 70K | 62% | 6% | ~1.3% |
-| 58K (overnight safe) | 65% | 9% | Widen for sleep |
-| 50K | 61% | 5% | ~1.0% |
-| 40K | 60% | 4% | ~0.8% |
+| **600 (now)** | **$53K** | **$34K** | **65%** |
+| 1,000 | $89K | $57K | 65% |
+| 2,000 | $178K | $114K | 64% |
+| 5,000 | $445K | $285K | 62% |
+| 10,000 | $890K | $570K | 61% |
 
-**Active monitoring override:** When watching the chart, TRIM can be set 1% tighter (e.g., 63% at 84K gross) to accelerate unwinding. Switch back to standard or wider before stepping away.
+**Active monitoring override:** When watching the chart, TRIM can be set 1% tighter (e.g., 63%) to accelerate unwinding.
 
 ### Entry Rules: Single Base Price, Maximum Intensity
 
 **The hedge must be set up at maximum intensity at a single base price.** This is the most critical rule of the strategy.
 
 1. **Single base price** — all longs and shorts entered at the same price. No averaging in, no adding below base.
-2. **Maximum intensity at open** — gross set to equity / $2.00 on day one. This is the biggest the position will ever be.
+2. **Safe intensity at open** — gross set to equity / $2.00 on day one. This is the biggest the position will ever be. **Never exceed this limit** — three liquidation events proved that oversized positions are always destroyed by spread spikes before trimming can reach safety.
 3. **One-way ratchet** — from entry, gross only decreases. Every trim, every PROTECT fire reduces gross permanently.
 4. **Exception: adding above base** — if price pushes above the original entry, additional hedge lots can be added because the new longs are immediately profitable and trimmable. However, this increases gross and spread exposure, so it should be done sparingly and only when the spread tolerance (equity / new gross) remains acceptable.
 
@@ -88,34 +100,35 @@ Done:   Pure short → add DOGE → ride to $0
 ### Position Sizing Formula
 
 ```
-Max safe gross lots = Equity / $2.00 (worst-case overnight spread)
+Gross-based spread tolerance = Equity / Gross lots
 
-$67,905 / $2.00 = 33,953 max safe gross lots
+$33,332 / 71,600 = $0.47/lot spread tolerance
 ```
 
-Current gross (83,710) is **2.46x over the safe limit** — EA is actively trimming to reach safety. Overnight is not safe until gross < 39K (or equity grows enough to cover current gross).
+**Net-based margin:** Broker charges margin on net exposure only ($89 × net lots). With net 600 and $33.3K equity, ML is 62.4%. Spread tolerance is thin ($0.47/lot on gross), but ML headroom is net-based — spread spikes affect equity but not margin as severely as with gross-based margin.
+
+**Critical insight:** The $2.00/lot gross-based sizing rule assumed margin was charged on max(longs, shorts). With net-based margin, the real constraint is equity-to-gross ratio for spread tolerance, while ML stability depends on net exposure growth rate.
 
 ### Current Positions
 
 | Asset | Price | Long Lots | Short Lots | Net Short |
 |-------|-------|-----------|------------|-----------|
-| SOLUSD | ~$92 | 41,240 | 42,470 | 1,230 |
+| SOLUSD | ~$89 | 35,500 | 36,100 | 600 |
 | DOGEUSD | — | 0 | 0 | 0 |
 
 **Note on DOGE:** Will be opened once SOL longs are under ~10K and equity headroom allows. Target entry around ~$50 SOL when equity is ~$837K+ and ~360K DOGE lots fit within the position sizing rule. See [DOGE Entry Timing](#doge-entry-timing) for details.
 
 ### Trim Progress to Pure Short
 
-| Trim Progress | Longs | Shorts | Gross | Net Short | Spread Tolerance | TRIM |
-|---|---|---|---|---|---|---|
-| Now | 41,240 | 42,470 | 83,710 | 1,230 | $0.81/lot | 66% |
-| 80K gross | 37,530 | 42,470 | 80,000 | 4,940 | $1.06/lot* | 66% |
-| 70K gross | 27,530 | 42,470 | 70,000 | 14,940 | $1.90/lot* | 65% |
-| 60K gross | 17,530 | 42,470 | 60,000 | 24,940 | $3.50/lot* | 64% |
-| 50K gross | 7,530 | 42,470 | 50,000 | 34,940 | $6.00/lot* | 63% |
-| **Fully trimmed** | **0** | **42,470** | **42,470** | **42,470** | **$10.00+/lot*** | **—** |
+| Trim Progress | Longs | Shorts | Gross | Net Short | Margin (est.) | ML (est.) | TRIM |
+|---|---|---|---|---|---|---|---|
+| Now | 35,500 | 36,100 | 71,600 | 600 | $53K | 62.4% | 64% |
+| Net 2K | 34,100 | 36,100 | 70,200 | 2,000 | $178K | ~25%* | 64% |
+| Net 5K | 31,100 | 36,100 | 67,200 | 5,000 | $445K | ~18%* | — |
+| Net 10K | 26,100 | 36,100 | 62,200 | 10,000 | $890K | ~15%* | — |
+| **Fully trimmed** | **0** | **36,100** | **36,100** | **36,100** | **$3.2M** | **~3%*** | **—** |
 
-*Spread tolerance improves faster than gross shrinks because equity grows from net short floating P/L.*
+*With net-based margin, ML drops as net grows (more margin required). However, equity grows from net short P/L as SOL drops — the question is whether equity grows faster than margin. At large net short, each $1 SOL drop adds net_lots × $1 equity while margin also drops (lower price × net lots). Below ~$50 SOL, equity growth dominates and ML improves.*
 
 ### Equity > Balance Crossover
 
@@ -182,14 +195,13 @@ PROTECT (balanced close) is not just an emergency mechanism — **it serves the 
 
 ### Overnight Safety Plan
 
-| Gross Level | Spread Tolerance | Overnight? | Settings |
-|---|---|---|---|
-| < 39K | $2.00+/lot | **Safe** | 64/56 |
-| 39-50K | $1.60-2.00/lot | **Risky** | 68/56 |
-| 50-70K | $1.10-1.60/lot | **Dangerous** | Don't sleep |
-| 70K+ | < $1.10/lot | **No** | Manual balanced close first |
+| Net Short | Margin (est.) | ML at $33K eq | Overnight? | Settings |
+|---|---|---|---|---|
+| **600 (now)** | **$53K** | **62.4%** | **Monitor — spread tolerance thin** | **65/56** |
+| 1,000 | $89K | ~37% | No — widen to 68/56 | 68/56 |
+| 2,000+ | $178K+ | < 20% | No — PROTECT territory | Pause trimming |
 
-**Note:** These thresholds shift as equity grows. At $78 SOL with ~$207K equity, even 82K gross is overnight-safe ($2.52/lot). Check equity/gross ratio, not just gross alone.
+**Net-based margin means ML drops as you trim.** Overnight safety requires ML well above 56% (PROTECT) with headroom for spread spikes. At net 600, ML 62.4% is workable but tight. Widen TRIM before sleeping to minimize net growth overnight.
 
 If gross cannot be trimmed to a safe ratio by bedtime, a manual balanced close (equal lots L+S) should be used to force gross down to safety.
 
@@ -218,11 +230,11 @@ The position can't grow because there's no mechanism to add lots. You hold a fix
 
 ### Current Position Structure
 
-The hedge: 41,240 long lots vs 42,470 short lots on SOLUSD. Net short exposure is 1,230 lots, but the gross exposure (83,710 lots) creates the margin requirement.
+The hedge: 35,500 long lots vs 36,100 short lots on SOLUSD. Net short exposure is 600 lots. The broker charges margin on net exposure only — not gross. Gross (71,600) still determines spread tolerance for equity swings.
 
 The EA manages this automatically:
-- **Above 66%**: TRIM — close 20 lots of hedge (BUY) every 10s, freeing margin
-- **56%–66%**: Dead zone — EA does nothing, allows normal price action
+- **Above 65%**: TRIM — close 20 lots of hedge (BUY) every 10s (note: increases net → increases margin)
+- **56%–65%**: Dead zone — EA does nothing, allows normal price action
 - **Below 56%**: PROTECT — balanced close 10L + 10S (15s cooldown between fires)
 - **Below 10%**: Hard floor — EA halts entirely, broker handles stop-out
 - **After 1000 fires**: Circuit breaker — PROTECT auto-disables
@@ -234,11 +246,10 @@ TRIM is adjusted based on market conditions while PROTECT stays fixed at 56%. PR
 
 | Market Condition | TRIM | Dead Zone | When |
 |------------------|------|-----------|------|
-| **Current setting** | **66%** | **10%** | Standard operating (set and forget) |
-| Active monitoring | 65% | 9% | Watching chart, accelerated trim |
-| After gross < 70K | 65% | 9% | Can tighten permanently |
-| After gross < 50K | 63% | 7% | Spread noise ~1.0% |
-| Overnight | 68%+ | 12%+ | Sleeping (if gross safe) |
+| **Current setting** | **65%** | **9%** | Standard operating |
+| Active monitoring | 64% | 8% | Watching chart, accelerated trim |
+| Conservative | 66% | 10% | Stepping away, low net growth rate |
+| Overnight | 68%+ | 12%+ | Sleeping — minimize net growth |
 
 ### Phase 1: $90 → $35 (5 bounces)
 
@@ -300,20 +311,20 @@ Remaining ~5,600 longs consumed. Position becomes pure short. VaR collapsing.
 
 | Component | Lots | Profit |
 |-----------|------|--------|
-| SOLUSD shorts (closed at $0) | 42,470 | **$3,907,240** |
-| Long trim costs (hedge removal) | 41,240 consumed | **-$900,000** |
+| SOLUSD shorts (closed at $0) | 36,100 | **$3,212,900** |
+| Long trim costs (hedge removal) | 35,500 consumed | **-$710,000** |
 | DOGE (opened after unwind) | TBD | TBD |
-| **SOL Net Total** | | **$3,007,240** |
+| **SOL Net Total** | | **$2,502,900** |
 
-The long trim cost (~$900K) is the total price paid to remove the hedge across all bounces. This is the cost of building 42,470 lots of net short exposure — a position that would have required **$3.91M in margin** to open as a naked short. The hedge made it possible on $68K equity.
+The long trim cost (~$710K) is the total price paid to remove the hedge across all bounces. With net-based margin, the hedge enables massive gross at low initial margin — margin only grows as net short grows through trimming.
 
 ### Total Cumulative Profit
 
 | Component | Amount |
 |-----------|--------|
-| Short positions closed at $0 | $3,907,240 |
-| Long trim costs (hedge removal) | -$900,000 |
-| **SOL Total Profit** | **$3,007,240** |
+| Short positions closed at $0 | $3,212,900 |
+| Long trim costs (hedge removal) | -$710,000 |
+| **SOL Total Profit** | **$2,502,900** |
 | DOGE (opened after unwind) | TBD |
 
 ---
@@ -323,14 +334,14 @@ The long trim cost (~$900K) is the total price paid to remove the hedge across a
 | | Standard Short | Hedged Martingale |
 |---|---|---|
 | Starting equity | $69,322 | $69,322 |
-| Max short lots (SOL) | 385 | 42,470 (already held) |
-| Survives 10% spike? | NO (margin call) | YES (41.2K long hedge absorbs) |
+| Max short lots (SOL) | 385 | 36,100 (already held) |
+| Survives 10% spike? | NO (margin call) | YES (35.5K long hedge absorbs) |
 | Position grows over time? | NO (fixed) | YES (longs trimmed → net short grows) |
 | Profits from volatility? | NO | YES (bounces = cheap trim opportunities) |
-| Hedge removal cost | N/A | ~$900K (price of building 42K net short) |
-| SOL profit if → $0 | **$34,650** | **$3,007,240** |
-| Return multiple | **0.50x** | **44.3x** |
-| Final account value | ~$103,555 | **~$3,075,145** |
+| Hedge removal cost | N/A | ~$710K (price of building 36K net short) |
+| SOL profit if → $0 | **$34,650** | **$2,502,900** |
+| Return multiple | **0.50x** | **75.1x** |
+| Final account value | ~$103,555 | **~$2,536,232** |
 
 
 ---
@@ -533,17 +544,17 @@ The DARWIN doesn't generate separate profit for your signal account, but:
 | | Standard Short | Hedged Martingale | Hedged + Darwinex |
 |---|---|---|---|
 | Starting equity | $69,322 | $69,322 | $69,322 |
-| Max short lots (SOL) | 385 | 42,470 (held now) | 42,470 (held now) |
-| Survives 10% spike? | NO | YES (41.2K long hedge) | YES |
+| Max short lots (SOL) | 385 | 36,100 (held now) | 36,100 (held now) |
+| Survives 10% spike? | NO | YES (35.5K long hedge) | YES |
 | Position grows? | NO | YES (net short grows) | YES |
 | VaR trajectory | Flat | High → compressing | High → compressing → amplified |
 | Risk multiplier | N/A | N/A | 0.09x → 9.75x |
-| Hedge removal cost | N/A | -$900,000 | -$900,000 |
-| SOL signal profit | $34,650 | $3,007,240 | $3,007,240 |
+| Hedge removal cost | N/A | -$710,000 | -$710,000 |
+| SOL signal profit | $34,650 | $2,502,900 | $2,502,900 |
 | DOGE | — | TBD (after unwind) | TBD (after unwind) |
 | DARWIN amplified returns | N/A | N/A | $8,900,000+ on DARWIN |
 | DarwinIA fee income | N/A | N/A | $100,000 — $500,000 |
-| Return multiple (SOL only) | 0.50x | **44.3x** | 44.3x + DOGE + fees |
+| Return multiple (SOL only) | 0.50x | **75.1x** | 75.1x + DOGE + fees |
 
 ---
 
@@ -713,7 +724,120 @@ No amount of TRIM/PROTECT tuning can save a position that is fundamentally too l
 
 3. **All EA safeguards worked correctly.** The hard floor, circuit breaker, bias protection, and cooldown all performed as designed. The account was lost because the position was too large, not because the EA failed.
 
-4. **Fresh account rule: build to safe size, never beyond.** Current account: 84K gross on $68K equity ($0.81/lot tolerance) — EA is actively trimming. Equity growth from net short P/L will improve tolerance toward $2.00/lot by ~$78 SOL.
+4. **Fresh account rule: build to safe size, never beyond.** Never open gross lots above equity / $2.00 — this is the only defense that matters.
+
+---
+
+## Post-Mortem #4: Full Liquidation While Away (2026-03-05)
+
+### What Happened
+
+With 83K gross lots (41.1K L / 42.3K S) on $72K equity, a spread spike while away destroyed the entire position. Settings were 66/56 with 15s cooldown. ML was at 66.3% just before stepping away.
+
+**Timeline:**
+
+1. **11:09 — Last trim**: TRIM fired at 66.3% ML, equity $74,975. Everything normal.
+
+2. **17:05:02 — Spread spike**: ML crashed from ~66% to **4.7% instantly**. No visible price movement on the chart — pure spread widening.
+
+3. **PROTECT fired once** at 4.7% ML. Hard floor immediately halted PROTECT (below 10%).
+
+4. **17:05:04 — Full broker liquidation**: Broker closed ALL positions — 41,110 longs and 42,340 shorts. Hedge: 0, Bias: 0. Equity: **$45,723** (down from $75K).
+
+5. **Balance increased by $8,098** — broker closing profitable shorts realized gains, partially offsetting the spread damage.
+
+### Root Cause
+
+**Same as Post-Mortem #3: position was 2.4x over the safe limit.**
+
+```
+$72,264 / $2.00 = 36,132 max safe gross
+Actual gross: 83,450 — 2.3x over the limit
+Spread tolerance: $0.87/lot — a $0.87 spread wipe = total margin failure
+```
+
+The spread spike was invisible on the price chart. SOL showed no abnormal price action at 17:05. The spread widened for seconds, consumed all margin on 83K gross, and returned to normal. The chart shows nothing.
+
+### Why This Keeps Happening
+
+Three liquidation events — all the same cause:
+
+| Event | Gross | Equity | Tolerance | Over Limit |
+|---|---|---|---|---|
+| PM#3: Overnight wipe | 89K | $60K | $0.67/lot | 2.97x |
+| Broker liquidation (03-04) | 110K | $69K | $0.63/lot | 3.19x |
+| **PM#4: Away wipe** | **83K** | **$72K** | **$0.87/lot** | **2.30x** |
+
+Every time: gross was 2-3x over the safe limit. Every time: EA safeguards worked correctly but couldn't prevent what position sizing should have prevented.
+
+### The Invisible Killer
+
+Spread spikes don't appear on price charts. They last 1-5 seconds. At safe sizing ($2.00/lot tolerance), a spread spike costs margin temporarily but ML recovers. At 2x+ over the limit, the same spike is fatal.
+
+**There is no EA setting, no dead zone width, no cooldown, no circuit breaker that protects against spread spikes on an oversized position.** The position sizing rule is the ONLY defense.
+
+### Lessons Confirmed (Third Time)
+
+1. **The $2.00/lot rule is not optional.** Three accounts have been damaged or destroyed by ignoring it. No EA configuration compensates for oversized positions.
+
+2. **"I'll trim down to safety" doesn't work.** The spike always comes before the trimming is done. At 83K gross, trimming 20 lots every 10 seconds, it would take ~35 minutes of continuous trimming above 66% ML to reach 39K gross. The spread spike doesn't wait.
+
+3. **Opening at max intensity above the rule is the fundamental error.** The entry rules say "gross set to equity / $2.00 on day one." Every position that exceeded this was liquidated.
+
+4. **Equity $45,723 is salvageable.** Enough to rebuild within the sizing rule: 22.8K gross = 11.4K per side.
+
+---
+
+## Fresh Account Sizing
+
+The position sizing rule must be respected from the first trade. No exceptions.
+
+### Formula
+
+```
+Max safe gross = Equity / $2.00
+
+Per side (hedged) = Max safe gross / 2
+```
+
+### Sizing Tables
+
+**With $45,723 equity (current):**
+
+| Strategy | Per Side | Gross | Tolerance | Overnight? |
+|---|---|---|---|---|
+| **Safe (recommended)** | **11,400** | **22,800** | **$2.01/lot** | **Yes** |
+| Moderate (session only) | 15,200 | 30,400 | $1.50/lot | No |
+| Maximum (active only) | 22,800 | 45,600 | $1.00/lot | No — monitor constantly |
+
+**With $69,322 equity (fresh deposit):**
+
+| Strategy | Per Side | Gross | Tolerance | Overnight? |
+|---|---|---|---|---|
+| **Safe (recommended)** | **17,300** | **34,600** | **$2.00/lot** | **Yes** |
+| Moderate (session only) | 23,100 | 46,200 | $1.50/lot | No |
+| Maximum (active only) | 34,600 | 69,200 | $1.00/lot | No — monitor constantly |
+
+### Why Safe Size from Day One
+
+The previous strategy was "open at maximum intensity, trim down to safety." This failed three times because:
+
+1. **Spread spikes are random and invisible** — you can't predict when one will hit
+2. **Trimming takes time** — hours to days to reach safe gross from oversized
+3. **Every moment over the limit is a gamble** — you're betting the spike doesn't come before trimming finishes
+
+**New rule: open at safe size and stay safe.** The position is smaller, the profits are smaller, but the position survives. A 11.4K short position that rides SOL to $0 is worth **$1,048,800** — far more than a 42K position that gets liquidated at $92.
+
+### Safe Size Financials ($45,723 equity, 11,400 shorts)
+
+| Component | Amount |
+|---|---|
+| Shorts at $0 (11,400 × $92) | $1,048,800 |
+| Long trim costs (~11,400 longs × ~$20 avg loss) | -$228,000 |
+| **Net profit** | **$820,800** |
+| **Return multiple** | **17.9x** |
+
+17.9x on a position that can't be liquidated by spread spikes. That's the trade.
 
 ---
 
@@ -823,13 +947,13 @@ Once SOL is pure short and DOGE is open:
 
 ## Bottom Line
 
-The hedged martingale turns a **0.50x return** into a **44.3x return** on SOL alone, with DOGE to be added after unwind. The difference is entirely due to:
+The hedged martingale turns a **0.50x return** into a **75.1x return** on SOL alone, with DOGE to be added after unwind. The difference is entirely due to:
 
-1. **Massive gross exposure**: 42,470 short lots already held (vs 377 lots a pure short could afford)
-2. **Hedge protection**: 41,240 long lots absorb upside spikes — no margin call
+1. **Massive gross exposure**: 36,100 short lots already held (vs 385 lots a pure short could afford)
+2. **Hedge protection**: 35,500 long lots absorb upside spikes — net-based margin keeps ML high when hedged
 3. **EA-managed unwinding**: TRIM zone automatically removes hedge above TRIM threshold
-4. **Dynamic TRIM**: Scaled to gross — 66% at 84K, tighten 1% per ~10K gross reduction. PROTECT fixed at 56%
-5. **Spread compensation**: 10% dead zone absorbs the 1.5% ML swings from 84K gross lots
+4. **Dynamic TRIM**: 65% at 71.6K gross / net 600. Conservative because each trim grows net → increases margin. PROTECT fixed at 56%
+5. **Net-based margin**: Broker charges margin on net exposure only — heavily hedged positions have low margin despite large gross
 6. **Survivability**: PROTECT zone fires balanced closes below 56% with four safeguards:
    - Hard floor (10%) — EA halts below this, broker handles stop-out
    - Never closes bias — shorts are sacred, only balanced close when hedged
@@ -845,4 +969,4 @@ The **VaR compression** as price approaches zero creates a secondary amplifier t
 11. **DarwinIA magnetism**: Extreme return/drawdown ratio attracts maximum allocation
 12. **Performance fees**: 15% of profits on up to 875K EUR allocated capital
 
-**The strategy holds 110x more short lots than a pure short could afford. The hedge makes this possible by neutralizing directional risk while the EA systematically strips the hedge away, growing net short exposure at minimum cost until the position is pure short. The longs are not a profit source — they are a cost to remove (~$900K). The profit comes entirely from the shorts' floating P/L as net short exposure grows ($3,907,240 at $0). Bounces make trimming cheaper (longs closer to breakeven), and drops make the shorts print harder. With 41.2K longs to unwind and settings at 66/56 (set and forget — tighten only when actively monitoring or as gross drops, 15s PROTECT cooldown, 1000 max fires), the unwind targets completion by SOL ~$30-40. Once pure short, DOGE opened at max size and everything rides to $0 in the VaR compression spiral. Then flip long SOL from the bottom and ride the next cycle up.**
+**The strategy holds 94x more short lots than a pure short could afford. Net-based margin means the heavily hedged position (net 600 on 71.6K gross) requires only $53K margin — ML starts at 62.4%. The hedge makes this possible by neutralizing directional risk while the EA systematically strips the hedge away, growing net short exposure at minimum cost until the position is pure short. The longs are not a profit source — they are a cost to remove (~$710K). The profit comes entirely from the shorts' floating P/L as net short exposure grows ($3,212,900 at $0). Bounces make trimming cheaper (longs closer to breakeven), and drops make the shorts print harder. With 35.5K longs to unwind and settings at 65/56 (15s PROTECT cooldown, 1000 max fires), the key constraint is that each trim grows net → increases margin → drops ML. Trimming must be paced to match equity growth from net short P/L. Once pure short, DOGE opened at max size and everything rides to $0 in the VaR compression spiral. Then flip long SOL from the bottom and ride the next cycle up.**
