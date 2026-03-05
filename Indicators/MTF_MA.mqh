@@ -636,6 +636,39 @@ int OnCalculate(const int rates_total,
    }
    if (!g_buffersLoaded) g_buffersLoaded = true;
 #ifdef __MQL5__
+   // Validate plotted buffers: forward-fill if bar is 0.0 or deviates > 0.5%
+   // from previous bar. 100/200 SMAs physically cannot jump that much in one bar —
+   // a spike indicates stale HTF data from CopyBuffer race condition.
+   // Check last 2 bars: newest may have stale data, and previous bar may have
+   // stale data left over from when IT was the newest bar.
+   {
+      int li = rates_total - 1;
+      if (li > 1)
+      {
+         for (int fi = li - 1; fi <= li; fi++)
+         {
+            double prev, curr;
+            prev = MABufferH1_200SMA[fi-1];  curr = MABufferH1_200SMA[fi];
+            if (prev != 0.0 && (curr == 0.0 || MathAbs(curr - prev) / prev > 0.005))
+               MABufferH1_200SMA[fi] = prev;
+            prev = MABufferH4_200SMA[fi-1];  curr = MABufferH4_200SMA[fi];
+            if (prev != 0.0 && (curr == 0.0 || MathAbs(curr - prev) / prev > 0.005))
+               MABufferH4_200SMA[fi] = prev;
+            prev = MABufferD1_200SMA[fi-1];  curr = MABufferD1_200SMA[fi];
+            if (prev != 0.0 && (curr == 0.0 || MathAbs(curr - prev) / prev > 0.005))
+               MABufferD1_200SMA[fi] = prev;
+            prev = MABufferW1_200SMA[fi-1];  curr = MABufferW1_200SMA[fi];
+            if (prev != 0.0 && (curr == 0.0 || MathAbs(curr - prev) / prev > 0.005))
+               MABufferW1_200SMA[fi] = prev;
+            prev = MABufferW1_100SMA[fi-1];  curr = MABufferW1_100SMA[fi];
+            if (prev != 0.0 && (curr == 0.0 || MathAbs(curr - prev) / prev > 0.005))
+               MABufferW1_100SMA[fi] = prev;
+            prev = MABufferMN1_100SMA[fi-1]; curr = MABufferMN1_100SMA[fi];
+            if (prev != 0.0 && (curr == 0.0 || MathAbs(curr - prev) / prev > 0.005))
+               MABufferMN1_100SMA[fi] = prev;
+         }
+      }
+   }
    double currentPrice = close[rates_total - 1];
    int lastBar = rates_total - 1;
 #else
