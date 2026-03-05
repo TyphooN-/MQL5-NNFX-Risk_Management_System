@@ -74,6 +74,9 @@ int OnInit()
    SetIndexBuffer(3, MABufferW1_200SMA, INDICATOR_DATA);
    SetIndexBuffer(4, MABufferW1_100SMA, INDICATOR_DATA);
    SetIndexBuffer(5, MABufferMN1_100SMA, INDICATOR_DATA);
+   // Prevent drawing to uninitialized buffer positions (0.0 = not yet filled by CopyBuffer)
+   for (int p = 0; p < 6; p++)
+      PlotIndexSetDouble(p, PLOT_EMPTY_VALUE, 0.0);
    SetIndexBuffer(6, MABufferM1_200SMA, INDICATOR_CALCULATIONS);
    SetIndexBuffer(7, MABufferM5_200SMA, INDICATOR_CALCULATIONS);
    SetIndexBuffer(8, MABufferH4_100SMA, INDICATOR_CALCULATIONS);
@@ -626,7 +629,11 @@ int OnCalculate(const int rates_total,
       ObjectSetString(0, g_nameBearHTF, OBJPROP_TEXT, BearPowerTextHTF);
    }
    } // objectsCreated
-   if (!buffersOk) return prev_calculated;
+   if (!buffersOk)
+   {
+      g_buffersLoaded = false;  // Force retry on next tick (don't wait 60s)
+      return prev_calculated;
+   }
    if (!g_buffersLoaded) g_buffersLoaded = true;
 #ifdef __MQL5__
    double currentPrice = close[rates_total - 1];
@@ -776,6 +783,15 @@ bool UpdateBuffers()
    ok &= (CopyBuffer(HandleW1_100SMA, 0, 0, ArraySize(MABufferW1_100SMA), MABufferW1_100SMA) > 0);
    // MN1 100SMA is a plotted line only (not used in bull/bear power grid) -- don't let it block the dashboard
    CopyBuffer(HandleMN1_100SMA, 0, 0, ArraySize(MABufferMN1_100SMA), MABufferMN1_100SMA);
+   // Validate plotted buffers have data for the current bar (prevents spike on new bars)
+   // On a new bar, CopyBuffer may not fill the newest position if the HTF handle
+   // hasn't calculated yet (race condition). Unfilled = 0.0, which would spike the line.
+   int lastIdx = ArraySize(MABufferH1_200SMA) - 1;
+   if (lastIdx >= 0 &&
+       (MABufferH1_200SMA[lastIdx]  == 0.0 || MABufferH4_200SMA[lastIdx]  == 0.0 ||
+        MABufferD1_200SMA[lastIdx]  == 0.0 || MABufferW1_200SMA[lastIdx]  == 0.0 ||
+        MABufferW1_100SMA[lastIdx]  == 0.0 || MABufferMN1_100SMA[lastIdx] == 0.0))
+      ok = false;
 #else
    // MQL4: direct iMA() calls -- only fetch bar 0 for calc-only buffers (dashboard grid)
    // Plotted buffers (6): fill all visible bars for chart line rendering
