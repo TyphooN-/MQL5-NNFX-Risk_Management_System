@@ -23,7 +23,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "https://www.marketwizardry.org/"
-#property version   "1.415"
+#property version   "1.420"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -1243,16 +1243,24 @@ bool CloseProfitableOppositePositions(double marginLevel = 0)
    }
    if (bestTicket == 0)
       return false;
-   // Dynamic TRIM size: scales with held lots × margin headroom
-   // At threshold: fraction ≈ 0 → gentle (few lots)
-   // At 2× threshold: fraction = 1.0 → full close
+   // Forward-looking TRIM: close only enough lots to bring ML down to threshold
+   // Each hedge close adds to net exposure → increases margin → lowers ML
+   // We compute exactly how many lots we can afford before ML hits threshold
    double minVol = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
    if (minVol <= 0) minVol = 1;
-   double totalHedgeLots = GetTotalHedgeLots();
-   double headroom = (MartingaleUnwindMarginPct > 0) ? marginLevel / MartingaleUnwindMarginPct : 2.0;
-   double fraction = MathMin(headroom - 1.0, 1.0);  // 0..1 linear ramp
-   double closeLots = MathMax(MathCeil(totalHedgeLots * fraction), minVol);
-   closeLots = MathMin(closeLots, bestVolume);  // can't close more than position has
+   double equity = AccountInfoDouble(ACCOUNT_EQUITY);
+   double currentMargin = AccountInfoDouble(ACCOUNT_MARGIN);
+   // Maximum margin we can hold while ML stays at threshold
+   double maxMargin = equity / (MartingaleUnwindMarginPct / 100.0);
+   double availableRoom = maxMargin - currentMargin;
+   // Get margin cost per lot of net exposure
+   double marginPerLot = 0;
+   double refPrice = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+   if (!OrderCalcMargin(ORDER_TYPE_BUY, _Symbol, 1.0, refPrice, marginPerLot) || marginPerLot <= 0)
+      marginPerLot = SymbolInfoDouble(_Symbol, SYMBOL_MARGIN_INITIAL);
+   if (marginPerLot <= 0) marginPerLot = 1;
+   double maxSafeLots = MathFloor(availableRoom / marginPerLot);
+   double closeLots = MathMax(MathMin(maxSafeLots, bestVolume), minVol);
    closeLots = NormalizeDouble(closeLots, OrderDigits);
    string dir = (closeType == POSITION_TYPE_BUY) ? "LONG" : "SHORT";
    bool result;
@@ -1266,6 +1274,9 @@ bool CloseProfitableOppositePositions(double marginLevel = 0)
       double closedLots = (bestVolume <= closeLots) ? bestVolume : closeLots;
       Print("Martingale TRIM: close ", dir, " #", bestTicket,
             " (", closedLots, " of ", bestVolume, " lots) P/L: $", DoubleToString(bestPL, 2),
+            " | maxSafe=", DoubleToString(maxSafeLots, 0),
+            " room=$", DoubleToString(availableRoom, 0),
+            " $/lot=", DoubleToString(marginPerLot, 2),
             " | trim closes: ", MartingaleHedgeCloses);
    }
    else
@@ -1515,7 +1526,7 @@ void PrintMartingaleStrategyBriefing(MartingaleState state)
    Print("  Below ", DoubleToString(MartingaleDangerMarginPct, 1), "% : PROTECT — balanced close both sides (dynamic lots per tick)");
    Print("");
    Print("TRIM  (above ", DoubleToString(MartingaleUnwindMarginPct, 1), "% — hedge removal):");
-   Print("  Action    : close ", hedgeType, " positions (scales with held lots × margin headroom)");
+   Print("  Action    : close ", hedgeType, " positions (forward-looking: only enough to reach threshold)");
    Print("");
    Print("PROTECT (below ", DoubleToString(MartingaleDangerMarginPct, 1), "% — emergency balanced close):");
    Print("  Hedged    : balanced close both sides (scales with held lots × margin urgency)");
