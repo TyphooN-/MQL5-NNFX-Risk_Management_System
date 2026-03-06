@@ -16,13 +16,11 @@
 |---|---|
 | Mode | MG: SHORT |
 | TRIM threshold | 65% margin level (64% when actively monitoring; scaled to net) |
-| TRIM lots | 20 per close (10s cooldown) |
+| TRIM lots | Dynamic: `ceil(totalHedgeLots × min(headroom - 1, 1.0))` per tick |
 | PROTECT threshold | 56% margin level (static — never lower after 54% broker liquidation) |
-| PROTECT lots | 10 per side (balanced close) |
-| PROTECT cooldown | 15 seconds between fires |
+| PROTECT lots | Dynamic: `ceil(totalHedgeLots × max(1 - ML/threshold, 0.01))` per tick |
 | Dead zone | 56%–65% (EA does nothing) |
 | Hard floor | 10% — PROTECT halts, broker handles it |
-| Circuit breaker | 1000 fires max before auto-disable |
 | Bias protection | Never closes bias (shorts) in crisis |
 
 ### Why 64/56 (8% Dead Zone)
@@ -44,7 +42,7 @@ With 35.5K L / 36.1K S (net 600) on $33.3K equity, the broker charges margin on 
 
 - **PROTECT deactivates** at 56% (same as threshold — no midpoint, fires only when genuinely below danger level)
 - PROTECT at 56% leaves 6% buffer above 50% margin call
-- 15-second cooldown prevents cascade at scale — 1000 fires takes minimum 250 minutes (~4 hours)
+- Dynamic lot sizing prevents cascade — close size scales with position size and margin urgency, no fixed cooldowns needed
 - TRIM at 64% — each trim grows net, which increases margin, so TRIM must fire only when ML has headroom
 
 **Dynamic TRIM tuning:** PROTECT stays fixed at 56%. TRIM is more conservative than with gross-based margin because each trim grows net (increases margin). As equity grows from net short P/L, TRIM can be tightened:
@@ -182,16 +180,16 @@ PROTECT (balanced close) is not just an emergency mechanism — **it serves the 
 
 1. **Survives overnight spread spikes** — a balanced close reduces margin requirement, keeping the account alive through the spike
 2. **Resumes trimming faster** — surviving the spike means the EA can continue trimming longs on the next bounce, growing net short
-3. **Grows net short indirectly** — each balanced close removes 10L + 10S, preserving the net short ratio while reducing gross
+3. **Grows net short indirectly** — each balanced close preserves the net short ratio while reducing gross
 4. **Better than broker intervention** — the broker would liquidate positions randomly (often closing shorts, destroying the thesis). PROTECT closes balanced pairs, preserving the net short structure.
 
-**The tradeoff:** PROTECT destroys shorts (10 per fire alongside 10 longs). But losing 10 shorts to survive beats losing the entire position to a broker stop-out. The shorts can be rebuilt; a liquidated account cannot.
+**The tradeoff:** PROTECT destroys shorts alongside longs. But losing shorts to survive beats losing the entire position to a broker stop-out. The shorts can be rebuilt; a liquidated account cannot.
+
+**Dynamic sizing (v1.415):** PROTECT close size is `ceil(totalHedgeLots × urgency)` where urgency = `max(1 - ML/threshold, 0.01)`. At 55% ML with 56% threshold, urgency is 1.8% → close ~144 of 8000 lots. At 40% ML, urgency is 28.6% → close ~2286 lots. The math scales to any position size — no tuning needed.
 
 **Constraints:**
 - PROTECT at 56% is the floor (never lower after 54% broker liquidation experience)
-- 15-second cooldown — allows market to resolve spread spikes before burning lots
-- 1000 max fires — meaningful margin relief at scale (10,000 lots per side = 17% of position)
-- Unlimited fires acceptable if cooldown is sufficient (future consideration)
+- Hard floor at 10% — below this, broker handles stop-out, EA intervention only makes it worse
 
 ### Overnight Safety Plan
 
@@ -232,12 +230,11 @@ The position can't grow because there's no mechanism to add lots. You hold a fix
 
 The hedge: 35,500 long lots vs 36,100 short lots on SOLUSD. Net short exposure is 600 lots. The broker charges margin on net exposure only — not gross. Gross (71,600) still determines spread tolerance for equity swings.
 
-The EA manages this automatically:
-- **Above 65%**: TRIM — close 20 lots of hedge (BUY) every 10s (note: increases net → increases margin)
+The EA manages this automatically (v1.415 — fully dynamic lot sizing):
+- **Above 65%**: TRIM — close `ceil(hedgeLots × min(headroom-1, 1.0))` per tick (gentle near threshold, full close at 2× threshold)
 - **56%–65%**: Dead zone — EA does nothing, allows normal price action
-- **Below 56%**: PROTECT — balanced close 10L + 10S (15s cooldown between fires)
+- **Below 56%**: PROTECT — balanced close `ceil(hedgeLots × urgency)` per tick (scales with margin urgency)
 - **Below 10%**: Hard floor — EA halts entirely, broker handles stop-out
-- **After 1000 fires**: Circuit breaker — PROTECT auto-disables
 - **No hedges left**: EA refuses to close bias — shorts are sacred
 
 ### Dynamic TRIM Strategy
@@ -349,13 +346,13 @@ The long trim cost (~$710K) is the total price paid to remove the hedge across a
 ## Key Assumptions
 
 1. **Volatility**: 8 significant bounces (5-15%) on the way to zero — conservative for crypto
-2. **Execution**: EA trims longs automatically (20 lots/10s above TRIM threshold), balanced PROTECT below 56% with 15s cooldown
+2. **Execution**: EA trims longs automatically (dynamic lots per tick above TRIM threshold), balanced PROTECT below 56% (dynamic lots per tick)
 3. **Spread noise**: ~1.5% ML swing from spread changes at 84K gross — absorbed by 8% dead zone
 4. **No black swan recovery**: SOL does not recover permanently
 5. **Margin management**: EA's zone-based system prevents margin call (broker stop-out at 50%, PROTECT at 56% leaves 6% buffer)
 6. **DOGE**: Opened at max size once SOL hedge is fully unwound — both ride to $0
 7. **Position structure**: 41.2K long / 42.5K short SOL already held. No new lots added below base — EA only trims the hedge
-8. **PROTECT safeguards**: Hard floor (10%), circuit breaker (1000 fires), 15s cooldown, never closes bias
+8. **PROTECT safeguards**: Hard floor (10%), dynamic lot sizing (scales with urgency), never closes bias
 9. **Dynamic TRIM**: Scaled to gross — 64% at 84K, tighten 1% per ~10K gross reduction. PROTECT fixed at 56%
 10. **Position sizing**: Gross lots must reach equity / $2.00 before overnight is safe (or equity must grow to cover current gross)
 
@@ -604,18 +601,12 @@ If no hedges remain, PROTECT refuses to close shorts.
 ```
 Shorts are sacred. If all hedges are consumed, closing shorts at catastrophic margin levels just locks in losses. The position is better off letting the broker handle it than selling the core thesis at fire-sale prices.
 
-**Safeguard 3 — Circuit Breaker (1000 fires max)**
+**Safeguard 3 — Dynamic Lot Sizing (v1.415)**
 ```
-After 1000 PROTECT fires, it auto-disables.
-"PROTECT CIRCUIT BREAKER — 1000 fires reached. Disabled until manual reset."
+PROTECT close size = ceil(totalHedgeLots × urgency)
+urgency = max(1 - marginLevel / threshold, 0.01)
 ```
-At 114K gross, 69 fires removed only 690 lots per side (0.6% of position) — completely toothless. Raised to 1000 fires: 10,000 lots per side = 17% of position, providing meaningful margin relief. At 5s cooldown, 1000 fires takes minimum 83 minutes — spread spikes don't last that long. The counter resets when MG mode is toggled.
-
-**Safeguard 4 — PROTECT Cooldown (5 seconds)**
-```
-After each PROTECT fire, the EA waits 5 seconds before firing again.
-```
-At scale, 10 lots/side per fire is too small to meaningfully move ML in a single fire. The 5s cooldown ensures 1000 fires takes a minimum of 83 minutes, giving the market time to resolve spread spikes naturally.
+Replaces the fixed 10-lot closes and circuit breaker. At 55% ML (56% threshold), urgency is 1.8% → close ~144 of 8000 lots. At 40% ML, urgency is 28.6% → close ~2286 lots. Each fire is proportional to position size and danger level — no tuning needed, no circuit breaker needed (fewer, larger closes instead of thousands of tiny ones).
 
 ---
 
@@ -669,14 +660,16 @@ Similarly at 61/56, midpoint was 58.5%, gap to TRIM was 2.5% — still within sp
 
 ### Resolution: Dynamic TRIM with Fixed PROTECT
 
-| Setting | Before (cascade) | After (current) | Improvement |
+| Setting | Before (cascade) | After (v1.415) | Improvement |
 |---------|-------------------|-----------------|-------------|
-| TRIM | 59-61% | 66% (dynamic) | Raised until oscillation stops |
+| TRIM | 59-61% | 65% (dynamic) | Raised until oscillation stops |
+| TRIM lots | 20 fixed | `ceil(hedge × headroom)` | Scales with position + margin |
 | PROTECT | 54-56% | 56% (static) | Fixed reference point |
-| Dead zone | 4-6% | 10% (56-66) | Covers spread noise at 110K gross |
+| PROTECT lots | 10 fixed | `ceil(hedge × urgency)` | Scales with position + danger |
+| Dead zone | 4-6% | 9% (56-65) | Covers spread noise at current gross |
 | Deactivation | Midpoint (~60%) | Threshold (56%) | No more firing at 57-58% |
-| Cooldown | 1 second | 15 seconds | 1000 fires takes 183 min |
-| Max fires | 30 | 1000 | Meaningful at 112K gross (10K lots/side) |
+| Cooldown | 1-15 seconds | None (per tick) | Dynamic sizing handles pacing |
+| Circuit breaker | 30-1000 fires | Removed | Dynamic sizing = fewer, larger closes |
 
 ---
 
@@ -780,7 +773,7 @@ Spread spikes don't appear on price charts. They last 1-5 seconds. At safe sizin
 
 1. **The $2.00/lot rule is not optional.** Three accounts have been damaged or destroyed by ignoring it. No EA configuration compensates for oversized positions.
 
-2. **"I'll trim down to safety" doesn't work.** The spike always comes before the trimming is done. At 83K gross, trimming 20 lots every 10 seconds, it would take ~35 minutes of continuous trimming above 66% ML to reach 39K gross. The spread spike doesn't wait.
+2. **"I'll trim down to safety" doesn't work.** The spike always comes before the trimming is done. Even with v1.415 dynamic lot sizing (aggressive closes with headroom), trimming requires sustained ML above the threshold — the spread spike doesn't wait.
 
 3. **Opening at max intensity above the rule is the fundamental error.** The entry rules say "gross set to equity / $2.00 on day one." Every position that exceeded this was liquidated.
 
@@ -848,8 +841,8 @@ For the next fresh account (or recovery of this one), the safety framework is:
 |---|---|---|
 | **Max gross** | Equity / $2.00 | Survives $2.00 overnight spread spikes |
 | **Opening size** | Safe from day one | Never "open big, trim down" — the spike comes before trimming finishes |
-| **PROTECT** | 56% fixed | Below this, balanced close to preserve net and reduce gross |
-| **TRIM** | Dynamic, 8-10% above PROTECT | Covers spread noise + trim ML impact |
+| **PROTECT** | 56% fixed, dynamic lots | Below this, balanced close scales with urgency — larger closes when more dangerous |
+| **TRIM** | Dynamic, 8-10% above PROTECT, dynamic lots | Gentle near threshold, aggressive with headroom |
 | **Hard floor** | 10% | Below this, broker handles it — EA intervention only makes it worse |
 | **Monitor spread tolerance** | Log equity/gross daily | If tolerance drops below $2.00, stop opening new lots |
 | **Weekend caution** | Reduce gross Friday or accept risk | Crypto weekend liquidity is thinner → wider spreads |
@@ -1006,7 +999,7 @@ At $50 SOL:
 DOGE follows the same hedged martingale pattern as SOL:
 - Enter at maximum intensity at a single DOGE base price
 - Long + Short hedge, EA trims longs via TRIM zone
-- Same PROTECT/circuit breaker/hard floor safeguards
+- Same PROTECT/hard floor safeguards with dynamic lot sizing
 - TRIM/PROTECT settings calibrated for DOGE spread behavior (may differ from SOL)
 
 **Key difference:** By the time DOGE is opened, the account has substantial equity from SOL shorts. This means:
@@ -1041,11 +1034,10 @@ The hedged martingale turns a **0.50x return** into a **75.1x return** on SOL al
 3. **EA-managed unwinding**: TRIM zone automatically removes hedge above TRIM threshold
 4. **Dynamic TRIM**: 65% at 71.6K gross / net 600. Conservative because each trim grows net → increases margin. PROTECT fixed at 56%
 5. **Net-based margin**: Broker charges margin on net exposure only — heavily hedged positions have low margin despite large gross
-6. **Survivability**: PROTECT zone fires balanced closes below 56% with four safeguards:
+6. **Survivability**: PROTECT zone fires balanced closes below 56% with dynamic lot sizing (v1.415):
+   - Dynamic close size = `ceil(hedgeLots × urgency)` — scales with position and danger level
    - Hard floor (10%) — EA halts below this, broker handles stop-out
    - Never closes bias — shorts are sacred, only balanced close when hedged
-   - Circuit breaker (1000 fires) — meaningful at scale
-   - 15-second cooldown — spread spikes resolve before cascade
 7. **PROTECT serves the strategy** — balanced close reduces margin to survive spikes and resume trimming, growing net short faster. Better than broker intervention.
 
 The **VaR compression** as price approaches zero creates a secondary amplifier through Darwinex:
@@ -1056,4 +1048,4 @@ The **VaR compression** as price approaches zero creates a secondary amplifier t
 11. **DarwinIA magnetism**: Extreme return/drawdown ratio attracts maximum allocation
 12. **Performance fees**: 15% of profits on up to 875K EUR allocated capital
 
-**The strategy holds 94x more short lots than a pure short could afford. Net-based margin means the heavily hedged position (net 600 on 71.6K gross) requires only $53K margin — ML starts at 62.4%. The hedge makes this possible by neutralizing directional risk while the EA systematically strips the hedge away, growing net short exposure at minimum cost until the position is pure short. The longs are not a profit source — they are a cost to remove (~$710K). The profit comes entirely from the shorts' floating P/L as net short exposure grows ($3,212,900 at $0). Bounces make trimming cheaper (longs closer to breakeven), and drops make the shorts print harder. With 35.5K longs to unwind and settings at 65/56 (15s PROTECT cooldown, 1000 max fires), the key constraint is that each trim grows net → increases margin → drops ML. Trimming must be paced to match equity growth from net short P/L. Once pure short, DOGE opened at max size and everything rides to $0 in the VaR compression spiral. Then flip long SOL from the bottom and ride the next cycle up.**
+**The strategy holds 94x more short lots than a pure short could afford. Net-based margin means the heavily hedged position (net 600 on 71.6K gross) requires only $53K margin — ML starts at 62.4%. The hedge makes this possible by neutralizing directional risk while the EA systematically strips the hedge away, growing net short exposure at minimum cost until the position is pure short. The longs are not a profit source — they are a cost to remove (~$710K). The profit comes entirely from the shorts' floating P/L as net short exposure grows ($3,212,900 at $0). Bounces make trimming cheaper (longs closer to breakeven), and drops make the shorts print harder. With 35.5K longs to unwind and TRIM/PROTECT at 65/56 (v1.415 fully dynamic lot sizing — no cooldowns, no circuit breaker, close size scales with position and margin math), the key constraint is that each trim grows net → increases margin → drops ML. Trimming must be paced to match equity growth from net short P/L. Once pure short, DOGE opened at max size and everything rides to $0 in the VaR compression spiral. Then flip long SOL from the bottom and ride the next cycle up.**
