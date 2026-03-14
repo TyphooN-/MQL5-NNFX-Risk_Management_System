@@ -29,9 +29,8 @@
 #property copyright     "Copyright 2022, Darwinex / TyphooN (v1.01+)"
 #property link          "https://www.darwinex.com"
 #property description   "Portfolio Risk Management Module"
-#property version       "1.05"
+#property version       "1.06"
 #property strict
-#include <Math\Stat\Math.mqh>
 
 class CPortfolioRiskMan
 {
@@ -41,6 +40,8 @@ public:
    ~CPortfolioRiskMan() { ClearCache(); }
     bool CalculateVaR(string Asset, double AssetPosSize);
     bool CalculateLotSizeBasedOnVaR(string Asset, double confidenceLevel, double accountEquity, double VaRPercent, double &lotSize);
+    void ReserveCache(int size);
+    void ClearCache();
 
 private:
     ENUM_TIMEFRAMES ValueAtRiskTimeframe;
@@ -49,10 +50,14 @@ private:
     double m_stdDevReturnsCache[];
     string m_symbolCache[];
     datetime m_cacheTimestamp[];
+    int    m_cacheCount;
+    // Reusable work arrays — avoid heap alloc/free per symbol
+    double m_returns[];
+    double m_dailyReturns[];
 
     bool GetAssetStdDevReturns(string VolSymbolName, double &StandardDevOfReturns);
     double InverseCumulativeNormal(double p);
-    void ClearCache() { ArrayFree(m_stdDevReturnsCache); ArrayFree(m_symbolCache); ArrayFree(m_cacheTimestamp); }
+    double StdDev(const double &arr[], int count);
 };
 //CONSTRUCTOR
 void CPortfolioRiskMan::CPortfolioRiskMan(ENUM_TIMEFRAMES VaRTF, int SDPeriods, double ConfidenceLevel)
@@ -60,6 +65,40 @@ void CPortfolioRiskMan::CPortfolioRiskMan(ENUM_TIMEFRAMES VaRTF, int SDPeriods, 
    ValueAtRiskTimeframe     = VaRTF;
    StandardDeviationPeriods = SDPeriods;
    VaRConfidenceLevel       = ConfidenceLevel;
+   m_cacheCount             = 0;
+   // Pre-allocate work arrays to avoid per-call heap churn
+   ArrayResize(m_returns, SDPeriods + 1);
+   ArrayResize(m_dailyReturns, SDPeriods);
+}
+void CPortfolioRiskMan::ClearCache()
+{
+   ArrayFree(m_stdDevReturnsCache);
+   ArrayFree(m_symbolCache);
+   ArrayFree(m_cacheTimestamp);
+   ArrayFree(m_returns);
+   ArrayFree(m_dailyReturns);
+   m_cacheCount = 0;
+}
+void CPortfolioRiskMan::ReserveCache(int size)
+{
+   ArrayResize(m_symbolCache, size);
+   ArrayResize(m_stdDevReturnsCache, size);
+   ArrayResize(m_cacheTimestamp, size);
+   m_cacheCount = 0;
+}
+// Inline StdDev — avoids #include <Math\Stat\Math.mqh> (heavy)
+double CPortfolioRiskMan::StdDev(const double &arr[], int count)
+{
+   if (count < 2) return 0;
+   double sum = 0, sumSq = 0;
+   for (int i = 0; i < count; i++)
+   {
+      sum   += arr[i];
+      sumSq += arr[i] * arr[i];
+   }
+   double mean = sum / count;
+   double variance = (sumSq / count) - (mean * mean);
+   return (variance > 0) ? MathSqrt(variance) : 0;
 }
 bool CPortfolioRiskMan::CalculateVaR(string Asset, double AssetPosSize) //N.B. ProposedPosSize should be +ve for a LONG pos and -ve for a SHORT pos                 
 {  
@@ -166,8 +205,8 @@ double CPortfolioRiskMan::InverseCumulativeNormal(double p)
 }
 bool CPortfolioRiskMan::GetAssetStdDevReturns(string VolSymbolName, double &StandardDevOfReturns)
 {
-    int existing_index = -1;
-    for (int i = 0; i < ArraySize(m_symbolCache); i++)
+    // Cache lookup — linear scan (sufficient for typical use; batch callers should ClearCache between batches)
+    for (int i = 0; i < m_cacheCount; i++)
     {
         if (m_symbolCache[i] == VolSymbolName)
         {
@@ -176,51 +215,59 @@ bool CPortfolioRiskMan::GetAssetStdDevReturns(string VolSymbolName, double &Stan
                 StandardDevOfReturns = m_stdDevReturnsCache[i];
                 return true;
             }
-            existing_index = i;
+            // Stale — recompute and update in place
             break;
         }
     }
 
-    double returns[];
-    int copied = CopyClose(VolSymbolName, ValueAtRiskTimeframe, 1, StandardDeviationPeriods + 1, returns);
-    if (copied < StandardDeviationPeriods + 1)
+    // CopyClose into pre-allocated work array (avoids heap alloc per call)
+    int needed = StandardDeviationPeriods + 1;
+    int copied = CopyClose(VolSymbolName, ValueAtRiskTimeframe, 1, needed, m_returns);
+    if (copied < needed)
     {
-        Print("Failed to copy enough close prices for ", VolSymbolName, " (got ", copied, ", need ", StandardDeviationPeriods + 1, ")");
+        Print("Failed to copy enough close prices for ", VolSymbolName, " (got ", copied, ", need ", needed, ")");
         return false;
     }
 
-    double daily_returns[];
-    int returns_size = ArraySize(returns);
-    ArrayResize(daily_returns, returns_size - 1);
+    // Compute daily returns into pre-allocated work array
+    int numReturns = copied - 1;
+    if (ArraySize(m_dailyReturns) < numReturns)
+        ArrayResize(m_dailyReturns, numReturns);
 
-    for (int i = 0; i < returns_size - 1; i++)
+    for (int i = 0; i < numReturns; i++)
     {
-        if (returns[i] == 0.0 || returns[i+1] == 0.0) { daily_returns[i] = 0.0; continue; }
-        daily_returns[i] = (returns[i+1] / returns[i]) - 1.0;
+        if (m_returns[i] == 0.0 || m_returns[i+1] == 0.0) { m_dailyReturns[i] = 0.0; continue; }
+        m_dailyReturns[i] = (m_returns[i+1] / m_returns[i]) - 1.0;
     }
 
-    StandardDevOfReturns = MathStandardDeviation(daily_returns);
+    StandardDevOfReturns = StdDev(m_dailyReturns, numReturns);
     if (StandardDevOfReturns == 0 || !MathIsValidNumber(StandardDevOfReturns))
     {
         Print("StdDev of returns is zero or invalid for ", VolSymbolName);
         return false;
     }
 
-    if(existing_index != -1)
+    // Update or append cache entry
+    int slot = -1;
+    for (int i = 0; i < m_cacheCount; i++)
     {
-        m_stdDevReturnsCache[existing_index] = StandardDevOfReturns;
-        m_cacheTimestamp[existing_index] = TimeCurrent();
+        if (m_symbolCache[i] == VolSymbolName) { slot = i; break; }
     }
-    else
+    if (slot == -1)
     {
-        int cache_size = ArraySize(m_symbolCache);
-        ArrayResize(m_symbolCache, cache_size + 1, 16);
-        ArrayResize(m_stdDevReturnsCache, cache_size + 1, 16);
-        ArrayResize(m_cacheTimestamp, cache_size + 1, 16);
-        m_symbolCache[cache_size] = VolSymbolName;
-        m_stdDevReturnsCache[cache_size] = StandardDevOfReturns;
-        m_cacheTimestamp[cache_size] = TimeCurrent();
+        int capacity = ArraySize(m_symbolCache);
+        if (m_cacheCount >= capacity)
+        {
+            int newCap = (capacity == 0) ? 256 : capacity * 2;
+            ArrayResize(m_symbolCache, newCap);
+            ArrayResize(m_stdDevReturnsCache, newCap);
+            ArrayResize(m_cacheTimestamp, newCap);
+        }
+        slot = m_cacheCount++;
     }
+    m_symbolCache[slot] = VolSymbolName;
+    m_stdDevReturnsCache[slot] = StandardDevOfReturns;
+    m_cacheTimestamp[slot] = TimeCurrent();
 
     return true;
 }
