@@ -1,6 +1,90 @@
-# Simulation: Hedged Martingale vs Standard Short — SOL & DOGE to $0
+# Hedged Martingale Strategy & Simulation
 
-## Starting Conditions
+The hedged martingale exploits net-based margin to carry massive directional exposure via a hedge that is systematically trimmed as the thesis plays out. The EA (TyphooN v1.420) manages the position automatically via forward-looking TRIM and dynamic PROTECT.
+
+**Current plan:** CFD commodities — XNGUSD long from spring seasonal low.
+**Historical:** SOLUSD crypto short — five spread-spike liquidations, lessons preserved below.
+
+---
+
+## Strategy Mechanics (v1.420)
+
+### How It Works
+
+1. **Open at maximum safe intensity** — equal lots long and short at a single base price. Net exposure ≈ 0, margin ≈ $0 (net-based margin)
+2. **TRIM fires** — forward-looking formula closes hedge lots to build directional exposure. ML settles at exactly the threshold
+3. **Price moves in thesis direction** — equity grows from net exposure → more TRIM room → more hedge closed → bigger net → flywheel compounds
+4. **Pure directional** — once all hedge lots consumed, position is pure bias. Every tick in thesis direction is profit
+
+### Forward-Looking TRIM (v1.420)
+
+TRIM computes exactly how many hedge lots can be closed before ML drops to threshold — **mathematically impossible to overshoot**:
+
+```
+maxMargin = equity / (threshold / 100)
+availableRoom = maxMargin - currentMargin
+maxSafeLots = floor(availableRoom / marginPerLot)
+```
+
+Uses `OrderCalcMargin()` to query the broker for margin per lot — works for any instrument.
+
+**v1.415 bug this replaced:** The old formula `min(headroom - 1, 1.0)` used current ML. At net 0 (ML 999%), it tried to close ALL hedge lots, crashing ML into PROTECT cascade. Forward-looking TRIM eliminates this entirely.
+
+### Net-Based Margin
+
+The broker charges margin on **net exposure only** — not gross:
+
+- **Trimming hedges INCREASES margin** (grows net → more margin required → ML drops)
+- **PROTECT balanced close preserves net** → margin unchanged
+- **Position is safest when most hedged** (low net = low margin)
+- **Spread affects equity on gross** — spread tolerance = equity / gross lots
+
+### PROTECT (Dynamic Balanced Close)
+
+Below the PROTECT threshold, the EA closes equal lots from both sides:
+
+- **Dynamic sizing**: `ceil(totalHedgeLots × urgency)` where urgency = `max(1 - ML/threshold, 0.01)`
+- **Preserves net bias** — balanced close doesn't change directional exposure
+- **Hard floor (10%)** — below this, broker handles stop-out, EA stands down
+- **Never closes bias** — directional positions are sacred in crisis
+
+### TRIM Threshold: 1:1 vs Leveraged Instruments
+
+**Critical:** The TRIM/PROTECT dead zone must scale with leverage:
+
+| Leverage | TRIM | PROTECT | Dead Zone | Rationale |
+|---|---|---|---|---|
+| 1:1 (crypto) | 65-66% | 56-60% | 6-10% | Each 1% price move ≈ 1% ML change |
+| **5:1 (CFD)** | **80%** | **56%** | **24%** | Each 1% price move ≈ 3% ML change |
+
+With x5 leverage, a 2% adverse price move covers the entire 65→56 dead zone. TRIM at 80% provides equivalent safety margin.
+
+### Entry Rules
+
+1. **Single base price** — all positions entered at the same price. No averaging in
+2. **Safe intensity at open** — gross = equity / SpreadTolerance. Never exceed this
+3. **One-way ratchet** — gross only decreases from entry. Every trim reduces it permanently
+4. **Adding above base only** — new hedge lots acceptable only if price pushed past entry AND spread tolerance stays above minimum
+
+### Position Sizing
+
+```
+Spread tolerance = Equity / Gross lots
+
+SpreadTolerance parameter = ContractSize × WorstExpectedSpread ($ per lot)
+Safe gross = Equity / SpreadTolerance
+Per side = Safe gross / 2
+```
+
+**ML is NOT the survival metric. Spread tolerance is.** The broker calculates margin on net, but spreads hit gross.
+
+---
+
+## Historical: SOLUSD Crypto Account (March 2026)
+
+Three $100K Darwinex Zero accounts, five spread-spike liquidations. The EA worked correctly every time — the accounts were destroyed by crypto's uniquely violent spread behavior. All lessons below informed the CFD pivot.
+
+### SOLUSD Starting Conditions
 
 | | Value |
 |---|---|
@@ -24,82 +108,20 @@
 | Hard floor | 10% — PROTECT halts, broker handles it |
 | Bias protection | Never closes bias (shorts) in crisis |
 
-### Why Forward-Looking TRIM (v1.420)
+### SOLUSD v1.420 TRIM Example
 
-**v1.415 bug:** The old formula `min(headroom - 1, 1.0)` used current ML. At net 0 after Open MG, ML = 999% (margin ≈ $0), so `headroom = 999/65 = 15.4`, `fraction = 1.0` → TRIM tried to close ALL hedge lots. Two fires closed ~2,000 lots, crashing ML from 999% to 25%, triggering a PROTECT cascade that destroyed the entire position.
-
-**v1.420 fix:** Forward-looking TRIM computes exactly how many lots can be closed before ML drops to threshold:
-```
-maxMargin = equity / (threshold / 100)
-availableRoom = maxMargin - currentMargin
-maxSafeLots = floor(availableRoom / marginPerLot)
-```
-
-**At net 0 (ML 999%), equity $72K, margin $0:**
+At net 0 (ML 999%), equity $72K, margin $0:
 - maxMargin = $72,000 / 0.66 = $109,091
 - availableRoom = $109,091 - $0 = $109,091
 - maxSafe = floor($109,091 / $85.48) = 1,276 lots
 
-Instead of closing all 19,488 hedge lots (v1.415), TRIM closes only 1,276 lots (6.5%). ML lands at exactly 66%, TRIM pauses. Next favorable price tick creates room for a few more lots. Gradual, safe, self-regulating.
+Instead of closing all 19,488 hedge lots (v1.415 bug), TRIM closes only 1,276 lots (6.5%). ML lands at exactly 66%, TRIM pauses. Gradual, safe, self-regulating.
 
-### Net-Based Margin
-
-The broker charges margin on **net exposure only** — not gross. This is fundamental to the strategy:
-
-- **Trimming longs INCREASES margin** (grows net short → more margin required → ML drops)
-- **PROTECT balanced close preserves net** → margin unchanged
-- **The position is safest when most hedged** (low net = low margin)
-- **Spread still affects equity on gross** — spread tolerance = equity / gross lots
-
-**PROTECT at 60%** leaves 10% buffer above 50% margin call. Dynamic lot sizing prevents cascade — close size scales with margin urgency.
-
-### Entry Rules: Single Base Price, Maximum Intensity
-
-**The hedge must be set up at maximum intensity at a single base price.** This is the most critical rule of the strategy.
-
-1. **Single base price** — all longs and shorts entered at the same price. No averaging in, no adding below base.
-2. **Safe intensity at open** — gross set to equity / $2.00 on day one. This is the biggest the position will ever be. **Never exceed this limit** — three liquidation events proved that oversized positions are always destroyed by spread spikes before trimming can reach safety.
-3. **One-way ratchet** — from entry, gross only decreases. Every trim, every PROTECT fire reduces gross permanently.
-4. **Exception: adding above base** — if price pushes above the original entry, additional hedge lots can be added because the new longs are immediately profitable and trimmable. However, this increases gross and spread exposure, so it should be done sparingly and only when the spread tolerance (equity / new gross) remains acceptable.
-
-**Why single base price:**
-- All longs have identical P/L per dollar of movement — predictable, uniform trim losses
-- No "toxic longs" entered below base that cost $500+ per trim and push ML toward PROTECT
-- Bounces above entry make trims near breakeven or profitable
-- Drops below entry have small, uniform trim losses
-
-**Why adding below base is forbidden:**
-- New longs are immediately underwater — every trim realizes a loss
-- Adding lots increases gross without increasing equity proportionally → spread tolerance drops
-- Spread cost on new lots is an immediate equity hit
-- Dead zone must widen for larger gross → slower trimming → longer time over-exposed
-- Resets the clock on reaching overnight safety — the safe gross target becomes further away, not closer
-
-**Why adding above base is acceptable (with caution):**
-- New longs are immediately profitable → trims near breakeven instead of realizing losses
-- Adds more fuel for the trim engine on the next bounce
-- But still increases gross → must verify spread tolerance stays above $2.00/lot after adding
-
-**The lifecycle:**
-```
-Entry:  Max gross at one price → most dangerous moment
-         ↓ (EA trims, gross shrinks)
-Middle: Improving safety, growing net short
-         ↓ (gross approaches safe level)
-Safe:   Gross < equity/$2.00 → overnight safe
-         ↓ (continue trimming)
-Done:   Pure short → add DOGE → ride to $0
-```
-
-### Position Sizing Formula
+### SOLUSD Position Sizing
 
 ```
-Gross-based spread tolerance = Equity / Gross lots
-
-$72,000 / 37,700 = $1.91/lot spread tolerance
+Spread tolerance = $72,000 / 37,700 gross = $1.91/lot (borderline — $2.00 minimum)
 ```
-
-**Net-based margin:** Broker charges margin on net exposure only (~$85 × net lots). With net ~1,276 and $72K equity, ML ≈ 66%. Spread tolerance is $1.91/lot on gross — close to but slightly below the $2.00 overnight safety threshold.
 
 ### Current Positions (post-PM#5 re-hedge — 2026-03-06)
 
@@ -161,25 +183,6 @@ TRIM brings ML to 66% then waits for price movement to create more room:
 - **$25**: **PURE SHORT** — all 18,212 hedge lots consumed. Equity $321K. Position is locked profit from here
 - **$0**: Equity **$804K** — total profit **$732K** (11.2x return on $72K)
 
-### PROTECT as Strategic Tool
-
-PROTECT (balanced close) is not just an emergency mechanism — **it serves the strategy**:
-
-1. **Reduces gross exposure** — fewer lots means less equity impact from spread spikes
-2. **Preserves net short ratio** — balanced close maintains the directional thesis
-3. **Better than broker intervention** — the broker would liquidate positions randomly (often closing shorts, destroying the thesis). PROTECT closes balanced pairs, preserving the net short structure.
-4. **Resumes trimming faster** — surviving a spread spike means the EA can continue trimming longs on the next move
-
-**The tradeoff:** PROTECT destroys shorts alongside longs. But losing shorts to survive beats losing the entire position to a broker stop-out. The shorts can be rebuilt; a liquidated account cannot.
-
-**Important:** With net-based margin, balanced close doesn't change net → doesn't change margin → doesn't directly improve ML. PROTECT helps by reducing gross (limiting future spread damage), not by fixing ML. Forward-looking TRIM (v1.420) prevents TRIM from ever cascading into PROTECT territory.
-
-**Dynamic sizing:** PROTECT close size is `ceil(totalHedgeLots × urgency)` where urgency = `max(1 - ML/threshold, 0.01)`. Scales to any position size — no tuning needed.
-
-**Constraints:**
-- PROTECT at 60% gives 10% buffer above 50% margin call (widened after 5 spread-spike events)
-- Hard floor at 10% — below this, broker handles stop-out, EA intervention only makes it worse
-
 ### Overnight Safety
 
 With forward-looking TRIM (v1.420), ML stays at 66% during active trimming. Overnight safety depends on **spread tolerance** (equity / gross), not ML:
@@ -195,14 +198,14 @@ With forward-looking TRIM (v1.420), ML stays at 66% during active trimming. Over
 
 ---
 
-## Scenario A: Standard Short (No Hedging)
+### Scenario A: Standard Short (No Hedging)
 
 With $72,000 equity, 1:1 crypto margin, and 200% margin level (minimum to survive any volatility):
 
 **Maximum position at open:**
 - SOLUSD: ~424 lots short @ $85
 
-### Profit if SOL hits $0
+#### Profit if SOL hits $0
 
 | Asset | Short Lots | Entry | Profit |
 |-------|-----------|-------|--------|
@@ -214,9 +217,9 @@ The position can't grow because there's no mechanism to add lots. You hold a fix
 
 ---
 
-## Scenario B: Hedged Martingale (Current Strategy)
+### Scenario B: SOLUSD Hedged Martingale
 
-### Current Position Structure
+#### Position Structure
 
 The hedge: ~18,212 long lots vs 19,488 short lots on SOLUSD. Net short exposure is ~1,276 lots. The broker charges margin on net exposure only — not gross. Gross (~37,700) still determines spread tolerance for equity swings.
 
@@ -227,13 +230,11 @@ The EA manages this automatically (v1.420 — forward-looking TRIM):
 - **Below 10%**: Hard floor — EA halts entirely, broker handles stop-out
 - **No hedges left**: EA refuses to close bias — shorts are sacred
 
-### Forward-Looking TRIM (v1.420)
+#### SOLUSD TRIM Behavior
 
-TRIM computes the exact margin available before ML hits threshold, then closes that many lots — never more. This prevents the v1.415 catastrophe where artificially high ML (999% at net 0) caused TRIM to close everything.
+PROTECT at 60%. TRIM at 66% (forward-looking). TRIM can **never** cascade into PROTECT — mathematically impossible.
 
-PROTECT stays fixed at 60%. TRIM can **never** cascade into PROTECT because it's mathematically impossible for TRIM to push ML below its own threshold.
-
-### Phase 1: $85 → $30 (Continuous TRIM, no bounces needed)
+#### Phase 1: $85 → $30 (Continuous TRIM, no bounces needed)
 
 With forward-looking TRIM (v1.420), the EA doesn't need bounces to trim. It continuously closes hedge lots whenever ML is above 66%, self-pacing to maintain ML at exactly the threshold. Each SOL price drop creates room (equity grows from net short P/L + margin per lot drops).
 
@@ -251,7 +252,7 @@ With forward-looking TRIM (v1.420), the EA doesn't need bounces to trim. It cont
 
 **Phase 1 note:** Trim cost ($468K) is already accounted for in equity — closing doesn't change equity (unrealized → realized). The equity numbers above are the ACTUAL equity at each price level.
 
-### Phase 2: $30 → $0 (Pure short from ~$25)
+#### Phase 2: $30 → $0 (Pure short from ~$25)
 
 Remaining ~6,600 hedge lots consumed between $30 and $25. Position becomes pure short at ~$25.
 
@@ -264,7 +265,7 @@ Remaining ~6,600 hedge lots consumed between $30 and $25. Position becomes pure 
 - No more trim costs — position is pure profit accumulation
 - Equity: $321K → $609K → $804K
 
-### Final Close at $0
+#### Final Close at $0
 
 | Component | Lots | Profit |
 |-----------|------|--------|
@@ -277,7 +278,7 @@ Remaining ~6,600 hedge lots consumed between $30 and $25. Position becomes pure 
 
 The long trim cost (~$831K) doesn't come out of equity at closing time — it was already accounted for as realized losses during the trim process. The $804K is the actual final account equity.
 
-### Total Cumulative Profit
+#### Total Cumulative Profit
 
 | Component | Amount |
 |-----------|--------|
@@ -286,9 +287,7 @@ The long trim cost (~$831K) doesn't come out of equity at closing time — it wa
 | **SOL Net Profit** | **~$732,000 (11.2x)** |
 | DOGE (opened after unwind) | TBD |
 
----
-
-## Side by Side Comparison
+### SOLUSD Side by Side
 
 | | Standard Short | Hedged Martingale |
 |---|---|---|
@@ -305,7 +304,7 @@ The long trim cost (~$831K) doesn't come out of equity at closing time — it wa
 
 ---
 
-## Key Assumptions
+### Key Assumptions (SOLUSD)
 
 1. **Continuous decline**: SOL trends from $85 → $0 with bounces along the way (conservative for crypto bear market)
 2. **Execution**: EA trims longs automatically via forward-looking TRIM (v1.420), balanced PROTECT below 60%
@@ -317,7 +316,7 @@ The long trim cost (~$831K) doesn't come out of equity at closing time — it wa
 8. **PROTECT safeguards**: Hard floor (10%), dynamic lot sizing (scales with urgency), never closes bias
 9. **Position sizing**: Gross lots must reach equity / $2.00 ($1.91 currently — borderline) before overnight is safe
 
-## The Multiplier Effect Visualized
+### SOLUSD Multiplier Effect
 
 ```
 Standard Short:
@@ -342,9 +341,9 @@ Hedged Martingale:
 
 ---
 
-## VaR Dynamics: The Darwinex Amplifier
+### VaR Dynamics: The Darwinex Amplifier
 
-### How VaR Is Calculated
+#### How VaR Is Calculated
 
 ```
 VaR = 1.65 × StdDev(daily returns) × NominalValue
@@ -354,7 +353,7 @@ NominalValue = |PositionSize| × (TickValue / TickSize) × CurrentPrice
 
 **VaR is tethered to price.** As the underlying asset price drops, the nominal value of the position shrinks, and VaR shrinks with it. This is independent of P/L — it's a function of what you can lose from *here*, not what you've already gained.
 
-### VaR Through the Phases
+#### VaR Through the Phases
 
 #### Phase 1: SOL $87 → $20
 
@@ -389,7 +388,7 @@ Current net short: ~1,276 lots (growing as forward-looking TRIM unwinds hedges)
 - Equity grows (shorts profiting) → VaR % shrinks even faster
 - The profit is locked — there is nothing left to lose in the direction of the thesis
 
-### The Darwinex Risk Multiplier Effect
+#### The Darwinex Risk Multiplier Effect
 
 Darwinex normalizes all DARWINs to a target VaR band of **3.25% — 6.5% monthly** (95% confidence):
 
@@ -425,7 +424,7 @@ As longs are consumed and VaR compresses, the Darwinex system works in your favo
 
 **D-Leverage caps at 9.75x for positions held > 60 minutes.** So the maximum practical multiplier is **~9.75x**.
 
-### The Lock-In Moment
+#### The Lock-In Moment
 
 **Once longs are fully unwound, the value is locked.**
 
@@ -449,7 +448,7 @@ Once longs are cleared:
 4. **Profit is locked** — mathematically, VaR approaches zero as price approaches zero
 5. **DARWIN outperforms signal** — the lower the VaR, the higher the amplification
 
-### VaR Impact on DarwinIA Allocation
+#### VaR Impact on DarwinIA Allocation
 
 DarwinIA scores DARWINs on risk-adjusted returns. The collapsing VaR creates an ideal profile:
 
@@ -480,7 +479,7 @@ At peak amplification with a 375K EUR SILVER allocation:
 - 15% performance fee on 375K × 50% = **$28,125 performance fee income**
 - This is on top of the signal account profits
 
-### Combined Profit with Darwinex Amplification
+#### Combined Profit with Darwinex Amplification
 
 | Component | Signal Account | DARWIN (amplified) |
 |-----------|---------------|-------------------|
@@ -496,7 +495,7 @@ The DARWIN doesn't generate separate profit for your signal account, but:
 
 ---
 
-## Complete Side by Side Comparison
+### Complete SOLUSD Comparison (with Darwinex)
 
 | | Standard Short | Hedged Martingale | Hedged + Darwinex |
 |---|---|---|---|
@@ -515,9 +514,9 @@ The DARWIN doesn't generate separate profit for your signal account, but:
 
 ---
 
-## Post-Mortem #1: The 57% PROTECT Disaster (2026-03-02)
+### Post-Mortem #1: The 57% PROTECT Disaster (2026-03-02)
 
-### What Happened
+#### What Happened
 
 The first virtual account running this strategy was destroyed overnight by a cascade of PROTECT failures. Starting conditions: $57K equity, 65K L / 66K S on SOLUSD, margin hovering around 62-64%.
 
@@ -533,7 +532,7 @@ The first virtual account running this strategy was destroyed overnight by a cas
 
 5. **03:22 — Account gutted**: Final state: Hedge: 0, Bias: 0, Equity: **$26,883** (down from $57K). All 130K+ lots consumed. The EA fought the user's manual intervention.
 
-### Root Causes
+#### Root Causes
 
 1. **No hard floor**: PROTECT kept firing at 1-2% margin where it couldn't possibly help. The broker was already force-liquidating positions — the EA just piled on.
 
@@ -543,7 +542,7 @@ The first virtual account running this strategy was destroyed overnight by a cas
 
 4. **Hedge margin netting**: In MT5 hedging mode, the broker gives reduced margin for hedged volume. The earlier PROTECT version (before balanced close) closed only longs, which **un-hedged** the shorts — each long close actually **increased** the margin requirement on remaining shorts, making margin spiral downward instead of recovering.
 
-### How We Fixed It
+#### How We Fixed It
 
 Four safeguards now prevent this from ever happening again:
 
@@ -570,9 +569,9 @@ Replaces the fixed closes and circuit breaker. Forward-looking TRIM (v1.420) com
 
 ---
 
-## Post-Mortem #2: The 55% PROTECT Cascade (2026-03-03)
+### Post-Mortem #2: The 55% PROTECT Cascade (2026-03-03)
 
-### What Happened
+#### What Happened
 
 With 83K gross lots (41K L / 42K S), PROTECT at 55% with 1-second cooldown proved insufficient. ML was hovering at 59.6% with TRIM at 59% slowly removing longs. A spread-driven ML dip triggered a cascade.
 
@@ -588,7 +587,7 @@ With 83K gross lots (41K L / 42K S), PROTECT at 55% with 1-second cooldown prove
 
 5. **EA restarts**: Position stabilized at 39,870 L / 40,910 S. ML at 70%. TRIM resumes at 60%.
 
-### Post-Mortem #2b: Broker Liquidation During TRIM (2026-03-03)
+#### Post-Mortem #2b: Broker Liquidation During TRIM (2026-03-03)
 
 After rebuilding to 45K L / 46K S, trimming at 60% with PROTECT at 54% caused a second broker intervention. Each trim closed a **losing** long (-$350 to -$520 per 20 lots), which:
 1. Reduced equity (realized loss)
@@ -597,7 +596,7 @@ After rebuilding to 45K L / 46K S, trimming at 60% with PROTECT at 54% caused a 
 
 The broker closed 1,000 short lots when ML dropped below their threshold during active trimming. Resolution: raise TRIM to 61% so trimming only starts when ML has enough headroom.
 
-### Post-Mortem #2c: PROTECT Oscillation at 61/56 and 60/56 (2026-03-04)
+#### Post-Mortem #2c: PROTECT Oscillation at 61/56 and 60/56 (2026-03-04)
 
 At 60/56 (4% dead zone), PROTECT fired 5 times due to spread-driven ML oscillation. The deactivation midpoint was (60+56)/2 = 58%, leaving only 2% between midpoint and TRIM. Spread noise of 1.5% easily bridged this gap, causing:
 1. ML drops below 56% → PROTECT fires
@@ -608,7 +607,7 @@ Similarly at 61/56, midpoint was 58.5%, gap to TRIM was 2.5% — still within sp
 
 **Resolution:** Raise TRIM to 62/56 to widen the dead zone. Later, the midpoint deactivation system was removed entirely — PROTECT now deactivates as soon as ML recovers above the threshold (55%). This eliminated the excessive firing at 57-58% ML that the midpoint caused.
 
-### Root Causes
+#### Root Causes
 
 1. **1-second cooldown too short at 83K gross**: 30 fires in 58 seconds exhausted the circuit breaker before the market could recover. At this gross exposure, each fire is meaningless — 10 lots out of 83K can't move ML.
 
@@ -618,7 +617,7 @@ Similarly at 61/56, midpoint was 58.5%, gap to TRIM was 2.5% — still within sp
 
 4. **Trimming underwater longs pushes ML down**: Closing longs at a loss reduces equity AND reduces hedge netting. At 60% TRIM with ML barely above threshold, trimming itself can trigger broker intervention.
 
-### Resolution: Dynamic TRIM with Fixed PROTECT
+#### Resolution: Dynamic TRIM with Fixed PROTECT
 
 | Setting | Before (cascade) | After (v1.420) | Improvement |
 |---------|-------------------|-----------------|-------------|
@@ -633,9 +632,9 @@ Similarly at 61/56, midpoint was 58.5%, gap to TRIM was 2.5% — still within sp
 
 ---
 
-## Post-Mortem #3: Overnight Spread Spike Wipe (2026-03-03/04)
+### Post-Mortem #3: Overnight Spread Spike Wipe (2026-03-03/04)
 
-### What Happened
+#### What Happened
 
 With 89K gross lots (44K L / 45K S) on $60K equity, an overnight spread spike destroyed the account. Settings were 64/55 with 5s cooldown.
 
@@ -649,7 +648,7 @@ With 89K gross lots (44K L / 45K S) on $60K equity, an overnight spread spike de
 
 4. **04:14 — Wild position swings**: Positions appeared and disappeared as the broker continued unwinding. Account gutted to **$16,656**.
 
-### Root Cause
+#### Root Cause
 
 **Position was 4x too large for the equity.** All EA safeguards worked correctly:
 - Hard floor correctly halted PROTECT at 6%
@@ -658,7 +657,7 @@ With 89K gross lots (44K L / 45K S) on $60K equity, an overnight spread spike de
 
 The fundamental problem: 89K gross lots on $60K equity = **$0.67/lot spread tolerance**. Any significant spread widening exceeds equity. The $2.00/lot overnight spread was 3x the tolerance.
 
-### The Position Sizing Rule
+#### The Position Sizing Rule
 
 ```
 Max safe gross lots = Equity / $2.00
@@ -669,7 +668,7 @@ Actual gross: 89,000 — nearly 3x over the limit
 
 No amount of TRIM/PROTECT tuning can save a position that is fundamentally too large for the equity. The EA can manage spread noise, prevent cascades, and handle normal market moves. But catastrophic overnight spread spikes require the position itself to be within safety limits.
 
-### Lessons Learned
+#### Lessons Learned
 
 1. **Position sizing is the ultimate safety mechanism.** TRIM/PROTECT/cooldown/circuit breaker are secondary defenses. The primary defense is keeping gross lots below equity / $2.00.
 
@@ -681,9 +680,9 @@ No amount of TRIM/PROTECT tuning can save a position that is fundamentally too l
 
 ---
 
-## Post-Mortem #4: Full Liquidation While Away (2026-03-05)
+### Post-Mortem #4: Full Liquidation While Away (2026-03-05)
 
-### What Happened
+#### What Happened
 
 With 83K gross lots (41.1K L / 42.3K S) on $72K equity, a spread spike while away destroyed the entire position. Settings were 66/56 with 15s cooldown. ML was at 66.3% just before stepping away.
 
@@ -699,7 +698,7 @@ With 83K gross lots (41.1K L / 42.3K S) on $72K equity, a spread spike while awa
 
 5. **Balance increased by $8,098** — broker closing profitable shorts realized gains, partially offsetting the spread damage.
 
-### Root Cause
+#### Root Cause
 
 **Same as Post-Mortem #3: position was 2.4x over the safe limit.**
 
@@ -711,7 +710,7 @@ Spread tolerance: $0.87/lot — a $0.87 spread wipe = total margin failure
 
 The spread spike was invisible on the price chart. SOL showed no abnormal price action at 17:05. The spread widened for seconds, consumed all margin on 83K gross, and returned to normal. The chart shows nothing.
 
-### Why This Keeps Happening
+#### Why This Keeps Happening
 
 Five liquidation events — all the same cause:
 
@@ -724,13 +723,13 @@ Five liquidation events — all the same cause:
 
 PM#5 is notable: spread tolerance was almost exactly at $2.00 — the "safe" limit. Proves that $2.00 is the minimum, not a comfortable margin. Every time: EA safeguards worked correctly but couldn't prevent what position sizing should have prevented.
 
-### The Invisible Killer
+#### The Invisible Killer
 
 Spread spikes don't appear on price charts. They last 1-5 seconds. At safe sizing ($2.00/lot tolerance), a spread spike costs margin temporarily but ML recovers. At 2x+ over the limit, the same spike is fatal.
 
 **There is no EA setting, no dead zone width, no cooldown, no circuit breaker that protects against spread spikes on an oversized position.** The position sizing rule is the ONLY defense.
 
-### Lessons Confirmed (Third Time)
+#### Lessons Confirmed (Third Time)
 
 1. **The $2.00/lot rule is not optional.** Three accounts have been damaged or destroyed by ignoring it. No EA configuration compensates for oversized positions.
 
@@ -742,9 +741,9 @@ Spread spikes don't appear on price charts. They last 1-5 seconds. At safe sizin
 
 ---
 
-## Post-Mortem #5: Spread Spike During Weekend Prep (2026-03-06)
+### Post-Mortem #5: Spread Spike During Weekend Prep (2026-03-06)
 
-### What Happened
+#### What Happened
 
 After rebuilding from PM#4 ($45.7K → re-hedge at ~21K/side, trimmed to ~20K/21.4K, equity ~$78.5K), a spread spike during active monitoring destroyed the position again. Settings were 60/56 (tightened for active monitoring after v1.420 deployment).
 
@@ -760,7 +759,7 @@ After rebuilding from PM#4 ($45.7K → re-hedge at ~21K/side, trimmed to ~20K/21
 
 5. **Re-hedge via Open MG**: Placed 19,488/side at ~$85. v1.420 TRIM closed ~1,276 lots, settling at 66% ML. Settings widened to 66/60.
 
-### Root Cause
+#### Root Cause
 
 **Same as PM#3 and PM#4: spread tolerance at the boundary.**
 
@@ -770,14 +769,14 @@ Gross lots: ~37,700
 A $1.91 spread spike = total margin failure on this gross
 ```
 
-### PROTECT Unbalanced Close (Bug Observed)
+#### PROTECT Unbalanced Close (Bug Observed)
 
 PROTECT fire closed 463 longs + 702 shorts — **not balanced** despite the code intending balanced closes. Possible causes:
 - Some positions were already being closed by TRIM when PROTECT fired
 - Broker execution timing differences between long and short close orders
 - Further investigation needed
 
-### Lessons (Fifth Time)
+#### Lessons (Fifth Time)
 
 1. **$1.91/lot is not safe for any duration** — even "active monitoring" can't react to a sub-second spike
 2. **The $2.00 rule applies to ALL timeframes**, not just overnight
@@ -785,7 +784,7 @@ PROTECT fire closed 463 longs + 702 shorts — **not balanced** despite the code
 4. **Settings widened to 66/60** for the rebuild — more buffer, slower trimming, but safer
 5. **Equity stabilized at ~$72K** — the account is resilient due to bias preservation
 
-### Monday Plan (2026-03-09)
+#### Monday Plan (2026-03-09)
 
 | Setting | Value | Rationale |
 |---|---|---|
@@ -798,11 +797,11 @@ PROTECT fire closed 463 longs + 702 shorts — **not balanced** despite the code
 
 ---
 
-## Liquidation Triggers: Known, Observed, and Speculated
+### Liquidation Triggers: Known, Observed, and Speculated
 
 Five post-mortems have revealed that **margin level is cosmetic with net-based margin** — the broker charges margin on net exposure only, so ML can show 60%+ while the position is fatally exposed to spread risk on the full gross. This section catalogs every known and suspected way the broker can liquidate a position.
 
-### Known Triggers (Confirmed from 5 Post-Mortems)
+#### Known Triggers (Confirmed from 5 Post-Mortems)
 
 | Trigger | Mechanism | Confirmed In |
 |---|---|---|
@@ -811,7 +810,7 @@ Five post-mortems have revealed that **margin level is cosmetic with net-based m
 | **Full position liquidation** | Broker closes EVERYTHING — not partial, not just enough to restore ML. All longs and all shorts gone in seconds | PM#3, PM#4 |
 | **Invisible on chart** | Spread spikes don't appear on price charts. No abnormal candle, no wick, no gap. Lasts 1-5 seconds | PM#4 |
 
-### Known Broker Behaviors (Observed)
+#### Known Broker Behaviors (Observed)
 
 | Behavior | Details |
 |---|---|
@@ -821,7 +820,7 @@ Five post-mortems have revealed that **margin level is cosmetic with net-based m
 | **Net-based margin is cosmetic** | ML shows 62-126% on heavily hedged positions, but spread tolerance is $0.47-0.87/lot — fatal |
 | **No warning** | No margin call email, no alert, no pre-liquidation notice. Just gone |
 
-### The Real Risk Metric
+#### The Real Risk Metric
 
 **ML is NOT the survival metric. Spread tolerance is.**
 
@@ -838,7 +837,7 @@ Safe minimum: $2.00/lot (survives overnight spreads)
 
 ML can show 65% (looks safe) while spread tolerance is $1.90/lot (borderline). The broker's margin calculation uses net exposure, but spread risk hits gross exposure. These are fundamentally different numbers.
 
-### Speculated Triggers (To Research and Avoid)
+#### Speculated Triggers (To Research and Avoid)
 
 | Trigger | Speculation | Risk Level |
 |---|---|---|
@@ -851,7 +850,7 @@ ML can show 65% (looks safe) while spread tolerance is $1.90/lot (borderline). T
 | **Position count limits** | Some brokers limit the number of open positions or total lots. Hitting the limit may prevent new hedges or trigger forced reduction | Low — typically disclosed in account terms |
 | **Liquidity provider rejection** | The broker's LP may reject or partially fill orders at extreme sizes. During a spread spike, LP may pull quotes entirely, leaving the broker to liquidate at whatever price is available | Medium — explains why liquidation prices are often worse than expected |
 
-### Fresh Account Safety Framework
+#### Fresh Account Safety Framework
 
 For the next fresh account (or recovery of this one), the safety framework is:
 
@@ -866,7 +865,7 @@ For the next fresh account (or recovery of this one), the safety framework is:
 | **Weekend caution** | Reduce gross Friday or accept risk | Crypto weekend liquidity is thinner → wider spreads |
 | **Notional awareness** | Track gross × price | If notional exceeds $2M, consider whether broker risk desk may intervene |
 
-### The Paradox of Net-Based Margin
+#### The Paradox of Net-Based Margin
 
 Net-based margin creates a dangerous illusion:
 
@@ -886,7 +885,7 @@ This is why the $2.00/lot rule ignores ML entirely. The only number that matters
 
 ---
 
-## Fresh Account Sizing
+### Fresh Account Sizing (Crypto Lessons)
 
 The position sizing rule must be respected from the first trade. No exceptions.
 
