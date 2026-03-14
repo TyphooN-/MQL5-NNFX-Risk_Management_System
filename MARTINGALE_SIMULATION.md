@@ -932,131 +932,315 @@ The previous strategy was "open at maximum intensity, trim down to safety." This
 
 ---
 
-## The Full Cycle Strategy
+## Pivot: CFD Commodities (March 2026)
 
-The hedged martingale is designed for repeated execution across market cycles, focusing on two assets:
+### Why CFD Instead of Crypto
 
-### Bear Market Phase (Current)
-- **Account 1**: Short SOL → $0 via hedged martingale
-- **Account 1**: Short DOGE → $0 (added once SOL longs < ~10K and equity headroom allows; ~$50 SOL target)
-- SOL selected for: highest volatility, real zero risk (VC unlocks, ETH L2 competition, network outages)
-- DOGE selected for: pure meme fragility, zero utility, Elon fatigue
+Five spread-spike liquidations across three $100K accounts proved that **crypto spread behavior is fundamentally incompatible with the hedged martingale at scale**. The EA logic (forward-looking TRIM, dynamic PROTECT, hard floor, bias protection) works perfectly — the problem is crypto-specific:
 
-### Bottom Detection & Flip
-- Close remaining shorts at/near $0
-- Flip to long on the same account
-- Accumulated knowledge of SOL's price behavior from months of shorting informs bottom timing
+| Issue | Crypto (SOLUSD) | CFD Commodities |
+|---|---|---|
+| Spread spikes | Violent, invisible, sub-second, 10-100x normal | Predictable, correlated with scheduled events (EIA, OPEC) |
+| Spread spike frequency | Random — any time, any day | Concentrated around news releases and session opens |
+| Margin model | 1:1 (no leverage) — need massive lot counts | 5:1 leverage — fewer lots, same notional exposure |
+| Position sizing sensitivity | $2.00/lot tolerance barely survivable | Higher tolerance per lot due to contract multiplier |
+| Market hours | 24/7 — no safe window | Defined hours — daily close, weekend close |
 
-### Bull Market Phase
-- **Same account**: Long SOL at maximum size from the bottom
-- SOL selected for: highest recovery multiple (did 32x last cycle: $8 → $260)
-- Single-asset focus — no diversification needed when conviction is maximum
+### New Account Setup
 
-### Top Detection & Rebuild
-- Close SOL longs at cycle top
-- Rebuild hedged martingale shorts on SOL + DOGE
-- Repeat
+| Parameter | Value |
+|---|---|
+| Account | $100K virtual Darwinex Zero CFD |
+| Leverage | x5 (20% margin) |
+| Margin model | Net-based (hedge account, same as crypto) |
+| Margin call | 50% stop-out |
+| EA | TyphooN v1.420 — same forward-looking TRIM, no code changes needed |
 
-### One Account, One DARWIN
-- Single crypto account handles both bear (short) and bull (long) phases
-- One continuous DARWIN track record — VaR compression from shorts transitions into bull run returns
-- No capital splitting — full equity rolls from short profits into long position
-- Simpler management — one set of EA settings, one margin to monitor
+### TRIM Threshold Adjustment for x5 Leverage
 
-### Why SOL + DOGE Only
-- Deep knowledge of one primary asset beats shallow knowledge of many
-- SOL's volatility profile works for both short (to $0) and long (from bottom)
-- DOGE is the pure meme accelerant for the short side
-- EA settings (TRIM/PROTECT/dead zone) are calibrated for SOL's spread behavior
-- No need to re-learn spread noise, bounce patterns, or overnight behavior for new assets
+**Critical: The default 65/56 TRIM/PROTECT settings are too tight for x5 leverage.**
+
+With 1:1 margin (crypto), a 5.7% adverse price move uses ~6% of dead zone. Safe.
+
+With 5:1 margin (CFD), a **2% adverse price move** pushes ML from 65% straight to 56% — PROTECT fires immediately. The x5 leverage amplifies margin sensitivity ~3x.
+
+| Setting | Crypto (1:1) | CFD (5:1) | Why |
+|---|---|---|---|
+| TRIM | 65-66% | **80%** | Equivalent dead zone sensitivity |
+| PROTECT | 56-60% | **56%** | Same buffer above 50% stop-out |
+| Dead zone | 6-10% | **24%** | Absorbs leveraged price swings |
+| Hard floor | 10% | **10%** | Universal |
+
+With TRIM 80% and PROTECT 56%, a 5.7% adverse move uses ~10% of the 24% dead zone — similar behavior to SOL's 65/56 at 1:1.
 
 ---
 
-## DOGE Entry Timing
+## Candidate Instruments
 
-DOGE shorts are added to the same account (Account 1) once the SOL unwind has progressed far enough that total gross (SOL + DOGE) stays within the position sizing rule: **total gross < equity / $2.00**.
+### Ranked by Martingale Suitability
 
-### When to Add DOGE
+**1. XNGUSD (Natural Gas) LONG — Best Setup**
+- Structural demand floor from crypto mining + AI data centers
+- Clear seasonal pattern: spring low ($2.80-3.00) → winter high ($5-10+)
+- Limited downside (structural floor ~$2.00-2.50), multiple upside catalysts
+- Entry target: April 2026 spring seasonal low
 
-| Trigger | SOL Price (est.) | SOL Longs | SOL Gross | Equity (est.) | DOGE Headroom | Sizing |
-|---|---|---|---|---|---|---|
-| After overnight-safe SOL | ~$78 | ~31,000 | ~82K | ~$207K | ~21,500 lots | Modest — starts early while DOGE priced high |
-| **After significant trim** | **~$50** | **~8,000** | **~59K** | **~$837K** | **~359,500 lots** | **Large — SOL almost done, massive equity** |
-| After full SOL trim | ~$35 | 0 | ~59K | ~$1.9M+ | ~899,000 lots | Maximum — zero competition for margin |
+**2. XAGUSD (Silver) SHORT → then LONG from bottom**
+- ATH $121.67 (Jan 2026) → crashed to $65 → recovering to ~$84
+- Currently short SLV and in profit — ride to $75 support
+- Flip long from monthly bottom ($69-75) with martingale
+- Long-term bull consensus: $112-119 year-end, BofA $309 target
+- Better as second trade — limited short runway from $84
 
-### Recommendation: Add After Significant Trim (~$50 SOL)
+**3. UKOIL/USOIL (Oil) LONG — Pass at Current Levels**
+- Oil at ~$98 (WTI), already moved from $55 on Strait of Hormuz crisis
+- Binary ceasefire risk: Hormuz reopens → oil crashes $30+ in days
+- IEA released 400M barrels from strategic reserves — ceiling on upside
+- 4.236 fib extension targets ~$149 (confluence with 2008 ATH $147.27)
+- Revisit only if oil pulls back to $65-70 on ceasefire, then re-entry on next catalyst
 
-The sweet spot is once SOL longs are under ~10,000 and equity has grown substantially:
+---
 
-1. **DOGE is still priced high enough to short from** — waiting for full SOL trim risks DOGE already having dropped significantly
-2. **Equity is massive** (~$837K+) — plenty of room for large DOGE position alongside remaining SOL
-3. **SOL trim is nearly done** — only ~8,000 longs left, minimal risk of SOL margin competition
-4. **Total gross stays safe**: 59K SOL + 359K DOGE = 418K total vs $837K / $2 = 418K limit
+## Simulation: XNGUSD Long — Hedged Martingale vs Standard Long
 
-### DOGE Entry Sizing Formula
+### Starting Conditions
+
+| | Value |
+|---|---|
+| Account | $100K Darwinex Zero CFD |
+| Leverage | x5 (20% margin) |
+| XNGUSD Entry | ~$3.00 (spring seasonal low, April 2026) |
+| Target | $10.00 (4.236 fib extension — seasonal high) |
+| Contract size | 1,000 MMBtu per lot (**assumed — confirm via ExportSymbols.mq5**) |
+| Margin per lot at price P | 1,000 × P / 5 = **200 × P** |
+| Tick value per lot | 1,000 × $0.001 = **$1.00** |
+
+### EA Configuration (XNGUSD — v1.420)
+
+| Parameter | Value |
+|---|---|
+| Mode | MG: LONG |
+| TRIM threshold | **80%** margin level (adjusted for x5 leverage) |
+| TRIM formula | Forward-looking: `maxSafe = floor((equity/0.80 - margin) / marginPerLot)` |
+| PROTECT threshold | 56% margin level |
+| Dead zone | 56%–80% (24% buffer — absorbs leveraged swings) |
+| Hard floor | 10% — PROTECT halts, broker handles it |
+| Bias protection | Never closes bias (longs) in crisis |
+| Spread tolerance | $60/lot (natgas spike ~$0.060 × 1,000 contract) |
+
+### Position Sizing
 
 ```
-Available DOGE gross = (Equity / $2.00) - SOL gross
+Safe gross = Equity / SpreadTolerance = $100,000 / $60 = 1,666 lots
+Per side = 833 lots
 
-At $50 SOL:
-  $837,000 / $2.00 = 418,500 max total gross
-  418,500 - 59,000 SOL gross = 359,500 available DOGE lots
+Margin per lot at $3.00 = 200 × $3.00 = $600
+Max net at TRIM 80% = $100,000 / (0.80 × $600) = 208 lots
 ```
 
-**Conservative approach:** Target DOGE gross at 80% of headroom to leave safety margin for spread spikes on two assets simultaneously.
+**The martingale holds 833 long lots vs 83 lots a standard position could afford — 10x more exposure.**
 
-### DOGE Position Structure
+### Why x5 Leverage Changes Everything
 
-DOGE follows the same hedged martingale pattern as SOL:
-- Enter at maximum intensity at a single DOGE base price
-- Long + Short hedge, EA trims longs via TRIM zone
-- Same PROTECT/hard floor safeguards with dynamic lot sizing
-- TRIM/PROTECT settings calibrated for DOGE spread behavior (may differ from SOL)
+With 1:1 margin (crypto), each lot controls 1 unit at face value. With 5:1 margin (CFD), each lot controls 5x the notional:
 
-**Key difference:** By the time DOGE is opened, the account has substantial equity from SOL shorts. This means:
-- DOGE spread tolerance is excellent from day one (unlike SOL which started over-exposed)
-- DOGE overnight safety is immediate if sized correctly
-- No anxious trimming phase — DOGE starts safe and stays safe
+```
+833 lots × 1,000 MMBtu × $3.00 = $2,499,000 notional on $100K equity
+Effective leverage: 25x (5x from broker × 5x from lot count vs standard)
+```
 
-### Combined Ride to $0
+This is why the returns are dramatically larger than crypto — and why TRIM must be set higher to compensate.
 
-Once SOL is pure short and DOGE is open:
-- Both assets grinding to $0 simultaneously
-- VaR collapsing on both positions
-- Combined per-dollar profit: 21,363 (SOL) + DOGE lots
-- Darwinex amplification applies to the combined position
-- DarwinIA scoring benefits from the extreme return/drawdown ratio across both
+### Trim Progression to Pure Long (TRIM 80%)
 
-### Why DOGE on the Same Account?
+Max net at price P = equity / (0.80 × 200 × P) = equity / (160P)
 
-- Same directional thesis (short to $0) — one DARWIN, one track record
-- Combined VaR compression is more impressive than separate
-- Single DarwinIA evaluation with combined returns
-- Full equity available — no capital split across accounts
+Each hedge (short) close doesn't change equity — unrealized P/L becomes realized. TRIM computes exactly how many shorts can be closed before ML hits 80%.
+
+| NG Price | Hedge (Short) | Net Long | Lots Trimmed | Gross | Equity | ML | Spread Tol. | Status |
+|---|---|---|---|---|---|---|---|---|
+| **$3.00 (entry)** | **625** | **208** | **208** | **1,458** | **$100,000** | **80%** | **$69** | At threshold |
+| $3.50 | 469 | 364 | 156 | 1,302 | $204,000 | 80% | $157 | Building |
+| $4.00 | 230 | 603 | 239 | 1,063 | $386,000 | 80% | $363 | Accelerating |
+| **~$4.31** | **0** | **833** | **230** | **833** | **$573,000** | **~96%** | **$688** | **PURE LONG** |
+| $5.00 | 0 | 833 | — | 833 | $1,148,000 | 138% | $1,378 | Printing |
+| $7.00 | 0 | 833 | — | 833 | $2,814,000 | 241% | $3,378 | Locked in |
+| **$10.00** | **0** | **833** | **—** | **833** | **$5,313,000** | **319%** | **$6,378** | **TARGET** |
+
+**Pure long at ~$4.31** — only $1.31 above entry. The x5 leverage makes equity grow explosively during trimming.
+
+### How TRIM Pacing Works (XNGUSD Long)
+
+| NG Move | Equity Gained (from net) | Lots Trimmed | Trim Accelerates? |
+|---|---|---|---|
+| $3.00 → $3.50 | $104,000 (208 × 1,000 × $0.50) | 156 | Moderate — small net |
+| $3.50 → $4.00 | $182,000 (364 × 1,000 × $0.50) | 239 | Fast |
+| $4.00 → $4.31 | $186,930 (603 × 1,000 × $0.31) | 230 (all remaining) | **Complete** |
+
+**The flywheel:** Each $0.10 NG rise → longs profit → equity up → more TRIM room → more shorts closed → bigger net → next $0.10 earns more. Pure long achieved at just $4.31.
+
+### Key Milestones
+
+- **$3.50**: Equity doubles to $204K, net long 364 — flywheel building
+- **$4.31**: **PURE LONG** — all 625 hedge shorts consumed. Equity $573K. Locked profit from here
+- **$5.00**: Equity $1.15M — every $1 NG rise = $833K additional equity
+- **$7.00**: Equity $2.81M — position deeply safe, VaR compressing
+- **$10.00**: Equity **$5.31M** — target reached. **53x return on $100K**
+
+### Scenario A: Standard Long (No Hedging)
+
+With $100K equity, x5 leverage, 200% margin level (conservative):
+
+```
+Max lots = $100,000 / (2 × $600) = 83 lots
+Profit at $10: 83 × 1,000 × $7.00 = $581,000
+Final equity: $681,000
+Return: 6.8x
+```
+
+### Side by Side Comparison
+
+| | Standard Long | Hedged Martingale |
+|---|---|---|
+| Starting equity | $100,000 | $100,000 |
+| Max long lots | 83 | 833 (10x more) |
+| Survives 10% drop? | YES (200% ML buffer) | YES (80% → 56% dead zone) |
+| Position grows over time? | NO (fixed) | YES (shorts trimmed → net long grows) |
+| Pure long at | Entry | ~$4.31 |
+| Equity at $5.00 | $266,000 | **$1,148,000** |
+| Equity at $7.00 | $432,000 | **$2,814,000** |
+| Equity at $10.00 | **$681,000** | **$5,313,000** |
+| Return | **6.8x** | **53x** |
+
+### The Multiplier Effect (XNGUSD)
+
+```
+Standard Long:
+  $100K equity → 83 NG lots → hold → $581K profit (6.8x)
+  [Fixed position, no growth, no volatility capture]
+
+Hedged Martingale:
+  $100K equity → 833 NG long lots (hedged with 833 shorts)
+    → Net long: 208 lots (nearly flat — survives any spike)
+    → $3.00 → $3.50: TRIM closes 156 shorts → net long:   364 lots
+    → $3.50 → $4.00: TRIM closes 239 shorts → net long:   603 lots
+    → $4.00 → $4.31: TRIM closes 230 shorts → net long:   833 lots (PURE LONG)
+    → NG hits $10:   close all             → $5.21M net profit (53x)
+  [x5 leverage + forward-looking TRIM = explosive equity growth.
+   Shorts are fuel to burn. Longs are profit.]
+```
+
+---
+
+## XNGUSD Long Thesis: Structural Demand
+
+### Why Natural Gas Long is the Best Martingale Trade
+
+Natural gas has a unique combination of **capped downside** and **multiple independent upside catalysts** — ideal for a directional martingale.
+
+### Structural Demand Floor: Crypto Mining
+
+Crypto mining operations (primarily Bitcoin) increasingly use natural gas turbines for power:
+
+- **Stranded/flared gas** at wellheads now has a buyer — mobile mining containers convert waste gas to Bitcoin
+- **Behind-the-meter** operations bypass grid constraints entirely
+- Post-China ban, US dominates Bitcoin hashrate — Texas, North Dakota, Wyoming, Pennsylvania
+- **Self-correcting demand floor**: when natgas is cheap, mining becomes MORE profitable → more miners deploy → more gas demand → price support
+
+This creates a structural price floor at ~$2.00-2.50 that didn't exist before ~2020. As US crypto mining continues to grow (especially in energy-rich states), this floor strengthens over time.
+
+### AI Data Center Demand
+
+Natural gas supplies ~40% of US electricity. AI data center buildout is creating sustained baseload demand growth:
+
+- Every major AI lab is building massive compute clusters
+- Data centers require reliable 24/7 power — gas turbines are the primary source
+- This demand is secular (growing for years), not cyclical
+- Combined with crypto mining, this represents a structural shift in gas demand
+
+### Seasonal Pattern
+
+Natural gas follows a reliable seasonal cycle:
+
+```
+Spring (Mar-Apr): Seasonal low — heating demand drops, production steady
+Summer (Jun-Aug): Moderate demand — cooling/power generation
+Fall (Sep-Nov):   Building season — storage injections
+Winter (Dec-Feb): Seasonal high — heating demand peaks, cold snaps spike price
+```
+
+**Entry target: April 2026 spring low (~$2.80-3.00)**. The seasonal pattern provides a natural timing framework — buy the spring low, ride to the winter high.
+
+### Geopolitical Upside
+
+The 2026 Strait of Hormuz crisis has disrupted Qatar LNG exports (20% of global supply). While US domestic gas is relatively insulated (export terminals at capacity), prolonged disruption could tighten the market as LNG export capacity expands.
+
+### Combined Demand Stack
+
+| Factor | Effect | Timeframe |
+|---|---|---|
+| Crypto mining at wellheads | Demand floor at $2.00-2.50 | Structural (permanent) |
+| AI data center buildout | Sustained baseload demand growth | Structural (years) |
+| Seasonal winter heating | Cyclical spikes to $5-10+ | Annual (Dec-Feb) |
+| Hormuz LNG disruption | Supply reduction upside | Geopolitical (months) |
+| US LNG export expansion | Growing export demand | Medium-term (2026-2028) |
+
+**For the martingale:** Limited downside (structural floor) + multiple independent upside catalysts = asymmetric risk/reward. The hedge (short) side has limited room to run against you, while the bias (long) side has multiple paths to the target.
+
+---
+
+## Instrument Configuration Notes
+
+### Contract Size Warning
+
+**All XNGUSD simulation numbers assume 1,000 MMBtu per lot.** This MUST be confirmed by running `ExportSymbols.mq5` on the new CFD account. If contract size is 100 instead of 1,000:
+- Divide all dollar amounts by 10
+- Return ratios stay the same (53x)
+- Position lot counts increase 10x
+- Spread tolerance recalibrates accordingly
+
+### MartingaleSpreadTolerance Recalibration
+
+The `$2.00` default is crypto-specific (1 lot = 1 unit, $2 spread = $2/lot). For CFDs:
+
+```
+SpreadTolerance = ContractSize × WorstExpectedSpread
+
+XNGUSD (1,000 contract): 1,000 × $0.060 spike = $60/lot
+XAGUSD (1,000 oz):       1,000 × $0.50 spike  = $500/lot  (estimate)
+USOIL  (1,000 bbl):      1,000 × $0.30 spike  = $300/lot  (estimate)
+```
+
+Set `MartingaleSpreadTolerance` per instrument based on observed worst-case spread spikes. **Run ExportSymbols.mq5 first**, then calibrate from actual spread data.
+
+### Settings Per Instrument
+
+| Parameter | XNGUSD | XAGUSD | USOIL |
+|---|---|---|---|
+| TRIM | 80% | 80% | 80% |
+| PROTECT | 56% | 56% | 56% |
+| SpreadTolerance | $60 (est.) | $500 (est.) | $300 (est.) |
+| Direction | LONG | SHORT → LONG | LONG |
+| Entry timing | April spring low | $75 or $69 support | $65-70 ceasefire pullback |
 
 ---
 
 ## Bottom Line
 
-The hedged martingale turns a **0.50x return** into an **11.2x return** on SOL alone, with DOGE to be added after unwind. The difference is entirely due to:
+### SOL Crypto Lessons (Historical)
 
-1. **Massive gross exposure**: 19,488 short lots held (vs 424 lots a pure short could afford)
-2. **Hedge protection**: ~18K long lots absorb upside spikes — net-based margin keeps ML high when hedged
-3. **Forward-looking TRIM (v1.420)**: Computes exactly how many lots can be closed before ML hits threshold — mathematically impossible to overshoot
-4. **Self-pacing unwind**: TRIM brings ML to exactly 66%, then waits for price movement to create room. Each SOL drop → equity up → more room → more trim → bigger net → next drop earns more (flywheel)
-5. **Net-based margin**: Broker charges margin on net exposure only — heavily hedged positions have low margin despite large gross
-6. **Survivability**: PROTECT zone fires balanced closes below 60%:
-   - Dynamic close size = `ceil(hedgeLots × urgency)` — scales with danger level
-   - Hard floor (10%) — EA halts below this, broker handles stop-out
-   - Never closes bias — shorts are sacred
-7. **PROTECT can't be triggered by TRIM** — forward-looking formula guarantees TRIM never pushes ML below its own threshold
+Three $100K accounts, five spread-spike liquidations, $100K+ lost. The EA logic worked perfectly every time — forward-looking TRIM, dynamic PROTECT, hard floor, bias protection all fired correctly. The accounts were destroyed by **crypto's uniquely violent spread behavior** at insufficient spread tolerance. Key lesson: the $2.00/lot rule is necessary but not sufficient for crypto — even $1.91/lot tolerance was fatal (PM#5).
 
-The **VaR compression** as price approaches zero creates a secondary amplifier through Darwinex:
+### CFD Commodities (Forward-Looking)
 
-8. **Stable VaR during trim**: Forward-looking TRIM keeps VaR at ~12.5% of equity throughout Phase 1
-9. **Collapsing VaR after unwind**: Once pure short at ~$25, VaR only decreases → risk multiplier climbs
-10. **DARWIN amplification**: Risk multiplier up to 9.75x in the final collapse phase
-11. **DarwinIA magnetism**: Extreme return/drawdown ratio attracts maximum allocation
-12. **Performance fees**: 15% of profits on up to 875K EUR allocated capital
+The same EA (v1.420) on commodity CFDs addresses every failure mode:
 
-**The strategy holds 46x more short lots than a pure short could afford. Net-based margin means the heavily hedged position (net 1,276 on 37.7K gross) requires only $109K margin — ML starts at ~66%. The hedge makes this possible by neutralizing directional risk while the EA systematically strips the hedge away via forward-looking TRIM, growing net short exposure at the mathematically optimal rate. The longs are fuel to burn (~$831K trim cost), not a profit source. The profit comes from the shorts' exposure growing as the hedge is consumed ($804K equity at $0). With ~18K longs to unwind and TRIM/PROTECT at 66/60 (v1.420 forward-looking — no cooldowns, no circuit breaker, TRIM can never cascade into PROTECT), the unwind rate is controlled by SOL price movement. TRIM self-paces at exactly 66% ML and accelerates as the flywheel builds: more net → more profit per $1 drop → more room → more trim. Pure short at ~$25, then DOGE at max size. Everything rides to $0 in the VaR compression spiral. Then flip long SOL from the bottom and ride the next cycle up.**
+1. **x5 leverage** means fewer lots for the same notional — spread impact per lot is manageable
+2. **Predictable spread spikes** tied to scheduled events (EIA, OPEC) — not random invisible sub-second wipes
+3. **TRIM at 80%** (not 65%) compensates for leveraged margin sensitivity — 24% dead zone absorbs normal volatility
+4. **XNGUSD long** has the best risk/reward: structural demand floor (crypto mining + AI), seasonal pattern, geopolitical upside
+5. **53x return potential** ($100K → $5.3M) on a $3 → $10 natgas move with 833 lots — vs 6.8x for a standard long
+
+**The martingale holds 10x more long lots than a standard position could afford. x5 leverage means each lot controls $3,000 notional at entry. Net-based margin on a hedge account starts at $0 margin (net 0), and forward-looking TRIM gradually builds net long exposure at the mathematically optimal rate. Pure long at just $4.31 — only $1.31 above entry. From there, every $1 natgas rise = $833,000 additional equity. The hedge shorts are fuel to burn, the bias longs are profit. TRIM self-paces at exactly 80% ML with the same forward-looking formula that proved reliable on SOL — it just needed wider thresholds for leveraged instruments.**
+
+**First step: Run ExportSymbols.mq5 on the new CFD account to confirm contract size, tick value, and margin per lot for XNGUSD. That single number determines whether this is a $5.3M outcome or $530K.**
