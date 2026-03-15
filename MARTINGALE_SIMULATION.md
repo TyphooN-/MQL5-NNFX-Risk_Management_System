@@ -1090,26 +1090,40 @@ With $100K equity, entry at ~$3.00, margin per lot = $3,164:
 
 ---
 
-### Scenario B: Hedged Martingale — Aggressive (166.60/side)
+### Scenario B: Hedged Martingale — Calibrated for 65-Point Spread (40/side)
 
-#### Position Sizing
+#### The Spread Reality
+
+XNGUSD on Darwinex has a **65-point structural spread** ($0.065 = $650/lot). This is a fixed cost at entry that must be accounted for. The spread may tighten to 5-10 points during US liquid hours — if so, open positions recover ~$600/lot in equity.
 
 ```
-SpreadTolerance per lot = ContractSize × WorstExpectedSpread
-                        = 10,000 × $0.030 = $300/lot (NG CFD worst-case during EIA/OPEC)
-                        (Crypto needed $600+ due to invisible sub-second spikes.
-                         CFD spreads are scheduled and predictable — $300 is conservative.)
+Spread cost per lot = 10,000 × $0.065 = $650
+Total spread cost = gross × $650
 
-Max safe gross = $100,000 / $300 = 333.30 lots
-Per side = 166.60 lots
-
-Opening: 166.60 LONG + 166.60 SHORT at $3.00
-Net = 0, Margin = $0 (net-based), ML = ∞
+At 80 gross (40/side):  $52,000 spread cost → $48,000 equity remaining
+At 100 gross (50/side): $65,000 spread cost → $35,000 equity remaining
+At 120 gross (60/side): $78,000 spread cost → $22,000 equity remaining
 ```
 
-**The martingale holds 166.60 long lots vs 31.60 full-tilt max — 5.3x more exposure.**
+#### Lot Size Calibration at 65-Point Spread
 
-#### EA Configuration (XNGUSD — v1.420, Aggressive)
+| Per Side | Gross | Spread Cost | Equity After | TRIM Net | Shorts Left | Pure Long At | Equity @$10 | Return |
+|---|---|---|---|---|---|---|---|---|
+| 20 | 40 | $26,000 | $74,000 | 35.90 | 0 (pure) | $3.10 | $1,454,000 | 14.5x |
+| 25 | 50 | $32,500 | $67,500 | 32.80 | 0 (pure) | $3.10 | $1,793,000 | 17.9x |
+| 30 | 60 | $39,000 | $61,000 | 29.60 | 0.40 | $3.10 | $2,131,000 | 21.3x |
+| 35 | 70 | $45,500 | $54,500 | 26.50 | 8.50 | ~$3.18 | $2,470,000 | 24.7x |
+| **40** | **80** | **$52,000** | **$48,000** | **23.30** | **16.70** | **~$3.22** | **$2,794,000** | **27.9x** |
+| 45 | 90 | $58,500 | $41,500 | 20.10 | 24.90 | ~$3.27 | $3,111,000 | 31.1x |
+| 50 | 100 | $65,000 | $35,000 | 17.00 | 33.00 | ~$3.33 | $3,432,000 | 34.3x |
+| 55 | 110 | $71,500 | $28,500 | 13.80 | 41.20 | ~$3.45 | $3,717,000 | 37.2x |
+| 60 | 120 | $78,000 | $22,000 | 10.60 | 49.40 | ~$3.57 | $3,992,000 | 40.0x |
+
+**Below ~30/side:** TRIM consumes ALL shorts immediately — you're paying double spread for full tilt. Martingale only adds value above 30/side.
+
+**Sweet spot: 40/side.** Enough hedge fuel (16.70 shorts) to let the flywheel build, $48K equity survives PROTECT, and 27.9x return beats full tilt 25 by 1.5x.
+
+#### EA Configuration (XNGUSD — v1.420, Calibrated for 65pt Spread)
 
 | Parameter | Value |
 |---|---|
@@ -1120,159 +1134,113 @@ Net = 0, Margin = $0 (net-based), ML = ∞
 | Dead zone | 56%–65% (9% buffer — covers ~1.0% adverse price move at ~10x leverage) |
 | Hard floor | 10% — PROTECT halts, broker handles it |
 | Bias protection | Never closes bias (longs) in crisis |
-| MartingaleSpreadTolerance | **300** |
-
-#### Why TRIM 65% and Not Lower
-
-At ~10x effective leverage, each 1% NG price move changes ML by ~10%. The dead zone must absorb normal tick-to-tick noise:
-
-| TRIM | PROTECT | Dead Zone | Price Drop to PROTECT | Viable? |
-|---|---|---|---|---|
-| 80% | 56% | 24% | -2.7% ($2.92) | Conservative — safe overnight |
-| 70% | 56% | 14% | -1.6% ($2.95) | Moderate — safe during market hours |
-| **65%** | **56%** | **9%** | **-1.0% ($2.97)** | **Aggressive — viable for NG CFD** |
-| 63% | 56% | 7% | -0.8% ($2.98) | Borderline — single candle can bridge |
-| 60% | 56% | 4% | -0.4% ($2.99) | **Suicidal** — normal volatility triggers PROTECT |
-| 55% | 56% | N/A | N/A | **Impossible** — TRIM below PROTECT |
-
-**TRIM 65% is the aggressive floor with PROTECT 56%.** Below 63%, normal NG tick noise (~$0.005-$0.010 = 0.17-0.33%) bridges the dead zone within minutes. TRIM 60% puts PROTECT within one bad candle of entry — you'd be in PM#2c territory (SOL PROTECT oscillation cascade).
-
-#### Why ~10x Effective Leverage Changes the Math
-
-With 1:1 margin (crypto), each lot controls 1 unit at face value. XNGUSD has ~9.5:1 effective leverage — each lot controls ~$30,000 notional at $3.00:
-
-```
-166.60 lots × 10,000 MMBtu × $3.00 = $4,998,000 notional on $100K equity
-Effective leverage: ~50x (9.5x from broker × ~5.3x from lot count vs standard)
-```
-
-This is why TRIM at 65% (not the crypto 65%) needs the tighter PROTECT at 53% — the leverage amplifies everything.
+| MartingaleSpreadTolerance (Open MG) | **1250** ($100K / $1,250 = 80 gross → 40/side) |
 
 #### TRIM Progression to Pure Long — All Price Levels
 
-TRIM fires immediately at open (ML = ∞ at net 0, brings to 65%). As price rises, equity grows from net long exposure → more TRIM room → more shorts closed. Each hedge close doesn't change equity (unrealized → realized).
+Entry at ~$3.10. Spread cost: $52,000. Equity after open: $48,000. TRIM fires immediately.
 
-| NG Price | Equity | Hedge (Short) | Net Long | Lots Trimmed | Gross | ML | Status |
-|---|---|---|---|---|---|---|---|
-| **$3.00 (entry)** | **$100,000** | **118.00** | **48.60** | **48.60** | **285.20** | **65%** | TRIM fires at open |
-| $3.10 | $148,600 | 96.70 | 69.90 | 21.30 | 263.30 | 65% | Building fast |
-| $3.25 | $253,450 | 52.90 | 113.70 | 43.80 | 219.50 | 65% | Accelerating |
-| **$3.35** | **$367,200** | **6.60** | **160.00** | **46.30** | **173.20** | **65%** | Almost pure |
-| **~$3.40** | **$400,200** | **0** | **166.60** | **6.60** | **166.60** | **~70%** | **PURE LONG** |
-| $3.50 | $566,800 | 0 | 166.60 | — | 166.60 | 97% | Printing |
-| $4.00 | $1,399,800 | 0 | 166.60 | — | 166.60 | 211% | Locked in |
-| $5.00 | $3,065,800 | 0 | 166.60 | — | 166.60 | 369% | Locked in |
-| $6.00 | $4,731,800 | 0 | 166.60 | — | 166.60 | 474% | Locked in |
-| $7.00 | $6,397,800 | 0 | 166.60 | — | 166.60 | 550% | Locked in |
-| $8.00 | $8,063,800 | 0 | 166.60 | — | 166.60 | 606% | Locked in |
-| **$10.00** | **$11,395,800** | **0** | **166.60** | **—** | **166.60** | **818%** | **TARGET** |
+| NG Price | Equity | Hedge (Short) | Net Long | Gross | ML | Status |
+|---|---|---|---|---|---|---|
+| **$3.10 (entry)** | **$48,000** | **16.70** | **23.30** | **63.30** | **65%** | TRIM fires at open |
+| $3.15 | $59,650 | 11.00 | 29.00 | 69.00 | 65% | Building |
+| $3.20 | $74,150 | 4.00 | 36.00 | 76.00 | 65% | Trimming fast |
+| **~$3.22** | **$81,350** | **0** | **40.00** | **40.00** | **~98%** | **PURE LONG** |
+| $3.30 | $113,350 | 0 | 40.00 | 40.00 | 178% | Safe |
+| $3.50 | $193,350 | 0 | 40.00 | 40.00 | 277% | Printing |
+| $4.00 | $393,350 | 0 | 40.00 | 40.00 | 311% | Locked in |
+| $5.00 | $793,350 | 0 | 40.00 | 40.00 | 380% | Locked in |
+| $7.00 | $1,593,350 | 0 | 40.00 | 40.00 | 546% | Locked in |
+| **$10.00** | **$2,793,350** | **0** | **40.00** | **—** | **—** | **TARGET** |
 
-**Pure long at ~$3.40** — only **$0.40 above entry**. From $3.40 on, every $1 NG rise = **$1,666,000** additional equity.
+**Pure long at ~$3.22** — only **$0.12 above entry**. From $3.22 on, every $1 NG rise = **$400,000** additional equity.
 
 #### How TRIM Pacing Works
 
-| NG Move | Net Long During | Equity Gained | Shorts Trimmed | Status |
+| NG Move | Net Long | Equity Gained | Shorts Trimmed | Status |
 |---|---|---|---|---|
-| Entry ($3.00) | 48.60 | — | 48.60 | Initial TRIM from ∞ → 65% |
-| $3.00 → $3.10 | 48.60 → 69.90 | $48,600 | 21.30 | Fast |
-| $3.10 → $3.25 | 69.90 → 113.70 | $104,850 | 43.80 | Accelerating |
-| $3.25 → $3.35 | 113.70 → 160.00 | $113,700 | 46.30 | Rapid |
-| $3.35 → $3.40 | 160.00 → 166.60 | $133,000 | 6.60 (all remaining) | **PURE LONG** |
-| $3.40 → $10.00 | 166.60 | $10,995,600 | — | Riding pure profit |
+| Entry ($3.10) | 23.30 | — | 23.30 | Initial TRIM (spread-reduced equity) |
+| $3.10 → $3.15 | 23.30 → 29.00 | $11,650 | 5.70 | Building |
+| $3.15 → $3.20 | 29.00 → 36.00 | $14,500 | 7.00 | Fast |
+| $3.20 → $3.22 | 36.00 → 40.00 | $7,200 | 4.00 (all remaining) | **PURE LONG** |
+| $3.22 → $10.00 | 40.00 | $2,712,000 | — | Riding pure profit |
 
-**The flywheel:** Each $0.10 NG rise → longs profit → equity up → more TRIM room → more shorts closed → bigger net → next $0.10 earns more. Pure long achieved at just $3.40.
+#### Spread Recovery Effect
+
+If spread tightens from 65 → 5 points during US hours (Monday), open positions recover $600/lot:
+
+```
+Before TRIM (immediately after open, spread still 65):
+  40 longs × $600 recovery  = $24,000
+  16.70 shorts × $600       = $10,020
+  Total recovery: $34,020
+  Equity: $48,000 → $82,020
+
+After spread recovery, TRIM recomputes:
+  Net = floor($82,020 / $2,057) = 39.80 → cap at 40 (all shorts consumed)
+  PURE LONG immediately if spread tightens before price moves!
+```
+
+**Key insight:** If you enter at wide spread and it tightens, the spread cost is mostly temporary. Only the shorts closed DURING wide spread lock in the spread loss permanently. Enter, let TRIM fire at $48K equity, then wait for US session spread compression → equity jumps to ~$82K.
 
 #### Adverse Move Safety (From Entry)
 
-With 48.60 net long lots at $3.00 (immediately after TRIM):
+With 23.30 net long lots at $3.10 (immediately after TRIM, equity $48K):
 
 | NG Price | Drop | Equity | ML | Status |
 |---|---|---|---|---|
-| $3.00 (entry) | — | $100,000 | 65% | At TRIM threshold |
-| $2.99 | -0.3% | $95,140 | 62% | Dead zone — EA does nothing |
-| $2.98 | -0.7% | $90,280 | 59% | Dead zone |
-| **$2.97** | **-1.0%** | **$85,420** | **56%** | **PROTECT fires** — balanced close |
-| $2.90 | -3.3% | $51,400 | 34% | PROTECT urgent — heavy balanced close |
-| $2.85 | -5.0% | $27,000 | ~10% | **Hard floor** — EA stands down |
+| $3.10 (entry) | — | $48,000 | 65% | At TRIM threshold |
+| $3.09 | -0.3% | $45,670 | 62% | Dead zone |
+| $3.08 | -0.6% | $43,340 | 59% | Dead zone |
+| **$3.07** | **-1.0%** | **$41,010** | **56%** | **PROTECT fires** — balanced close |
+| $3.00 | -3.2% | $24,710 | 25% | PROTECT urgent — heavy balanced close |
+| $2.95 | -4.8% | $13,060 | ~10% | **Hard floor** — EA stands down |
 
-**PROTECT triggers at ~$2.97 (-1.0% / -$0.03).** This is tight — NG can move $0.03 in minutes. However:
-- CFD spread spikes are tied to scheduled events (EIA Wed 10:30am, OPEC meetings) — **don't enter before EIA**
-- PROTECT balanced close is self-healing: reduces gross → increases spread tolerance
-- NG structural floor at $2.00-2.50 — entering at $3.00 is already near the floor
-- Unlike crypto, NG won't have invisible sub-second spread wipes
+**PROTECT triggers at ~$3.07 (-$0.03 / -1.0%).** Same tight dead zone as before, but with $48K equity the PROTECT balanced closes have meaningful room to work. Each balanced close reduces gross → increases effective spread tolerance → position stabilizes.
 
 #### Key Milestones
 
-- **$3.10**: Equity $149K, 69.90 net long — flywheel building fast
-- **$3.25**: Equity $253K, 113.70 net long — over 2/3 of shorts consumed
-- **$3.40**: **PURE LONG** — all 118 hedge shorts consumed. Equity $400K. Locked profit from here
-- **$5.00**: Equity $3.07M — every $1 NG rise = **$1,666,000**
-- **$7.00**: Equity $6.40M — deeply safe, VaR compressing
-- **$10.00**: Equity **$11.40M** — target reached. **114x return on $100K**
+- **$3.15**: Equity $60K, 29.00 net long — flywheel building
+- **$3.20**: Equity $74K, 36.00 net long — almost all shorts consumed
+- **$3.22**: **PURE LONG** — all 16.70 hedge shorts consumed. Equity ~$81K. Locked profit from here
+- **$5.00**: Equity $793K — every $1 NG rise = $400K
+- **$7.00**: Equity $1.59M — deeply safe
+- **$10.00**: Equity **$2.79M** — target reached. **27.9x return on $100K**
 
 ---
 
-### Aggression Scaling Table
+### Side by Side Comparison (Calibrated for 65pt Spread)
 
-Both levers — SpreadTolerance (lots) and TRIM (initial net) — and their combined effect:
+| | Full Tilt (25 lots) | Full Tilt (20 lots) | **Hedged MG (40/side)** |
+|---|---|---|---|
+| Starting equity | $100,000 | $100,000 | $100,000 |
+| Spread cost | $16,250 | $13,000 | **$52,000** |
+| Equity after open | $83,750 | $87,000 | **$48,000** |
+| Long lots | 25 | 20 | **40 (2x / 1.6x more)** |
+| Opening ML | 106% | 138% | 65% (after TRIM) |
+| Survives 5% drop? | YES | YES | YES (PROTECT) |
+| Position grows? | NO | NO | **YES** (TRIM) |
+| Pure long at | Entry | Entry | ~$3.22 (+0.4%) |
+| Spread recovery | +$15K if tightens | +$12K | **+$34K** (biggest recovery) |
+| Equity at $5.00 | $583,750 | $487,000 | **$793,350** |
+| Equity at $10.00 | $1,808,750 | $1,467,000 | **$2,793,350** |
+| Return at $10.00 | **18.1x** | **14.7x** | **27.9x** |
 
-| Setting | Conservative | Moderate | **Aggressive** | Yolo |
-|---|---|---|---|---|
-| SpreadTolerance | $600 | $400 | **$300** | $200 |
-| TRIM / PROTECT | 80/56 | 75/56 | **65/56** | 60/56 |
-| Per side | 83.30 | 125.00 | **166.60** | 250.00 |
-| Net at entry | 39.50 | 42.10 | **48.60** | 52.60 |
-| Dead zone | 24% (2.7%) | 19% (2.1%) | **9% (1.0%)** | 4% (0.4%) |
-| Pure long at | ~$3.50 | ~$3.45 | **~$3.40** | ~$3.55 |
-| Equity at $10 | $5.79M | ~$8.75M | **$11.40M** | ~$16M |
-| Return | 57.9x | ~87x | **~114x** | ~160x |
-| Risk | Safe overnight | Safe market hours | **Tight — avoid EIA** | One candle = PROTECT |
-
-**Yolo ($200 ST, TRIM 60%) is suicidal:** $0.020 spread × 10,000 CS × 500 gross = $100K — your entire equity vaporized by a normal spread widening. And TRIM 60% with 56% PROTECT leaves 0.4% price buffer — that's a single tick.
-
-**Aggressive ($300 ST, TRIM 65%) is the practical maximum** for a $100K NG CFD account. It accepts that:
-1. A $0.030 spread spike is survivable (3x normal NG worst-case)
-2. PROTECT may fire on the first day if NG drops $0.03 — and that's OK because PROTECT is self-healing
-3. Entry timing matters — avoid EIA release days
-
----
-
-### Side by Side Comparison (Aggressive Settings)
-
-| | Full Tilt (31.60 lots, 100% ML) | Hedged Martingale (166.60/side, 65/56) |
-|---|---|---|
-| Starting equity | $100,000 | $100,000 |
-| Max long lots | 31.60 | **166.60 (5.3x more)** |
-| Opening margin | $99,944 (100%) | **$0 (net 0)** |
-| Opening ML | 100% | ∞ → 65% (after TRIM) |
-| Survives ANY drop? | **NO** — first adverse tick = margin call | YES (PROTECT + balanced close) |
-| Survives 10% drop? | NO | YES |
-| Position grows? | NO (fixed) | **YES** (net grows via TRIM) |
-| Pure long at | Entry | ~$3.40 (+13%) |
-| Equity at $3.50 | $258,000 | **$566,800** |
-| Equity at $5.00 | $732,000 | **$3,065,800** |
-| Equity at $7.00 | $1,364,000 | **$6,397,800** |
-| Equity at $10.00 | $2,312,000 | **$11,395,800** |
-| Return at $10.00 | **23.12x** | **114x** |
-| Risk | **Extreme** — zero buffer | Tight dead zone but self-healing |
-
-### The Multiplier Effect (XNGUSD — Aggressive)
+### The Multiplier Effect (Calibrated)
 
 ```
-Full Tilt Long (100% ML — max lots):
-  $100K equity → 31.60 NG lots → hold → $2.21M profit (23.12x)
-  [Max lots, ZERO buffer — first adverse tick = margin call. All or nothing.]
+Full Tilt Long (25 lots, 106% ML):
+  $100K equity → $16.3K spread → 25 NG lots → hold → $1.73M profit (18.1x)
+  [Fixed position, tight ML, no growth mechanism]
 
-Hedged Martingale (Aggressive — 65/56, ST $300):
-  $100K equity → 166.60 NG long lots (hedged with 166.60 shorts)
-    → Net long: 48.60 lots (71% hedged — survives spikes)
-    → $3.00 → $3.10: TRIM closes 21.30 shorts → net long:  69.90 lots
-    → $3.10 → $3.25: TRIM closes 43.80 shorts → net long: 113.70 lots
-    → $3.25 → $3.40: TRIM closes 52.90 shorts → net long: 166.60 lots (PURE LONG)
-    → NG hits $10:   close all               → $11.30M net profit (114x)
-  [~10x effective leverage + aggressive TRIM = explosive equity growth.
-   Shorts are fuel to burn. Longs are profit.
-   5.3x more lots than full tilt, AND survives adverse moves.]
+Hedged Martingale (40/side, 65/56, Open MG 1250):
+  $100K equity → $52K spread → 40 L + 40 S
+    → TRIM fires: 23.30 net long (16.70 shorts remaining as fuel)
+    → Spread tightens: equity recovers $34K → $82K
+    → $3.10 → $3.22: TRIM closes 16.70 shorts → PURE LONG at 40 lots
+    → NG hits $10: close all → $2.69M net profit (27.9x)
+  [Pays higher spread tax upfront, but 1.6x more lots + spread recovery.
+   Shorts are fuel to burn. Longs are profit.]
 ```
 
 ---
@@ -1365,16 +1333,17 @@ Set `MartingaleSpreadTolerance` per instrument based on observed worst-case spre
 |---|---|---|---|
 | TRIM | **65%** | 80% | 80% |
 | PROTECT | **56%** | 56% | 56% |
-| SpreadTolerance | **$300** | $500 (est.) | $300 (est.) |
+| Open MG (SpreadTolerance) | **1250** | TBD | TBD |
 | Margin/lot | **$3,164** | TBD | TBD |
+| Actual spread | **65 points ($650/lot)** | TBD | TBD |
 | Direction | LONG | SHORT → LONG | LONG |
-| Entry timing | **Tonight (March 2026)** | $75 or $69 support | $65-70 ceasefire pullback |
+| Entry timing | **March 15, 2026** | $75 or $69 support | $65-70 ceasefire pullback |
 
 ---
 
 ## Tonight's Entry Checklist (XNGUSD Long)
 
-### EA Parameters — Set These (Maximum Aggression)
+### EA Parameters — Set These
 
 | Parameter | Value | Notes |
 |---|---|---|
@@ -1382,26 +1351,27 @@ Set `MartingaleSpreadTolerance` per instrument based on observed worst-case spre
 | **TRIM threshold** | **65** | Aggressive — 9% dead zone above PROTECT |
 | **PROTECT threshold** | **56** | Dynamic balanced close below this |
 | **Hard floor** | **10** | Below this, EA stands down |
-| **MartingaleSpreadTolerance** | **300** | Safe gross = $100K / $300 = 333.30 lots |
-| **Open MG lots per side** | **166.60** | 333.30 gross / 2 = 166.60 per side |
+| **Open MG** | **1250** | $100K / $1,250 = 80 gross → 40 per side |
 
 ### What Happens After Open
 
-1. **EA opens** 166.60 long + 166.60 short at market price (~$3.00)
-2. **Net = 0, margin = $0, ML = ∞** (net-based margin)
-3. **TRIM fires immediately** — closes 48.60 shorts to bring ML to 65%
-4. **Position:** 166.60 long, 118.00 short, net 48.60 long, ML = 65%
-5. **From here:** every NG tick up → equity grows → TRIM closes more shorts → net grows → flywheel
-6. **Pure long at ~$3.40** — all shorts consumed, locked profit from there
-7. **Target $10.00** → equity $11.40M → **114x return**
+1. **EA opens** 40 long + 40 short at market price (~$3.10)
+2. **Spread cost:** 80 × $650 = $52,000 → equity drops to **$48,000**
+3. **Net = 0, margin = $0, ML = ∞** (net-based margin)
+4. **TRIM fires immediately** — closes 23.30 shorts to bring ML to 65%
+5. **Position:** 40.00 long, 16.70 short, net 23.30 long, ML = 65%
+6. **Monday US session:** spread tightens 65→5 → equity recovers ~$34K → **$82K**
+7. **TRIM resumes** — closes remaining shorts rapidly
+8. **Pure long at ~$3.22** — all shorts consumed, locked profit from there
+9. **Target $10.00** → equity $2.79M → **27.9x return**
 
 ### Risk Awareness
 
-- **PROTECT fires at ~$2.97** (1.0% drop / $0.03 from $3.00 entry) — tight, avoid EIA days
+- **PROTECT fires at ~$3.07** (1.0% drop / $0.03 from $3.10 entry) — tight, avoid EIA days
 - **NG structural floor at $2.00-2.50** — below this is historically unprecedented
 - **PROTECT balanced close is self-healing** — reduces gross, preserves net, increases spread tolerance
-- **Verify contract size before scaling** — run ExportSymbols.mq5 on first opportunity
-- **Do NOT enter before Wednesday 10:30am ET** (EIA nat gas storage report = spread spike risk)
+- **Spread recovery is significant** — $34K recovery when spread tightens from 65→5
+- **Do NOT hold through EIA Wednesday 10:30am ET** without monitoring (nat gas storage report = spread spike risk)
 
 ---
 
@@ -1415,10 +1385,11 @@ Three $100K accounts, five spread-spike liquidations, $100K+ lost. The EA logic 
 
 The same EA (v1.420) on commodity CFDs addresses every failure mode:
 
-1. **~10x effective leverage** means fewer lots for the same notional — 166.60 lots controls $5M notional
+1. **~10x effective leverage** means fewer lots for the same notional — 40 lots controls $1.2M notional
 2. **Predictable spread spikes** tied to scheduled events (EIA, OPEC) — not random invisible sub-second wipes
 3. **TRIM at 65%** with PROTECT at 56% — aggressive 9% dead zone, viable because CFD spreads are predictable
 4. **XNGUSD long** has the best risk/reward: structural demand floor (crypto mining + AI), seasonal pattern, geopolitical upside
-5. **114x return potential** ($100K → $11.4M) on a $3 → $10 natgas move with 166.60 lots — vs 23.12x for full-tilt max lots (31.60 lots at 100% ML, zero buffer)
+5. **27.9x return potential** ($100K → $2.79M) on a $3.10 → $10 natgas move with 40/side — calibrated for 65-point structural spread
+6. **Spread recovery:** entering at wide spread means equity recovers ~$34K when spread tightens during US hours — the spread tax is mostly temporary
 
-**The martingale holds 5.3x more long lots than the absolute maximum full-tilt position AND survives adverse moves. Full tilt at 100% ML dies on the first bad tick — the martingale's hedge absorbs it. ~10x effective leverage means each lot controls ~$30,000 notional at entry. Net-based margin on a hedge account starts at $0 margin (net 0), and forward-looking TRIM gradually builds net long exposure at the mathematically optimal rate. Pure long at just $3.40 — only $0.40 above entry. From there, every $1 natgas rise = $1,666,000 additional equity. The hedge shorts are fuel to burn, the bias longs are profit. TRIM self-paces at exactly 65% ML with the same forward-looking formula that proved reliable on SOL — tuned for maximum aggression on CFD commodities.**
+**The martingale holds 1.6x more long lots than a safe full-tilt position (40 vs 25) and benefits from spread recovery. The 65-point spread costs $52K at entry but recovers $34K when liquidity returns — net cost ~$18K. Forward-looking TRIM builds net long exposure at the mathematically optimal rate. Pure long at just $3.22 — only $0.12 above entry. From there, every $1 natgas rise = $400,000 additional equity. The hedge shorts are fuel to burn, the bias longs are profit. TRIM self-paces at exactly 65% ML with the same forward-looking formula that proved reliable on SOL — calibrated for XNGUSD's structural spread.**
