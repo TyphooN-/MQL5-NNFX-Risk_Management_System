@@ -1107,7 +1107,7 @@ With $100K equity, entry at ~$3.00, margin per lot = $3,164:
 | Total P/L | **-$81,320** |
 | NG Bid/Ask | $2.970 / $3.027 |
 | Spread | **57 points** (tightened from 65 at open) |
-| EA Mode | MG: OFF — TRIM 65, PROTECT 56 configured but disabled |
+| EA Mode | **MG: LONG** — TRIM 65, PROTECT 56 active |
 
 **P/L breakdown:** ~$57,850 spread cost (89 gross × $650) + ~$23,470 adverse price movement (NG dropped from $3.135 entry to $2.970 bid). The spread has tightened from 65→57 points, partially recovering ~$7,120 (89 × 8pts × $10).
 
@@ -1115,7 +1115,7 @@ With $100K equity, entry at ~$3.00, margin per lot = $3,164:
 
 | Parameter | Value |
 |---|---|
-| Mode | MG: OFF (toggle to MG: LONG to enable TRIM) |
+| Mode | **MG: LONG** |
 | TRIM threshold | **65%** margin level |
 | TRIM formula | `maxSafe = floor((equity/0.65 - margin) / marginPerLot)` |
 | PROTECT threshold | **56%** margin level |
