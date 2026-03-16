@@ -1107,7 +1107,7 @@ With $100K equity, entry at ~$3.00, margin per lot = $3,164:
 | Total P/L | **-$81,320** |
 | NG Bid/Ask | $2.970 / $3.027 |
 | Spread | **57 points** (tightened from 65 at open) |
-| EA Mode | **MG: LONG** — TRIM 65, PROTECT 56 active |
+| EA Mode | **MG: LONG** — TRIM 60, PROTECT 56 active |
 
 **P/L breakdown:** ~$57,850 spread cost (89 gross × $650) + ~$23,470 adverse price movement (NG dropped from $3.135 entry to $2.970 bid). The spread has tightened from 65→57 points, partially recovering ~$7,120 (89 × 8pts × $10).
 
@@ -1116,10 +1116,10 @@ With $100K equity, entry at ~$3.00, margin per lot = $3,164:
 | Parameter | Value |
 |---|---|
 | Mode | **MG: LONG** |
-| TRIM threshold | **65%** margin level |
-| TRIM formula | `maxSafe = floor((equity/0.65 - margin) / marginPerLot)` |
+| TRIM threshold | **60%** margin level |
+| TRIM formula | `maxSafe = floor((equity/0.60 - margin) / marginPerLot)` |
 | PROTECT threshold | **56%** margin level |
-| Dead zone | 56%–65% (9% buffer) |
+| Dead zone | 56%–60% (4% buffer — ~$0.03 price move at current net) |
 | Hard floor | 10% — PROTECT halts, broker handles it |
 | Bias protection | Never closes bias (longs) in crisis |
 
@@ -1127,22 +1127,20 @@ With $100K equity, entry at ~$3.00, margin per lot = $3,164:
 
 With 48L/41S, net 7, equity $17,937 at $2.970. TRIM at 65% (ML currently 82.7% — above threshold, TRIM would fire).
 
-At current price, TRIM can close **1 short** (brings net to 8, ML settles ~72%):
+At current price (~$3.00, equity ~$20K), TRIM can close **3 shorts** (brings net to 10, ML settles ~65%):
 ```
-maxSafe = floor(($17,937/0.65 - $21,677) / $3,097) = floor(1.91) = 1
+maxSafe = floor(($20,000/0.60 - $21,677) / $3,097) = floor(3.76) = 3
 ```
 
 As NG price rises, equity grows from net long P/L → more TRIM room → more shorts closed → bigger net → flywheel:
 
 | NG Price | Equity | Shorts | Net Long | ML | Status |
 |---|---|---|---|---|---|
-| **$2.97 (now)** | **$17,937** | **41** | **7→8** | **72%** | TRIM closes 1 short |
-| $3.00 | $20,337 | 40 | 9 | 72% | Slow — low equity |
-| $3.10 | $29,337 | 36 | 13 | 69% | Building |
-| $3.20 | $42,337 | 30 | 19 | 68% | Accelerating |
-| $3.30 | $61,337 | 22 | 27 | 67% | Fast |
-| $3.40 | $88,337 | 12 | 37 | 66% | Rapid |
-| **~$3.48** | **$120,000** | **0** | **48** | **~72%** | **PURE LONG** |
+| **$3.00 (now)** | **$20,000** | **38** | **7→10** | **65%** | TRIM closes 3 shorts |
+| $3.10 | $30,000 | 30 | 18 | 62% | Building fast |
+| $3.20 | $48,000 | 20 | 28 | 61% | Accelerating |
+| $3.30 | $76,000 | 8 | 40 | 60% | Rapid |
+| **~$3.35** | **$96,000** | **0** | **48** | **~65%** | **PURE LONG** |
 | $3.50 | $129,600 | 0 | 48 | 77% | Printing |
 | $4.00 | $369,600 | 0 | 48 | 192% | Locked in |
 | $5.00 | $849,600 | 0 | 48 | 354% | Locked in |
@@ -1150,7 +1148,7 @@ As NG price rises, equity grows from net long P/L → more TRIM room → more sh
 | $10.00 | $3,249,600 | 0 | 48 | — | Strong |
 | **$53.00** | **$23,889,600** | **0** | **48** | **—** | **TARGET** |
 
-**Pure long at ~$3.48** — $0.51 above current price (17% rise needed). From there, every $1 NG rise = **$480,000** additional equity.
+**Pure long at ~$3.35** — $0.35 above current price (12% rise needed). TRIM 60 reaches pure long faster than 65 due to more aggressive trimming. From there, every $1 NG rise = **$480,000** additional equity.
 
 #### Key Insight: 48 Lots Is More Than We Planned
 
@@ -1178,33 +1176,31 @@ With net 8 at $2.97, equity $17,937:
 | **$2.93** | **-1.3%** | **$14,737** | **56%** | **PROTECT fires** |
 | $2.85 | -4.0% | $8,337 | ~10% | **Hard floor** |
 
-**PROTECT at $2.93 (-$0.04).** With only $18K equity, PROTECT balanced closes will reduce gross quickly. The 41 shorts provide substantial hedge — each balanced close removes 1L+1S, preserving the net 8 long bias.
+**PROTECT at $2.97 (-$0.03).** Tight — but NG is holding demand at $2.97-3.00. With 38 shorts post-TRIM, PROTECT balanced closes preserve the net 10 long bias while reducing gross.
 
 #### How TRIM Pacing Works (From Current)
 
 | NG Move | Net Long | Equity Gained | Shorts Trimmed | Status |
 |---|---|---|---|---|
-| $2.97 (now) | 7 → 8 | — | 1 | Initial TRIM at 82.7% ML |
-| $2.97 → $3.00 | 8 → 9 | $2,400 | 1 | Very slow — low equity |
-| $3.00 → $3.10 | 9 → 13 | $9,000 | 4 | Building |
-| $3.10 → $3.20 | 13 → 19 | $13,000 | 6 | Accelerating |
-| $3.20 → $3.30 | 19 → 27 | $19,000 | 8 | Fast |
-| $3.30 → $3.40 | 27 → 37 | $27,000 | 10 | Rapid |
-| $3.40 → $3.48 | 37 → 48 | $37,000 | 11 (all remaining) | **PURE LONG** |
-| $3.48 → $53.00 | 48 | $23,769,600 | — | Riding to target |
+| $3.00 (now) | 7 → 10 | — | 3 | Initial TRIM at 60% |
+| $3.00 → $3.10 | 10 → 18 | $10,000 | 8 | Building fast |
+| $3.10 → $3.20 | 18 → 28 | $18,000 | 10 | Accelerating |
+| $3.20 → $3.30 | 28 → 40 | $28,000 | 12 | Rapid |
+| $3.30 → $3.35 | 40 → 48 | $20,000 | 8 (all remaining) | **PURE LONG** |
+| $3.35 → $53.00 | 48 | $23,832,000 | — | Riding to target |
 
 **The flywheel starts slow (only $18K equity, net 8) but accelerates as equity grows.** Each $0.10 rise adds ~$8K-$37K depending on current net. Once past $3.20, the acceleration is dramatic.
 
 #### Key Milestones
 
-- **$3.00**: Back above $20K equity, net 9 — survival confirmed
-- **$3.10**: Equity $29K, net 13 — flywheel engaging
-- **$3.20**: Equity $42K, net 19 — nearly half of shorts consumed
-- **$3.30**: Equity $61K, net 27 — past the initial spread damage
-- **$3.48**: **PURE LONG** — all 41 shorts consumed. Equity ~$120K. 48 lots riding free
-- **$5.00**: Equity $850K
-- **$10.00**: Equity $3.25M
-- **$53.00**: Equity **$23.89M** — target reached. **~239x return on $100K**
+- **$3.00 (now)**: TRIM fires, closes 3 shorts → net 10, equity ~$20K
+- **$3.10**: Equity $30K, net 18 — flywheel engaging fast
+- **$3.20**: Equity $48K, net 28 — over half of shorts consumed
+- **$3.30**: Equity $76K, net 40 — nearly pure
+- **$3.35**: **PURE LONG** — all 41 shorts consumed. Equity ~$96K. 48 lots riding free
+- **$5.00**: Equity $888K
+- **$10.00**: Equity $3.29M
+- **$53.00**: Equity **$23.93M** — target reached. **~239x return on $100K**
 
 ---
 
