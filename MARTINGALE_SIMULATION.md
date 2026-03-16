@@ -1090,158 +1090,121 @@ With $100K equity, entry at ~$3.00, margin per lot = $3,164:
 
 ---
 
-### Scenario B: Hedged Martingale — Calibrated for 65-Point Spread (40/side)
+### Actual Position: 48 Long / 41 Short (Opened 2026-03-16)
 
-#### The Spread Reality
+#### Current State (as of 2026-03-16 ~13:20 ET)
 
-XNGUSD on Darwinex has a **65-point structural spread** ($0.065 = $650/lot). This is a fixed cost at entry that must be accounted for. The spread may tighten to 5-10 points during US liquid hours — if so, open positions recover ~$600/lot in equity.
+| | Value |
+|---|---|
+| Long lots | **48** |
+| Short lots | **41** |
+| Net long | **7** |
+| Gross | **89** |
+| Balance | $99,933 |
+| Equity | **$17,937** |
+| Margin | $21,677 (net 7 × ~$3,097) |
+| ML | **82.7%** |
+| Total P/L | **-$81,320** |
+| NG Bid/Ask | $2.970 / $3.027 |
+| Spread | **57 points** (tightened from 65 at open) |
+| EA Mode | MG: OFF — TRIM 65, PROTECT 56 configured but disabled |
 
-```
-Spread cost per lot = 10,000 × $0.065 = $650
-Total spread cost = gross × $650
+**P/L breakdown:** ~$57,850 spread cost (89 gross × $650) + ~$23,470 adverse price movement (NG dropped from $3.135 entry to $2.970 bid). The spread has tightened from 65→57 points, partially recovering ~$7,120 (89 × 8pts × $10).
 
-At 80 gross (40/side):  $52,000 spread cost → $48,000 equity remaining
-At 100 gross (50/side): $65,000 spread cost → $35,000 equity remaining
-At 120 gross (60/side): $78,000 spread cost → $22,000 equity remaining
-```
-
-#### Lot Size Calibration at 65-Point Spread
-
-| Per Side | Gross | Spread Cost | Equity After | TRIM Net | Shorts Left | Pure Long At | Equity @$10 | Return |
-|---|---|---|---|---|---|---|---|---|
-| 20 | 40 | $26,000 | $74,000 | 35.90 | 0 (pure) | $3.10 | $1,454,000 | 14.5x |
-| 25 | 50 | $32,500 | $67,500 | 32.80 | 0 (pure) | $3.10 | $1,793,000 | 17.9x |
-| 30 | 60 | $39,000 | $61,000 | 29.60 | 0.40 | $3.10 | $2,131,000 | 21.3x |
-| 35 | 70 | $45,500 | $54,500 | 26.50 | 8.50 | ~$3.18 | $2,470,000 | 24.7x |
-| **40** | **80** | **$52,000** | **$48,000** | **23.30** | **16.70** | **~$3.22** | **$2,794,000** | **27.9x** |
-| 45 | 90 | $58,500 | $41,500 | 20.10 | 24.90 | ~$3.27 | $3,111,000 | 31.1x |
-| 50 | 100 | $65,000 | $35,000 | 17.00 | 33.00 | ~$3.33 | $3,432,000 | 34.3x |
-| 55 | 110 | $71,500 | $28,500 | 13.80 | 41.20 | ~$3.45 | $3,717,000 | 37.2x |
-| 60 | 120 | $78,000 | $22,000 | 10.60 | 49.40 | ~$3.57 | $3,992,000 | 40.0x |
-
-**Below ~30/side:** TRIM consumes ALL shorts immediately — you're paying double spread for full tilt. Martingale only adds value above 30/side.
-
-**Sweet spot: 40/side.** Enough hedge fuel (16.70 shorts) to let the flywheel build, $48K equity survives PROTECT, and 27.9x return beats full tilt 25 by 1.5x.
-
-#### EA Configuration (XNGUSD — v1.420, Calibrated for 65pt Spread)
+#### EA Configuration (XNGUSD — v1.420)
 
 | Parameter | Value |
 |---|---|
-| Mode | MG: LONG |
+| Mode | MG: OFF (toggle to MG: LONG to enable TRIM) |
 | TRIM threshold | **65%** margin level |
 | TRIM formula | `maxSafe = floor((equity/0.65 - margin) / marginPerLot)` |
 | PROTECT threshold | **56%** margin level |
-| Dead zone | 56%–65% (9% buffer — covers ~1.0% adverse price move at ~10x leverage) |
+| Dead zone | 56%–65% (9% buffer) |
 | Hard floor | 10% — PROTECT halts, broker handles it |
 | Bias protection | Never closes bias (longs) in crisis |
-| MartingaleSpreadTolerance (Open MG) | **1250** ($100K / $1,250 = 80 gross → 40/side) |
 
-#### TRIM Progression to Pure Long — All Price Levels
+#### TRIM Progression If Enabled (From Current Position)
 
-Entry at ~$3.10. Spread cost: $52,000. Equity after open: $48,000. TRIM fires immediately.
+With 48L/41S, net 7, equity $17,937 at $2.970. TRIM at 65% (ML currently 82.7% — above threshold, TRIM would fire).
 
-| NG Price | Equity | Hedge (Short) | Net Long | Gross | ML | Status |
-|---|---|---|---|---|---|---|
-| **$3.10 (entry)** | **$48,000** | **16.70** | **23.30** | **63.30** | **65%** | TRIM fires at open |
-| $3.15 | $59,650 | 11.00 | 29.00 | 69.00 | 65% | Building |
-| $3.20 | $74,150 | 4.00 | 36.00 | 76.00 | 65% | Trimming fast |
-| **~$3.22** | **$81,350** | **0** | **40.00** | **40.00** | **~98%** | **PURE LONG** |
-| $3.30 | $113,350 | 0 | 40.00 | 40.00 | 178% | Safe |
-| $3.50 | $193,350 | 0 | 40.00 | 40.00 | 277% | Printing |
-| $4.00 | $393,350 | 0 | 40.00 | 40.00 | 311% | Locked in |
-| $5.00 | $793,350 | 0 | 40.00 | 40.00 | 380% | Locked in |
-| $7.00 | $1,593,350 | 0 | 40.00 | 40.00 | 546% | Locked in |
-| **$10.00** | **$2,793,350** | **0** | **40.00** | **—** | **—** | **TARGET** |
-
-**Pure long at ~$3.22** — only **$0.12 above entry**. From $3.22 on, every $1 NG rise = **$400,000** additional equity.
-
-#### How TRIM Pacing Works
-
-| NG Move | Net Long | Equity Gained | Shorts Trimmed | Status |
-|---|---|---|---|---|
-| Entry ($3.10) | 23.30 | — | 23.30 | Initial TRIM (spread-reduced equity) |
-| $3.10 → $3.15 | 23.30 → 29.00 | $11,650 | 5.70 | Building |
-| $3.15 → $3.20 | 29.00 → 36.00 | $14,500 | 7.00 | Fast |
-| $3.20 → $3.22 | 36.00 → 40.00 | $7,200 | 4.00 (all remaining) | **PURE LONG** |
-| $3.22 → $10.00 | 40.00 | $2,712,000 | — | Riding pure profit |
-
-#### Spread Recovery Effect
-
-If spread tightens from 65 → 5 points during US hours (Monday), open positions recover $600/lot:
-
+At current price, TRIM can close **1 short** (brings net to 8, ML settles ~72%):
 ```
-Before TRIM (immediately after open, spread still 65):
-  40 longs × $600 recovery  = $24,000
-  16.70 shorts × $600       = $10,020
-  Total recovery: $34,020
-  Equity: $48,000 → $82,020
-
-After spread recovery, TRIM recomputes:
-  Net = floor($82,020 / $2,057) = 39.80 → cap at 40 (all shorts consumed)
-  PURE LONG immediately if spread tightens before price moves!
+maxSafe = floor(($17,937/0.65 - $21,677) / $3,097) = floor(1.91) = 1
 ```
 
-**Key insight:** If you enter at wide spread and it tightens, the spread cost is mostly temporary. Only the shorts closed DURING wide spread lock in the spread loss permanently. Enter, let TRIM fire at $48K equity, then wait for US session spread compression → equity jumps to ~$82K.
+As NG price rises, equity grows from net long P/L → more TRIM room → more shorts closed → bigger net → flywheel:
 
-#### Adverse Move Safety (From Entry)
+| NG Price | Equity | Shorts | Net Long | ML | Status |
+|---|---|---|---|---|---|
+| **$2.97 (now)** | **$17,937** | **41** | **7→8** | **72%** | TRIM closes 1 short |
+| $3.00 | $20,337 | 40 | 9 | 72% | Slow — low equity |
+| $3.10 | $29,337 | 36 | 13 | 69% | Building |
+| $3.20 | $42,337 | 30 | 19 | 68% | Accelerating |
+| $3.30 | $61,337 | 22 | 27 | 67% | Fast |
+| $3.40 | $88,337 | 12 | 37 | 66% | Rapid |
+| **~$3.48** | **$120,000** | **0** | **48** | **~72%** | **PURE LONG** |
+| $3.50 | $129,600 | 0 | 48 | 77% | Printing |
+| $4.00 | $369,600 | 0 | 48 | 192% | Locked in |
+| $5.00 | $849,600 | 0 | 48 | 354% | Locked in |
+| $7.00 | $1,809,600 | 0 | 48 | 536% | Locked in |
+| $10.00 | $3,249,600 | 0 | 48 | — | Strong |
+| **$53.00** | **$23,889,600** | **0** | **48** | **—** | **TARGET** |
 
-With 23.30 net long lots at $3.10 (immediately after TRIM, equity $48K):
+**Pure long at ~$3.48** — $0.51 above current price (17% rise needed). From there, every $1 NG rise = **$480,000** additional equity.
+
+#### Key Insight: 48 Lots Is More Than We Planned
+
+The original plan was 40/side. The actual position has **48 longs** — 20% more long lots than planned. This means at pure long, the position is significantly more powerful:
+
+| | Planned (40/side) | Actual (48L/41S) |
+|---|---|---|
+| Long lots | 40 | **48** |
+| Pure long at | ~$3.22 | ~$3.48 (higher due to more shorts) |
+| Equity per $1 rise (pure) | $400,000 | **$480,000** |
+| Equity at $10 | $2,793,000 | **$3,250,000** |
+| Equity at $53 (TP) | — | **$23,890,000** |
+| Return at $53 | — | **~239x** |
+
+The tradeoff: more shorts to burn through (41 vs 16.70), so pure long is reached later ($3.48 vs $3.22). But once pure, 48 lots earns 20% more per dollar of NG rise.
+
+#### Adverse Move Safety (From Current)
+
+With net 8 at $2.97, equity $17,937:
 
 | NG Price | Drop | Equity | ML | Status |
 |---|---|---|---|---|
-| $3.10 (entry) | — | $48,000 | 65% | At TRIM threshold |
-| $3.09 | -0.3% | $45,670 | 62% | Dead zone |
-| $3.08 | -0.6% | $43,340 | 59% | Dead zone |
-| **$3.07** | **-1.0%** | **$41,010** | **56%** | **PROTECT fires** — balanced close |
-| $3.00 | -3.2% | $24,710 | 25% | PROTECT urgent — heavy balanced close |
-| $2.95 | -4.8% | $13,060 | ~10% | **Hard floor** — EA stands down |
+| $2.97 (now) | — | $17,937 | 72% | Dead zone |
+| $2.95 | -0.7% | $16,337 | 67% | Dead zone |
+| **$2.93** | **-1.3%** | **$14,737** | **56%** | **PROTECT fires** |
+| $2.85 | -4.0% | $8,337 | ~10% | **Hard floor** |
 
-**PROTECT triggers at ~$3.07 (-$0.03 / -1.0%).** Same tight dead zone as before, but with $48K equity the PROTECT balanced closes have meaningful room to work. Each balanced close reduces gross → increases effective spread tolerance → position stabilizes.
+**PROTECT at $2.93 (-$0.04).** With only $18K equity, PROTECT balanced closes will reduce gross quickly. The 41 shorts provide substantial hedge — each balanced close removes 1L+1S, preserving the net 8 long bias.
+
+#### How TRIM Pacing Works (From Current)
+
+| NG Move | Net Long | Equity Gained | Shorts Trimmed | Status |
+|---|---|---|---|---|
+| $2.97 (now) | 7 → 8 | — | 1 | Initial TRIM at 82.7% ML |
+| $2.97 → $3.00 | 8 → 9 | $2,400 | 1 | Very slow — low equity |
+| $3.00 → $3.10 | 9 → 13 | $9,000 | 4 | Building |
+| $3.10 → $3.20 | 13 → 19 | $13,000 | 6 | Accelerating |
+| $3.20 → $3.30 | 19 → 27 | $19,000 | 8 | Fast |
+| $3.30 → $3.40 | 27 → 37 | $27,000 | 10 | Rapid |
+| $3.40 → $3.48 | 37 → 48 | $37,000 | 11 (all remaining) | **PURE LONG** |
+| $3.48 → $53.00 | 48 | $23,769,600 | — | Riding to target |
+
+**The flywheel starts slow (only $18K equity, net 8) but accelerates as equity grows.** Each $0.10 rise adds ~$8K-$37K depending on current net. Once past $3.20, the acceleration is dramatic.
 
 #### Key Milestones
 
-- **$3.15**: Equity $60K, 29.00 net long — flywheel building
-- **$3.20**: Equity $74K, 36.00 net long — almost all shorts consumed
-- **$3.22**: **PURE LONG** — all 16.70 hedge shorts consumed. Equity ~$81K. Locked profit from here
-- **$5.00**: Equity $793K — every $1 NG rise = $400K
-- **$7.00**: Equity $1.59M — deeply safe
-- **$10.00**: Equity **$2.79M** — target reached. **27.9x return on $100K**
-
----
-
-### Side by Side Comparison (Calibrated for 65pt Spread)
-
-| | Full Tilt (25 lots) | Full Tilt (20 lots) | **Hedged MG (40/side)** |
-|---|---|---|---|
-| Starting equity | $100,000 | $100,000 | $100,000 |
-| Spread cost | $16,250 | $13,000 | **$52,000** |
-| Equity after open | $83,750 | $87,000 | **$48,000** |
-| Long lots | 25 | 20 | **40 (2x / 1.6x more)** |
-| Opening ML | 106% | 138% | 65% (after TRIM) |
-| Survives 5% drop? | YES | YES | YES (PROTECT) |
-| Position grows? | NO | NO | **YES** (TRIM) |
-| Pure long at | Entry | Entry | ~$3.22 (+0.4%) |
-| Spread recovery | +$15K if tightens | +$12K | **+$34K** (biggest recovery) |
-| Equity at $5.00 | $583,750 | $487,000 | **$793,350** |
-| Equity at $10.00 | $1,808,750 | $1,467,000 | **$2,793,350** |
-| Return at $10.00 | **18.1x** | **14.7x** | **27.9x** |
-
-### The Multiplier Effect (Calibrated)
-
-```
-Full Tilt Long (25 lots, 106% ML):
-  $100K equity → $16.3K spread → 25 NG lots → hold → $1.73M profit (18.1x)
-  [Fixed position, tight ML, no growth mechanism]
-
-Hedged Martingale (40/side, 65/56, Open MG 1250):
-  $100K equity → $52K spread → 40 L + 40 S
-    → TRIM fires: 23.30 net long (16.70 shorts remaining as fuel)
-    → Spread tightens: equity recovers $34K → $82K
-    → $3.10 → $3.22: TRIM closes 16.70 shorts → PURE LONG at 40 lots
-    → NG hits $10: close all → $2.69M net profit (27.9x)
-  [Pays higher spread tax upfront, but 1.6x more lots + spread recovery.
-   Shorts are fuel to burn. Longs are profit.]
-```
+- **$3.00**: Back above $20K equity, net 9 — survival confirmed
+- **$3.10**: Equity $29K, net 13 — flywheel engaging
+- **$3.20**: Equity $42K, net 19 — nearly half of shorts consumed
+- **$3.30**: Equity $61K, net 27 — past the initial spread damage
+- **$3.48**: **PURE LONG** — all 41 shorts consumed. Equity ~$120K. 48 lots riding free
+- **$5.00**: Equity $850K
+- **$10.00**: Equity $3.25M
+- **$53.00**: Equity **$23.89M** — target reached. **~239x return on $100K**
 
 ---
 
