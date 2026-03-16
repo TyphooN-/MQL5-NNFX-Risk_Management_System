@@ -1204,6 +1204,126 @@ With net 8 at $2.97, equity $17,937:
 
 ---
 
+### Account 2: 53 Long / 33 Short — Fresh $100K (Opened 2026-03-16)
+
+#### Position Details
+
+| | Value |
+|---|---|
+| Long lots | **53** |
+| Short lots | **33** |
+| Net long | **20** |
+| Gross | **86** |
+| Account | Fresh $100K Darwinex Zero CFD |
+| Spread at open | 65 points ($650/lot) |
+| Spread cost | 86 × $650 = **$55,900** |
+| Equity after open | **~$44,100** |
+| Margin (net 20) | ~$62,000 |
+| ML at open | **~71%** |
+| Entry price | ~$3.00 |
+| TP | **$53.00** (4.236 fib extension) |
+
+#### EA Configuration
+
+| Parameter | Value |
+|---|---|
+| Mode | **MG: LONG** |
+| TRIM threshold | **70%** margin level |
+| TRIM formula | `maxSafe = floor((equity/0.70 - margin) / marginPerLot)` |
+| PROTECT threshold | **54%** margin level |
+| Dead zone | 54%–70% (16% buffer — covers ~1.8% adverse price move) |
+| Hard floor | 10% |
+| Bias protection | Never closes bias (longs) |
+
+#### Why 70/54 Is Better Than 60/56
+
+| | Account 1 (60/56) | **Account 2 (70/54)** |
+|---|---|---|
+| Dead zone | 4% (0.3% price) | **16% (1.8% price)** |
+| PROTECT buffer | $0.03 | **$0.053** |
+| Risk of PROTECT cascade | High | **Low** |
+| TRIM responsiveness | Very fast | Moderate — but safer |
+
+The wider dead zone means TRIM is slightly slower to close shorts, but the position is dramatically safer. With $44K equity, every dollar of safety matters.
+
+#### TRIM Progression to Pure Long
+
+Entry at ~$3.00. TRIM at 70% — can't fire immediately at 71% ML (not enough margin room for even 1 close). Waits for NG to rise slightly, then accelerates.
+
+| NG Price | Equity | Shorts | Net Long | ML | Status |
+|---|---|---|---|---|---|
+| **$3.00 (entry)** | **$44,100** | **33** | **20** | **71%** | TRIM waiting — no room |
+| $3.05 | $54,100 | 29 | 24 | 72% | TRIM closes 4 |
+| $3.10 | $66,100 | 24 | 29 | 71% | Building |
+| $3.15 | $80,600 | 18 | 35 | 71% | Accelerating |
+| $3.20 | $95,100 | 12 | 41 | 70% | Fast — 12 shorts left |
+| $3.25 | $117,000 | 4 | 49 | 71% | Almost pure |
+| **~$3.27** | **$126,800** | **0** | **53** | **~73%** | **PURE LONG** |
+| $3.50 | $249,000 | 0 | 53 | 136% | Printing |
+| $4.00 | $514,000 | 0 | 53 | 244% | Locked in |
+| $5.00 | $1,044,000 | 0 | 53 | 397% | Locked in |
+| $7.00 | $2,154,000 | 0 | 53 | 553% | Locked in |
+| $10.00 | $3,694,000 | 0 | 53 | — | Strong |
+| **$53.00** | **$26,484,000** | **0** | **53** | **—** | **TARGET** |
+
+**Pure long at ~$3.27** — only $0.27 above entry. From there, every $1 NG rise = **$530,000** additional equity.
+
+#### How TRIM Pacing Works
+
+| NG Move | Net Long | Equity Gained | Shorts Trimmed | Status |
+|---|---|---|---|---|
+| $3.00 (entry) | 20 | — | 0 | TRIM waiting (71% ML, no room) |
+| $3.00 → $3.05 | 20 → 24 | $10,000 | 4 | First trims fire |
+| $3.05 → $3.10 | 24 → 29 | $12,000 | 5 | Building |
+| $3.10 → $3.15 | 29 → 35 | $14,500 | 6 | Accelerating |
+| $3.15 → $3.20 | 35 → 41 | $17,500 | 6 | Fast |
+| $3.20 → $3.27 | 41 → 53 | $31,900 | 12 (all remaining) | **PURE LONG** |
+| $3.27 → $53.00 | 53 | $26,357,000 | — | Riding to target |
+
+**The flywheel:** Starts at net 20 (already meaningful exposure). Each $0.05 rise earns $10K+ → room for 4-6 more trims → bigger net → next $0.05 earns more. Pure long in only $0.27 of NG movement.
+
+#### Adverse Move Safety
+
+With net 20 at $3.00, equity $44,100:
+
+| NG Price | Drop | Equity | ML | Status |
+|---|---|---|---|---|
+| $3.00 (entry) | — | $44,100 | 71% | Just above TRIM |
+| $2.98 | -0.7% | $40,100 | 65% | Dead zone |
+| $2.96 | -1.3% | $36,100 | 59% | Dead zone |
+| **$2.947** | **-1.8%** | **$33,460** | **54%** | **PROTECT fires** |
+| $2.90 | -3.3% | $24,100 | 37% | PROTECT urgent |
+| $2.85 | -5.0% | $14,100 | ~10% | **Hard floor** |
+
+**PROTECT at $2.947 (-$0.053 / -1.8%).** Much wider buffer than Account 1. The 33 shorts provide substantial hedge — each PROTECT balanced close removes 1L+1S while preserving the net 20 long bias.
+
+#### Key Milestones
+
+- **$3.05**: First TRIM fires — closes 4 shorts, net 24. Flywheel starts
+- **$3.10**: Equity $66K, net 29 — past initial spread damage
+- **$3.20**: Equity $95K, net 41 — nearly back to starting equity
+- **$3.27**: **PURE LONG** — all 33 shorts consumed. Equity $127K. 53 lots riding free
+- **$5.00**: Equity $1.04M — every $1 NG rise = $530K
+- **$10.00**: Equity $3.69M
+- **$53.00**: Equity **$26.48M** — target reached. **~265x return on $100K**
+
+---
+
+### Both Accounts Combined
+
+| | Account 1 (48L/41S) | Account 2 (53L/33S) | **Combined** |
+|---|---|---|---|
+| TRIM / PROTECT | 60/56 | 70/54 | — |
+| Long lots (pure) | 48 | 53 | **101** |
+| Pure long at | ~$3.35 | ~$3.27 | ~$3.35 (both pure) |
+| Equity at $10 | $3.29M | $3.69M | **$6.98M** |
+| Equity at $53 | $23.93M | $26.48M | **$50.41M** |
+| Combined return | — | — | **~252x on $200K** |
+
+**101 pure long lots across two accounts.** Every $1 NG rise above $3.35 = **$1,010,000** combined equity gain. At $53 TP = **$50.4M**.
+
+---
+
 ## XNGUSD Long Thesis: Structural Demand
 
 ### Why Natural Gas Long is the Best Martingale Trade
