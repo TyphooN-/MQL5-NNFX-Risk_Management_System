@@ -180,15 +180,15 @@ Rebuilt SOL position immediately:
 3. TRIM fired immediately — consumed 1,573 longs in first burst
 4. Position is back to equivalent of pre-spike state
 
-### Position Sizing (Current)
+### Position Sizing (Current — Final Open MG $2.00)
 
 ```
 SOLUSD:
-  Shorts (bias) = 13,770 (reduced from 14,782 by PROTECT balanced close)
-  Longs (hedge) = 12,243
-  Net short = 1,527
-  SOL Gross = 26,013
-  Spread tolerance = $73,629 / 26,013 = $2.83/lot
+  Shorts (bias) = 17,960 (FINAL — Open MG $2.00 full send)
+  Longs (hedge) = ~16,488 (17,960 opened, ~1,472 consumed in first TRIM burst)
+  Net short = ~1,472 (growing as TRIM grinds)
+  SOL Gross = ~34,448
+  Spread tolerance = $71,289 / 34,448 = $2.07/lot (borderline — improves as TRIM grinds)
 
 ADAUSD: CLOSED (waiting for SOL pure short)
 DOGEUSD: NOT OPEN (waiting for SOL pure short)
@@ -196,22 +196,23 @@ DOGEUSD: NOT OPEN (waiting for SOL pure short)
 
 ### TRIM Progression to Pure Short (SOL Only)
 
-SOL only — no ADA/DOGE until pure short. TRIM 54.2/PROTECT 51. Settings LOCKED. 12,243 hedge to consume. Zero more PROTECTs = **$1.24M at $0**.
+SOL only — no ADA/DOGE until pure short. TRIM 54.2/PROTECT 51. Settings LOCKED. ~16,488 hedge to consume. **Zero more PROTECTs = $1.62M at $0. Each PROTECT costs ~1,000 bias = ~$90K.**
 
 | SOL Price | Equity (est.) | SOL Hedge | SOL Net Short | SOL Gross | Spread Tol. | ML | Status |
 |---|---|---|---|---|---|---|---|
-| **$90 (now)** | **$71,511** | **~15,793** | **~935** | **~32,521** | **$2.20** | **54%** | TRIM grinding new hedge |
-| $85 | $76,186 | 14,819 | 1,909 | 31,547 | $2.41 | 54% | Building |
-| $80 | $85,731 | 13,533 | 3,195 | 30,261 | $2.83 | 54% | Safe |
-| $70 | $117,681 | 9,340 | 7,388 | 26,068 | $4.51 | 54% | Accelerating |
-| $60 | $191,561 | 1,807 | 14,921 | 18,535 | $10.33 | 54% | Nearly pure |
-| **~$58** | **~$221,000** | **0** | **16,728** | **16,728** | **$13.21** | **~63%** | **PURE SHORT** |
-| $50 | $354,624 | 0 | 16,728 | 16,728 | $21.20 | 42% | → **Open ADA + DOGE** |
-| $40 | $521,904 | 0 | 16,728 | 16,728 | $31.20 | 78% | Printing |
-| $30 | $689,184 | 0 | 16,728 | 16,728 | $41.19 | 137% | Locked in |
-| $20 | $856,464 | 0 | 16,728 | 16,728 | $51.19 | 256% | Locked in |
-| $10 | $1,023,744 | 0 | 16,728 | 16,728 | $61.19 | 612% | Locked in |
-| **$0** | **$1,505,520** | **0** | **16,728** | **16,728** | **∞** | **∞** | **Done** |
+| **$90 (now)** | **$71,289** | **~16,488** | **~1,472** | **~34,448** | **$2.07** | **54%** | TRIM grinding |
+| $85 | $78,649 | 15,619 | 2,341 | 33,579 | $2.34 | 54% | Building |
+| $80 | $90,354 | 14,320 | 3,640 | 32,280 | $2.80 | 54% | Safe |
+| $70 | $126,754 | 10,018 | 7,942 | 27,978 | $4.53 | 54% | Accelerating |
+| $60 | $206,174 | 2,281 | 15,679 | 20,241 | $10.19 | 54% | Nearly pure |
+| **~$58** | **~$237,000** | **0** | **17,960** | **17,960** | **$13.19** | **~63%** | **PURE SHORT** |
+| $50 | $380,880 | 0 | 17,960 | 17,960 | $21.21 | 42% | → **Open ADA + DOGE** |
+| $40 | $560,480 | 0 | 17,960 | 17,960 | $31.21 | 78% | Printing |
+| $30 | $740,080 | 0 | 17,960 | 17,960 | $41.20 | 137% | Locked in |
+| $20 | $919,680 | 0 | 17,960 | 17,960 | $51.20 | 256% | Locked in |
+| $10 | $1,099,280 | 0 | 17,960 | 17,960 | $61.20 | 612% | Locked in |
+| $5 | $1,189,080 | 0 | 17,960 | 17,960 | $66.20 | 1,324% | Locked in |
+| **$0** | **$1,616,400** | **0** | **17,960** | **17,960** | **∞** | **∞** | **Done** |
 
 **17,960 bias lots. Open MG $2.00. Full send. Pure SOL short at ~$58. Every $1 below $58 = $17,960 profit. $1.62M at $0.**
 
@@ -219,79 +220,89 @@ SOL only — no ADA/DOGE until pure short. TRIM 54.2/PROTECT 51. Settings LOCKED
 
 | SOL Drop | Equity Gained (from net) | Lots Trimmed | Net After | Status |
 |---|---|---|---|---|
-| $90 → $85 | $7,635 (1,527 × $5) | 774 | 2,301 | TRIM grinding |
-| $85 → $80 | $11,505 (2,301 × $5) | 1,079 | 3,380 | Moderate |
-| $80 → $70 | $33,800 (3,380 × $10) | 3,288 | 6,668 | Building fast |
-| $70 → $60 | $66,680 (6,668 × $10) | 5,435 | 12,103 | Accelerating |
-| $60 → $57 | $36,309 (12,103 × $3) | 1,667 (all) | 13,770 | **Complete — PURE SHORT** |
+| $90 → $85 | $7,360 (1,472 × $5) | 869 | 2,341 | TRIM grinding |
+| $85 → $80 | $11,705 (2,341 × $5) | 1,299 | 3,640 | Moderate |
+| $80 → $70 | $36,400 (3,640 × $10) | 4,302 | 7,942 | Building fast |
+| $70 → $60 | $79,420 (7,942 × $10) | 7,737 | 15,679 | Accelerating |
+| $60 → $58 | $31,358 (15,679 × $2) | 2,281 (all) | 17,960 | **Complete — PURE SHORT** |
 
 ---
 
 ## Action Roadmap
 
-### Phase 1: SOL Hedge Grind (NOW → ~$57 SOL)
+### Phase 1: SOL Hedge Grind (NOW → ~$58 SOL)
 
 ```
-Status:   ACTIVE
-Settings: TRIM 54.20691337 / PROTECT 50.96913420691337 — LOCKED
-Action:   DO NOTHING. Let TRIM grind. Do not change settings.
-          Widen to 61/51 for overnight ONLY if concerned.
-Goal:     Consume 12,243 hedge longs → pure short at 13,770 lots
-Target:   ~$57 SOL (37% drop from $90)
+Status:   ACTIVE — FINAL POSITION
+Settings: TRIM 54.20691337 / PROTECT 50.96913420691337 / Open MG $2.00 — LOCKED FOREVER
+Action:   DO NOTHING. Let TRIM grind. Do not change settings. Do not add on.
+Goal:     Consume ~16,488 hedge longs → pure short at 17,960 lots
+Target:   ~$58 SOL (36% drop from $90)
 Risk:     Each PROTECT fire costs ~1,000 bias lots (~$90K profit at $0)
-Profit:   $1.24M at $0 (if zero more PROTECTs)
+Profit:   $1.62M at $0 (if zero more PROTECTs)
 ```
 
 **Rules during Phase 1:**
 1. **DO NOT open ADA or DOGE** — PM#6 lesson
-2. **DO NOT tighten below 54.2/51** — preserves bias lots
+2. **DO NOT tighten settings** — preserves bias lots
 3. **DO NOT burst trim** — risk of PROTECT not worth faster grind
-4. **Widen to 61/51 for overnight** if spread spike risk is high
+4. **DO NOT open another MG** — this is the FINAL position
 5. **Let the EA work** — it trims at the mathematically optimal rate
 
-### Phase 2: ADA + DOGE Stacking (~$57 → ~$40 SOL)
+### Phase 2: ADA + DOGE Stacking (~$58 → ~$30 SOL)
 
 ```
-Trigger:  SOL reaches PURE SHORT (all hedge consumed, ~$57 SOL)
+Trigger:  SOL reaches PURE SHORT (all hedge consumed, ~$58 SOL)
 Action:   Stack ADA + DOGE naked shorts manually (EA bug 4756)
 Priority: ADA first (higher profit per lot), DOGE second (VaR filler)
 Settings: SOL stays MG: SHORT (bias only, no hedge). ADA/DOGE MG: OFF.
-Goal:     1M ADA + 2-3M DOGE (VaR parity with SOL)
+Targets:  1M ADA + 3M DOGE (VaR parity with SOL)
 ```
 
-**ADA stacking (after SOL pure short):**
+**ADA stacking targets (after SOL pure short):**
 
-| SOL Price | Equity | ADA Target | ADA Margin | ADA Profit @$0 |
-|---|---|---|---|---|
-| $57 (pure short) | $220K | 200K lots | ~$56K | $56K |
-| $50 | $316K | 500K lots | ~$140K | $140K |
-| $40 | $454K | 1M lots | ~$280K | $280K |
-| $30 | $592K | 1M lots (satisfied) | ~$280K | $280K |
+| SOL Price | Equity | ADA Price (est.) | ADA Lots Target | ADA Margin | ADA Profit @$0 |
+|---|---|---|---|---|---|
+| **$58 (pure short)** | **$237K** | ~$0.15 | 200K | ~$30K | **$30K** |
+| $50 | $381K | ~$0.12 | 500K | ~$60K | **$60K** |
+| $40 | $560K | ~$0.08 | **1M** | ~$80K | **$80K** |
+| $30 | $740K | ~$0.05 | **1M (satisfied)** | ~$50K | **$50K** |
 
-**DOGE stacking (alongside ADA):**
+**DOGE stacking targets (alongside ADA):**
 
-| SOL Price | Equity After ADA | DOGE Target | DOGE Margin | DOGE Profit @$0 |
-|---|---|---|---|---|
-| $50 | $176K free | 500K lots | ~$50K | $85K |
-| $40 | $174K free | 1.5M lots | ~$150K | $255K |
-| $30 | $312K free | 2.5M lots | ~$250K | $425K |
+| SOL Price | Free Margin | DOGE Price (est.) | DOGE Lots Target | DOGE Margin | DOGE Profit @$0 |
+|---|---|---|---|---|---|
+| $58 (pure short) | ~$100K | ~$0.05 | 500K | ~$25K | **$25K** |
+| $50 | ~$200K | ~$0.04 | 1.5M | ~$60K | **$60K** |
+| $40 | ~$300K | ~$0.025 | **3M** | ~$75K | **$75K** |
+| $30 | ~$500K | ~$0.015 | **3M (satisfied)** | ~$45K | **$45K** |
 
-**Satisfaction point:** 1M ADA + 2.5M DOGE at ~$30 SOL. VaR parity with SOL.
+**Note:** ADA and DOGE prices drop WITH SOL (correlated). Margin per lot shrinks as prices fall → more lots affordable at lower prices.
 
-### Phase 3: All Three Ride to $0 (~$40 → $0 SOL)
+**Satisfaction targets:** 1M ADA + 3M DOGE at ~$30 SOL.
+
+### Phase 3: All Three Ride to $0 (~$30 → $0 SOL)
 
 ```
-Status:   SOL pure short + ADA naked short + DOGE naked short
+Status:   SOL 17,960 pure short + ADA 1M naked short + DOGE 3M naked short
 Action:   Do nothing. All three instruments declining together.
 VaR:      Diversified across three instruments — DARWIN scores optimally
-Profit:   SOL $1.24M + ADA $280K + DOGE $425K = ~$1.95M total
 ```
+
+**Combined profit at $0:**
+
+| Instrument | Lots | Avg Entry | Profit @$0 |
+|---|---|---|---|
+| **SOLUSD** | 17,960 | ~$90 | **$1,616,400** |
+| **ADAUSD** | 1,000,000 | ~$0.08 avg | **$80,000** |
+| **DOGEUSD** | 3,000,000 | ~$0.03 avg | **$90,000** |
+| **Combined** | | | **$1,786,400** |
 
 ### Phase 4: The Flip (At Bottom, ~$2-5 SOL)
 
 ```
 Trigger:  Crypto capitulation. SOL structural support ($2-5).
-Action:   Close all shorts. Lock in ~$1.9M profit.
+Action:   Close all shorts. Lock in ~$1.79M profit.
           Open SOL MG: LONG from bottom (max aggression — safe at low prices)
           Open ADA + DOGE naked long (cheap margin at near-$0)
 Goal:     Ride next bull cycle. SOL $5 → $200+. ADA $0.03 → $3+. DOGE $0.01 → $0.70+.
@@ -312,13 +323,15 @@ Target: Next cycle ATH
 
 | Phase | SOL Price | Action | Estimated Profit |
 |---|---|---|---|
-| **1 (NOW)** | $90 → $57 | TRIM grind, SOL only, settings locked | — |
-| **2** | $57 → $40 | Pure short + stack ADA/DOGE | — |
-| **3** | $40 → $0 | All ride to $0 | **~$1.95M** |
+| **1 (NOW)** | $90 → $58 | TRIM grind, SOL only, settings locked | — |
+| **2** | $58 → $30 | Pure short + stack 1M ADA + 3M DOGE | — |
+| **3** | $30 → $0 | All ride to $0 | **~$1.79M** |
 | **4** | ~$2-5 | Flip to long, max aggression | — |
 | **5** | $5 → $200+ | Ride bull cycle | **~$87M theoretical** |
 
-**One account. Two full cycles. $100K → $1.95M → $87M.**
+**One account. Two full cycles. $100K → $1.79M → $87M.**
+
+**We are overclocking finance.** Open MG $2.00, TRIM 54.2%, 17,960 bias lots on a $71K account — this is liquid nitrogen on the VRM. The lessons learned doc said $5-8 was sane. We wrote it, read it, nodded approvingly, then cranked the voltage to max and sent it. Der8auer, The Stilt, and FUGGER would approve. The position is either going to hit $1.79M or delid itself trying. No thermal throttling. No safety limits. Full send.
 4. Consult before opening any non-SOL position
 ```
 
