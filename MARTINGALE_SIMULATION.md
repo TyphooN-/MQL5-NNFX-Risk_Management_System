@@ -80,33 +80,34 @@ Per side = Safe gross / 2
 
 ## Active: SOLUSD Hedged Martingale SHORT (Opened 2026-03-17)
 
-### Position State (from EA log 2026-03-17 12:49)
+### Position State (from EA log 2026-03-17 20:11)
 
 | | Value |
 |---|---|
 | Account | $100K Darwinex Zero Crypto |
-| SOL Price | ~$94.00 |
-| Balance | $97,425.29 |
-| Equity | $91,046.64 |
-| Margin | $156,739.76 |
-| ML | 58.1% (dead zone) |
-| Long (hedge) | 23,331 |
-| Short (bias) | 25,000 |
-| Net Short | 1,669 |
-| Gross | 48,331 |
-| TRIM closes so far | 54 |
-| PROTECT closes | 0 |
+| SOL Price | ~$94 |
+| Balance | $94,847.85 |
+| Equity | $88,207.15 |
+| Margin | $169,429.56 |
+| ML | 52.1% (dead zone) |
+| Long (hedge) | 18,196 |
+| Short (bias) | 20,000 |
+| Net Short | 1,804 |
+| Gross | 38,196 |
+| TRIM closes so far | 321 |
+| PROTECT closes | 3 |
 | Margin per lot | ~$94 (1:1 crypto) |
+| Spread tolerance | $88,207 / 38,196 = **$2.31/lot** (safe overnight) |
 
 ### EA Configuration
 
 | Parameter | Value |
 |---|---|
 | Mode | **MG: SHORT** |
-| TRIM threshold | **64%** margin level |
-| TRIM formula | `maxSafe = floor((equity/0.64 - margin) / marginPerLot)` |
-| PROTECT threshold | **52%** margin level |
-| Dead zone | 52%–64% (12% buffer — survives ~12% SOL bounce) |
+| TRIM threshold | **61%** margin level |
+| TRIM formula | `maxSafe = floor((equity/0.61 - margin) / marginPerLot)` |
+| PROTECT threshold | **50.4%** margin level |
+| Dead zone | 50.4%–61% (10.6% buffer) |
 | Hard floor | 10% — PROTECT halts, broker handles it |
 | Bias protection | Never closes bias (shorts) in crisis |
 | Open MG | $2.00/lot safety rule |
@@ -114,71 +115,66 @@ Per side = Safe gross / 2
 ### Position Sizing
 
 ```
-Open MG at $2.00/lot → max gross = $100,000 / $2.00 = 50,000
-Per side = 25,000
-Shorts (bias) = 25,000
-Longs (hedge) = 23,331 (after 54 TRIM closes from initial ~23,385)
-Gross = 48,331
-Net short = 1,669
+Shorts (bias) = 20,000
+Longs (hedge) = 18,196 (after 321 TRIM closes)
+Gross = 38,196
+Net short = 1,804
 
-Spread tolerance = $91,047 / 48,331 = $1.88/lot (borderline — crosses $2.00 at ~$90 SOL)
+Spread tolerance = $88,207 / 38,196 = $2.31/lot (overnight safe — above $2.00)
 ```
 
-**ML at 58.1% is below TRIM (64%).** TRIM has exhausted its room at this price. TRIM won't fire again until SOL drops to ~$90.50 where equity growth pushes ML back above 64%. The position sits in the dead zone until then.
+**ML at 52.1% is below TRIM (61%).** TRIM has exhausted its room at this price. TRIM won't fire again until SOL drops to ~$89 where equity growth pushes ML back above 61%. The position sits in the dead zone until then.
 
 ### TRIM Progression to Pure Short
 
-With TRIM 64 and PROTECT 52, TRIM maintains ML at exactly 64% as SOL drops. ML is currently 58.1% — below TRIM — so **no trims fire until SOL drops to ~$90.50** where equity growth pushes ML back above 64%.
+With TRIM 61 and PROTECT 50.5, TRIM maintains ML at ~61% as SOL drops. ML is currently 53% — below TRIM — so **no trims fire until SOL drops to ~$89.30** where equity growth pushes ML back above 61%.
 
 | SOL Price | Equity | Longs (Hedge) | Net Short | Gross | Spread Tol. | ML | Status |
 |---|---|---|---|---|---|---|---|
-| **$94 (now)** | **$91,047** | **23,331** | **1,669** | **48,331** | **$1.88** | **58.1%** | Dead zone — TRIM waiting |
-| $90 | $97,723 | 23,303 | 1,697 | 48,303 | $2.02 | ~65% | **TRIM resumes, overnight safe** |
-| $80 | $114,693 | 22,760 | 2,240 | 47,760 | $2.40 | 64% | Safe |
-| $70 | $137,093 | 21,939 | 3,061 | 46,939 | $2.92 | 64% | Comfortable |
-| $60 | $167,703 | 20,634 | 4,366 | 45,634 | $3.68 | 64% | Very safe |
-| $50 | $211,363 | 18,395 | 6,605 | 43,395 | $4.87 | 64% | Growing fast |
-| $40 | $277,413 | 14,164 | 10,836 | 39,164 | $7.08 | 64% | Accelerating |
-| $30 | $385,773 | 4,908 | 20,092 | 29,908 | $12.90 | 64% | Nearly pure |
-| **~$27** | **~$446,000** | **0** | **25,000** | **25,000** | **$17.84** | **~66%** | **PURE SHORT** |
-| $20 | $621,000 | 0 | 25,000 | 25,000 | $24.84 | 124% | Printing |
-| $10 | $871,000 | 0 | 25,000 | 25,000 | $34.84 | 349% | Locked in |
-| $5 | $996,000 | 0 | 25,000 | 25,000 | $39.84 | 797% | Locked in |
-| **$0** | **$1,121,000** | **0** | **25,000** | **25,000** | **∞** | **∞** | **Done** |
+| **$94 (now)** | **$88,207** | **18,196** | **1,804** | **38,196** | **$2.31** | **52%** | Dead zone — TRIM paused |
+| $89 | $97,227 | 18,172 | 1,828 | 38,172 | $2.55 | ~62% | **TRIM resumes** |
+| $80 | $113,105 | 17,591 | 2,409 | 37,591 | $3.01 | 61% | Safe |
+| $70 | $137,195 | 16,594 | 3,406 | 36,594 | $3.75 | 61% | Comfortable |
+| $60 | $171,255 | 14,946 | 5,054 | 34,946 | $4.90 | 61% | Very safe |
+| $50 | $221,795 | 12,100 | 7,900 | 32,100 | $6.91 | 61% | Growing fast |
+| $40 | $300,795 | 7,133 | 12,867 | 27,133 | $11.09 | 61% | Accelerating |
+| $30 | $429,465 | 0 | 20,000 | 20,000 | $21.47 | ~72% | **PURE SHORT** |
+| $20 | $629,465 | 0 | 20,000 | 20,000 | $31.47 | 157% | Printing |
+| $10 | $829,465 | 0 | 20,000 | 20,000 | $41.47 | 415% | Locked in |
+| $5 | $929,465 | 0 | 20,000 | 20,000 | $46.47 | 930% | Locked in |
+| **$0** | **$1,029,465** | **0** | **20,000** | **20,000** | **∞** | **∞** | **Done** |
 
 ### How TRIM Pacing Works
 
-TRIM fires when ML > 64%, brings ML back to 64%, then waits for price movement to create more room. At 58.1% ML, TRIM is paused — resumes at ~$90.50 SOL:
+TRIM fires when ML > 61%, brings ML back to 61%, then waits for price movement to create more room. At 53% ML, TRIM is paused — resumes at ~$89.30 SOL:
 
 | SOL Drop | Equity Gained (from net) | Lots Trimmed | Net After | Trim Accelerates? |
 |---|---|---|---|---|
-| $94 → $90 | $6,676 (1,669 × $4) | 28 | 1,697 | **TRIM resumes** — slow start |
-| $90 → $80 | $16,970 (1,697 × $10) | 543 | 2,240 | Moderate |
-| $80 → $70 | $22,400 (2,240 × $10) | 821 | 3,061 | Building |
-| $70 → $60 | $30,610 (3,061 × $10) | 1,305 | 4,366 | Significant |
-| $60 → $50 | $43,660 (4,366 × $10) | 2,239 | 6,605 | Fast |
-| $50 → $40 | $66,050 (6,605 × $10) | 4,231 | 10,836 | Rapid |
-| $40 → $30 | $108,360 (10,836 × $10) | 9,256 | 20,092 | Compounding |
-| $30 → $27 | $60,276 (20,092 × $3) | 4,908 (all) | 25,000 | **Complete** |
+| $94 → $89 | $9,020 (1,804 × $5) | 24 | 1,828 | **TRIM resumes** — slow start |
+| $89 → $80 | $16,452 (1,828 × $9) | 581 | 2,409 | Moderate |
+| $80 → $70 | $24,090 (2,409 × $10) | 997 | 3,406 | Building |
+| $70 → $60 | $34,060 (3,406 × $10) | 1,648 | 5,054 | Significant |
+| $60 → $50 | $50,540 (5,054 × $10) | 2,846 | 7,900 | Fast |
+| $50 → $40 | $79,000 (7,900 × $10) | 4,967 | 12,867 | Rapid |
+| $40 → $30 | $128,670 (12,867 × $10) | 7,133 (all) | 20,000 | **Complete — PURE SHORT** |
 
 **The flywheel:** Each $1 SOL drop → shorts profit → equity up → more TRIM room → more net → next $1 drop earns more. The trim rate compounds as the position unwinds.
 
 ### Key Milestones
 
-- **$90.50**: TRIM resumes — ML crosses back above 64%
-- **$90**: Spread tolerance crosses $2.00/lot → **overnight safe**
-- **$80**: Equity $115K, spread tolerance $2.40 → safe, TRIM building
-- **$50**: Equity $211K, net 6,605 → deep safety, flywheel accelerating
-- **$30**: Equity $386K, 79% of hedge consumed → home stretch
-- **$27**: **PURE SHORT** — all 23,331 hedge lots consumed. Equity ~$446K. 25,000 lots riding free
-- **$0**: Equity **~$1,121,000** — total profit **~$1,030,000 (11.3x return on $91K)**
+- **~$89**: TRIM resumes — ML crosses back above 61%
+- **$80**: Equity $113K, net 2,409, spread tolerance $3.01 → safe
+- **$50**: Equity $222K, net 7,900 → deep safety, flywheel accelerating
+- **$40**: Equity $301K, net 12,867 → compounding
+- **$30**: **PURE SHORT** — all 18,196 hedge lots consumed. Equity $429K. 20,000 lots riding free
+- **$0**: Equity **~$1,029,000** — total profit **~$941,000 (10.7x return on $88K)**
 
 ### DOGE Entry Timing
 
 Once SOL hedge is sufficiently unwound (longs under ~10K, equity over $200K at ~$45 SOL), open DOGE MG: SHORT on a **second account**:
 
-- **Trigger:** SOL price below $45 (equity ~$211K, spread tolerance $4.87 — deeply safe)
-- **DOGE entry:** Fresh $100K account, same strategy (MG: SHORT, TRIM 64, PROTECT 52, $2.00/lot)
+- **Trigger:** SOL price below $45 (equity ~$222K, spread tolerance $6.91 — deeply safe)
+- **DOGE entry:** Fresh $100K account, same strategy (MG: SHORT, TRIM 61, PROTECT 50.5, $2.00/lot)
 - **Why separate account:** Independent TRIM/PROTECT, no cross-margin risk, clean spread tolerance calculation
 - **DOGE advantages:** Lower price per lot = higher spread tolerance per lot, rides to $0 alongside SOL
 
@@ -431,7 +427,7 @@ XNGUSD was explored as a martingale candidate due to predictable CFD spread beha
 
 ### Operation SOL/DOGE → $0
 
-Fresh $100K account on SOLUSD MG: SHORT. Position opened 2026-03-17 at ~$94. TRIM 64 / PROTECT 52 / $2.00 per lot. 23,331 L / 25,000 S, net short 1,669 lots. ML 58.1% — TRIM paused until ~$90.50. Spread tolerance borderline at $1.88/lot — crosses $2.00 at $90 SOL.
+SOLUSD MG: SHORT opened at $94, TRIM 61/PROTECT 50.4. 18,196 L / 20,000 S, net short 1,804 lots. 321 trim closes. ML 52.1% — TRIM paused until ~$89. Spread tolerance $2.31/lot (overnight safe). Pure short at ~$30, equity $429K → $1.03M at $0.
 
 TRIM is paused at 58.1% ML (below the 64% threshold). It resumes when SOL drops to ~$90.50. From there, every dollar SOL drops compounds into more net short exposure. Pure short at ~$27 SOL. DOGE entry on second account once SOL position is deeply safe (~$45 SOL).
 
