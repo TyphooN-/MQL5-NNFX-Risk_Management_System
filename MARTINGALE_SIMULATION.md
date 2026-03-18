@@ -110,7 +110,7 @@ Per side = Safe gross / 2
 | PROTECT | **50.96913420691337%** |
 | Dead zone | **3.23%** (50.97%–54.20%) |
 | Hard floor | **10.0%** |
-| Open MG | **$1.6942031337** (below lessons learned, below full send, below sanity) |
+| Open MG | **$1.666942031337** (John Carmack would approve) |
 | Bias protection | Never closes bias (shorts) in crisis |
 | **Instruments** | **SOL ONLY** — no ADA/DOGE until pure short |
 
