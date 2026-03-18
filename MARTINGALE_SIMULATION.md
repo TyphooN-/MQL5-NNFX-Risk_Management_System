@@ -92,12 +92,12 @@ Per side = Safe gross / 2
 | Margin | $49,346 |
 | ML | 144.9% → grinding down to 54.2% |
 | **SOLUSD** | |
-| Long (hedge) | 11,671 (TRIM grinding) |
-| Short (bias) | **13,220** (17,960 opened, 4,740 lost to 3 PROTECT balanced closes) |
-| Net Short | 1,549 |
-| SOL Gross | 24,891 |
-| TRIM closes | 87 |
-| PROTECT closes | 3 (cost: 4,740 bias lots = $427K profit at $0) |
+| Long (hedge) | ~19,184 (20,602 opened, TRIM consuming in burst) |
+| Short (bias) | **20,602** (FINAL — Open MG $1.6942031337. Last meme to dream.) |
+| Net Short | ~1,418 (growing as TRIM grinds) |
+| SOL Gross | ~39,786 |
+| TRIM closes | 4+ (new MG burst) |
+| PROTECT closes | 0 (new MG) |
 | **ADAUSD** | **CLOSED** — broker liquidated during PM#6 spread spike (profit realized to balance) |
 | **DOGEUSD** | **NOT OPEN** — waiting until SOL hedge is fully consumed |
 
@@ -106,11 +106,11 @@ Per side = Safe gross / 2
 | Parameter | Value |
 |---|---|
 | Mode | **MG: SHORT** |
-| TRIM | **54.20691337%** |
+| TRIM | **54.2013691337%** |
 | PROTECT | **50.96913420691337%** |
-| Dead zone | **3.24%** (50.97%–54.21%) |
+| Dead zone | **3.23%** (50.97%–54.20%) |
 | Hard floor | **10.0%** |
-| Open MG | **$2.00** |
+| Open MG | **$1.6942031337** (below lessons learned, below full send, below sanity) |
 | Bias protection | Never closes bias (shorts) in crisis |
 | **Instruments** | **SOL ONLY** — no ADA/DOGE until pure short |
 
@@ -213,7 +213,7 @@ SOL only — no ADA/DOGE until pure short. TRIM 54.2/PROTECT 51. Settings LOCKED
 | $5 | $933,372 | 0 | 13,220 | 13,220 | $70.60 | 1,412% | Locked in |
 | **$0** | **$1,189,800** | **0** | **13,220** | **13,220** | **∞** | **∞** | **Done** |
 
-**13,220 bias lots. Pure SOL short at ~$60. Every $1 below $60 = $13,220 profit. $1.19M at $0.**
+**20,602 bias lots. Open MG $1.6942031337. LAST MEME TO DREAM. Pure SOL short at ~$57. Every $1 below $57 = $20,602 profit. $1.85M at $0.**
 
 ### How TRIM Pacing Works
 
