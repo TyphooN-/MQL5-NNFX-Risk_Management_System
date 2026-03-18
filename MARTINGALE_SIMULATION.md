@@ -93,7 +93,7 @@ Per side = Safe gross / 2
 | ML | 144.9% → grinding down to 54.2% |
 | **SOLUSD** | |
 | Long (hedge) | ~19,184 (20,602 opened, TRIM consuming in burst) |
-| Short (bias) | **20,602** (FINAL — Open MG $1.6942031337. Last meme to dream.) |
+| Short (bias) | **23,886** (Open MG $1.4206931337. "I PROMISE I WILL NOT TOUCH ANYTHING") |
 | Net Short | ~1,418 (growing as TRIM grinds) |
 | SOL Gross | ~39,786 |
 | TRIM closes | 4+ (new MG burst) |
@@ -110,7 +110,7 @@ Per side = Safe gross / 2
 | PROTECT | **50.96913420691337%** |
 | Dead zone | **3.23%** (50.97%–54.20%) |
 | Hard floor | **10.0%** |
-| Open MG | **$1.666942031337** (John Carmack would approve) |
+| Open MG | **$1.4206931337** (smoke em if you got em) |
 | Bias protection | Never closes bias (shorts) in crisis |
 | **Instruments** | **SOL ONLY** — no ADA/DOGE until pure short |
 
@@ -213,7 +213,7 @@ SOL only — no ADA/DOGE until pure short. TRIM 54.2/PROTECT 51. Settings LOCKED
 | $5 | $933,372 | 0 | 13,220 | 13,220 | $70.60 | 1,412% | Locked in |
 | **$0** | **$1,189,800** | **0** | **13,220** | **13,220** | **∞** | **∞** | **Done** |
 
-**20,602 bias lots. Open MG $1.6942031337. LAST MEME TO DREAM. Pure SOL short at ~$57. Every $1 below $57 = $20,602 profit. $1.85M at $0.**
+**23,886 bias lots. Open MG $1.4206931337. Pure SOL short at ~$56. Every $1 below $56 = $23,886 profit. $2.15M at $0.**
 
 ### How TRIM Pacing Works
 
