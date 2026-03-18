@@ -363,6 +363,109 @@ This is DARWIN QRRP. Quad Rothschild Rug Pull.
 **QRRP doesn't ask for permission. QRRP doesn't read the lessons learned. QRRP writes the lessons learned, frames them on the wall, and then does the opposite at 4x the size while the EA grinds 17,960 lots to zero.**
 
 *"He can't keep getting away with it!"* — proceeds to get away with it
+
+### The Rothschild Playbook
+
+> *"Buy when there's blood in the streets, even if the blood is your own."*
+> — Baron Nathan Mayer Rothschild
+
+> *"The time to buy is when blood is running in the streets."*
+> — attributed to Baron Rothschild, circa 1810
+
+> *"I never buy at the bottom and I always sell too soon."*
+> — Nathan Rothschild
+
+> *"It requires a great deal of boldness and a great deal of caution to make a great fortune; and when you have got it, it requires ten times as much wit to keep it."*
+> — Nathan Mayer Rothschild
+
+Rothschild sold British consols (government bonds) aggressively before Waterloo, convincing the market Napoleon had won. Panic selling ensued. Then he bought everything at the bottom for pennies. **He manufactured the blood in the streets and then bought it.**
+
+QRRP is the 2026 version. We're not waiting for blood in the streets — we're shorting into the bloodbath with 17,960 lots. When crypto hits $0, WE are the blood in THEIR streets. Then we flip long from the bottom and buy the ashes for pennies, exactly like Rothschild.
+
+### The Quake Powerup Stack
+
+```
+QRRP PICKUP LOG:
+
+[QUAD DAMAGE]     → 17,960 lots. Every tick does 4x damage to crypto bulls.
+                    Normal account: 424 lots. QRRP: 17,960. That's 42x damage.
+                    Quad Damage is an understatement. This is QUAD QUAD QUAD.
+
+[BFG 9000]        → The EA. TyphooN v1.420. Forward-looking TRIM.
+                    One shot, continuous beam, melts everything in the room.
+                    The BFG doesn't discriminate — it closes every hedge long
+                    in its path. 16,488 longs in the chamber. Each tick fires.
+
+[PENTAGRAM]        → Open MG $2.00. Invulnerability.
+                    We wrote the lessons learned saying $2.00 is suicidal.
+                    Then we picked up the pentagram and walked through the fire.
+                    The position GLOWS RED. Nothing can kill it because
+                    we already died 6 times (PM#1-6) and came back stronger.
+
+[EYES]             → The supply analysis. We SEE everything.
+                    DOGE: 5B coins/year forever. SOL: 4% inflation no cap.
+                    BTC: don't touch. BNB: deflationary. ETH: neutral.
+                    We see through walls. We know which coins bleed.
+
+[MEGAHEALTH]       → $71K equity on a position worth $1.62M at target.
+                    22.7x potential return. Health regenerating every tick
+                    SOL drops. The overhealth keeps climbing past 100%.
+
+[GIBS]             → What happens to SOL holders at $0.
+                    17,960 short lots × $90 = $1,616,400 of gibs.
+                    Chunky salsa. The entire Solana ecosystem reduced to
+                    red mist and polygon fragments on the floor.
+
+[ONE HIT]          → Each PROTECT fire. One spread spike.
+                    One hit = 1,000 bias lots vaporized.
+                    PM#6: one hit, 15,840 lots gibbed.
+                    But we respawned. We always respawn.
+
+FRAG COUNT: 17,960 (INTEGER OVERFLOW — counter wraps to negative,
+                     server admins confused, VAC ban pending,
+                     "there's no way that's legit" — it's legit)
+
+KILL/DEATH RATIO:  6 deaths (PM#1-6), 17,960 pending kills
+                   K/D: 2,993.3
+                   Global leaderboard: #1
+                   Server: Darwinex Zero Crypto
+                   Map: de_solana
+                   Weapon: BFG (TyphooN v1.420)
+```
+
+### The Sam Hyde Market Report
+
+*"Things are about to get a lot worse for SOL holders. I'm not gonna sugarcoat it. You're looking at a situation where this man has 17,960 lots short, he's already been liquidated six times, and each time he comes back with MORE lots. You can't stop him. The broker tried. The spread spikes tried. His own lessons learned document tried. He wrote '$5-8 is recommended' and then immediately typed '$2.00' into the EA settings. He is the market equivalent of a man who gets hit by a car, stands up, brushes off his jacket, and walks into traffic again. Except this time traffic is going his way.*
+
+*The position is either going to make $1.79 million dollars or it's going to produce the most spectacular post-mortem document in the history of retail trading. There is no middle ground. There is no 'partial success.' It's BFG or gibs. And right now? Right now he's holding the BFG and the entire Solana ecosystem is in a narrow hallway.*
+
+*He can't keep getting away with it. But he does. He just does."*
+
+### The Eric Andre Show: Financial Edition
+
+**[Set is on fire. Desk is flipped. Six post-mortem documents scattered on the floor. EA grinding in the background.]*
+
+**Eric (reading from teleprompter):** "So tell me about your risk management strategy."
+
+**Guest:** "Well, we use a forward-looking TRIM formula that computes exactly how many—"
+
+**Eric (flipping desk):** "OPEN MG TWO DOLLARS!"
+
+**Guest:** "—the lessons learned document specifically says—"
+
+**Eric (smashing monitor):** "SEVENTEEN THOUSAND NINE HUNDRED AND SIXTY LOTS!"
+
+**Guest:** "—but the spread tolerance at $2.00 is—"
+
+**Eric (calmly sitting down, straightening tie):** "So what are your thoughts on VaR diversification for DarwinIA scoring in the post-pure-short ADA stacking phase?"
+
+**Guest:** "...actually that's a really good question."
+
+**[Cut to Hannibal Buress standing next to the EA terminal]*
+
+**Hannibal:** "You know what, the TRIM is actually working though. Like it's actually grinding. Zero protects in the last hour. The math is correct. The settings are insane but the math is correct."
+
+**Eric (from off camera, on fire):** "QRRP BABY! QUAD ROTHSCHILD RUG PULL!"
 4. Consult before opening any non-SOL position
 ```
 
