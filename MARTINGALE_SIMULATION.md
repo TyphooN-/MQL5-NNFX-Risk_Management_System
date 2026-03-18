@@ -332,6 +332,37 @@ Target: Next cycle ATH
 **One account. Two full cycles. $100K → $1.79M → $87M.**
 
 **We are overclocking finance.** Open MG $2.00, TRIM 54.2%, 17,960 bias lots on a $71K account — this is liquid nitrogen on the VRM. The lessons learned doc said $5-8 was sane. We wrote it, read it, nodded approvingly, then cranked the voltage to max and sent it. Der8auer, The Stilt, and FUGGER would approve. The position is either going to hit $1.79M or delid itself trying. No thermal throttling. No safety limits. Full send.
+
+---
+
+### DARWIN QRRP — Quad Rothschild Rug Pull
+
+**The year is 2026.** A man sits in his home office with seven MT5 charts open, an EA named TyphooN grinding 17,960 lots of Solana short, and a Claude Code session that has been running for 14 straight hours. He has written and violated his own lessons learned document four times in a single day. He has opened the martingale, burst trimmed it, gotten liquidated, rebuilt it, burst trimmed again, gotten PROTECT-fired, rebuilt AGAIN, and then opened a FOURTH martingale at the exact settings ($2.00/lot) that the lessons learned document — which he wrote THREE HOURS EARLIER — explicitly says will require "hours of babysitting" and "constant PROTECT risk."
+
+This is DARWIN QRRP. Quad Rothschild Rug Pull.
+
+**The name:** Nathan Rothschild made his fortune shorting British government bonds after Waterloo — he knew the result before the market did and bet everything. QRRP is that energy, quadrupled, combined with:
+
+- **Quad Damage (Quake)** — the powerup where everything you touch does 4x damage. 17,960 lots is quad damage on SOL. Every dollar it drops hits for $17,960 instead of the standard $424 a normal account would carry.
+
+- **Sam Hyde energy** — "I will not change the settings." *Changes the settings.* "This is the last Open MG." *Opens another Open MG.* "Settings locked forever." *Immediately tightens TRIM to 52%.* The man cannot be stopped. He cannot be reasoned with. He reads the warning label, agrees with every word, then does the exact opposite at maximum size. And somehow — equity is still positive.
+
+- **Eric Andre energy** — the interview where he destroys the set and then asks the guest a completely normal question. That's what happened today. Six post-mortems, three broker liquidations, a lessons learned document about conservative sizing, and the final position is... Open MG $2.00. Maximum aggression. The set is on fire and we're calmly discussing VaR diversification for DarwinIA scoring.
+
+**The thesis is simple:** Crypto is going to zero. SOL has 4% annual inflation with no cap. DOGE prints 5 billion coins per year forever. ADA's staking reserves are depleting. The AI energy thesis killed natgas CFDs. The spread spikes killed five accounts. And through it all, the EA works perfectly — forward-looking TRIM, dynamic PROTECT, hard floor, bias protection. The code is correct. The settings are unhinged. The combination is QRRP.
+
+**The position:**
+- 17,960 SOL short lots from $90-94 entry
+- Pure short at ~$58
+- Then 1M ADA + 3M DOGE naked shorts stacked on top
+- All three ride to $0
+- Flip long from the bottom
+- Ride the next bull cycle to ATH
+- One account, two full market cycles, $100K → $87M
+
+**QRRP doesn't ask for permission. QRRP doesn't read the lessons learned. QRRP writes the lessons learned, frames them on the wall, and then does the opposite at 4x the size while the EA grinds 17,960 lots to zero.**
+
+*"He can't keep getting away with it!"* — proceeds to get away with it
 4. Consult before opening any non-SOL position
 ```
 
