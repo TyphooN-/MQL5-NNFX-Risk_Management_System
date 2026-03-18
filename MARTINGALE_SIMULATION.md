@@ -647,3 +647,122 @@ The hedged martingale works best when:
 4. **Multiple instruments** amplify DARWIN performance through VaR diversification
 
 CFD commodities have the wrong profile: expensive lots (high leverage = fewer lots), structural spread costs that eat TRIM room, and less fuel for the flywheel. The same EA works on both, but the math favors crypto despite the spread risk — IF you size correctly.
+
+---
+
+## The Full Cycle: One Account Forever
+
+This is one Darwinex Zero crypto account running both directions across multiple cycles. Never opening another account. The strategy flips between short and long as the crypto cycle turns.
+
+### Phase 1: Operation SOL/ADA/DOGE → $0 (Current)
+
+```
+SOL: MG: SHORT — TRIM grinding hedge, 17,220 bias lots riding to $0
+ADA: Naked short — 200K lots @ $0.28, stacking to 1M
+DOGE: Naked short — stacking as margin allows, target 2-3M lots
+All three ride to $0. Combined profit: $1.2M+
+```
+
+### Phase 2: The Flip (At or Near Bottom)
+
+When the thesis plays out (crypto bottoms at $2-5 SOL, $0.01-0.05 ADA, $0.005-0.02 DOGE):
+
+1. **Close all shorts** — lock in $1M+ profit
+2. **SOL: MG: LONG** — max aggression from the bottom (Open MG $2-3 is safe at $5 SOL)
+3. **ADA: Naked long** — max lots, cheap margin at $0.01-0.05
+4. **DOGE: Naked long** — max lots, margin essentially free at $0.005-0.02
+
+**Why long ALL three, not just SOL:**
+
+| | SOL Only Long | SOL + ADA + DOGE Long |
+|---|---|---|
+| VaR profile | Single instrument | **Three instruments — diversified** |
+| D-Score | Good | **Better — multi-asset** |
+| Profit on 10x recovery | SOL $5→$50 = $45/lot | SOL + ADA $0.05→$0.50 + DOGE $0.01→$0.10 |
+| DARWIN perception | Single bet | **Diversified crypto fund** |
+| Risk multiplier stability | Spikes as SOL rises | **Smoother across three** |
+
+**Long all three.** The same VaR diversification logic that helps on the way down helps on the way up. Darwinex rewards consistent multi-instrument risk-taking in both directions.
+
+### Phase 2 Ideal Lot Sizes (From Bottom)
+
+Assuming $1M+ equity after Phase 1 close, SOL at $5, ADA at $0.03, DOGE at $0.01:
+
+```
+SOL MG: LONG
+  Open MG $2.00 (safe at $5 — spread tolerance = $2.00/lot, SOL spread ~$0.50 at $5)
+  Gross = $1M / $2.00 = 500,000 lots
+  Per side = 250,000 L + 250,000 S
+  TRIM builds net long as SOL rises
+  Target: SOL $5 → $200+ (next ATH)
+  Pure long at ~$15-20 SOL
+  250,000 lots × $200 = $50M at ATH
+
+ADA Naked Long:
+  At $0.03: margin per lot = $0.03
+  Stack 10,000,000 lots = $300K margin
+  Profit at $3 (ATH): 10M × $3 = $30M
+
+DOGE Naked Long:
+  At $0.01: margin per lot = $0.01
+  Stack 10,000,000 lots = $100K margin
+  Profit at $0.70 (ATH): 10M × $0.70 = $7M
+
+Total margin: ~$500K + $300K + $100K = $900K (on $1M+ equity)
+Combined profit at ATH: SOL $50M + ADA $30M + DOGE $7M = $87M
+```
+
+**$87M is the theoretical max on a single $100K starting account.** Two full cycles: short from top to bottom ($1.2M), flip, long from bottom to top ($87M). One account.
+
+### Phase 3: Ride the Bull (Mirror of Phase 1)
+
+```
+SOL: MG: LONG — TRIM grinds shorts (hedge fuel) as SOL rises
+ADA: Naked long — riding recovery to ATH
+DOGE: Naked long — riding recovery to ATH
+VaR diversified across three instruments
+DARWIN scoring optimal throughout
+```
+
+### When to Flip (Short → Long)
+
+Don't try to catch the exact bottom. Flip when:
+- **SOL finds structural support** ($2-5 range — mining/staking economics provide a floor)
+- **DARWIN VaR is near zero** — all three instruments near $0, nothing left to short
+- **Capitulation signals** — extreme negative sentiment, mass crypto exchange failures, regulatory clarity
+- **The same indicators that signaled the short** now signal reversal (supply/demand zones, KAMA crosses, Ehlers Fisher turning)
+
+### When to Flip (Long → Short — Next Cycle)
+
+The reverse of Phase 1:
+- **Blow-off top signals** — parabolic price action, retail mania, leverage at ATH
+- **SOL at $200+, ADA at $3+, DOGE at $0.70+** — all near previous ATH
+- Close all longs, flip to MG: SHORT, restart the cycle
+
+### The DARWIN Through the Full Cycle
+
+```
+Phase 1 (Short $94→$0): DARWIN builds track record, returns amplified as VaR compresses
+Phase 2 (Flip):          Brief flat period, new positions opened, VaR rebuilds
+Phase 3 (Long $5→$200):  DARWIN shows new direction, returns amplified again
+Repeat:                   Multi-year track record of both bull and bear capture
+
+DarwinIA scoring: consistent returns across market regimes = GOLD allocation
+Investor perception: strategy that profits in all conditions = maximum AUM
+Performance fees: 15% of profits on allocated capital, compounding across cycles
+```
+
+### Ideal ADA/DOGE Stacking Plan Post-SOL Hedge (Phase 1)
+
+After SOL reaches pure short (~$50), equity ~$278K, stacking targets:
+
+| SOL Price | Equity | Action | ADA Total | DOGE Total | Combined Margin |
+|---|---|---|---|---|---|
+| $50 (pure) | $278K | Stack aggressively | 500K | 500K | ~$225K |
+| $40 | $450K | Continue stacking | 800K | 1.5M | ~$315K |
+| $30 | $622K | **VaR parity reached** | **1M** | **2.5M** | ~$355K |
+| $20 | $794K | Stack if margin allows | 1M | 3M | ~$340K |
+| $10 | $966K | Final stacking | 1M | 3M | ~$320K |
+| $5 | $1.05M | Approaching flip zone | 1M | 3M | ~$310K |
+
+**Satisfaction point: 1M ADA + 2.5-3M DOGE at ~$30 SOL.** This achieves VaR parity with SOL and provides the base for the flip to long.
