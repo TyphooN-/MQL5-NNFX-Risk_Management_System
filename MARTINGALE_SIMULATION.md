@@ -86,17 +86,18 @@ Per side = Safe gross / 2
 | | Value |
 |---|---|
 | Account | $100K Darwinex Zero Crypto (ONE ACCOUNT — no others) |
-| SOL Price | ~$89 (dropping) |
-| Balance | $73,273 |
-| Equity | $75,665 |
-| Margin | $140,493 |
-| ML | 53.86% |
-| Total P/L | **+$2,391** (position in profit) |
+| SOL Price | ~$90 |
+| Balance | $74,562 |
+| Equity | $73,629 |
+| Margin | $136,144 |
+| ML | 54.1% (at TRIM threshold — grinding) |
 | **SOLUSD** | |
-| Long (hedge) | ~14,419 (TRIM grinding — multiple 880-lot buy tickets visible) |
-| Short (bias) | ~15,993 (880 + 880 + sell 500 @ $92.134 + sell 880 @ $94.294) |
-| Net Short | 1,574 |
-| SOL Gross | ~30,412 |
+| Long (hedge) | 12,243 |
+| Short (bias) | 13,770 (reduced from 14,782 by 1 PROTECT balanced close) |
+| Net Short | 1,527 |
+| SOL Gross | 26,013 |
+| TRIM closes (this MG) | 23 |
+| PROTECT closes | 1 (132L+132S balanced close → -1,012 bias) |
 | **ADAUSD** | **CLOSED** — broker liquidated during PM#6 spread spike (profit realized to balance) |
 | **DOGEUSD** | **NOT OPEN** — waiting until SOL hedge is fully consumed |
 
