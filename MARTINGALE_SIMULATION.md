@@ -85,17 +85,17 @@ Per side = Safe gross / 2
 | | Value |
 |---|---|
 | Account | $100K Darwinex Zero Crypto |
-| SOL Price | ~$91.80 |
-| Balance | $78,592 |
-| Equity | $78,424 |
-| Margin | $140,022 |
-| ML | 56.0% (at TRIM threshold — grinding 1 lot/tick) |
+| SOL Price | ~$91.67 |
+| Balance | $78,573 |
+| Equity | $78,610 |
+| Margin | $143,346 |
+| ML | 54.8% (TRIM 54 / PROTECT 51 — active drop, trimming fast) |
 | **SOLUSD** | |
-| Long (hedge) | 16,290 (trimming actively) |
+| Long (hedge) | 16,247 (trimming actively — SOL dropping) |
 | Short (bias) | 17,220 |
-| Net Short | 930 |
-| SOL Gross | 33,510 |
-| TRIM closes (this session) | 20 |
+| Net Short | 973 |
+| SOL Gross | 33,467 |
+| TRIM closes (this session) | 32 |
 | PROTECT closes | 0 |
 | **ADAUSD** | |
 | Short (naked) | **200,000** |
@@ -116,9 +116,9 @@ Per side = Safe gross / 2
 | Parameter | Value |
 |---|---|
 | Mode | **MG: SHORT** (SOLUSD) |
-| TRIM threshold | **56%** margin level |
-| PROTECT threshold | **52%** margin level |
-| Dead zone | 52%–56% (4% buffer — safe for unattended operation) |
+| TRIM threshold | **54%** margin level (tightened during active SOL drop) |
+| PROTECT threshold | **51%** margin level |
+| Dead zone | 51%–54% (3% buffer — active monitoring) |
 | Hard floor | 10% — PROTECT halts, broker handles it |
 | Bias protection | Never closes bias (shorts) in crisis |
 | ADAUSD | **MG: OFF** — 200K naked short, no hedge needed |
@@ -148,10 +148,10 @@ Per side = Safe gross / 2
 ```
 SOLUSD:
   Shorts (bias) = 17,220
-  Longs (hedge) = 16,290 (trimming 1 lot/tick at ML 56%)
-  Net short = 930
-  SOL Gross = 33,510
-  Spread tolerance = $78,424 / 33,510 = $2.34/lot
+  Longs (hedge) = 16,247 (trimming actively — SOL dropping through $91.67)
+  Net short = 973
+  SOL Gross = 33,467
+  Spread tolerance = $78,610 / 33,467 = $2.35/lot
 
 ADAUSD:
   Shorts (naked) = 200,000 lots
@@ -163,7 +163,7 @@ Combined margin: ~$128,667
 Combined ML: 60.8%
 ```
 
-**TRIM 56% with ML 60.8%.** TRIM actively closing SOL hedge longs. Target: burn SOL hedge down, then widen to 61/52 for passive operation.
+**TRIM 54% with ML 54.8%.** SOL dropping — TRIM firing actively, 1-2 lots per tick. Widen to 61/51 before stepping away.
 
 ### Current Dual-Instrument Strategy
 
