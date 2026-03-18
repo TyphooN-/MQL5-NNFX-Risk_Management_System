@@ -80,53 +80,78 @@ Per side = Safe gross / 2
 
 ## Active: SOLUSD Hedged Martingale SHORT (Opened 2026-03-17)
 
-### Position State (from EA log 2026-03-18 07:54)
+### Position State (from EA log 2026-03-18 08:00)
 
 | | Value |
 |---|---|
 | Account | $100K Darwinex Zero Crypto |
-| SOL Price | ~$92 |
-| Balance | $78,654 |
-| Equity | $78,250 |
-| Margin | $128,667 |
-| ML | 60.8% |
+| SOL Price | ~$91.80 |
+| Balance | $78,592 |
+| Equity | $78,424 |
+| Margin | $140,022 |
+| ML | 56.0% (at TRIM threshold — grinding 1 lot/tick) |
 | **SOLUSD** | |
-| Long (hedge) | 16,433 |
+| Long (hedge) | 16,290 (trimming actively) |
 | Short (bias) | 17,220 |
-| Net Short | 787 |
+| Net Short | 930 |
+| SOL Gross | 33,510 |
+| TRIM closes (this session) | 20 |
+| PROTECT closes | 0 |
 | **ADAUSD** | |
 | Short (naked) | **200,000** |
-| ADA Price | ~$0.64 |
-| ADA Margin | ~$128,000 (200K × $0.64) |
-| ADA Profit @$0 | **$128,000** |
+| ADA Price | ~$0.28 (entry) |
+| ADA Margin | ~$56,000 (200K × $0.28) |
+| ADA Profit @$0 | **$56,000** |
+| **DOGEUSD** | |
+| Status | **Stacking as margin allows** |
+| Max volume/order | 10,000,000 lots |
+| Min volume | 1,000 lots |
+| Margin per lot | $0.10 |
 | **Combined** | |
-| SOL Gross | 33,653 |
-| TRIM | 56% / PROTECT 52% (active trimming) |
-| Spread tolerance (SOL) | $78,250 / 33,653 = **$2.33/lot** |
+| TRIM | **56% / PROTECT 52%** (passive — set and forget) |
+| Spread tolerance (SOL) | $78,424 / 33,510 = **$2.34/lot** |
 
-### EA Configuration (Active Trimming)
+### EA Configuration (Passive Grinding — Set and Forget)
 
 | Parameter | Value |
 |---|---|
 | Mode | **MG: SHORT** (SOLUSD) |
 | TRIM threshold | **56%** margin level |
 | PROTECT threshold | **52%** margin level |
-| Dead zone | 52%–56% (4% buffer — tightest comfortable for active monitoring) |
+| Dead zone | 52%–56% (4% buffer — safe for unattended operation) |
 | Hard floor | 10% — PROTECT halts, broker handles it |
 | Bias protection | Never closes bias (shorts) in crisis |
 | ADAUSD | **MG: OFF** — 200K naked short, no hedge needed |
+| DOGEUSD | **Manual stacking** as margin allows (EA bug 4756 on ADA/DOGE) |
 
-**Session summary (2026-03-18):** Second MG opened with Open MG $3.00, adding ~14.5K L/S. Burst trimming reduced hedge. Then 2K SOL longs bought manually to free margin for ADA. 200K ADA short placed manually (EA OrderCalcMargin bug on ADA — to be fixed). Position now has dual-instrument short exposure for DARWIN VaR diversification.
+**TRIM/PROTECT dead zone guide (for reference):**
+
+| TRIM | PROTECT | Dead Zone | Use Case |
+|---|---|---|---|
+| 61% | 52% | 9% | **Overnight / AFK** — safe, slow trim |
+| 56% | 52% | 4% | **Current — passive grinding** |
+| 54% | 52% | 2% | Active monitoring only |
+| 53% | 51% | 2% | Burst trimming — watch closely |
+| 52% | 51% | 1% | **Maximum burst** — every tick, don't look away |
+
+**Session summary (2026-03-18):**
+1. Second MG opened with Open MG $3.00 (~14.5K L/S added)
+2. Burst trimming + PROTECT fires reduced position (bias: 19,647 → 17,220)
+3. 2K SOL longs bought manually → freed margin → 200K ADA short placed manually
+4. DOGE stacking planned as margin allows (10M max vol, $0.10/lot margin)
+5. TRIM 56/PROTECT 52 set for passive grinding. EA trimming 1 lot/tick.
+
+**Known EA bug:** `OrderCalcMargin` error 4756 on ADAUSD/DOGEUSD. Manual orders work. Root cause: `OrderCheck` likely fails on symbols with very low margin per lot. Place ADA/DOGE orders manually until fixed.
 
 ### Position Sizing
 
 ```
 SOLUSD:
   Shorts (bias) = 17,220
-  Longs (hedge) = 16,433 (trimming actively via TRIM 56/PROTECT 52)
-  Net short = 787
-  SOL Gross = 33,653
-  Spread tolerance = $78,250 / 33,653 = $2.33/lot
+  Longs (hedge) = 16,290 (trimming 1 lot/tick at ML 56%)
+  Net short = 930
+  SOL Gross = 33,510
+  Spread tolerance = $78,424 / 33,510 = $2.34/lot
 
 ADAUSD:
   Shorts (naked) = 200,000 lots
@@ -170,8 +195,9 @@ With TRIM 56 and PROTECT 52, TRIM grinds hedge longs as SOL drops. 16,433 hedge 
 | Instrument | Bias Lots | Entry Price | Profit @$0 |
 |---|---|---|---|
 | SOLUSD | 17,220 | ~$94 | **$1,138,870** |
-| ADAUSD | 200,000 | ~$0.64 | **$128,000** |
-| **Combined** | | | **~$1,266,870** |
+| ADAUSD | 200,000 | ~$0.28 | **$56,000** |
+| DOGEUSD | TBD (stacking) | ~$0.17 | **TBD** |
+| **Combined** | | | **~$1,195,000+** |
 
 ### How TRIM Pacing Works (SOL, TRIM 56/PROTECT 52)
 
@@ -474,9 +500,9 @@ XNGUSD was explored as a martingale candidate due to predictable CFD spread beha
 | Instrument | Position | Lots | Entry | Margin | Profit @$0 |
 |---|---|---|---|---|---|
 | **SOLUSD** | 16,433L / 17,220S (martingale) | 17,220 bias | ~$94 | ~$73K (net 787) | **$1,139K** |
-| **ADAUSD** | Naked short | 200,000 | ~$0.64 | ~$128K | **$128K** |
+| **ADAUSD** | Naked short | 200,000 | ~$0.28 | ~$56K | **$56K** |
 | **DOGEUSD** | Naked short (stacking) | TBD | ~$0.17 | $0.10/lot | **TBD** |
-| **Combined** | | | | ~$128K | **$1,267K+** |
+| **Combined** | | | | ~$129K | **$1,195K+** |
 
 **DOGE max volume: 10,000,000 lots per order. Min: 1,000. Margin: $0.10/lot.** Stack as margin allows — won't hit position limit due to volume limits.
 
@@ -488,7 +514,7 @@ XNGUSD was explored as a martingale candidate due to predictable CFD spread beha
 | TRIM building | $80 | 2,662 | Flywheel engaging |
 | Accelerating | $60 | 10,510 | Stack more ADA/DOGE with freed margin |
 | **SOL pure short** | **~$50** | **17,220** | All hedge consumed |
-| **Target** | **$0** | **17,220** | **SOL $1.14M + ADA $128K + DOGE TBD** |
+| **Target** | **$0** | **17,220** | **SOL $1.14M + ADA $56K + DOGE TBD** |
 
 ### Crypto Lessons (PM#1-5)
 
