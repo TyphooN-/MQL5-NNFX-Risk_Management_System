@@ -2,8 +2,8 @@
 
 The hedged martingale exploits net-based margin to carry massive directional exposure via a hedge that is systematically trimmed as the thesis plays out. The EA (TyphooN v1.420) manages the position automatically via forward-looking TRIM and dynamic PROTECT.
 
-**Current plan:** Operation SOL/DOGE → $0. SOLUSD hedged martingale short, DOGE entry after SOL unwind.
-**Retired:** XNGUSD CFD long — not worth martingale at current lot sizes.
+**Current plan:** Operation SOL/ADA/DOGE → $0. Multi-instrument crypto short on single Darwinex Zero account. SOL hedged martingale (TRIM grinding), ADA naked short (200K lots), DOGE naked short (stacking). All three ride to $0. Combined ~$1.2M+ profit. VaR diversification optimizes DARWIN scoring.
+**Retired:** XNGUSD CFD long — martingale doesn't work at CFD lot sizes.
 **Historical:** SOLUSD crypto short (PM#1-5) — five spread-spike liquidations, lessons preserved below.
 
 ---
@@ -495,7 +495,7 @@ XNGUSD was explored as a martingale candidate due to predictable CFD spread beha
 
 ### Operation SOL/ADA/DOGE → $0
 
-**Multi-instrument crypto short.** SOL martingale + ADA naked short + DOGE naked short on same account. TRIM 56/PROTECT 52 grinding SOL hedge passively.
+**Multi-instrument crypto short on single Darwinex Zero account.** SOL hedged martingale (TRIM grinding hedge down) + ADA naked short (200K lots) + DOGE naked short (stacking). All three ride to $0. VaR diversification maintains DARWIN scoring as individual instruments approach zero.
 
 | Instrument | Position | Lots | Entry | Margin | Profit @$0 |
 |---|---|---|---|---|---|
@@ -508,13 +508,13 @@ XNGUSD was explored as a martingale candidate due to predictable CFD spread beha
 
 **Target: all three to $0.**
 
-| Milestone | SOL Price | SOL Net Short | Status |
-|---|---|---|---|
-| Now | $92 | 787 | TRIM 56/52 grinding passively |
-| TRIM building | $80 | 2,662 | Flywheel engaging |
-| Accelerating | $60 | 10,510 | Stack more ADA/DOGE with freed margin |
-| **SOL pure short** | **~$50** | **17,220** | All hedge consumed |
-| **Target** | **$0** | **17,220** | **SOL $1.14M + ADA $56K + DOGE TBD** |
+| Milestone | SOL Price | SOL Net Short | ADA/DOGE | Status |
+|---|---|---|---|---|
+| **Now** | **$91.67** | **973** | **200K ADA short** | TRIM 54/51 grinding during drop |
+| TRIM building | $80 | ~2,700 | Stack DOGE as margin frees | Flywheel engaging |
+| Accelerating | $60 | ~10,500 | Max ADA+DOGE stacked | Fast compounding |
+| **SOL pure short** | **~$50** | **17,220** | All stacked | All hedge consumed |
+| **Target** | **$0** | **17,220** | All at $0 | **SOL $1.14M + ADA $56K + DOGE TBD = $1.2M+** |
 
 ### Why Multi-Instrument Short Is Optimal for Darwinex
 
