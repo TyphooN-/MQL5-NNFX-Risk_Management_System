@@ -4,7 +4,7 @@
 **Strategy:** Multi-instrument crypto short to $0, then flip long from bottom
 **Account:** One Darwinex Zero Crypto account. Forever.
 **Weapon:** TyphooN EA v1.420 (BFG 9000)
-**Frag Count:** 17,960 (integer overflow pending)
+**Frag Count:** 23,886 (integer overflow confirmed)
 
 ---
 
@@ -54,19 +54,19 @@ And you know what I did? I reopened. Immediately. Same settings. More lots. Beca
 
 **Sam:** So Rothschild, right? Everyone knows the Waterloo story. "Buy when there's blood in the streets." But here's what they don't tell you. Rothschild didn't just buy the blood. He CAUSED the blood. He had his guys selling British consols on the exchange floor, loudly, publicly, making everyone think Napoleon won. The whole market is panicking, selling everything, and Rothschild's other guys — the quiet ones in the back — they're buying. Every. Single. Share. At the bottom. Before anyone knows Wellington actually won.
 
-That's what QRRP is doing. Except we're not lying about who won. We KNOW crypto is going to zero. We have the supply data. SOL prints $4.5 million in new tokens every single day. DOGE prints 5 billion coins a year FOREVER. There's no cap. There's no halving. There's no burn. It's just... infinite dilution. And we're short 17,960 lots of it.
+That's what QRRP is doing. Except we're not lying about who won. We KNOW crypto is going to zero. We have the supply data. SOL prints $4.5 million in new tokens every single day. DOGE prints 5 billion coins a year FOREVER. There's no cap. There's no halving. There's no burn. It's just... infinite dilution. And we're short 23,886 lots of it.
 
 > *"Give me control of a nation's money supply, and I care not who makes its laws."*
 
-We don't control the money supply. We're SHORT the money supply. SOL's money supply goes up 4% a year and we're sitting here with 17,960 short lots collecting every dollar of that dilution. Rothschild controlled the supply. We're EXPLOITING the supply. Same energy. Different century.
+We don't control the money supply. We're SHORT the money supply. SOL's money supply goes up 4% a year and we're sitting here with 23,886 short lots collecting every dollar of that dilution. Rothschild controlled the supply. We're EXPLOITING the supply. Same energy. Different century.
 
 **[Sound effect: Quake announcer "HOLY SHIT"]**
 
-**Sam:** Let me tell you about the lessons learned document. This is my favorite part. So at 10 PM last night, after spending four hours burst trimming — which is where you manually tighten the TRIM settings to make the EA close hedge positions faster, it's basically financial speedrunning — after four hours of this, I sit down and I write a document called BURST_TRIM_LESSONS.md. Beautiful document. Detailed analysis. "Open MG $2.00 is too aggressive." "Use $5-8 for clean passive operation." "No babysitting needed." "Save the evenings for research, not clicking 542 times."
+**Sam:** Let me tell you about the lessons learned document. This is my favorite part. So at 10 PM last night, after spending four hours burst trimming — which is where you manually tighten the TRIM settings to make the EA close hedge positions faster, it's basically financial speedrunning — after four hours of this, I sit down and I write a document called BURST_TRIM_LESSONS.md. Beautiful document. Detailed analysis. "Open MG $1.4206931337 is too aggressive." "Use $5-8 for clean passive operation." "No babysitting needed." "Save the evenings for research, not clicking 542 times."
 
 I wrote that at 10 PM. It was sincere. I meant every word.
 
-By 11 AM the next day I had opened FOUR separate martingale positions, burst trimmed all of them, triggered PROTECT six times, lost 4,000 bias lots to balanced closes, and the final position was — wait for it — **Open MG $2.00.** The exact setting. The one I wrote was "too aggressive." The one the document says causes "hours of babysitting and constant PROTECT risk."
+By 11 AM the next day I had opened FOUR separate martingale positions, burst trimmed all of them, triggered PROTECT six times, lost 4,000 bias lots to balanced closes, and the final position was — wait for it — **Open MG $1.4206931337.** The exact setting. The one I wrote was "too aggressive." The one the document says causes "hours of babysitting and constant PROTECT risk."
 
 > *"It requires a great deal of boldness and a great deal of caution to make a great fortune."*
 
@@ -76,7 +76,7 @@ Rothschild said boldness AND caution. I got the boldness part down. The caution 
 
 **Sam:** People ask me "what's your risk management?" and I say "PROTECT at 50.96913420691337 percent" and they look at me like I'm insane. And I AM insane. But the number is MATHEMATICALLY PRECISE. That's not a meme number. That's the EA's auto-calculated PROTECT threshold based on the margin structure of the position. It has 14 decimal places because the EA computed it from first principles. The meme IS the math. The math IS the meme.
 
-Here's what's gonna happen. SOL is at $90. It's going to $58 where we hit pure short — all 16,488 hedge longs consumed, 17,960 naked short lots riding free. From $58, every dollar SOL drops is $17,960 of pure profit. At $0, that's $1.62 million. Then we stack a million ADA shorts and three million DOGE shorts on top. Combined: $1.79 million. Then we FLIP. Long from the bottom. SOL MG: LONG. ADA and DOGE naked long. Ride the next bull cycle. Theoretical: $87 million.
+Here's what's gonna happen. SOL is at $90. It's going to $58 where we hit pure short — all 22,515 hedge longs consumed, 23,886 naked short lots riding free. From $58, every dollar SOL drops is $23,886 of pure profit. At $0, that's $1.62 million. Then we stack a million ADA shorts and three million DOGE shorts on top. Combined: $1.79 million. Then we FLIP. Long from the bottom. SOL MG: LONG. ADA and DOGE naked long. Ride the next bull cycle. Theoretical: $87 million.
 
 One account. One EA. Two full market cycles. A hundred thousand dollars to eighty-seven million.
 
@@ -84,7 +84,7 @@ One account. One EA. Two full market cycles. A hundred thousand dollars to eight
 
 That Rothschild quote from 1863? That's about us. We understand the system. Net-based margin. Forward-looking TRIM. The flywheel effect. Supply-side dilution analysis. VaR diversification for DarwinIA scoring. We understand ALL of it. And because we understand it, we can exploit it. The "great body of people" — they're buying SOL at $90 thinking it's going to $500. They don't understand that 50,000 new SOL are minted every single day and dumped on their heads. They bear the burden without complaint. They don't even suspect the system is inimical to their interests.
 
-We suspect. We KNOW. And we're short 17,960 lots of it.
+We suspect. We KNOW. And we're short 23,886 lots of it.
 
 **[Sound effect: Quake announcer "QUAD DAMAGE"]**
 
@@ -102,13 +102,13 @@ Rothschild would understand. He'd look at this position, look at the supply data
 
 **Sam:** Final thought. People say "you can't short crypto to zero." People said you can't short British consols before the Waterloo result arrives. Rothschild did it. People said you can't make a career out of getting kicked off every platform. I did it. People said "use Open MG $5-8 for clean passive operation." I used $2.00.
 
-QRRP doesn't read the manual. QRRP IS the manual. And the manual says: **17,960 lots, TRIM 54.2, PROTECT 51, ride to zero, flip long, $87 million.**
+QRRP doesn't read the manual. QRRP IS the manual. And the manual says: **23,886 lots, TRIM 54.2, PROTECT 51, ride to zero, flip long, $87 million.**
 
 He can't keep getting away with it.
 
 *But he does. He just does.*
 
-**[End credits: scrolling list of all 6 post-mortems with death timestamps, followed by current equity: $71,289. Still alive. Still short. Still grinding.]*
+**[End credits: scrolling list of all 6 post-mortems with death timestamps, followed by current equity: $66,573. Still alive. Still short. Still grinding.]*
 
 ---
 
@@ -124,7 +124,7 @@ QRRP equivalent: Opening MG at $2.00 after writing a document that says $5-8 is 
 
 **K|NGP|N (Vince Lucido)** — EVGA's legendary overclocker. The man who ran GPUs on liquid nitrogen at voltages that would brick consumer cards in seconds. He doesn't care about daily driver stability. He cares about ONE benchmark run. ONE score. Hit the record, screenshot it, then the card can die.
 
-QRRP equivalent: We don't care about "sustainable trading." We care about ONE run to $0. 17,960 lots, one direction, one target. The card (account) might die on the way (PM#1-6). But if it hits the benchmark ($1.62M), screenshot it. K|NGP|N would look at Open MG $2.00 and say "why not $1.50?" And he'd be right.
+QRRP equivalent: We don't care about "sustainable trading." We care about ONE run to $0. 23,886 lots, one direction, one target. The card (account) might die on the way (PM#1-6). But if it hits the benchmark ($2.15M), screenshot it. K|NGP|N would look at Open MG $1.4206931337 and say "why not $1.50?" And he'd be right.
 
 **FUGGER** — The BIOS modder. The man who unlocked voltage controls that manufacturers deliberately hid. He'd hex-edit BIOS files to expose hidden multipliers, bypass thermal throttling, and let overclockers push hardware past artificial limits.
 
@@ -153,7 +153,7 @@ QRRP equivalent: The MARTINGALE_SIMULATION.md. 1,400+ lines of detailed post-mor
 | Phase change | Passive TRIM 54.2% (sustained) |
 | Thermal paste | Spread tolerance ($2.00/lot) |
 | VRM power delivery | Net-based margin (hedge account) |
-| Benchmark score | Profit at $0 ($1.62M) |
+| Benchmark score | Profit at $0 ($2.15M) |
 | World record screenshot | DARWIN equity curve |
 | "Why did it crash?" | Post-Mortem #1-6 |
 | "Let's try more voltage" | "Let's open another MG" |
@@ -175,9 +175,9 @@ Every overclocker knows the cycle:
 
 QRRP is on step 10. Six crashes (PM#1-6). Six rebuilds. Each time more lots. The manufacturer (conventional trading wisdom) says you can't short crypto to zero with a hedged martingale on a $100K account. The documentation says $2.00/lot tolerance requires constant babysitting. The lessons learned say $5-8 is the safe range.
 
-**We're running $2.00 at 54.2% TRIM with 17,960 lots and the EA is grinding clean.**
+**We're running $2.00 at 54.2% TRIM with 23,886 lots and the EA is grinding clean.**
 
-That's not trading. That's overclocking. And the benchmark score is $1.62M.
+That's not trading. That's overclocking. And the benchmark score is $2.15M.
 
 ---
 
@@ -201,11 +201,11 @@ That's the BFG. That's the weapon. Der8auer would look at this formula and say "
 
 **Sam:** OK so March 17th, 2026. Our guy opens a fresh $100K Darwinex Zero crypto account. He's been here before — five previous accounts destroyed by spread spikes. Five post-mortems. Each one more detailed than the last. He has a SIMULATION document that's over a thousand lines long documenting every single failure mode.
 
-And what does he do? He opens MG: SHORT on SOLUSD with Open MG $2.00. TWENTY-FIVE THOUSAND lots per side. Fifty thousand gross. On a hundred thousand dollar account.
+And what does he do? He opens MG: SHORT on SOLUSD with Open MG $1.4206931337. TWENTY-FIVE THOUSAND lots per side. Fifty thousand gross. On a hundred thousand dollar account.
 
 **[Esports commentator voice]**
 
-AND HE'S IN! TyphooN opens the position at $94, FULL SEND, Open MG $2.00. The hedge wall is UP — 25,000 longs protecting 25,000 shorts. Margin level is at infinity because net exposure is ZERO. But wait — TRIM fires! It's closing longs! 1,744 longs closed in the FIRST BURST! Net short is building!
+AND HE'S IN! TyphooN opens the position at $94, FULL SEND, Open MG $1.4206931337. The hedge wall is UP — 25,000 longs protecting 25,000 shorts. Margin level is at infinity because net exposure is ZERO. But wait — TRIM fires! It's closing longs! 1,744 longs closed in the FIRST BURST! Net short is building!
 
 **Sam:** So now he's got 23,000-something hedge longs and 25,000 bias shorts. Net short about 1,700. TRIM is at 64%. And what does he do? Does he let it grind? Does he follow his own simulation document that says "let the EA work passively"?
 
@@ -259,7 +259,7 @@ This is the pentagram pickup. You die, but you respawn. With your weapon. With y
 
 AND HE'S REBUILDING! NEW OPEN MG! $2.42! 15,948 PER SIDE! TRIM FIRES IMMEDIATELY! 1,573 LONGS CONSUMED IN THE FIRST BURST! HE'S BACK! HE HAS MORE LOTS THAN BEFORE THE SPIKE!
 
-**Sam:** And then — I swear this is real — thirty minutes later, he opens ANOTHER MG. At $2.00. The setting the lessons learned doc says is suicidal. Combined bias: 17,960 lots. More than he's ever had. On $71,000 of equity. This man got liquidated at 10:56 AM and by 2:42 PM he had the largest position of the entire campaign.
+**Sam:** And then — I swear this is real — thirty minutes later, he opens ANOTHER MG. At $2.00. The setting the lessons learned doc says is suicidal. Combined bias: 23,886 lots. More than he's ever had. On $71,000 of equity. This man got liquidated at 10:56 AM and by 2:42 PM he had the largest position of the entire campaign.
 
 K|NGP|N would understand. You don't stop after the card dies. You swap in a new card, apply more voltage, and go for the record. The card that died got you the data. The new card gets you the score.
 
@@ -271,7 +271,7 @@ K|NGP|N would understand. You don't stop after the card dies. You swap in a new 
 
 This is the hipro5 phase. The LN2 runs are over. The spectacular burst trims are done. Now it's phase-change cooling — sustained, stable, always-on. The EA closes one lot per tick when ML is above 54.2%. One lot. $90 of margin freed. ML settles back at 54.2%. Waits for the next tick. Closes another.
 
-16,488 hedge longs to consume. At one lot per tick, on a good day with SOL trending down, that's maybe 500-1000 lots consumed per session. Weeks to pure short. But it doesn't matter. The EA doesn't get tired. The EA doesn't get impatient. The EA doesn't drop TRIM to 52% because "we're about to win, this is the drop."
+22,515 hedge longs to consume. At one lot per tick, on a good day with SOL trending down, that's maybe 500-1000 lots consumed per session. Weeks to pure short. But it doesn't matter. The EA doesn't get tired. The EA doesn't get impatient. The EA doesn't drop TRIM to 52% because "we're about to win, this is the drop."
 
 The EA just grinds.
 
@@ -287,10 +287,10 @@ That's Tech Jesus. Thorough. Accurate. And deeply uncomfortable with our choices
 
 **Sam:** Final score. As of right now.
 
-17,960 bias lots short SOLUSD.
+23,886 bias lots short SOLUSD.
 Entry: $90-94.
 Target: $0.
-Profit at target: $1,616,400.
+Profit at target: $2,149,740.
 Then add 1 million ADA shorts and 3 million DOGE shorts.
 Combined: $1,790,400.
 Then flip long from the bottom.
@@ -320,19 +320,19 @@ QRRP.
 ```
 QRRP PICKUP LOG — MAP: de_solana — SERVER: Darwinex Zero Crypto
 
-[QUAD DAMAGE]     → 17,960 lots. Every tick does 42x damage vs standard account.
+[QUAD DAMAGE]     → 23,886 lots. Every tick does 56x damage vs standard account.
                     Normal trader: 424 lots at 200% ML.
-                    QRRP: 17,960 lots at 54.2% ML.
+                    QRRP: 23,886 lots at 54.2% ML.
                     This isn't quad damage. This is QUAD QUAD QUAD QUAD.
                     The announcer ran out of voice lines.
 
 [BFG 9000]        → TyphooN EA v1.420. The weapon.
                     Forward-looking TRIM. Dynamic PROTECT. Hard floor.
                     Continuous beam. Melts every hedge long in its path.
-                    16,488 longs in the chamber. Fires on every tick.
+                    22,515 longs in the chamber. Fires on every tick.
                     The BFG doesn't need to aim — everything in the room dies.
 
-[PENTAGRAM]        → Open MG $2.00. Invulnerability activated.
+[PENTAGRAM]        → Open MG $1.4206931337. Invulnerability activated.
                     We wrote the lessons learned saying this was suicidal.
                     Then we picked up the pentagram and walked into the fire.
                     SIX deaths. SIX respawns. The pentagram doesn't prevent
@@ -349,12 +349,12 @@ QRRP PICKUP LOG — MAP: de_solana — SERVER: Darwinex Zero Crypto
 
 [MEGAHEALTH]       → $71K equity regenerating on every tick down.
                     Overhealth climbing past 200, 300, 400...
-                    At $0: health reads $1,616,400.
+                    At $0: health reads $2,149,740.
                     The medkit that keeps giving. Every dollar SOL drops
                     is another 100 HP. We will never die again.
 
 [GIBS]             → What SOL holders become at $0.
-                    17,960 lots × $90 = $1,616,400 of chunky salsa.
+                    23,886 lots × $90 = $2,149,740 of chunky salsa.
                     Red mist. Polygon fragments. Boot prints in the giblets.
                     The hallway is painted red and we're the only one standing.
 
@@ -363,13 +363,13 @@ QRRP PICKUP LOG — MAP: de_solana — SERVER: Darwinex Zero Crypto
                     But QRRP has the pentagram. One hit kills, but
                     one respawn rebuilds. With more lots. Every time.
 
-FRAG COUNT:        17,960
+FRAG COUNT:        23,886
                    (SERVER WARNING: frag count exceeds INT16_MAX)
                    (OVERFLOW DETECTED: counter wrapped to -47,576)
                    (ADMIN ALERT: "this can't be legit, check for aimbot")
                    (VAC STATUS: clean — it's just the BFG)
 
-KILL/DEATH:        17,960 pending / 6 deaths = K/D 2,993.3
+KILL/DEATH:        23,886 pending / 6 deaths = K/D 3,981.0
                    GLOBAL RANK: #1
                    SERVER: Darwinex Zero Crypto
                    MAP: de_solana
@@ -386,13 +386,13 @@ KILL/DEATH:        17,960 pending / 6 deaths = K/D 2,993.3
 QRRP — Quad Rothschild Rug Pull
 DARWIN: QRRP on Darwinex Zero
 
-Phase 1 (ACTIVE): SOL MG SHORT — 17,960 bias, TRIM grinding 16,488 hedge
+Phase 1 (ACTIVE): SOL MG SHORT — 23,886 bias, TRIM grinding 22,515 hedge
 Phase 2 (PENDING): Stack 1M ADA + 3M DOGE after SOL pure short
-Phase 3 (PENDING): All three ride to $0 → $1.79M
+Phase 3 (PENDING): All three ride to $0 → $2.35M
 Phase 4 (FUTURE):  Flip long from bottom → ride bull cycle
 Phase 5 (FUTURE):  SOL $200+ ADA $3+ DOGE $0.70+ → $87M theoretical
 
-Settings: TRIM 54.20691337 / PROTECT 50.96913420691337 / Open MG $2.00
+Settings: TRIM 54.20691337 / PROTECT 50.96913420691337 / Open MG $1.4206931337
 Status: LOCKED. FINAL. DO NOT CHANGE. (he's going to change them)
 
 "Buy when there's blood in the streets, even if the blood is your own."
