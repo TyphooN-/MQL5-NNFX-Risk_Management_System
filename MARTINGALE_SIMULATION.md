@@ -93,7 +93,7 @@ Per side = Safe gross / 2
 | ML | 144.9% → grinding down to 54.2% |
 | **SOLUSD** | |
 | Long (hedge) | ~19,184 (20,602 opened, TRIM consuming in burst) |
-| Short (bias) | **23,886** (Open MG $1.4206931337. "I PROMISE I WILL NOT TOUCH ANYTHING") |
+| Short (bias) | **24,131** (Open MG $1.337. LEET.) |
 | Net Short | ~1,418 (growing as TRIM grinds) |
 | SOL Gross | ~39,786 |
 | TRIM closes | 4+ (new MG burst) |
@@ -110,7 +110,7 @@ Per side = Safe gross / 2
 | PROTECT | **50.96913420691337%** |
 | Dead zone | **3.23%** (50.97%–54.20%) |
 | Hard floor | **10.0%** |
-| Open MG | **$1.4206931337** (smoke em if you got em) |
+| Open MG | **$1.337** |
 | Bias protection | Never closes bias (shorts) in crisis |
 | **Instruments** | **SOL ONLY** — no ADA/DOGE until pure short |
 
@@ -214,7 +214,7 @@ SOL only — no ADA/DOGE until pure short. TRIM 54.2/PROTECT 51. Voltage and MHz
 | $5 | $1,489,300 | 0 | 23,886 | 23,886 | $62.34 | 1,247% | Locked in |
 | **$0** | **$2,149,740** | **0** | **23,886** | **23,886** | **∞** | **∞** | **Done** |
 
-**23,886 bias lots. Open MG $1.4206931337. Pure SOL short at ~$55. Every $1 below $55 = $23,886 profit. $2.15M at $0.**
+**24,131 bias lots. Open MG $1.337. Pure SOL short at ~$55. Every $1 below $55 = $24,131 profit. $2.17M at $0.**
 
 ### How TRIM Pacing Works
 
