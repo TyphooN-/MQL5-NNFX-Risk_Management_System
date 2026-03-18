@@ -386,16 +386,22 @@ KILL/DEATH:        23,886 pending / 6 deaths = K/D 3,981.0
 QRRP — Quad Rothschild Rug Pull
 DARWIN: QRRP on Darwinex Zero
 
-Phase 1 (ACTIVE): SOL MG SHORT — 23,886 bias, TRIM grinding 22,515 hedge
-Phase 2 (PENDING): Stack 1M ADA + 3M DOGE after SOL pure short
-Phase 3 (PENDING): All three ride to $0 → $2.35M
+Phase 1 (ACTIVE): SOL MG SHORT — 21,091 bias, TRIM grinding 19,784 hedge
+                   3 PROTECTs consumed 3,040 bias (24,131 → 21,091)
+                   Spread tolerance self-healing: $1.33 → $1.55 → targeting $2.00+
+Phase 2 (PENDING): Stack 1M ADA + 5M DOGE after SOL pure short (~$55)
+Phase 3 (PENDING): All three ride to $0 → $2.10M
 Phase 4 (FUTURE):  Flip long from bottom → ride bull cycle
 Phase 5 (FUTURE):  SOL $200+ ADA $3+ DOGE $0.70+ → $87M theoretical
 
-Settings: TRIM 54.20691337 / PROTECT 50.96913420691337 / Open MG $1.4206931337
-Status: LOCKED. FINAL. DO NOT CHANGE. (he's going to change them)
+Settings: TRIM 54.2013691337 / PROTECT 50.96913420691337 / Open MG $1.337
+Status: CEMENTED. FINAL. VOLTAGE AND MHz LOCKED.
+        Open MG progression: $8 → $5 → $2.42 → $2.13 → $2.00 → $1.69 → $1.67 → $1.42 → $1.337
+        Nine Open MGs in one day. Each one a broken promise. Settings now cemented for real.
 
 "Buy when there's blood in the streets, even if the blood is your own."
-The blood is ours. Six post-mortems worth. And we're still buying.
-Except we're selling. We're short. We're QRRP.
+The blood is ours. Six post-mortems and nine Open MGs worth. And we're still short.
+The position heals itself. Every TRIM close improves spread tolerance.
+Every PROTECT fire reduces gross and makes the next PROTECT less likely.
+The EA grinds. The math converges. QRRP.
 ```
