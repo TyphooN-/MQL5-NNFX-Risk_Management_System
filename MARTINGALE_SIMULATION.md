@@ -105,11 +105,11 @@ Per side = Safe gross / 2
 | Parameter | Value |
 |---|---|
 | Mode | **MG: SHORT** |
-| TRIM | **54.20691311%** |
-| PROTECT | **50.9691342011%** |
+| TRIM | **54.20691337%** |
+| PROTECT | **50.969134201337%** |
 | Dead zone | **3.24%** (50.97%–54.21%) |
 | Hard floor | **10.0%** |
-| Open MG | **$2.420691311** (auto-calculated) |
+| Open MG | **$2.420691337** |
 | Bias protection | Never closes bias (shorts) in crisis |
 | **Instruments** | **SOL ONLY** — no ADA/DOGE until pure short |
 
