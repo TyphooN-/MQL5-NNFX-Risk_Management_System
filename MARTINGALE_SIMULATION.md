@@ -426,9 +426,9 @@ XNGUSD was explored as a martingale candidate due to predictable CFD spread beha
 
 ### Operation SOL/DOGE → $0
 
-SOLUSD MG: SHORT opened at $94, TRIM 61/PROTECT 50.1. 13,740 L / 15,499 S, net short 1,759 lots. 406 trim closes, 6 PROTECT closes. ML ~53% — TRIM paused until ~$89. Spread tolerance $2.99/lot (overnight safe). Pure short at ~$40, equity $326K → $946K at $0.
+SOLUSD MG: SHORT opened at $94, TRIM 52.4/PROTECT 50.4 (**widen to 61 for overnight**). 12,552 L / 14,362 S, net short 1,810 lots. 430 trim closes, 7 PROTECT closes. ML 51.4%. Spread tolerance $3.24/lot (overnight safe). Pure short at ~$42, equity $310K → $916K at $0.
 
-TRIM is paused (ML ~53%, below the 61% threshold). Multiple burst trims at 51-53% throughout the session reduced hedge from ~25K to ~13.7K. It resumes when SOL drops to ~$89. From there, every dollar SOL drops compounds into more net short exposure. Pure short at ~$40 SOL. DOGE entry on second account once SOL position is deeply safe (~$50 SOL).
+Multiple burst trims at 51-53% throughout the session reduced hedge from ~25K to ~12.6K. **Set TRIM back to 61% before sleeping** — the 2% dead zone at 52.4/50.4 will oscillate into PROTECT on normal overnight noise. TRIM resumes on its own when SOL drops to ~$89. DOGE entry on second account once SOL position is deeply safe (~$50 SOL).
 
 **Target: both to $0.**
 
