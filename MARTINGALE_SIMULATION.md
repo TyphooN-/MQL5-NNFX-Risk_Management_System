@@ -193,19 +193,62 @@ With TRIM 61 and PROTECT 50.1, ML is currently 50.6% — below TRIM. Only 9,203 
 - **~$70**: Hedge under 3.4K → **open DOGE MG: SHORT on second account**
 - **~$62**: **PURE SHORT** — all 6,209 hedge lots consumed. Equity ~$170K. 8,000 lots riding free
 - **$40**: Equity $346K — printing
-- **$0**: Equity **~$666,000** — total profit **~$581,000 (6.8x return on $85K)**
-- **Combined with DOGE**: SOL $666K + DOGE TBD
+- **$0**: Equity **~$666,000** — SOL profit **~$581,000 (6.8x return on $85K)** + ADA profit
+- **Combined with ADA**: SOL $666K + ADA $280K = **~$946K total**
 
-### DOGE Entry Timing (Accelerated)
+### ADA Short Stacking (Same Account — VaR Diversification)
 
-The burst trimming tonight moved the DOGE trigger **$20 higher** — from ~$45 SOL to ~$65 SOL:
+**Strategy:** As SOL equity grows, stack 1,000-lot naked ADA short orders (max per order). Max 400 positions per account — SOL martingale uses many positions, remaining slots used for ADA shorts. ADA chosen over DOGE for DARWIN VaR optimization.
 
-- **Trigger:** SOL price ~$70 (hedge under 3.4K, equity ~$138K, spread tolerance $12.11 — deeply safe)
-- **DOGE entry:** Fresh $100K account, MG: SHORT, TRIM 61, PROTECT 50.1, $2.00/lot
-- **Why separate account:** Independent TRIM/PROTECT, no cross-margin risk
-- **DOGE at $65 entry vs $45:** 44% more runway to $0 — significantly more DOGE profit
+**Why ADA, not DOGE:**
+- **4x more VaR per order** — ADA $0.70 vs DOGE $0.17. 1,000 lots × $0.70 = $700 nominal vs $170
+- **Lower correlation with SOL** — ADA has its own ecosystem (Cardano/Plutus). Darwinex rewards diversified VaR
+- **Slower VaR decay** — ADA holds VaR longer as price drops, smoothing the DARWIN profile
+- **Better D-Score** — multiple uncorrelated short positions = consistent risk profile
 
-Both positions ride to $0 simultaneously. SOL provides ~$666K, DOGE adds its own flywheel profit from ~$70 SOL trigger.
+**Why stack shorts:** As SOL approaches $0, SOL VaR collapses (nominal shrinking). ADA shorts maintain VaR → Darwinex sees consistent risk-taking → better DARWIN scoring → more DarwinIA allocation.
+
+**Broker limits:** 1,000 lots max per order, 400 positions max per account.
+
+#### ADA Stacking Plan (1,000 lots per order, ~$0.70 ADA)
+
+Each 1,000-lot ADA short: margin = $700, profit at $0 = $700.
+
+| SOL Price | SOL Equity | Available Positions | ADA Orders Stacked | ADA Lots Total | ADA Profit @$0 |
+|---|---|---|---|---|---|
+| **$80** | $111K | ~50 | 10 | 10,000 | $7,000 |
+| **$70** | $138K | ~80 | 30 | 30,000 | $21,000 |
+| **$62 (pure short)** | $170K | ~150 | 80 | 80,000 | $56,000 |
+| **$50** | $266K | ~200 | 150 | 150,000 | $105,000 |
+| **$40** | $346K | ~250 | 200 | 200,000 | $140,000 |
+| **$30** | $426K | ~300 | 300 | 300,000 | $210,000 |
+| **$20** | $506K | ~350 | 400 | 400,000 | $280,000 |
+
+**At max stacking (400 orders × 1,000 lots = 400,000 ADA short):**
+- ADA margin: 400K × $0.70 = $280K
+- ADA profit at $0: **$280,000**
+- Combined SOL + ADA at $0: **$666K + $280K = ~$946K**
+
+#### VaR Impact on DARWIN
+
+| Phase | SOL VaR | ADA VaR | Combined | DARWIN Effect |
+|---|---|---|---|---|
+| SOL trimming ($94→$62) | Stable ~12% | Growing (stacking) | **Rising** | Building track record |
+| SOL pure short ($62→$20) | Compressing | **Stable/growing** | **Stable** | Consistent risk = good D-Score |
+| SOL near $0 ($20→$0) | Collapsing | **Holds** | **ADA dominates** | VaR doesn't vanish — DARWIN stays active |
+| Both at $0 | $0 | $0 | $0 | Close out — massive return locked |
+
+**Without ADA:** DARWIN VaR collapses as SOL approaches $0. Darwinex sees a "dead" strategy. D-Score drops.
+**With ADA:** DARWIN VaR stays elevated through ADA shorts. Consistent risk profile. Better DarwinIA scoring. More allocation = more performance fees.
+
+#### Key Milestones (Updated)
+
+- **~$80**: Begin stacking ADA shorts (10 orders, 10K lots)
+- **~$70**: DOGE trigger was here — ADA stacking accelerated (30 orders)
+- **~$62**: SOL **PURE SHORT** + 80K ADA lots stacked
+- **~$50**: 150K ADA lots. Combined equity growing on both positions
+- **~$20**: Max ADA stacking (400K lots). SOL + ADA printing simultaneously
+- **$0**: **SOL $666K + ADA $280K = ~$946K total profit**
 
 ### Adverse Move Safety (Overnight)
 
@@ -429,9 +472,9 @@ XNGUSD was explored as a martingale candidate due to predictable CFD spread beha
 
 ### Operation SOL/DOGE → $0
 
-SOLUSD MG: SHORT opened at $94. Burst trimming consumed 71% of hedge (25K → 7.2K) at $94. 7,199 L / 9,000 S, net short 1,801. 562 trims, 11 protects. TRIM 61/PROTECT 50.1. ML 50.7%. Spread tolerance **$5.30/lot**. Pure short at **~$55** (vs original ~$27). DOGE entry accelerated to **~$65 SOL** (vs ~$45). $800K at $0.
+SOLUSD MG: SHORT opened at $94. Burst trimming consumed 75% of hedge (25K → 6.2K) at $94. 6,209 L / 8,000 S, net short 1,791. 574 trims, 11 protects. TRIM 61/PROTECT 50.1. ML 50.7%. Spread tolerance **$6.00/lot**. Pure short at **~$62**. ADA naked shorts stacked alongside for VaR diversification (400K lots max). Combined SOL+ADA = **~$946K at $0**.
 
-**Key achievement:** Burst trimming at $94 pre-burned 71% of hedge fuel — pure short reached $28 sooner, DOGE entry $20 sooner. Faster unwind = more combined SOL+DOGE profit.
+**Key achievement:** Burst trimming at $94 pre-burned 75% of hedge fuel. ADA shorts (not DOGE — 4x more VaR per lot, lower SOL correlation) stacked as equity grows. DARWIN VaR stays elevated through ADA as SOL nominal collapses → better D-Score → more DarwinIA allocation.
 
 **Target: both to $0.**
 
