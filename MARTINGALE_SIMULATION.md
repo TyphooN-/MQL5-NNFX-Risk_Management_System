@@ -87,17 +87,17 @@ Per side = Safe gross / 2
 |---|---|
 | Account | $100K Darwinex Zero Crypto (ONE ACCOUNT — no others) |
 | SOL Price | ~$90 |
-| Balance | $74,562 |
-| Equity | $73,629 |
-| Margin | $136,144 |
-| ML | 54.1% (at TRIM threshold — grinding) |
+| Balance | $74,882 |
+| Equity | $71,511 |
+| Margin | $49,346 |
+| ML | 144.9% → grinding down to 54.2% |
 | **SOLUSD** | |
-| Long (hedge) | 12,243 |
-| Short (bias) | 13,770 (reduced from 14,782 by 1 PROTECT balanced close) |
-| Net Short | 1,527 |
-| SOL Gross | 26,013 |
-| TRIM closes (this MG) | 23 |
-| PROTECT closes | 1 (132L+132S balanced close → -1,012 bias) |
+| Long (hedge) | ~15,793 (17,280 opened, TRIM consuming in burst) |
+| Short (bias) | **16,728** (12,768 previous + 3,960 from new Open MG) |
+| Net Short | ~935 (growing as TRIM grinds) |
+| SOL Gross | ~32,521 |
+| TRIM closes (this MG) | 8+ (burst trimming new hedge) |
+| PROTECT closes | 0 (new MG) |
 | **ADAUSD** | **CLOSED** — broker liquidated during PM#6 spread spike (profit realized to balance) |
 | **DOGEUSD** | **NOT OPEN** — waiting until SOL hedge is fully consumed |
 
@@ -110,7 +110,7 @@ Per side = Safe gross / 2
 | PROTECT | **50.96913420691337%** |
 | Dead zone | **3.24%** (50.97%–54.21%) |
 | Hard floor | **10.0%** |
-| Open MG | **$2.420691337** |
+| Open MG | **$2.13420691337** |
 | Bias protection | Never closes bias (shorts) in crisis |
 | **Instruments** | **SOL ONLY** — no ADA/DOGE until pure short |
 
@@ -200,20 +200,20 @@ SOL only — no ADA/DOGE until pure short. TRIM 54.2/PROTECT 51. Settings LOCKED
 
 | SOL Price | Equity (est.) | SOL Hedge | SOL Net Short | SOL Gross | Spread Tol. | ML | Status |
 |---|---|---|---|---|---|---|---|
-| **$90 (now)** | **$73,629** | **12,243** | **1,527** | **26,013** | **$2.83** | **54%** | TRIM grinding |
-| $85 | $81,264 | 11,469 | 2,301 | 25,239 | $3.22 | 54% | Building |
-| $80 | $92,769 | 10,390 | 3,380 | 24,160 | $3.84 | 54% | Safe |
-| $70 | $126,569 | 7,102 | 6,668 | 20,872 | $6.06 | 54% | Accelerating |
-| $60 | $193,249 | 1,667 | 12,103 | 15,437 | $12.52 | 54% | Nearly pure |
-| **~$57** | **~$220,000** | **0** | **13,770** | **13,770** | **$15.97** | **~63%** | **PURE SHORT** |
-| $50 | $316,390 | 0 | 13,770 | 13,770 | $22.98 | 46% | → **Open ADA + DOGE** |
-| $40 | $454,090 | 0 | 13,770 | 13,770 | $32.97 | 82% | Printing |
-| $30 | $591,790 | 0 | 13,770 | 13,770 | $42.97 | 143% | Locked in |
-| $20 | $729,490 | 0 | 13,770 | 13,770 | $52.97 | 265% | Locked in |
-| $10 | $867,190 | 0 | 13,770 | 13,770 | $62.97 | 630% | Locked in |
-| **$0** | **$1,239,300** | **0** | **13,770** | **13,770** | **∞** | **∞** | **Done** |
+| **$90 (now)** | **$71,511** | **~15,793** | **~935** | **~32,521** | **$2.20** | **54%** | TRIM grinding new hedge |
+| $85 | $76,186 | 14,819 | 1,909 | 31,547 | $2.41 | 54% | Building |
+| $80 | $85,731 | 13,533 | 3,195 | 30,261 | $2.83 | 54% | Safe |
+| $70 | $117,681 | 9,340 | 7,388 | 26,068 | $4.51 | 54% | Accelerating |
+| $60 | $191,561 | 1,807 | 14,921 | 18,535 | $10.33 | 54% | Nearly pure |
+| **~$58** | **~$221,000** | **0** | **16,728** | **16,728** | **$13.21** | **~63%** | **PURE SHORT** |
+| $50 | $354,624 | 0 | 16,728 | 16,728 | $21.20 | 42% | → **Open ADA + DOGE** |
+| $40 | $521,904 | 0 | 16,728 | 16,728 | $31.20 | 78% | Printing |
+| $30 | $689,184 | 0 | 16,728 | 16,728 | $41.19 | 137% | Locked in |
+| $20 | $856,464 | 0 | 16,728 | 16,728 | $51.19 | 256% | Locked in |
+| $10 | $1,023,744 | 0 | 16,728 | 16,728 | $61.19 | 612% | Locked in |
+| **$0** | **$1,505,520** | **0** | **16,728** | **16,728** | **∞** | **∞** | **Done** |
 
-**Pure SOL short at ~$57.** Every $1 below $57 = **$13,770** profit.
+**Pure SOL short at ~$58.** Every $1 below $58 = **$16,728** profit. **$1.51M at $0.**
 
 ### How TRIM Pacing Works
 
