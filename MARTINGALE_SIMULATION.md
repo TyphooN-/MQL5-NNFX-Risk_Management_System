@@ -432,9 +432,9 @@ XNGUSD was explored as a martingale candidate due to predictable CFD spread beha
 
 ### Operation SOL/DOGE → $0
 
-SOLUSD MG: SHORT opened at $94. Burst trimming consumed 67% of hedge (25K → 8.2K) at $94. 8,189 L / 10,000 S, net short 1,811. 542 trims, 11 protects. TRIM 61/PROTECT 50.1. ML 50.8%. Spread tolerance **$4.75/lot**. Pure short at **~$55** (vs original ~$27). DOGE entry accelerated to **~$65 SOL** (vs ~$45). $800K at $0.
+SOLUSD MG: SHORT opened at $94. Burst trimming consumed 71% of hedge (25K → 7.2K) at $94. 7,199 L / 9,000 S, net short 1,801. 562 trims, 11 protects. TRIM 61/PROTECT 50.1. ML 50.7%. Spread tolerance **$5.30/lot**. Pure short at **~$55** (vs original ~$27). DOGE entry accelerated to **~$65 SOL** (vs ~$45). $800K at $0.
 
-**Key achievement:** Burst trimming at $94 pre-burned 67% of hedge fuel — pure short reached $28 sooner, DOGE entry $20 sooner. Faster unwind = more combined SOL+DOGE profit.
+**Key achievement:** Burst trimming at $94 pre-burned 71% of hedge fuel — pure short reached $28 sooner, DOGE entry $20 sooner. Faster unwind = more combined SOL+DOGE profit.
 
 **Target: both to $0.**
 
