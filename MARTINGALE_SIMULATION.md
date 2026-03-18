@@ -80,120 +80,117 @@ Per side = Safe gross / 2
 
 ## Active: SOLUSD Hedged Martingale SHORT (Opened 2026-03-17)
 
-### Position State (from EA log 2026-03-17 23:27 — overnight)
+### Position State (from EA log 2026-03-18 07:54)
 
 | | Value |
 |---|---|
 | Account | $100K Darwinex Zero Crypto |
-| SOL Price | ~$94 |
-| Balance | $89,785.66 |
-| Equity | $85,318.25 |
-| Margin | $168,222.70 |
-| ML | 50.7% (dead zone — TRIM 61% for overnight) |
-| Long (hedge) | 6,209 |
-| Short (bias) | 8,000 |
-| Net Short | 1,791 |
-| Gross | 14,209 |
-| TRIM closes so far | 574 |
-| PROTECT closes | 11 |
-| Margin per lot | ~$94 (1:1 crypto) |
-| Spread tolerance | $85,318 / 14,209 = **$6.00/lot** (very safe overnight) |
+| SOL Price | ~$92 |
+| Balance | $78,654 |
+| Equity | $78,250 |
+| Margin | $128,667 |
+| ML | 60.8% |
+| **SOLUSD** | |
+| Long (hedge) | 16,433 |
+| Short (bias) | 17,220 |
+| Net Short | 787 |
+| **ADAUSD** | |
+| Short (naked) | **200,000** |
+| ADA Price | ~$0.64 |
+| ADA Margin | ~$128,000 (200K × $0.64) |
+| ADA Profit @$0 | **$128,000** |
+| **Combined** | |
+| SOL Gross | 33,653 |
+| TRIM | 56% / PROTECT 52% (active trimming) |
+| Spread tolerance (SOL) | $78,250 / 33,653 = **$2.33/lot** |
 
-### EA Configuration (Overnight — set TRIM to 61 before bed)
+### EA Configuration (Active Trimming)
 
 | Parameter | Value |
 |---|---|
-| Mode | **MG: SHORT** |
-| TRIM threshold | **61%** (set for overnight — burst at 51% during active monitoring) |
-| TRIM formula | `maxSafe = floor((equity/0.61 - margin) / marginPerLot)` |
-| PROTECT threshold | **50.1%** margin level |
-| Dead zone | 50.1%–61% (10.9% buffer overnight) |
+| Mode | **MG: SHORT** (SOLUSD) |
+| TRIM threshold | **56%** margin level |
+| PROTECT threshold | **52%** margin level |
+| Dead zone | 52%–56% (4% buffer — tightest comfortable for active monitoring) |
 | Hard floor | 10% — PROTECT halts, broker handles it |
 | Bias protection | Never closes bias (shorts) in crisis |
-| Open MG | $2.00/lot safety rule |
+| ADAUSD | **MG: OFF** — 200K naked short, no hedge needed |
 
-**Session summary (2026-03-17):** Aggressive burst trimming session. Multiple rounds at TRIM 51-53%, widening back to 61% between bursts. 11 PROTECT balanced closes fired during tight trim windows — each one reduced gross while preserving net, then ML spikes enabled large TRIM bursts. **Hedge reduced from ~25K to 6,209 (75% consumed) in one evening.** Spread tolerance improved from $1.88 to **$6.00/lot**.
+**Session summary (2026-03-18):** Second MG opened with Open MG $3.00, adding ~14.5K L/S. Burst trimming reduced hedge. Then 2K SOL longs bought manually to free margin for ADA. 200K ADA short placed manually (EA OrderCalcMargin bug on ADA — to be fixed). Position now has dual-instrument short exposure for DARWIN VaR diversification.
 
 ### Position Sizing
 
 ```
-Shorts (bias) = 8,000
-Longs (hedge) = 6,209 (after 574 TRIM closes + 11 PROTECT balanced closes)
-Gross = 14,209
-Net short = 1,791
+SOLUSD:
+  Shorts (bias) = 17,220
+  Longs (hedge) = 16,433 (trimming actively via TRIM 56/PROTECT 52)
+  Net short = 787
+  SOL Gross = 33,653
+  Spread tolerance = $78,250 / 33,653 = $2.33/lot
 
-Spread tolerance = $85,318 / 14,209 = $6.00/lot (very safe overnight — 3x the $2.00 rule)
+ADAUSD:
+  Shorts (naked) = 200,000 lots
+  ADA price = ~$0.64
+  ADA margin = ~$128,000
+  No hedge — rides naked to $0
+
+Combined margin: ~$128,667
+Combined ML: 60.8%
 ```
 
-**ML at 50.6%, TRIM at 61% for overnight.** TRIM won't fire again until SOL drops to ~$89 where equity growth pushes ML back above 61%.
+**TRIM 56% with ML 60.8%.** TRIM actively closing SOL hedge longs. Target: burn SOL hedge down, then widen to 61/52 for passive operation.
 
-### Why Aggressive Burst Trimming Changes Everything
+### Current Dual-Instrument Strategy
 
-By consuming 63% of the hedge in one session (25K → 9.2K), the position reaches pure short at a **much higher SOL price** than the original plan:
+**SOLUSD:** Hedged martingale short — TRIM 56/PROTECT 52, grinding down 16,433 hedge longs. Let it work passively.
 
-| | Original Plan (25K hedge) | After Burst Trimming (6.2K hedge) | Improvement |
+**ADAUSD:** 200,000 naked short — rides to $0 alongside SOL. Provides VaR diversification for DARWIN scoring. Placed manually (EA OrderCalcMargin bug on ADA — to be fixed).
+
+### TRIM Progression to Pure Short (SOL)
+
+With TRIM 56 and PROTECT 52, TRIM grinds hedge longs as SOL drops. 16,433 hedge to consume.
+
+| SOL Price | Equity (est.) | SOL Hedge | SOL Net Short | SOL Gross | ML | Status |
+|---|---|---|---|---|---|---|
+| **$92 (now)** | **$78,250** | **16,433** | **787** | **33,653** | **60.8%** | TRIM 56 — grinding |
+| $88 | $81,398 | 15,851 | 1,369 | 33,071 | 56% | TRIM at threshold |
+| $80 | $92,290 | 14,558 | 2,662 | 31,778 | 56% | Safe |
+| $70 | $118,910 | 11,834 | 5,386 | 29,054 | 56% | Comfortable |
+| $60 | $172,770 | 6,710 | 10,510 | 23,930 | 56% | Growing fast |
+| $50 | $277,870 | 0 | 17,220 | 17,220 | ~81% | **PURE SHORT** |
+| $40 | $450,070 | 0 | 17,220 | 17,220 | 131% | Printing |
+| $20 | $794,470 | 0 | 17,220 | 17,220 | 231% | Locked in |
+| $10 | $966,670 | 0 | 17,220 | 17,220 | 562% | Locked in |
+| **$0** | **$1,138,870** | **0** | **17,220** | **17,220** | **∞** | **Done** |
+
+**Pure SOL short at ~$50.** Every $1 below $50 = **$17,220** profit.
+
+### Combined Profit at $0 (Both Instruments)
+
+| Instrument | Bias Lots | Entry Price | Profit @$0 |
 |---|---|---|---|
-| Hedge lots | 25,000 | **6,209** | 75% consumed at ~$94 |
-| Pure short at | ~$27 SOL | **~$62 SOL** | **$35 higher** |
-| DOGE entry trigger | ~$45 SOL | **~$70 SOL** | **$25 sooner** |
-| Time to pure short | Months | **Days to weeks** | Much faster |
-| Spread tolerance | $1.88/lot | **$6.00/lot** | 3.2x safer |
+| SOLUSD | 17,220 | ~$94 | **$1,138,870** |
+| ADAUSD | 200,000 | ~$0.64 | **$128,000** |
+| **Combined** | | | **~$1,266,870** |
 
-**The burst trimming at $94 pre-burned hedge fuel that would otherwise consume SOL drops from $94→$55.** Instead of slowly trimming 25K longs as SOL falls $67 (from $94 to $27), we burned 15.8K longs at $94 — meaning the remaining 9.2K longs get consumed in just $39 of SOL drop ($94→$55). The position reaches pure short nearly $30 sooner.
+### How TRIM Pacing Works (SOL, TRIM 56/PROTECT 52)
 
-### Impact on DOGE Trade
-
-**This is the key unlock.** With only 9.2K hedge remaining vs the original 25K:
-
-| | Original Timeline | Accelerated Timeline |
-|---|---|---|
-| SOL hedge under 5K | ~$50 SOL | **~$75 SOL** |
-| DOGE entry trigger | ~$45 SOL | **~$70 SOL** |
-| DOGE rides from | $45 → $0 | **$70 → $0** |
-| DOGE additional runway | 45 points | **70 points** |
-| Earlier DOGE = more profit | — | **~56% more DOGE profit** |
-
-**Opening DOGE 25 points higher means 56% more runway to $0.** The burst trimming tonight doesn't just accelerate SOL — it accelerates the entire Operation SOL/DOGE → $0 timeline.
-
-### TRIM Progression to Pure Short
-
-With TRIM 61 and PROTECT 50.1, ML is currently 50.6% — below TRIM. Only 9,203 hedge longs remaining. TRIM resumes at ~$89 SOL.
-
-| SOL Price | Equity | Longs (Hedge) | Net Short | Gross | Spread Tol. | ML | Status |
-|---|---|---|---|---|---|---|---|
-| **$94 (now)** | **$85,318** | **6,209** | **1,791** | **14,209** | **$6.00** | **51%** | Dead zone — TRIM at 61% overnight |
-| $89 | $94,273 | 6,209 | 1,791 | 14,209 | $6.63 | 60% | Approaching TRIM |
-| $88 | $96,064 | 6,185 | 1,815 | 14,185 | $6.77 | ~61% | **TRIM resumes** |
-| $80 | $110,584 | 5,302 | 2,698 | 13,302 | $8.31 | 61% | Safe |
-| $70 | $137,564 | 3,363 | 4,637 | 11,363 | $12.11 | 61% | Comfortable — **DOGE trigger** |
-| **~$62** | **~$170,000** | **0** | **8,000** | **8,000** | **$21.25** | **~70%** | **PURE SHORT** |
-| $50 | $266,000 | 0 | 8,000 | 8,000 | $33.25 | 66% | Printing |
-| $40 | $346,000 | 0 | 8,000 | 8,000 | $43.25 | 108% | Printing |
-| $20 | $506,000 | 0 | 8,000 | 8,000 | $63.25 | 316% | Locked in |
-| $10 | $586,000 | 0 | 8,000 | 8,000 | $73.25 | 733% | Locked in |
-| $5 | $626,000 | 0 | 8,000 | 8,000 | $78.25 | 1,565% | Locked in |
-| **$0** | **$666,000** | **0** | **8,000** | **8,000** | **∞** | **∞** | **Done** |
-
-**Pure short at ~$62** — only needs a $32 SOL drop from entry. Every $1 below $62 = **$8,000 × $1 = $8,000** profit.
-
-### How TRIM Pacing Works
-
-| SOL Drop | Equity Gained (from net) | Lots Trimmed | Net After | Trim Accelerates? |
+| SOL Drop | Equity Gained (from net) | Lots Trimmed | Net After | Status |
 |---|---|---|---|---|
-| $94 → $89 | $8,955 (1,791 × $5) | 0 | 1,791 | ML still below 61% |
-| $89 → $88 | $1,791 (1,791 × $1) | 24 | 1,815 | **TRIM resumes** |
-| $88 → $80 | $14,520 (1,815 × $8) | 883 | 2,698 | Moderate |
-| $80 → $70 | $26,980 (2,698 × $10) | 1,939 | 4,637 | Building — **DOGE opens at ~$70** |
-| $70 → $62 | $37,096 (4,637 × $8) | 3,363 (all) | 8,000 | **Complete — PURE SHORT** |
+| $92 → $88 | $3,148 (787 × $4) | 582 | 1,369 | TRIM grinding |
+| $88 → $80 | $10,952 (1,369 × $8) | 1,293 | 2,662 | Moderate |
+| $80 → $70 | $26,620 (2,662 × $10) | 2,724 | 5,386 | Building |
+| $70 → $60 | $53,860 (5,386 × $10) | 5,124 | 10,510 | Fast |
+| $60 → $50 | $105,100 (10,510 × $10) | 6,710 (all) | 17,220 | **Complete — PURE SHORT** |
 
 ### Key Milestones
 
-- **~$89**: TRIM resumes — ML crosses back above 61%
-- **$80**: Equity $111K, net 2,698, spread tolerance $8.31 → safe
-- **~$70**: Hedge under 3.4K → **open DOGE MG: SHORT on second account**
-- **~$62**: **PURE SHORT** — all 6,209 hedge lots consumed. Equity ~$170K. 8,000 lots riding free
-- **$40**: Equity $346K — printing
-- **$0**: Equity **~$666,000** — SOL profit **~$581,000 (6.8x return on $85K)** + ADA profit
+- **$88**: TRIM at threshold, grinding 1 lot per tick
+- **$80**: Equity $92K, net 2,662 → safe, flywheel building
+- **$70**: Equity $119K, net 5,386 → comfortable
+- **$60**: Equity $173K, net 10,510 → flywheel accelerating fast
+- **~$50**: **SOL PURE SHORT** — all 16,433 hedge consumed. 17,220 lots riding free
+- **$0**: SOL **$1,139K** + ADA **$128K** = **~$1,267K total profit**
 - **Combined with ADA**: SOL $666K + ADA $280K = **~$946K total**
 
 ### ADA Short Stacking (Same Account — VaR Diversification)
@@ -470,22 +467,28 @@ XNGUSD was explored as a martingale candidate due to predictable CFD spread beha
 
 ## Bottom Line
 
-### Operation SOL/DOGE → $0
+### Operation SOL/ADA/DOGE → $0
 
-SOLUSD MG: SHORT opened at $94. Burst trimming consumed 75% of hedge (25K → 6.2K) at $94. 6,209 L / 8,000 S, net short 1,791. 574 trims, 11 protects. TRIM 61/PROTECT 50.1. ML 50.7%. Spread tolerance **$6.00/lot**. Pure short at **~$62**. ADA naked shorts stacked alongside for VaR diversification (400K lots max). Combined SOL+ADA = **~$946K at $0**.
+**Multi-instrument crypto short.** SOL martingale + ADA naked short + DOGE naked short on same account. TRIM 56/PROTECT 52 grinding SOL hedge passively.
 
-**Key achievement:** Burst trimming at $94 pre-burned 75% of hedge fuel. ADA shorts (not DOGE — 4x more VaR per lot, lower SOL correlation) stacked as equity grows. DARWIN VaR stays elevated through ADA as SOL nominal collapses → better D-Score → more DarwinIA allocation.
+| Instrument | Position | Lots | Entry | Margin | Profit @$0 |
+|---|---|---|---|---|---|
+| **SOLUSD** | 16,433L / 17,220S (martingale) | 17,220 bias | ~$94 | ~$73K (net 787) | **$1,139K** |
+| **ADAUSD** | Naked short | 200,000 | ~$0.64 | ~$128K | **$128K** |
+| **DOGEUSD** | Naked short (stacking) | TBD | ~$0.17 | $0.10/lot | **TBD** |
+| **Combined** | | | | ~$128K | **$1,267K+** |
 
-**Target: both to $0.**
+**DOGE max volume: 10,000,000 lots per order. Min: 1,000. Margin: $0.10/lot.** Stack as margin allows — won't hit position limit due to volume limits.
 
-| Milestone | SOL Price | Equity | Net Short | Status |
-|---|---|---|---|---|
-| Now | $94 | $88,900 | 1,831 | Dead zone, TRIM paused (ML 51.7%) |
-| TRIM resumes | ~$89 | ~$98,055 | 1,831 | ML crosses 61% |
-| Flywheel engaging | $70 | $138,294 | 3,239 | Building fast |
-| DOGE entry trigger | $50 | ~$217,000 | ~7,125 | Open DOGE on second account |
-| Pure short | ~$33 | ~$378,000 | 18,818 | All hedge consumed |
-| **Target** | **$0** | **~$999,000** | **18,818** | **10.2x return** |
+**Target: all three to $0.**
+
+| Milestone | SOL Price | SOL Net Short | Status |
+|---|---|---|---|
+| Now | $92 | 787 | TRIM 56/52 grinding passively |
+| TRIM building | $80 | 2,662 | Flywheel engaging |
+| Accelerating | $60 | 10,510 | Stack more ADA/DOGE with freed margin |
+| **SOL pure short** | **~$50** | **17,220** | All hedge consumed |
+| **Target** | **$0** | **17,220** | **SOL $1.14M + ADA $128K + DOGE TBD** |
 
 ### Crypto Lessons (PM#1-5)
 
