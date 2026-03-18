@@ -81,50 +81,39 @@ Per side = Safe gross / 2
 
 ## Active: SOLUSD Hedged Martingale SHORT (Opened 2026-03-17)
 
-### Position State (from EA log 2026-03-18 11:03)
+### Position State (from EA display 2026-03-18 ~14:07)
 
 | | Value |
 |---|---|
 | Account | $100K Darwinex Zero Crypto (ONE ACCOUNT — no others) |
-| SOL Price | ~$89 |
-| Balance | $76,153 |
-| Equity | $76,153 |
-| Margin | $0 (net 0 after new MG open) |
-| ML | 999% (fully hedged, TRIM grinding) |
+| SOL Price | ~$89 (dropping) |
+| Balance | $73,273 |
+| Equity | $75,665 |
+| Margin | $140,493 |
+| ML | 53.86% |
+| Total P/L | **+$2,391** (position in profit) |
 | **SOLUSD** | |
-| Long (hedge) | ~14,375 (15,948 opened, TRIM consumed ~1,573 in first burst) |
-| Short (bias) | 15,948 + 1,380 original = **17,328** |
-| Net Short | ~1,573 (growing as TRIM grinds) |
-| SOL Gross | ~31,703 |
-| TRIM closes | 4+ (new MG, grinding) |
-| PROTECT closes | 0 (new MG) |
-| **ADAUSD** | **CLOSED** — broker liquidated during spread spike (profit realized) |
-| **DOGEUSD** | **NOT OPEN** — waiting until SOL hedge is consumed |
-| **Combined** | |
-| TRIM | **54.2% / PROTECT 51.0%** |
-| Open MG | **$2.42** (EA auto-calculated) |
+| Long (hedge) | ~14,419 (TRIM grinding — multiple 880-lot buy tickets visible) |
+| Short (bias) | ~15,993 (880 + 880 + sell 500 @ $92.134 + sell 880 @ $94.294) |
+| Net Short | 1,574 |
+| SOL Gross | ~30,412 |
+| **ADAUSD** | **CLOSED** — broker liquidated during PM#6 spread spike (profit realized to balance) |
+| **DOGEUSD** | **NOT OPEN** — waiting until SOL hedge is fully consumed |
 
-### EA Configuration
+### EA Configuration (LOCKED — will not change until hedge is unwound)
 
 | Parameter | Value |
 |---|---|
-| Mode | **MG: SHORT** (SOLUSD only) |
-| TRIM threshold | **54.2%** margin level |
-| PROTECT threshold | **51.0%** margin level |
-| Dead zone | 51.0%–54.2% (3.2% buffer) |
-| Hard floor | 10% — PROTECT halts, broker handles it |
+| Mode | **MG: SHORT** |
+| TRIM | **54.20691311%** |
+| PROTECT | **50.9691342011%** |
+| Dead zone | **3.24%** (50.97%–54.21%) |
+| Hard floor | **10.0%** |
+| Open MG | **$2.420691311** (auto-calculated) |
 | Bias protection | Never closes bias (shorts) in crisis |
-| Open MG | $2.42/lot |
+| **Instruments** | **SOL ONLY** — no ADA/DOGE until pure short |
 
-**TRIM/PROTECT dead zone guide (for reference):**
-
-| TRIM | PROTECT | Dead Zone | Use Case |
-|---|---|---|---|
-| 61% | 51% | 10% | **Overnight / AFK** — safe, slow trim |
-| 56% | 51% | 5% | Passive grinding |
-| 54% | 51% | 3% | **Current — active grinding** |
-| 53% | 51% | 2% | Burst trimming — watch closely |
-| 52% | 51% | 1% | **Maximum burst** — every tick, don't look away |
+**These settings are FINAL until hedge is consumed.** No tightening, no burst trimming, no adding instruments. Let TRIM grind passively. Widen to 61/51 for overnight/AFK only.
 
 ### Post-Mortem #6: Spread Spike During Active TRIM (2026-03-18 10:56)
 
