@@ -386,9 +386,9 @@ KILL/DEATH:        23,886 pending / 6 deaths = K/D 3,981.0
 QRRP — Quad Rothschild Rug Pull
 DARWIN: QRRP on Darwinex Zero
 
-Phase 1 (ACTIVE): SOL MG SHORT — 21,091 bias, TRIM grinding 19,784 hedge
-                   3 PROTECTs consumed 3,040 bias (24,131 → 21,091)
-                   Spread tolerance self-healing: $1.33 → $1.55 → targeting $2.00+
+Phase 1 (ACTIVE): SOL MG SHORT — 19,129 bias, TRIM grinding 17,808 hedge
+                   Open MG #10 at $88 — perfect entry, zero PROTECTs, SOL dropping
+                   Spread tolerance: $1.73, self-healing toward $2.00+
 Phase 2 (PENDING): Stack 1M ADA + 5M DOGE after SOL pure short (~$55)
 Phase 3 (PENDING): All three ride to $0 → $2.10M
 Phase 4 (FUTURE):  Flip long from bottom → ride bull cycle
@@ -398,7 +398,11 @@ Settings: TRIM 54.2013691337 / PROTECT 50.96913420691337 / Open MG $1.337
 Status: CEMENTED. FINAL. VOLTAGE AND MHz LOCKED.
 Allegiance: Drawdown Gang. QRRP looks to XUQF for strength.
         Open MG progression: $8 → $5 → $2.42 → $2.13 → $2.00 → $1.69 → $1.67 → $1.42 → $1.337
-        Nine Open MGs in one day. Each one a broken promise. Settings now cemented for real.
+        Nine Open MGs in day one. #10 the next morning. Each one a broken promise.
+        But #10 was PERFECT. Entry at H1 supply, $88, SOL immediately dropped to $87.70.
+        Zero PROTECTs. The wrench landed in the flywheel and the flywheel didn't even flinch.
+        Sometimes the unhinged play IS the right play. K|NGP|N didn't get world records
+        by following the spec sheet. He got them by knowing EXACTLY when to push harder.
 
 "Buy when there's blood in the streets, even if the blood is your own."
 The blood is ours. Six post-mortems and nine Open MGs worth. And we're still short.
