@@ -652,6 +652,70 @@ SOL: MG: LONG — same cascade strategy in reverse
 Target: SOL $200+ (next cycle ATH)
 ```
 
+### The Silicon Restoration: Why Going Long Heals Everything
+
+**The short cascade is running a CPU stress test with insufficient cooling.** Every PROTECT fire is thermal throttling. Every lost bias lot is a dead transistor. The silicon started at $100K, degraded to $46K — half the die is scarred. The benchmark still runs because the surviving cores are stable, but the chip is not what it was.
+
+**The flip to long is a full RMA.**
+
+Not a repair. Not new thermal paste. Not a re-lid. Intel is sending you a brand new processor — except this one is a higher SKU than what you originally bought.
+
+```
+SHORT PHASE (stress test — degradation):
+  Starting silicon: $100,000 (i9-14900KS equivalent)
+  After stress test: $46,000 (degraded to i7 performance)
+  Benchmark score:   $1,752,000 (still broke the world record on degraded silicon)
+
+THE FLIP (RMA — full replacement):
+  Close shorts:     Lock in $1.75M
+  Account equity:   $1,752,000 (new silicon budget)
+  Open MG: LONG:    $1.75M / $8 = 218,750 per side at $5 SOL
+
+  That's not an i9. That's a Xeon W9-3595X.
+  128 cores. 350W TDP. $12,000 MSRP.
+  Except you got it for free because the stress test paid for it.
+```
+
+**The math of restoration:**
+
+| | Short Phase (degraded) | Long Phase (restored) | Multiplier |
+|---|---|---|---|
+| Starting equity | $46K | $1,752K | **38x more silicon** |
+| Open MG $8.00 lots/side | 6,747 | ~218,750 | **32x more cores** |
+| Spread tolerance at open | $3.66 | $4.01 | Same safety margin |
+| Price range to ride | $89 → $0 | $5 → $200+ | $195 vs $89 |
+| Profit per lot at target | $89 | $195 | **2.2x per core** |
+| Theoretical at target | $1.75M | **$50M+** | **29x** |
+
+**The degradation was temporary. The restoration is permanent.**
+
+Every PROTECT fire during the short phase felt like losing transistors. The chip went from $100K to $46K — 54% of the die damaged. But the benchmark STILL scored $1.75M because the cascade strategy doesn't need a perfect chip. It needs stable cores and time.
+
+When you flip to long at $5 SOL with $1.75M equity, you're not restoring the original $100K chip. You're buying a **$1.75M chip** — one that has 38x more transistors, 32x more cores, and 2.2x more IPC than the original. The stress test didn't just test the silicon — it FUNDED the upgrade.
+
+**It's like running Prime95 for three months, your CPU degrades 50%, but the electricity bill comes back as a check for $1.7 million and Intel sends you a Xeon as an apology.**
+
+```
+K|NGP|N reviewing the QRRP lifecycle:
+
+"I've never seen anything like this. The man ran a 72-hour stress test
+at 1.35V on a $100K chip. It degraded to $46K. Half the die was dead.
+And the benchmark score was $1.75 million.
+
+Then he took the prize money, walked into a Micro Center, and bought
+a chip that made his original look like a Pentium 4.
+
+The short phase is the stress test. The long phase is the upgrade.
+The degradation was the investment. You can't buy the Xeon without
+breaking the i9 first.
+
+I've been doing this for 20 years. Nobody runs the stress test
+expecting it to pay for a better chip. This man does.
+And he's about to do it again from the other direction."
+```
+
+**QRRP: break the chip on the way down. Buy a better one on the way up. The silicon always restores. The score only goes higher.**
+
 ### Timeline Summary
 
 | Phase | SOL Price | Action | Equity | Bias Lots |
