@@ -396,6 +396,7 @@ Phase 5 (FUTURE):  SOL $200+ ADA $3+ DOGE $0.70+ → $87M theoretical
 
 Settings: TRIM 54.2013691337 / PROTECT 50.96913420691337 / Open MG $1.337
 Status: CEMENTED. FINAL. VOLTAGE AND MHz LOCKED.
+Allegiance: Drawdown Gang. QRRP looks to XUQF for strength.
         Open MG progression: $8 → $5 → $2.42 → $2.13 → $2.00 → $1.69 → $1.67 → $1.42 → $1.337
         Nine Open MGs in one day. Each one a broken promise. Settings now cemented for real.
 
@@ -405,3 +406,82 @@ The position heals itself. Every TRIM close improves spread tolerance.
 Every PROTECT fire reduces gross and makes the next PROTECT less likely.
 The EA grinds. The math converges. QRRP.
 ```
+
+---
+
+## Drawdown Gang
+
+QRRP is not alone. QRRP is Drawdown Gang.
+
+### The Creed
+
+Drawdown Gang doesn't panic at red. Drawdown Gang lives in red. Drawdown Gang's equity curve looks like a seismograph during an earthquake and that's not a bug — that's the strategy. Normal traders see -30% drawdown and close their positions. Drawdown Gang sees -30% and says "the flywheel is loading."
+
+QRRP looks to **DARWIN XUQF** for strength. XUQF walked the path first. XUQF knows what it means to hold through the darkness, to watch the equity curve descend into the abyss, and to trust the math when every instinct says to close. XUQF didn't flinch. XUQF held. XUQF is Drawdown Gang royalty.
+
+### The Drawdown Gang Manifesto
+
+```
+We do not close at drawdown. Drawdown is where we live.
+We do not panic at red. Red is our native color.
+We do not fear the equity curve. The equity curve fears us.
+
+When the broker sends margin warnings, we read them as love letters.
+When PROTECT fires, we call it "self-improvement."
+When the spread spikes, we call it "a buying opportunity" (for more shorts).
+
+We have been liquidated 6 times and rebuilt 9 positions in one day.
+We wrote a lessons learned document and violated it 4 minutes later.
+We set Open MG to $1.337 on a $64K account and called it "LEET."
+
+We are not reckless. We have a forward-looking TRIM formula with
+14 decimal places of precision. The math is correct. The settings
+are unhinged. But the math is correct.
+
+XUQF showed us the way: hold through the drawdown.
+The drawdown is temporary. The profit at $0 is permanent.
+
+Drawdown Gang doesn't need paper hands.
+Drawdown Gang doesn't need stop losses.
+Drawdown Gang needs one thing: the thesis to be right.
+
+SOL is going to zero.
+ADA is going to zero.
+DOGE is going to zero.
+
+And Drawdown Gang is short all three.
+
+QRRP. XUQF. Drawdown Gang.
+```
+
+### Why QRRP Looks to XUQF
+
+Every DARWIN has a dark period. A stretch where the equity curve goes sideways or down, where the DarwinIA scoring drops, where investors pull out, where the D-Score dips. Normal DARWINs change strategy during these periods. They reduce risk. They hedge. They "adapt to market conditions."
+
+XUQF didn't adapt. XUQF held. XUQF trusted the thesis through the drawdown and came out the other side. That's what made XUQF Drawdown Gang.
+
+QRRP is in its dark period right now. Six post-mortems. Nine Open MGs. $777K in bias lots destroyed by PROTECTs from throwing wrenches into a spinning flywheel. The equity curve from March 17-18 looks like someone dropped the chart.
+
+But the position is healing. Spread tolerance crossed $2.00. PROTECTs have essentially stopped. 15,494 bias lots are grinding toward $0. The flywheel is spinning without wrenches for the first time.
+
+**XUQF held through worse. QRRP will hold through this.**
+
+The drawdown is the price of admission. The $1.57M at $0 is the ticket to the other side. Drawdown Gang doesn't sell the ticket. Drawdown Gang rides.
+
+### Drawdown Gang Rules
+
+1. **Never close bias in drawdown.** The bias is sacred. It's the profit engine. Drawdown is temporary.
+2. **Trust the math.** `maxSafe = floor((equity/threshold - margin) / marginPerLot)`. The formula doesn't lie.
+3. **Hold through PROTECT fires.** Each one hurts. Each one heals. The gross shrinks. The tolerance improves.
+4. **Don't throw wrenches.** The flywheel spins on its own. Let it.
+5. **Look to XUQF.** When the equity curve looks terminal, remember: XUQF held. And XUQF won.
+
+### The Drawdown Gang Hierarchy
+
+```
+XUQF — The Elder. Walked the path first. Drawdown Gang royalty.
+QRRP — The Berserker. 9 Open MGs, 6 post-mortems, $1.337 tolerance. Unhinged but correct.
+Future DARWINs — will look to QRRP the way QRRP looks to XUQF.
+```
+
+**When QRRP hits pure short and the equity curve starts climbing, new traders will look at the drawdown period and say "I could never hold through that." And Drawdown Gang will say: "We know. That's why you'll never make $1.57M on a $100K account."**
