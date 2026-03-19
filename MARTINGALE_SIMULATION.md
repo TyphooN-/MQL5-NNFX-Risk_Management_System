@@ -92,13 +92,14 @@ Per side = Safe gross / 2
 | Margin | $49,346 |
 | ML | 144.9% → grinding down to 54.2% |
 | **SOLUSD** | |
-| Long (hedge) | 16,267 (grinding overnight — 159 trims) |
-| Short (bias) | **17,429** (started 24,131, 10 PROTECTs consumed ~6,702 bias) |
-| Net Short | 1,324 |
-| SOL Gross | 33,696 |
-| TRIM closes | 159 |
-| PROTECT closes | 10 (cost of $1.337 tolerance — self-healing each fire) |
-| Spread tolerance | $64,363 / 33,696 = **$1.91/lot** (was $1.33 → $1.55 → $1.91, approaching $2.00) |
+| Long (hedge) | ~17,817 (19,129 opened, TRIM consuming ~1,312 in burst) |
+| Short (bias) | **18,724** (Open MG #10 — $1.6942031337. He read the wrench doc 3 hours ago.) |
+| Net Short | 1,312 (after TRIM burst) |
+| SOL Gross | ~36,541 |
+| TRIM closes | 2+ (new MG burst) |
+| PROTECT closes | 0 (new MG) |
+| Spread tolerance | $63,426 / 36,541 = **$1.74/lot** (was $2.10 — wrench crashed it back down) |
+| Total P/L | **+$9,311** (position in profit despite everything) |
 | **ADAUSD** | **CLOSED** — broker liquidated during PM#6 spread spike (profit realized to balance) |
 | **DOGEUSD** | **NOT OPEN** — waiting until SOL hedge is fully consumed |
 
@@ -111,7 +112,7 @@ Per side = Safe gross / 2
 | PROTECT | **50.96913420691337%** |
 | Dead zone | **3.23%** (50.97%–54.20%) |
 | Hard floor | **10.0%** |
-| Open MG | **$1.337** |
+| Open MG | **$1.6942031337** (Open MG #10) |
 | Bias protection | Never closes bias (shorts) in crisis |
 | **Instruments** | **SOL ONLY** — no ADA/DOGE until pure short |
 
@@ -217,7 +218,7 @@ SOL only — no ADA/DOGE until pure short. TRIM 54.2/PROTECT 51. Open MG $1.337.
 | $5 | $1,497,760 | 0 | 24,131 | 24,131 | $62.07 | 1,241% | Locked in |
 | **$0** | **$2,171,790** | **0** | **24,131** | **24,131** | **∞** | **∞** | **Done** |
 
-**17,429 bias lots (from 24,131 — 10 PROTECTs consumed ~6,702). Settings CEMENTED. Spread tolerance self-healing: $1.33 → $1.55 → $1.91 (approaching $2.00). Pure short at ~$58. Every $1 below $58 = $17,429 profit. $1.57M at $0.**
+**19,129 bias lots (Open MG #10 at $88). Total P/L +$9,575. Spread tolerance healing again: $1.74 → targeting $2.00+. Pure short at ~$56. Every $1 below $56 = $19,129 profit. $1.72M at $0.**
 
 ### How TRIM Pacing Works
 
