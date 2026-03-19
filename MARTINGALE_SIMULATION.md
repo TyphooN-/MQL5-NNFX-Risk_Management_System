@@ -92,13 +92,13 @@ Per side = Safe gross / 2
 | Margin | $49,346 |
 | ML | 144.9% → grinding down to 54.2% |
 | **SOLUSD** | |
-| Long (hedge) | 19,784 (grinding — 44 trims, 3 PROTECTs) |
-| Short (bias) | **21,091** (started 24,131, 3 PROTECTs consumed 3,040 bias) |
-| Net Short | 1,307 |
-| SOL Gross | 40,875 |
-| TRIM closes | 44 |
-| PROTECT closes | 3 (consumed 3,040 bias — cost of $1.337 tolerance) |
-| Spread tolerance | $63,305 / 40,875 = **$1.55/lot** (healing — was $1.33, target $2.00+) |
+| Long (hedge) | 16,267 (grinding overnight — 159 trims) |
+| Short (bias) | **17,429** (started 24,131, 10 PROTECTs consumed ~6,702 bias) |
+| Net Short | 1,324 |
+| SOL Gross | 33,696 |
+| TRIM closes | 159 |
+| PROTECT closes | 10 (cost of $1.337 tolerance — self-healing each fire) |
+| Spread tolerance | $64,363 / 33,696 = **$1.91/lot** (was $1.33 → $1.55 → $1.91, approaching $2.00) |
 | **ADAUSD** | **CLOSED** — broker liquidated during PM#6 spread spike (profit realized to balance) |
 | **DOGEUSD** | **NOT OPEN** — waiting until SOL hedge is fully consumed |
 
@@ -217,7 +217,7 @@ SOL only — no ADA/DOGE until pure short. TRIM 54.2/PROTECT 51. Open MG $1.337.
 | $5 | $1,497,760 | 0 | 24,131 | 24,131 | $62.07 | 1,241% | Locked in |
 | **$0** | **$2,171,790** | **0** | **24,131** | **24,131** | **∞** | **∞** | **Done** |
 
-**21,091 bias lots (from 24,131 — 3 PROTECTs consumed 3,040). Settings CEMENTED. Spread tolerance self-healing: $1.33 → $1.55 → targeting $2.00+. Pure short at ~$55. Every $1 below $55 = $21,091 profit. $1.90M at $0.**
+**17,429 bias lots (from 24,131 — 10 PROTECTs consumed ~6,702). Settings CEMENTED. Spread tolerance self-healing: $1.33 → $1.55 → $1.91 (approaching $2.00). Pure short at ~$58. Every $1 below $58 = $17,429 profit. $1.57M at $0.**
 
 ### How TRIM Pacing Works
 
