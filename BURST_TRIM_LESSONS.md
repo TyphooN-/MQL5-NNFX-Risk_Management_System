@@ -134,3 +134,124 @@ This gives 60% of the aggressive position's lots with none of the babysitting. P
 | **The dead zone must absorb normal volatility** | At 1:1 crypto, 10.9% dead zone (50.1→61%) covers ~11% SOL bounce |
 
 **Bottom line:** Next time, use Open MG $5.00-$8.00. Open the position, set TRIM 61 / PROTECT 50.1, and walk away. The EA handles the rest. Save the evenings for research, not babysitting trim closes.
+
+---
+
+## The Wrench in the Flywheel (2026-03-18 — The Day of Nine Opens)
+
+### What Actually Happened
+
+The flywheel was spinning. TRIM was grinding. The position was working. And then the operator threw a wrench into it. Nine times.
+
+**The Open MG progression in one day:**
+```
+Open #1: $2.42  — "aggressive but calibrated"
+Open #2: $2.13  — "slightly more aggressive"
+Open #3: $2.00  — "full send" — lessons learned doc said this was the limit
+Open #4: $1.69  — "I couldn't resist"
+Open #5: $1.67  — "John Carmack would approve"
+Open #6: $1.42  — "smoke em if you got em"
+Open #7: $1.337 — "LEET"
+Open #8: $1.337 — "last meme to dream. I PROMISE"
+Open #9: $1.337 — (4 minutes after promising not to touch anything)
+```
+
+Each Open MG:
+1. Added equal longs AND shorts to the position
+2. **Reset the flywheel** — net short goes back to ~0 momentarily
+3. TRIM immediately fires to rebuild net → but this takes time
+4. During rebuild, spread tolerance crashes → PROTECTs fire → **bias lots destroyed**
+5. Net stabilizes back to approximately where it was before the open
+6. Except now with fewer bias lots
+
+**The scorecard:**
+```
+Starting bias (first open):  24,131 lots → $2.17M at $0
+Ending bias (after 11 PROTECTs): 15,494 lots → $1.39M at $0
+Bias destroyed by PROTECTs: 8,637 lots
+Profit destroyed: $777,330
+
+That's $777K of profit vaporized by throwing wrenches into a spinning flywheel.
+```
+
+### Why Each Open MG Hurt Instead of Helped
+
+The operator's logic: "more lots = more profit." Correct in isolation. But the martingale flywheel doesn't work in isolation:
+
+**How TRIM builds net exposure (the flywheel):**
+```
+SOL drops $1 → net short earns $1,284 → equity grows → TRIM has room → closes 14 longs
+→ net grows to 1,298 → next $1 drop earns $1,298 → TRIM closes 15 longs
+→ net grows to 1,313 → next $1 drop earns $1,313 → accelerating...
+```
+
+**What happens when you open a new MG mid-flywheel:**
+```
+Flywheel spinning at net 1,284...
+Open MG: adds 20,000 L + 20,000 S
+Net is still 1,284 (new lots cancel out)
+BUT gross jumps from 31K to 71K
+Spread tolerance crashes from $2.00 to $0.87
+PROTECT fires: balanced close 163L + 163S → net preserved but 163 BIAS LOTS GONE
+TRIM fires: closes new longs to rebuild ML
+Net is back to ~1,284. Same as before the open.
+Except: 163 fewer bias lots. $14,670 less profit at $0. For nothing.
+```
+
+**The new MG added zero net exposure. TRIM was going to build the same net organically. The only thing the MG added was gross exposure that triggered PROTECTs that destroyed bias.**
+
+### The Fundamental Misunderstanding
+
+**"More lots = more profit"** is true for NAKED positions. For the MARTINGALE:
+
+- **More gross = lower spread tolerance = more PROTECTs = fewer bias lots**
+- **TRIM builds net exposure for FREE by closing hedge longs**
+- **Opening a new MG doesn't add net — it adds GROSS, which is the enemy**
+
+The operator didn't need more lots. The EA was already adding net on every tick down. Every $1 SOL dropped, TRIM closed 14 more longs, net grew by 14. That IS the lot-adding mechanism. The flywheel IS the position builder.
+
+Opening a new MG is like:
+- Pouring more fuel into an engine that's already running at optimal RPM — it doesn't go faster, it floods
+- Adding more weight to a spinning gyroscope — it doesn't spin faster, it wobbles
+- Overvolting a CPU that's already at max stable clock — it doesn't benchmark higher, it crashes
+
+### The Self-Healing
+
+The good news: every PROTECT fire reduced gross, which improved spread tolerance, which made the next PROTECT less likely. The position self-healed:
+
+```
+After open #1:  spread tol $1.33 → PROTECTs every few minutes
+After PROTECT #5: spread tol $1.55 → PROTECTs less frequent
+After PROTECT #8: spread tol $1.75 → PROTECTs occasional
+After PROTECT #11: spread tol $1.95 → PROTECTs rare
+Current: spread tol $2.10 → PROTECTs essentially stopped
+```
+
+The PROTECTs were the cost of the wrenches. But they also cleaned up the mess the wrenches made. Each one removed gross, improved tolerance, and stabilized the position. The EA's self-healing mechanism (balanced close preserving net while reducing gross) turned a series of operator errors into a gradually improving position.
+
+### The Lesson (For Real This Time)
+
+**The flywheel doesn't need help. It needs time.**
+
+| What the operator wanted | What actually helps |
+|---|---|
+| More bias lots | TRIM building net on every tick |
+| Faster unwind | SOL dropping (not more gross) |
+| Bigger profit at $0 | Fewer PROTECTs (not more MGs) |
+| More aggressive position | Clean spread tolerance (not lower Open MG) |
+
+**TRIM adds ~14 net short lots per $1 SOL drop. FOR FREE. No spread cost. No PROTECT risk. No new gross. Just pure, clean, mathematical net exposure growth.**
+
+Opening a new MG at $1.337 to add lots is like hiring a moving company to carry your couch while you're already carrying it. They show up, grab one end, trip over the coffee table (PROTECT), break a lamp (bias lots), and you end up in the same place minus a lamp.
+
+**The flywheel turns around now. Settings cemented. No more wrenches. QRRP.**
+
+### Updated Recommendations
+
+| Scenario | Open MG | Why |
+|---|---|---|
+| **Fresh $100K, first open** | $5.00-$8.00 | Clean passive operation from day one |
+| **Position already running** | **DO NOT OPEN** | TRIM adds net for free. New MG adds gross = PROTECTs |
+| **"But we're about to drop"** | **DO NOT OPEN** | The drop feeds the flywheel automatically |
+| **"But I want more lots"** | **Wait for pure short, add naked** | Zero hedge overhead, zero PROTECT risk |
+| **"Just one more"** | **NO** | Nine "just one mores" cost $777K in profit |
