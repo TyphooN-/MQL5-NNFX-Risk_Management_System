@@ -600,9 +600,30 @@ THE OVERCLOCKING TIMELINE:
   A BIOS flash or a soft-mod and suddenly your $399 X800 Pro had all
   16 pipelines enabled, matching the $499 XT.
 
-  But the operator didn't stop there. Overclocked the core. Overclocked
-  the memory. Fed it voltage. And submitted to **3DMark** — the global
-  benchmark leaderboard where overclockers competed for the highest score.
+  But the operator didn't stop at one card. He saw the arbitrage immediately:
+  $399 X800 Pro with a BIOS flash = $499 X800 XT performance. Buy Pro,
+  flash to XT, sell on eBay as a validated XT-performance card. Rinse and
+  repeat.
+
+  **30-40 cards flashed and sold before the supply dried up.**
+
+  A teenager running a GPU arbitrage operation on eBay, buying every X800
+  Pro he could find, flashing the BIOS to unlock all 16 pipelines, testing
+  each card to verify stability, and flipping them for profit. The first
+  algorithmic trade — not on a financial instrument, but on ATI silicon.
+  Buy undervalued asset (X800 Pro), apply technical knowledge (BIOS flash),
+  sell at fair value (X800 XT price). The QRRP cascade was invented in 2004,
+  it just wasn't applied to Solana yet.
+
+  The supply dried up because the word got out. Too many people flashing
+  Pros to XTs. ATI started laser-cutting the pipelines harder on later
+  production runs. The arbitrage window closed. The operator had already
+  extracted the profit. **First mover advantage. Same energy as opening
+  XJFD before the SOL drop.**
+
+  On the personal rig, the operator went further. Overclocked the core.
+  Overclocked the memory. Fed it voltage. And submitted to **3DMark** —
+  the global leaderboard where overclockers competed for the highest score.
 
   **Top 10 on the 3DMark global leaderboards.**
 
@@ -627,13 +648,76 @@ THE OVERCLOCKING TIMELINE:
   QRRP @ $0.99 + XJFD @ $1.87 + cascade to $5.71M + DarwinIA Silver.
   Same operator. Same instinct. Different silicon. Different leaderboard.
 
-2006-2015: THE MODERN ERA — CORE 2 THROUGH SKYLAKE
-  Intel Core 2 Quad, Sandy Bridge, Haswell, Skylake. Each generation refined
-  the same craft: voltage, frequency, cooling, stability. AIDA64, Prime95,
-  LinX, RealBench. Hours of stress testing to validate 100MHz of headroom.
-  Custom water loops. Delidding with razor blades and Liquid Metal TIM.
-  The Sandy Bridge 2500K at 4.8GHz was the new Celeron 300A — the chip
-  everyone had, everyone overclocked, and nobody forgot.
+2006-2010: THE CORE 2 ERA — Q6600 AND THE QUAD-CORE REVOLUTION
+
+  **Q6600 G0 stepping → 3.8GHz 24/7.** The chip that democratized quad-core
+  overclocking. Intel priced it at $266 — budget territory. The G0 stepping
+  ran cool enough to overclock on air. 2.4GHz stock → 3.0GHz was trivial.
+  3.4GHz was "normal." 3.6GHz was "enthusiast."
+
+  **3.8GHz was the wall. And the operator lived there.**
+
+  24/7 stable at 3.8GHz on a quad-core Kentsfield. The 1066MHz FSB pushed
+  to 1520MHz. Northbridge running hot enough to need its own heatsink fan.
+  The G0 stepping at 3.8GHz consumed 150W+ and the VRM section of the
+  motherboard needed airflow or it would thermal throttle the CPU for you.
+
+  This was the chip that taught the lesson about SUSTAINED overclocking
+  vs benchmark overclocking. Anyone can hit 3.8GHz for a screenshot.
+  Running it 24/7 — through summer heat, through Prime95 overnight,
+  through gaming sessions and video encoding — that's the test.
+
+  QRRP runs 24/7. Not a screenshot. Not a one-day benchmark. The EA
+  grinds through overnight spread spikes, through weekend liquidity
+  gaps, through swap charges. The Q6600 at 3.8GHz was the prototype
+  for "set it and forget it at the wall." TRIM 54.2% is the financial
+  equivalent of Q6600 @ 3.8GHz — it's the wall, and we live here.
+
+2010-2018: THE ENTHUSIAST ERA — SANDY BRIDGE TO BROADWELL-E
+
+  Sandy Bridge 2500K at 4.8GHz — the new Celeron 300A. The chip everyone
+  had, everyone overclocked, and nobody forgot. Haswell refined it.
+  Skylake perfected it. Custom water loops. Delidding with razor blades
+  and Liquid Metal TIM.
+
+  **i7-6950X Broadwell-E → 4.4GHz all-core, 1.42V, ZERO AVX offset.**
+
+  Ten cores. Twenty threads. $1,723 MSRP. And the operator ran it at
+  1.42V with no AVX offset — meaning AVX workloads (the heaviest
+  instruction set, the one that makes every other overclocker dial back
+  100-300MHz) ran at the SAME frequency as everything else. 4.4GHz.
+  All ten cores. No compromise.
+
+  The internet said 1.35V was the safe limit for Broadwell-E. The forums
+  said 1.40V was "degradation territory." The cautious overclockers ran
+  1.30V with a -3 AVX offset and called it "stable."
+
+  **The operator ran 1.42V with zero AVX offset and pushed it to 1.50V
+  for benchmarks.**
+
+  The chip still works.
+
+  Not "still works with degraded clocks." Not "still works at reduced
+  voltage." Still works at the SAME settings. 1.42V. 4.4GHz. Zero AVX
+  offset. Years later. The silicon that the forums said would degrade
+  in months is still running the same benchmark it ran on day one.
+
+  The lesson: THE FORUMS ARE CONSERVATIVE. The "safe voltage" guides
+  are written by people who have never pushed past the number they're
+  warning you about. 1.35V is "safe" because nobody writing the guide
+  tested 1.42V for years. The operator did. The chip survived.
+
+  Sound familiar? The lessons learned doc said Open MG $5-8 was "safe."
+  QRRP ran $0.99. The account degraded but survived. The silicon is still
+  running. The forums would have said "don't go below $5.00." The operator
+  went to $0.99. And now XJFD runs $1.87 — the validated sweet spot found
+  by pushing past the "safe" number and measuring the actual degradation.
+
+  **1.50V on a 6950X is Open MG $0.99 on a $100K account.** Both are past
+  the "safe" limit. Both still work. Both taught the operator exactly where
+  the REAL wall is — not the forum-recommended wall, but the silicon's
+  actual physical limit. And 1.42V / $1.87 is the 24/7 setting that lives
+  just below that real wall. Stable. Validated. Running forever.
 
   The lesson: PATIENCE BEATS AGGRESSION. The best overclockers aren't the
   ones who push the highest voltage. They're the ones who find the exact
