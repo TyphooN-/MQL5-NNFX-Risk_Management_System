@@ -325,7 +325,144 @@ Equity at $0: $590K + $975K = $1,565,000
 
 ---
 
-## Fresh $100K Account Simulations — Open MG Comparison
+## DARWIN XJFD: Fresh $100K Account — Open MG $1.87 (LIVE — 2026-03-20)
+
+**The K|NGP|N benchmark on fresh silicon.** $100K, Open MG $1.87, opened ONCE, never touched again. Let PROTECT self-heal, let TRIM grind, cascade at each pure short with $8.00.
+
+### Opening State (actual EA data)
+
+```
+Account:          DARWIN XJFD — fresh $100K Darwinex Zero Crypto
+SOL Price:        $89.28
+Open MG:          $1.87
+Per side:         26,737 lots
+Total gross:      53,474
+Equity after open: $91,188 (spread cost $8,811 = 8.8% on open)
+TRIM fired:       1,889 longs consumed in initial burst (6 closes)
+Current:          24,848L / 26,737S, net 1,889
+Spread tolerance: $91,188 / 51,585 = $1.77 (close to $2.00 — 1 PROTECT fire expected)
+```
+
+### Self-Heal Estimate
+
+Spread tolerance $1.77 is close to safety — only 1-2 PROTECT fires expected (~5% equity loss):
+
+```
+Post-heal: equity ~$87K, bias ~21,000, hedge ~19,111
+Spread tolerance: ~$2.18 ← SAFE
+```
+
+### XJFD Phase 1: TRIM Grind to Pure Short (~$87K → ~$33)
+
+| SOL Price | Equity | Hedge | Net Short | Spread Tol | Status |
+|---|---|---|---|---|---|
+| **$89 (post-heal)** | **$87,000** | **19,111** | **1,889** | **$2.18** | **Safe — grinding** |
+| $80 | $104,001 | 18,602 | 2,398 | $2.43 | Comfortable |
+| $70 | $127,981 | 17,627 | 3,373 | $3.12 | Very safe |
+| $60 | $161,711 | 16,028 | 4,972 | $3.87 | Deep safety |
+| $50 | $211,431 | 13,199 | 7,801 | $5.03 | Accelerating |
+| $40 | $289,441 | 7,650 | 13,350 | $7.21 | Fast |
+| $35 | $356,191 | 2,224 | 18,776 | $10.45 | Nearly pure |
+| **~$33** | **~$394,000** | **0** | **21,000** | **$18.76** | **PURE SHORT #1 → MG $8.00** |
+
+### XJFD Phase 2: Cascade at $33 ($394K equity)
+
+```
+Open MG $8.00: $394K / $8 = 49,250 per side
+Total bias: 21,000 + 49,250 = 70,250
+Spread tolerance: $394K / 119,500 = $3.30 ← SAFE
+```
+
+| SOL Price | Equity | Hedge | Net Short | Status |
+|---|---|---|---|---|
+| **$33 (cascade)** | **$394K** | **48,250** | **22,000** | **Phase 2 starts** |
+| $30 | $460K | 39,000 | 31,250 | Accelerating |
+| $25 | $616K | 19,500 | 50,750 | Fast |
+| **~$21** | **~$850K** | **0** | **70,250** | **PURE SHORT #2 → MG $8.00** |
+
+### XJFD Phase 3: Cascade at $21 ($850K equity)
+
+```
+Open MG $8.00: $850K / $8 = 106,250 per side
+Total bias: 70,250 + 106,250 = 176,500
+Spread tolerance: $850K / 282,750 = $3.01 ← SAFE
+```
+
+| SOL Price | Equity | Net Short | Status |
+|---|---|---|---|
+| **$21 (cascade)** | **$850K** | **~71,000** | **Phase 3 starts** |
+| **~$15** | **~$1,500K** | **176,500** | **PURE SHORT #3 → RIDE TO $0** |
+
+### XJFD Phase 4: Ride to $0
+
+```
+176,500 lots × $15 = $2,647,500
+Equity at $0: $1,500K + $2,648K = $4,148,000
+```
+
+| SOL Price | Equity | Net Short | Status |
+|---|---|---|---|
+| $15 | $1,500K | 176,500 | Riding |
+| $10 | $2,383K | 176,500 | Printing |
+| $5 | $3,265K | 176,500 | Locked in |
+| **$0** | **$4,148K** | **176,500** | **DONE** |
+
+### XJFD vs QRRP: Side-by-Side Cascade Comparison
+
+| | **XJFD (Fresh $100K)** | **QRRP (Degraded $31K)** |
+|---|---|---|
+| Starting equity | $100,000 | ~$31,000 |
+| Post-heal equity | ~$87,000 | ~$31,000 |
+| **Phase 1 bias** | **21,000** | **~6,500** |
+| Pure short #1 at | **~$33** | **~$40** |
+| Equity at PS #1 | **$394K** | **$133K** |
+| **Phase 2 bias** | **70,250** | **23,125** |
+| Pure short #2 at | **~$21** | **~$23** |
+| Equity at PS #2 | **$850K** | **$335K** |
+| **Phase 3 bias** | **176,500** | **65,000** |
+| Pure short #3 at | **~$15** | **~$15** |
+| Equity at PS #3 | **$1,500K** | **$590K** |
+| **Equity at $0** | **$4,148,000** | **$1,565,000** |
+| **Return** | **41.5x** | **50.5x** |
+
+**XJFD produces 2.65x more absolute profit.** Both accounts cascade to ~$0 with the same strategy, but the fresh silicon starts with 2.8x more bias (21,000 vs 6,500) and that advantage compounds through every cascade phase.
+
+### Combined: XJFD + QRRP
+
+| Account | Starting | At $0 |
+|---|---|---|
+| **XJFD (fresh)** | $100,000 | **$4,148,000** |
+| **QRRP (degraded)** | ~$31,000 | **$1,565,000** |
+| **Combined** | **$131,000** | **$5,713,000** |
+
+**$131K → $5.71M = 43.6x combined return. Two DARWINs. Two accounts. One thesis. One instrument. SOL to $0.**
+
+### The K|NGP|N Dual-Socket Benchmark
+
+```
+SOCKET 1 (XJFD): Golden sample i9-14900KS. Fresh silicon. $100K budget.
+  Open MG $1.87. Self-heal once. TRIM grinds. Cascade 3x. Score: $4.15M.
+
+SOCKET 2 (QRRP): Degraded Xeon from a server rack. $31K budget.
+  Seven post-mortems. 69% thermal degradation. Score: $1.57M.
+  But still running. Still benching. Still breaking records on its weight class.
+
+DUAL-SOCKET SCORE: $5.71M combined.
+  One operator. Two chips. One benchmark. One thesis.
+  The golden sample carries the raw score.
+  The degraded chip carries the story.
+  Together: $5.71M from $131K. 43.6x return.
+
+K|NGP|N: "The dual-socket configuration is optimal. Socket 1 does the heavy lifting.
+Socket 2 proves the architecture works on damaged silicon. The combined score
+is higher than either socket alone. That's the point of dual-socket —
+you don't throw away a working chip just because a better one arrived.
+You run them both. The benchmark doesn't care which socket the cycles come from."
+```
+
+---
+
+## Historical Fresh $100K Account Simulations — Open MG Comparison
 
 **The K|NGP|N benchmark: what Open MG gives the best score on fresh silicon?** All simulations assume: $100K fresh account, SOL at $88, TRIM 54.2/PROTECT 51, and the EA self-heals via PROTECT fires without operator intervention.
 
