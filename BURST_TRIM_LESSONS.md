@@ -255,3 +255,80 @@ Opening a new MG at $1.337 to add lots is like hiring a moving company to carry 
 | **"But we're about to drop"** | **DO NOT OPEN** | The drop feeds the flywheel automatically |
 | **"But I want more lots"** | **Wait for pure short, add naked** | Zero hedge overhead, zero PROTECT risk |
 | **"Just one more"** | **NO** | Nine "just one mores" cost $777K in profit |
+
+---
+
+## The Diminishing Returns of Aggressive Open MGs (2026-03-20)
+
+### What Happened
+
+Over two days, the operator opened increasingly aggressive MGs on a degrading account:
+
+```
+Day 1: $100K equity → Open MG $2.00 → PROTECT fires → $47K equity, ~7,468 bias
+Day 2: $47K equity  → Open MG $0.99 → PROTECT fires → ~$31K equity, ~6,500 bias (est.)
+```
+
+Each cycle: equity drops ~20-35%, bias lots increase slightly then get destroyed by PROTECT balanced closes. The cascade math showed the impact:
+
+```
+$100K start → cascade → $1.87M at $0
+$47K start  → cascade → $1.75M at $0  (−$120K, −6%)
+$39K start  → cascade → $1.57M at $0  (−$300K, −16%)
+```
+
+### Why More MGs Lower the Absolute Profit
+
+The cascade return **multiplier** actually increases as equity shrinks (38x → 50x) because less equity = higher leverage per dollar. But the **absolute dollar amount** decreases because the cascade compounds from a smaller base:
+
+```
+Cascade profit ≈ starting_equity × multiplier
+$100K × 18.7x = $1.87M
+$47K  × 37.2x = $1.75M  ← higher multiplier, lower absolute
+$31K  × 50.6x = $1.57M  ← even higher multiplier, even lower absolute
+```
+
+The multiplier grows slower than the equity shrinks. Each aggressive MG burns ~$8-15K of equity via PROTECT self-healing for maybe 500-1,000 extra bias lots. Those extra lots don't compensate for the lost equity in the cascade math.
+
+### The K|NGP|N Voltage Lesson
+
+Adding voltage when you're already at the wall doesn't increase the benchmark score — it degrades the silicon. The $0.99 MG cost ~$8K of equity for lots that will mostly be destroyed by PROTECT. It's like pushing 1.5V through a chip that's already thermally throttling at 1.35V — the clock doesn't go higher, the chip just gets hotter and loses more transistors.
+
+**The optimal strategy at each point in the lifecycle:**
+
+| Position State | Optimal Action | Why |
+|---|---|---|
+| **Fresh account, no position** | Open MG $5.00-$8.00 | Clean passive operation, no self-healing needed |
+| **Position running, hedge active** | **DO NOTHING** | TRIM adds net for free. More gross = more PROTECT risk |
+| **Position running, "about to drop"** | **DO NOTHING** | The drop feeds the flywheel. Extra MG adds gross not net |
+| **At pure short (all hedge consumed)** | **Open new MG $8.00 (CASCADE)** | This is the ONLY time to add lots — equity is high, price is low, spread tol is safe |
+
+### The Critical Distinction: MG at Entry Price vs MG at Pure Short
+
+**MG at entry price ($89):** Adds gross that immediately triggers PROTECT. Net stays the same. Equity decreases. Bias might increase by 500-1,000 after self-healing. Net effect: slightly more lots, significantly less equity. **Diminishing returns.**
+
+**MG at pure short ($40):** No existing hedge. All equity is free. $8.00 Open MG gives clean position with $3+ spread tolerance. TRIM builds net from zero. Equity has grown 3-4x from the Phase 1 grind. **Compounding returns.**
+
+```
+MG at $89 (entry): $39K equity → burns $8K → gains 1,000 lots → $31K equity
+MG at $40 (pure short): $133K equity → burns $0 → gains 16,625 lots → $133K equity
+
+The $40 MG gives 16x more lots at zero cost.
+The $89 MG gives 1K lots at $8K cost.
+```
+
+**Wait for pure short. The cascade is the lot multiplier, not another Open MG at entry.**
+
+### Updated Degradation History
+
+| Date | Action | Equity Before | Equity After | Bias After | Lesson |
+|---|---|---|---|---|---|
+| Mar 17 | Open MG $2.00 | $100,000 | $71,000 | 19,129 | $2.00 is borderline |
+| Mar 18 | Nine more MGs ($2.42→$1.337) | $71,000 | $64,000 | 24,131 | Wrenches destroy bias |
+| Mar 19 AM | Burst trim + PM#7 spread spike | $64,000 | $47,000 | 7,468 | Don't burst trim |
+| Mar 19 PM | Multiple reloads + PROTECTs | $47,000 | $39,000 | 6,155 | Self-healing costs equity |
+| Mar 20 | Open MG $0.99 | $39,000 | ~$31,000 (est.) | ~6,500 (est.) | **Diminishing returns** |
+
+**$100K → ~$31K = 69% degraded in 3 days of operator intervention.** The EA never asked for any of it. Every dollar lost was from opening MGs that triggered PROTECTs. The TRIM formula worked perfectly every time. The code is correct. The voltage was too high.
+
+**Bottom line:** The next MG should be at **pure short (~$40 SOL) with Open MG $8.00**. Not before. Not more aggressive. The cascade at pure short is the multiplier. Everything before pure short is degradation.
