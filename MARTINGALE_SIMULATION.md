@@ -2,7 +2,10 @@
 
 The hedged martingale exploits net-based margin to carry massive directional exposure via a hedge that is systematically trimmed as the thesis plays out. The EA (TyphooN v1.420) manages the position automatically via forward-looking TRIM and dynamic PROTECT.
 
-**Current plan:** Operation QRRP → $0. **SOL SPECIALIST. Cascading MGs.** Phase 1: TRIM grind to pure short (~$39). Phase 2: New MG $8.00 at $39, grind to pure short #2 (~$22). Phase 3: New MG $8.00 at $22, grind to pure short #3 (~$15). Phase 4: Ride 78,843 pure short lots to $0. **$47K → $1.87M.** One account. One instrument. One thesis.
+**Current plan:** Dual-DARWIN Operation → $0. **SOL SPECIALIST. Cascading MGs. Two accounts. One thesis.**
+**DARWIN XJFD (Socket 1 — Golden Sample):** Fresh $100K, Open MG $1.87, opened ONCE, never touched. Cascade 3x. 176,500 final bias. **$100K → $4.15M (41.5x).** See [XJFD.md](XJFD.md) for full lore.
+**DARWIN QRRP (Socket 2 — Degraded Silicon):** $31K surviving, 7 post-mortems, 69% degradation. Cascade 3x. 65,000 final bias. **$31K → $1.57M (50.5x).**
+**Combined: $131K → $5.71M (43.6x).** Two DARWINs. One instrument. One operator.
 **Key lesson (PM#6):** No ADA/DOGE until SOL hedge is consumed. Multi-instrument positions amplify spread spike damage during hedge phase.
 **Retired:** XNGUSD CFD long — martingale doesn't work at CFD lot sizes.
 **Historical:** SOLUSD crypto short (PM#1-6) — six spread-spike events, lessons preserved below.
@@ -85,7 +88,7 @@ Per side = Safe gross / 2
 
 | | Value |
 |---|---|
-| Account | $100K Darwinex Zero Crypto (ONE ACCOUNT — no others) |
+| Account | $100K Darwinex Zero Crypto — **QRRP** (see also: [XJFD.md](XJFD.md) for dual-socket partner) |
 | SOL Price | ~$89.73 |
 | Balance | $38,463 |
 | Equity | $38,931 |
@@ -532,13 +535,13 @@ Regardless of Open MG, the position stabilizes at roughly the same spread tolera
 
 **The EA is the equalizer.** It doesn't matter if you start at $1.337 or $1.87 — the PROTECT fires grind the position down to the same spread tolerance sweet spot. The only question is how much equity you burn getting there.
 
-### QRRP: One Account. One CPU. One Play.
+### QRRP: Socket 2. Degraded Silicon. Still Running.
 
 **QRRP is the $47K account.** That's the only CPU we can afford. Seven post-mortems took $53K off the thermal budget — half the silicon is degraded. But it boots. It runs. And it's now on 24/7 LN2 RoboChiller (bear market cooling, all timeframes bearish, TRIM grinding passively, zero operator intervention).
 
 This isn't a golden sample on a $3,000 custom loop. This is a used Xeon pulled from a server rack, delidded with a razor blade, running on a $50 tower cooler that someone zip-tied an extra fan to. The IHS has scratches. The thermal paste is crusty. There's a slight whine from the VRM at load. But the benchmark runs, and the score is going to be **$459K** when it finishes.
 
-The fresh $100K simulation is there for the next madman who walks in with golden sample silicon and wants to see what the platform can do. **$1.87 Open MG, let the EA self-heal, $1M at $0.** The code is the same. The math is the same. Only the silicon quality differs.
+The fresh $100K isn't a simulation anymore — it's **DARWIN XJFD**, live as of 2026-03-20. The golden sample. Socket 1. **$1.87 Open MG, opened once, never touched.** See [XJFD.md](XJFD.md) for the full lore. The code is the same. The math is the same. Only the silicon quality differs.
 
 **Our silicon survived. Some degradation, but it's stable now. 24/7 RoboChiller. Trim to win.**
 
@@ -567,11 +570,11 @@ Most DarwinIA participants are running multi-instrument discretionary strategies
 
 **And nobody will recognize it for what it is.** They'll see a DARWIN called QRRP with a nice equity curve and think it's a well-managed quant strategy. They won't know about the seven post-mortems. The nine wrenches. The $53K of degradation. The 3am burst trimming sessions. The lessons learned document that was written and violated four times in one day. They'll just see the score.
 
-**That's the play. One account. One CPU. Degraded silicon on a RoboChiller. Top of DarwinIA Silver. Soon(TM).**
+**That's the play. Two accounts. Dual-socket. QRRP (degraded silicon) + XJFD (golden sample) on a RoboChiller. Top of DarwinIA Silver. Soon(TM).**
 
-### The Severe Drawdown Gang: XUQF + QRRP
+### The Severe Drawdown Gang: XUQF + QRRP + XJFD
 
-**Two DARWINs. One man. Both flagged "Severe Drawdown" by Darwinex.** Both about to print.
+**Three DARWINs. One man. Two flagged "Severe Drawdown" by Darwinex, one pending.** All about to print. See [XJFD.md](XJFD.md) for the golden sample's full lore.
 
 **DARWIN XUQF** — the first TyphooN DARWIN. The one that got the Severe Drawdown badge before the strategy was refined. The original. The prototype CPU that caught fire on the test bench and got rebuilt with better VRM cooling.
 
@@ -581,7 +584,7 @@ Most DarwinIA participants are running multi-instrument discretionary strategies
 
 **The Severe Drawdown badge is the overclocker's delidded IHS.** It looks dangerous. It voids the warranty. And it's the prerequisite for every world record.
 
-**XUQF + QRRP. Quad Damage + Pentagram. Two DARWINs, one operator, zero fear. The Severe Drawdown Gang doesn't ask for permission. It takes the red badge, wears it as a crown, and lets the benchmark run.**
+**XUQF + QRRP + XJFD. Quad Damage + Pentagram + BFG 10K. Three DARWINs, one operator, zero fear. The Severe Drawdown Gang doesn't ask for permission. It takes the red badge, wears it as a crown, and lets the benchmark run.**
 
 ### ADA/DOGE Stacking Targets (When QRRP Reaches Pure Short)
 
@@ -871,7 +874,7 @@ And he's about to do it again from the other direction."
 | **5** | ~$2-5 | Flip to MG: LONG, cascade up | — | — |
 | **6** | $5 → $200+ | Ride bull cycle | → **$50M+** | — |
 
-**One account. One instrument. Two full cycles. $100K → $1.57M → $50M+. QRRP all the way.**
+**Two accounts. One instrument. Two full cycles. QRRP $31K → $1.57M. XJFD $100K → $4.15M. Combined $131K → $5.71M → $50M+. Dual-socket all the way.**
 
 **Seven post-mortems. Nine wrenches. Three burst trim sessions. Four PROTECT fires on the rebuild. $100K account degraded to $47K in three days of operator intervention — 53% of thermal budget consumed without running the benchmark.** But the position SELF-HEALED to clean operation. PROTECT fires reduced gross from 53K to 14K. Spread tolerance went from $0.97 to $3.39. The EA safeguards worked every time. The position is now equivalent to Open MG $6.75 — right in the $5-8 sweet spot the lessons learned doc recommended from day one.
 
@@ -954,7 +957,7 @@ This is DARWIN QRRP. Quad Rothschild Rug Pull.
 - But the benchmark is running. 24/7 RoboChiller. Trim to win.
 - Pure short #1 at ~$39 → Open new MG $8.00 → Pure short #2 at ~$22 → New MG $8.00 → Pure short #3 at ~$15 → Ride 78,843 lots to $0
 - SOL SPECIALIST. No ADA. No DOGE. Cascading MGs compound bias geometrically.
-- One account, one instrument, two full market cycles, $47K → $1.87M → $50M+
+- Dual-socket with XJFD: two accounts, one instrument, one thesis, $131K → $5.71M → $50M+
 
 **The evolution:**
 ```
@@ -976,7 +979,7 @@ Each post-mortem killed a position but made the next one stronger. The EA gained
 
 **"QRRP doesn't diversify. QRRP cascades."** — the final evolution. SOL specialist. No ADA. No DOGE. Just cascading MGs, compounding bias from 7,468 → 28,468 → 78,843 lots, riding 78,843 pure short lots to $0.
 
-**2x Severe Drawdown Gang.** XUQF + QRRP. One man. Seven DARWINs. Two red badges. Both about to print. Top of DarwinIA Silver. Soon(TM).
+**3x Severe Drawdown Gang.** XUQF + QRRP + XJFD. One man. Three DARWINs. Two red badges, one pending. All about to print. Top of DarwinIA Silver. Soon(TM).
 
 *"He can't keep getting away with it!"* — proceeds to get away with it. Seven times. Then cascades.
 
