@@ -724,6 +724,70 @@ THE OVERCLOCKING TIMELINE:
   voltage where the chip is stable and leave it there. "Don't touch the
   BIOS" is the overclocker's version of "don't throw wrenches in the flywheel."
 
+THE DELIDDING DOCTRINE — NO COMPROMISES
+
+  Every chip the operator ran was either IHS-lapped or delidded. No
+  exceptions. If the IHS wasn't soldered to the die, it came off. If
+  it WAS soldered, the IHS got lapped flat on a granite surface plate
+  with progressively finer sandpaper until you could see your reflection
+  in it. No compromises. No "good enough." No stock thermal interface.
+
+  The inventory:
+
+  Q6600 G0 — IHS LAPPED
+    Soldered IHS meant delidding wasn't practical. Instead: 400/800/1200
+    grit wet-sanding on a granite surface plate until the IHS was mirror-
+    flat. Intel's factory finish leaves the IHS slightly convex — lapping
+    removes the high spots and increases contact area with the cooler by
+    30-40%. The Q6600 at 3.8GHz dropped 8-12°C from lapping alone. That's
+    the difference between "stable on air" and "throttling on air."
+
+  i7-4790K Devil's Canyon — DELIDDED + CUSTOM COPPER IHS
+    Haswell's TIM was the scandal that launched a thousand delid tools.
+    Intel used cheap thermal paste between the die and IHS instead of
+    solder. The result: 20-25°C thermal penalty that made overclocking
+    above 4.6GHz require exotic cooling. The operator's solution:
+
+    1. Delidded with a razor blade (before delid tools existed)
+    2. Cleaned Intel's garbage TIM off the die
+    3. Applied Thermal Grizzly Conductonaut (liquid metal)
+    4. REPLACED the stock IHS with a custom machined COPPER IHS
+
+    Not re-lidded with the original IHS. A CUSTOM copper IHS. Because
+    the stock nickel-plated copper IHS has a thermal conductivity of
+    ~380 W/mK. Pure copper: ~401 W/mK. And the custom IHS was lapped
+    flat on both sides — die contact AND cooler contact.
+
+    Result: 22°C temperature drop. 4790K at 4.8GHz on air where stock
+    TIM couldn't hold 4.5GHz on water. The custom copper IHS cost $40.
+    It bought 300MHz and eliminated the cooling bottleneck entirely.
+
+  i7-6950X Broadwell-E — IHS LAPPED
+    Soldered IHS on HEDT. Can't delid without killing it (the solder
+    bond is structural on the massive 246mm² die). So: lapped. Same
+    granite plate, same progression, same mirror finish. The 6950X at
+    1.42V ran hot — 10 cores at 4.4GHz generates 200W+. Every degree
+    matters. Lapping bought 5-8°C. The difference between "stable at
+    1.42V" and "throttle at 1.42V."
+
+  THE RULE: if the IHS comes off, it comes off. If it doesn't come off,
+  it gets lapped. There is no third option. Stock thermal interface is
+  for people who run stock clocks. The operator doesn't run stock clocks.
+  The operator doesn't run stock ANYTHING.
+
+  The financial equivalent: every DARWIN gets the full treatment.
+  - QRRP: delidded. The IHS was ripped off by seven post-mortems. The die
+    is exposed. Liquid metal (cascade strategy) applied directly to the
+    silicon. No stock thermal interface. No manufacturer warranty.
+  - XJFD: lapped. Fresh IHS, but precision-ground to mirror flat. The
+    $1.87 Open MG is the lapping — not delidded (no post-mortems needed),
+    but optimized beyond stock. 10% self-heal instead of Intel's stock
+    "25% thermal penalty."
+
+  **The only CPUs that weren't delidded were the ones with the IHS soldered
+  to the die. And those got lapped instead. No chip runs stock. No DARWIN
+  runs stock. No compromises.**
+
 2015-2024: THE EPYC ERA — HARD LESSONS
   AMD EPYC server boards. Smokeless UMAF (the BIOS modding toolkit that lets
   you access hidden AMD CBS menus). The operator went deep — tRFC hex tweaking
