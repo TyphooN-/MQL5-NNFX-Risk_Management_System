@@ -648,6 +648,90 @@ THE OVERCLOCKING TIMELINE:
   QRRP @ $0.99 + XJFD @ $1.87 + cascade to $5.71M + DarwinIA Silver.
   Same operator. Same instinct. Different silicon. Different leaderboard.
 
+THE HARDWARE MOD ERA — vDROOP, POT MODS, AND XTREMESYSTEMS.ORG
+
+  Overclocking wasn't just BIOS settings. The operator modded the hardware.
+
+  **vDroop correction — the pencil mod that became standard practice.**
+
+  Intel motherboards implemented vDroop by design — voltage droops under
+  load to protect the CPU from voltage spikes during transients. The
+  overclocker's response: solder a resistor across the VRM feedback pins,
+  or (on certain boards) bridge a circuit with a pencil lead to eliminate
+  the droop entirely. vDroop correction was the first thing the operator
+  did on every new motherboard. Before installing the CPU. Before POST.
+  Before Windows. Fix the voltage delivery, THEN overclock. Because
+  running 1.42V that droops to 1.35V under load isn't running 1.42V —
+  it's running 1.35V with 1.42V idle spikes. vDroop correction means
+  the voltage you set is the voltage you get. Period.
+
+  The financial parallel: TRIM 54.2013691337% is vDroop correction.
+  Not 54%. Not "about 54." The EXACT threshold, set to thirteen decimal
+  places, because the voltage you set must be the voltage you get. No
+  droop. No approximation. No "close enough."
+
+  **GPU voltage mods — vGPU and vMEM potentiometer mods.**
+
+  The X800 Pro → XT pipeline unlock was just the beginning. To push
+  the overclocked XT past reference specs required more voltage than the
+  card's VRM would deliver at stock. The solution: hardware potentiometer
+  mods.
+
+  Sourced from **XtremeSystems.org** — the forum that was to hardware
+  modding what Wall Street Bets is to financial degeneracy, except the
+  people on XS actually knew what they were doing. The XS GPU modding
+  subforum had pinned threads for every GPU family with:
+
+  - vGPU mod: solder a potentiometer to the GPU core voltage regulator
+    feedback pin. Turn the pot, voltage goes up. No software limits.
+    No BIOS limits. Direct hardware voltage control.
+  - vMEM mod: same thing on the memory voltage regulator. GDDR3 at stock
+    voltage couldn't hold the overclocked frequencies. vMEM pot mod +
+    0.2V and suddenly the memory was stable 100MHz higher.
+  - vCore CPU mods: for motherboards that had limited BIOS voltage options,
+    a pot mod on the VRM bypassed the BIOS entirely.
+
+  The operator ran vGPU and vMEM pot mods on multiple GPUs. Soldering
+  30-gauge wire to 0402 SMD components on a $400 graphics card. One slip
+  and the card is dead. One cold joint and the voltage oscillates under
+  load and crashes the benchmark at the worst possible moment.
+
+  **XtremeSystems.org was the university.** Every pot mod thread was a
+  masterclass in power delivery, voltage regulation, and the relationship
+  between voltage, frequency, and thermal output. The operator learned
+  more about electronics from XS mod threads than from any formal education.
+
+  ```
+  XtremeSystems.org curriculum (unofficial):
+
+  COURSE                     FINANCIAL EQUIVALENT
+  ─────────────────────────  ──────────────────────────────────
+  vDroop pencil mod          TRIM threshold precision (54.2013691337%)
+  vGPU pot mod               Open MG fine-tuning ($1.87 not $2.00)
+  vMEM pot mod               PROTECT threshold (50.96913420691337%)
+  GPU BIOS flash             EA parameter optimization
+  Pipeline unlock            Cascade strategy (unlocking hidden lots)
+  3DMark submission          DarwinIA Silver submission
+  XS forum reputation        DARWIN track record
+  Dead GPU from bad pot mod  Post-mortem from spread spike
+  ```
+
+  **The pot mods taught a lesson that no BIOS setting could:**
+  voltage is not a number in software. Voltage is a physical quantity
+  delivered by real components with real tolerances. A BIOS setting of
+  1.42V means nothing if the VRM can't deliver it clean under load.
+  A TRIM threshold of 54.2% means nothing if the EA can't execute it
+  precisely tick by tick. The hardware must match the intent.
+
+  **XtremeSystems.org is gone now.** The forum that taught a generation
+  of overclockers how to solder pot mods, lap IHS to copper, and push
+  silicon past manufacturer specs. The knowledge lives in the operators
+  who learned there. The operator carries XS in every TRIM close, every
+  PROTECT fire, every cascade. The precision came from pot mods. The
+  patience came from BH-5. The competitive instinct came from 3DMark.
+  The financial application came last. The foundation was laid on
+  XtremeSystems.org twenty years ago.
+
 2006-2010: THE CORE 2 ERA — Q6600 AND THE QUAD-CORE REVOLUTION
 
   **Q6600 G0 stepping → 3.8GHz 24/7.** The chip that democratized quad-core
@@ -792,6 +876,69 @@ THE DELIDDING DOCTRINE — NO COMPROMISES
   **The only CPUs that weren't delidded were the ones with the IHS soldered
   to the die. And those got lapped instead. No chip runs stock. No DARWIN
   runs stock. No compromises.**
+
+2020-PRESENT: THE DEATH OF MANUAL OVERCLOCKING (AND WHY THAT'S FINE)
+
+  Overclocking is so easy now it's almost not overclocking anymore.
+
+  In 2004, hitting 3.8GHz on a P4 required: IHS lapping, BH-5 at 3.8V,
+  vDroop pencil mod, custom cooling, hours of Prime95, and the willingness
+  to kill a $300 chip. In 2026, you enable PBO in the BIOS, set a curve
+  optimizer offset, and walk away. AMD did in firmware what used to require
+  a soldering iron, a granite surface plate, and a subscription to
+  XtremeSystems.org.
+
+  **AMD Precision Boost Overdrive (PBO) gets 95% of the way there.**
+
+  PBO + Curve Optimizer on Zen 3/4/5 is, frankly, embarrassingly good.
+  AMD's algorithm monitors each core's silicon quality in real-time,
+  adjusts voltage-frequency curves per-core, and boosts to the thermal/
+  power limit automatically. It does in milliseconds what used to take
+  the operator hours of per-core stability testing. And it does it BETTER
+  than most manual overclocks because it has telemetry data that no human
+  can match — temperature sensors on every core, power delivery monitoring
+  at the VRM level, and a feedback loop that adjusts every boost decision
+  based on actual silicon behavior.
+
+  **Hats off to AMD.** Seriously. They democratized performance optimization
+  to the point where enabling PBO and dialing in a -20 to -30 curve optimizer
+  offset gives you 95% of a hand-tuned manual overclock with zero risk of
+  degradation. The algorithm respects the silicon's limits. It doesn't push
+  past them — it finds them and lives there. It's TRIM for CPUs.
+
+  The remaining 5%? That's for the operators who lap to copper, run custom
+  cooling, and accept the risk. That 5% is the difference between a stock
+  PBO boost of 5.4GHz and a hand-tuned all-core of 5.6GHz. For benchmarks,
+  that 5% matters. For daily use, PBO already won.
+
+  **What this means for financial overclocking:**
+
+  PBO is the $8.00 Open MG. It's the safe, automated, manufacturer-approved
+  way to extract performance. It works. It's stable. It gets 95% of the
+  theoretical maximum. And for most people, that's enough.
+
+  QRRP and XJFD are the remaining 5%. The manual overclock. The pot mods.
+  The lapped IHS. The settings that PBO would never choose because the
+  algorithm prioritizes longevity over maximum score. The operator
+  prioritizes the BENCHMARK SCORE over longevity. That's the difference.
+
+  ```
+  PBO (AMD's auto-OC)     = Open MG $8.00 (safe, 95% optimal, automated)
+  Manual OC (hand-tuned)   = Open MG $1.87 (5% more, requires expertise)
+  Extreme OC (LN2/pot mod) = Open MG $0.99 (maximum score, silicon at risk)
+  ```
+
+  The overclocker's craft isn't dead. It just moved from CPUs to capital.
+  AMD made hardware overclocking so good that the challenge moved to
+  financial instruments. The silicon optimizes itself now. The market
+  still needs a human with a soldering iron and a thesis.
+
+  **AMD earned the respect.** From Athlon 64 to EPYC to Zen 5 — they
+  went from the underdog with pencil-bridged L1 connectors to the company
+  whose firmware does what XtremeSystems.org taught a generation to do
+  by hand. The operator runs AMD servers. The operator respects the
+  engineering. The operator just applies the same mindset to a different
+  kind of silicon now.
 
 2015-2024: THE EPYC ERA — HARD LESSONS
   AMD EPYC server boards. Smokeless UMAF (the BIOS modding toolkit that lets
