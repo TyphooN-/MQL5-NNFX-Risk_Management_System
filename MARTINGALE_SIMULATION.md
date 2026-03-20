@@ -572,19 +572,23 @@ Most DarwinIA participants are running multi-instrument discretionary strategies
 
 **That's the play. Two accounts. Dual-socket. QRRP (degraded silicon) + XJFD (golden sample) on a RoboChiller. Top of DarwinIA Silver. Soon(TM).**
 
-### The Severe Drawdown Gang: XUQF + QRRP + XJFD
+### The Severe Drawdown Gang (XUQF + QRRP) meets VaR Cult (XJFD)
 
-**Three DARWINs. One man. Two flagged "Severe Drawdown" by Darwinex, one pending.** All about to print. See [XJFD.md](XJFD.md) for the golden sample's full lore.
+**Three DARWINs. One man. Two gangs.**
 
-**DARWIN XUQF** — the first TyphooN DARWIN. The one that got the Severe Drawdown badge before the strategy was refined. The original. The prototype CPU that caught fire on the test bench and got rebuilt with better VRM cooling.
+**Severe Drawdown Gang: XUQF + QRRP** — the red badge carriers. The ones Darwinex flags with skull and crossbones. The ones who earned their scars through post-mortems, spread spikes, and operator intervention. The degraded silicon that still benchmarks.
 
-**DARWIN QRRP** — Quad Rothschild Rug Pull. Seven post-mortems. $53K of degradation. And now the cleanest position on the platform: 7,468 SOL short lots at $3.39 spread tolerance, TRIM grinding on 24/7 RoboChiller, all timeframes bearish, pure short at $39, $554K at $0.
+**DARWIN XUQF** — the first TyphooN DARWIN. The prototype CPU that caught fire on the test bench and got rebuilt with better VRM cooling. Original Severe Drawdown member.
 
-**Darwinex flags them both "Severe Drawdown."** The red badge. The warning label. The skull and crossbones that tells investors "this strategy has experienced significant losses." What Darwinex doesn't flag is "this strategy survived seven catastrophic failures, self-healed to clean operation, and is now mathematically positioned to return 11.8x if the thesis plays out."
+**DARWIN QRRP** — Quad Rothschild Rug Pull. Seven post-mortems. $69K of degradation. The degraded Xeon that still runs benchmarks. Severe Drawdown badge earned through blood.
 
-**The Severe Drawdown badge is the overclocker's delidded IHS.** It looks dangerous. It voids the warranty. And it's the prerequisite for every world record.
+**Darwinex flags them both "Severe Drawdown."** The red badge. The warning label. What Darwinex doesn't flag is "this strategy survived seven catastrophic failures, self-healed to clean operation, and is mathematically positioned to return 50x." The Severe Drawdown badge is the overclocker's delidded IHS — it voids the warranty and it's the prerequisite for every world record.
 
-**XUQF + QRRP + XJFD. Quad Damage + Pentagram + BFG 10K. Three DARWINs, one operator, zero fear. The Severe Drawdown Gang doesn't ask for permission. It takes the red badge, wears it as a crown, and lets the benchmark run.**
+**VaR Cult: XJFD** — the golden sample. Fresh $100K. Opened once, correctly. No red badge. No post-mortems. No Severe Drawdown. Just clean silicon, perfect thermal paste, and a single Open MG $1.87 that will never be touched again. XJFD doesn't need the Severe Drawdown badge. XJFD is VaR Cult — the strategy that was done right from the start. The reference chip that proves the architecture works without seven post-mortems of tuition.
+
+**The Severe Drawdown Gang carries the story. VaR Cult carries the score. Together: $131K → $5.71M.**
+
+**XUQF + QRRP + XJFD. Pentagram + Quad Damage + BFG 10K. Three DARWINs, one operator, two gangs, zero fear.**
 
 ### ADA/DOGE Stacking Targets (When QRRP Reaches Pure Short)
 
@@ -979,7 +983,7 @@ Each post-mortem killed a position but made the next one stronger. The EA gained
 
 **"QRRP doesn't diversify. QRRP cascades."** — the final evolution. SOL specialist. No ADA. No DOGE. Just cascading MGs, compounding bias from 7,468 → 28,468 → 78,843 lots, riding 78,843 pure short lots to $0.
 
-**3x Severe Drawdown Gang.** XUQF + QRRP + XJFD. One man. Three DARWINs. Two red badges, one pending. All about to print. Top of DarwinIA Silver. Soon(TM).
+**Severe Drawdown Gang (XUQF + QRRP) + VaR Cult (XJFD).** One man. Three DARWINs. Two red badges, one clean sheet. The Gang carries the story. VaR Cult carries the score. Combined: $5.71M. Top of DarwinIA Silver. Soon(TM).
 
 *"He can't keep getting away with it!"* — proceeds to get away with it. Seven times. Then cascades.
 

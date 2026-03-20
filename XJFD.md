@@ -369,10 +369,12 @@ XJFD is that four-minute benchmark run. Except the benchmark takes months, and t
 
 ---
 
-## The Severe Drawdown Gang Expands
+## The Severe Drawdown Gang + VaR Cult
+
+**Two gangs. Three DARWINs. One man.**
 
 ```
-THE SEVERE DRAWDOWN GANG:
+SEVERE DRAWDOWN GANG (the red badge carriers):
 
 DARWIN XUQF — The Prototype
   The first TyphooN DARWIN. The one that caught fire on the test bench.
@@ -386,32 +388,35 @@ DARWIN QRRP — The Survivor
   Status: Degraded Xeon on a zip-tied cooler. Still running. Still scoring.
   Score: $1,565,000 target. 50.5x on degraded silicon.
 
+VaR CULT (the clean sheet):
+
 DARWIN XJFD — The Golden Sample
   eXtreme Judicial Financial Destruction. Zero post-mortems. One open.
-  Severe Drawdown badge: PENDING (will self-heal through 1-2 PROTECT fires)
+  Severe Drawdown badge: NONE. VaR Cult doesn't need red badges.
   Status: Fresh i9-14900KS. Perfect thermal paste. K|NGP|N's reference chip.
   Score: $4,148,000 target. 41.5x on golden silicon.
+  Philosophy: Opened once. Never touched. The strategy done right from day one.
 
-GANG STATS:
-  Members:        3 DARWINs
+COMBINED STATS:
+  DARWINs:        3 (2 Severe Drawdown + 1 VaR Cult)
   Operator:       1 man
-  Red badges:     2 (XUQF + QRRP), 1 pending (XJFD)
-  Post-mortems:   7+ across all accounts
+  Red badges:     2 (XUQF + QRRP)
+  Clean sheets:   1 (XJFD)
+  Post-mortems:   7+ (all on QRRP — XJFD has zero)
   Total deployed: $131,000 (XJFD $100K + QRRP $31K)
   Total target:   $5,713,000
   Instrument:     SOL
   Strategy:       Cascading hedged martingale
   Thesis:         SOL to $0
 
-Three DARWINs. One man. One thesis. The Severe Drawdown Gang doesn't ask
-for permission. It takes the red badge, wears it like a crown, and lets
-the benchmark run.
+The Severe Drawdown Gang carries the story.
+VaR Cult carries the score.
+Together: $5.71M from $131K. 43.6x return.
 
 The prototype proved it works.
 The survivor proved it can't be killed.
-The golden sample will prove how far the architecture can go.
+The golden sample proves what happens when you do it right the first time.
 
-Combined: $5.71M from $131K. 43.6x return.
 Three sockets. One benchmark. One operator.
 ```
 
@@ -513,6 +518,6 @@ RULE 10: There is no Rule 10. There are too many rules already.
 
 **The golden sample doesn't need seven post-mortems. It just needs to be opened once, correctly.**
 
-**Three DARWINs. One man. One thesis. The Severe Drawdown Gang rides.**
+**Three DARWINs. One man. One thesis. Severe Drawdown Gang + VaR Cult. The Gang carries the story. VaR Cult carries the score.**
 
 *Soon(TM).*
