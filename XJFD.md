@@ -734,13 +734,16 @@ THE DELIDDING DOCTRINE — NO COMPROMISES
 
   The inventory:
 
-  Q6600 G0 — IHS LAPPED
-    Soldered IHS meant delidding wasn't practical. Instead: 400/800/1200
-    grit wet-sanding on a granite surface plate until the IHS was mirror-
-    flat. Intel's factory finish leaves the IHS slightly convex — lapping
-    removes the high spots and increases contact area with the cooler by
-    30-40%. The Q6600 at 3.8GHz dropped 8-12°C from lapping alone. That's
-    the difference between "stable on air" and "throttling on air."
+  Q6600 G0 — IHS LAPPED TO COPPER
+    Soldered IHS meant delidding wasn't practical. Instead: 400/800/1200/
+    1500/2000 grit wet-sanding on a granite surface plate until the nickel
+    plating was completely removed and bare copper was exposed. Mirror
+    finish. You could read text reflected in the IHS. Intel's factory
+    finish leaves the IHS slightly convex with machine marks — lapping
+    through the nickel to bare copper removes the high spots, eliminates
+    the nickel thermal barrier, and increases contact area with the cooler
+    by 30-40%. The Q6600 at 3.8GHz dropped 8-12°C from lapping alone.
+    That's the difference between "stable on air" and "throttling on air."
 
   i7-4790K Devil's Canyon — DELIDDED + CUSTOM COPPER IHS
     Haswell's TIM was the scandal that launched a thousand delid tools.
@@ -762,12 +765,14 @@ THE DELIDDING DOCTRINE — NO COMPROMISES
     TIM couldn't hold 4.5GHz on water. The custom copper IHS cost $40.
     It bought 300MHz and eliminated the cooling bottleneck entirely.
 
-  i7-6950X Broadwell-E — IHS LAPPED
+  i7-6950X Broadwell-E — IHS LAPPED TO COPPER
     Soldered IHS on HEDT. Can't delid without killing it (the solder
-    bond is structural on the massive 246mm² die). So: lapped. Same
-    granite plate, same progression, same mirror finish. The 6950X at
-    1.42V ran hot — 10 cores at 4.4GHz generates 200W+. Every degree
-    matters. Lapping bought 5-8°C. The difference between "stable at
+    bond is structural on the massive 246mm² die). So: lapped through
+    the nickel plating down to bare copper. Mirror finish. Same granite
+    plate, same progression through grits, same result — raw copper
+    reflecting light like a polished penny. The 6950X at 1.42V ran
+    hot — 10 cores at 4.4GHz generates 200W+. Every degree matters.
+    Lapping to copper bought 5-8°C. The difference between "stable at
     1.42V" and "throttle at 1.42V."
 
   THE RULE: if the IHS comes off, it comes off. If it doesn't come off,
