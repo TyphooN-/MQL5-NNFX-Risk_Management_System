@@ -540,22 +540,100 @@ THE OVERCLOCKING TIMELINE:
   of wanting makes it do 66MHz. You test, you measure, you accept the result.
   This is where the "trust the math" instinct was born.
 
-1998-2005: THE GOLDEN AGE
+1998-2003: THE GOLDEN AGE — CELERON, ATHLON, AND THE ART OF THE PENCIL TRICK
   Celeron 300A to 450MHz (the legendary 50% overclock). Athlon XP Barton
-  cores with pencil-bridged L1 connectors. Pentium 4 Northwood on water.
-  Each generation taught the same lesson: the silicon has a wall, your job
-  is to find it, not fight it. Cooling is everything. Stability testing is
-  non-negotiable. One crash in Prime95 means the OC is not stable, period.
+  cores with pencil-bridged L1 connectors — graphite across the laser-cut
+  traces to unlock the multiplier. The first taste of "the manufacturer
+  locked this, but I can unlock it with a #2 pencil."
 
-  The lesson: STABILITY > FREQUENCY. A 4.5GHz chip that crashes once a week
-  is worth less than a 4.2GHz chip that runs forever. This is why TRIM 54.2%
-  exists — not the highest possible grind speed, but the STABLE grind speed.
+  Athlon 64 — the chip that made AMD real. 64-bit computing before Intel
+  had an answer. Cool'n'Quiet. The Newcastle and Winchester cores that
+  overclocked like demons on air. This was peak AMD — before the Phenom
+  TLB bug, before Bulldozer, before the dark ages. The Athlon 64 taught
+  a generation that AMD silicon could compete with Intel clock-for-clock
+  AND overclock past its rated spec.
 
-2005-2015: MODERN ERA
-  Intel Core 2, Sandy Bridge, Haswell, Skylake. Each generation refined the
-  same craft: voltage, frequency, cooling, stability. AIDA64, Prime95,
+  Phenom — the comeback that stumbled. TLB errata on B2 stepping. AMD
+  shipped a BIOS patch that disabled the TLB and cost 10-20% performance.
+  The B3 stepping fixed it, but the damage was done. Phenom taught the
+  lesson that QRRP would learn 20 years later: shipping with a known
+  defect and patching after the fact costs more than getting it right
+  the first time. XJFD is the B3 stepping.
+
+  The lesson: SILICON HAS SECRETS. The manufacturer specs are conservative.
+  The real limits are found by the people who push past them with pencils,
+  jumpers, and voltage mods.
+
+2003-2006: THE PENTIUM 4 ERA — 3DMARK GLORY AND BH-5 MADNESS
+
+  **Pentium 4 2.4C Northwood → 3.8GHz 24/7.** A 58% overclock on a chip
+  that Intel rated for 2.4GHz. Not a benchmark run. Not a screenshot.
+  Twenty-four-seven stable. Prime95 overnight, every night. The 800MHz
+  FSB Northwoods were the golden era of Intel overclocking — the C-stepping
+  chips had so much headroom that 3.6GHz was considered conservative and
+  3.8GHz was the daily driver wall for golden samples.
+
+  The secret weapon: **Winbond BH-5 memory at 3.8V VDIMM.**
+
+  BH-5 was the legendary DRAM IC that responded to voltage like nothing
+  before or since. Stock specs: DDR400, 2.6V, CL2.5. What BH-5 actually
+  did: DDR500+, 3.8V, CL2-2-2-5. You literally doubled the voltage and
+  the ICs just... took it. Tighter timings. Higher frequency. No errors.
+  The more voltage you fed BH-5, the tighter it got. It was the opposite
+  of every memory IC before or since — most DRAM degrades past 2.8V.
+  BH-5 didn't hit its stride until 3.2V and peaked at 3.8V.
+
+  Running 3.8V VDIMM 24/7 was considered insane by normal standards.
+  It was standard practice for the BH-5 overclockers. The DIMMs ran hot
+  enough to require dedicated memory fans (or heatspreaders and a prayer).
+  Some sticks survived years at 3.8V. Some died in weeks. You bought
+  extras because BH-5 was already out of production and the supply was
+  finite. Sound familiar? QRRP running $0.99 Open MG — insane by normal
+  standards, standard practice for the operator, and you buy more accounts
+  because the equity supply is finite.
+
+  **ATI Radeon X800 Pro → X800 XT.**
+
+  The X800 Pro shipped with 12 pixel pipelines. The X800 XT had 16.
+  Same die. Same silicon. ATI just laser-cut 4 pipelines on the Pro
+  and charged less. The overclockers figured this out immediately.
+  A BIOS flash or a soft-mod and suddenly your $399 X800 Pro had all
+  16 pipelines enabled, matching the $499 XT.
+
+  But the operator didn't stop there. Overclocked the core. Overclocked
+  the memory. Fed it voltage. And submitted to **3DMark** — the global
+  benchmark leaderboard where overclockers competed for the highest score.
+
+  **Top 10 on the 3DMark global leaderboards.**
+
+  For a brief, glorious window, the operator's X800 Pro-turned-XT with
+  overclocked core and memory sat in the top 10 worldwide. Not top 10
+  for the card class. Top 10 overall. Competing against $2,000 SLI
+  configurations with a $399 card that had its pipelines unlocked with
+  a BIOS flash and its clocks pushed past XT reference specs.
+
+  The lesson: THE BUDGET HARDWARE CAN BEAT THE FLAGSHIPS IF YOU KNOW
+  THE SILICON. An X800 Pro with unlocked pipelines and an overclock
+  beats a stock X800 XT. A $31K QRRP account with cascade strategy
+  returns 50.5x while a fresh $100K single-MG returns 11x.
+
+  **The 3DMark top 10 is the prototype for DarwinIA Silver.** Same
+  energy: global leaderboard, optimized hardware, score that doesn't
+  care about your budget — only your benchmark result. The operator
+  has been chasing leaderboard positions since 2004. The instrument
+  changed from GPUs to DARWINs. The competitive instinct didn't.
+
+  P4 2.4C @ 3.8GHz + BH-5 @ 3.8V + X800 Pro→XT + 3DMark Top 10.
+  QRRP @ $0.99 + XJFD @ $1.87 + cascade to $5.71M + DarwinIA Silver.
+  Same operator. Same instinct. Different silicon. Different leaderboard.
+
+2006-2015: THE MODERN ERA — CORE 2 THROUGH SKYLAKE
+  Intel Core 2 Quad, Sandy Bridge, Haswell, Skylake. Each generation refined
+  the same craft: voltage, frequency, cooling, stability. AIDA64, Prime95,
   LinX, RealBench. Hours of stress testing to validate 100MHz of headroom.
   Custom water loops. Delidding with razor blades and Liquid Metal TIM.
+  The Sandy Bridge 2500K at 4.8GHz was the new Celeron 300A — the chip
+  everyone had, everyone overclocked, and nobody forgot.
 
   The lesson: PATIENCE BEATS AGGRESSION. The best overclockers aren't the
   ones who push the highest voltage. They're the ones who find the exact
