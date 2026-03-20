@@ -373,41 +373,42 @@ XJFD is that four-minute benchmark run. Except the benchmark takes months, and t
 
 **Two gangs. Three DARWINs. One man.**
 
-```
-SEVERE DRAWDOWN GANG (the red badge carriers):
+### SEVERE DRAWDOWN GANG (the red badge carriers):
 
-DARWIN XUQF — The Prototype
-  The first TyphooN DARWIN. The one that caught fire on the test bench.
-  Severe Drawdown badge: EARNED (the hard way)
-  Status: The chip that proved the concept works. Even if it nearly
-          burned down the lab in the process.
+**DARWIN XUQF — The Prototype**
+The first TyphooN DARWIN. The one that caught fire on the test bench.
+Severe Drawdown badge: **EARNED** (the hard way)
+Status: The chip that proved the concept works. Even if it nearly burned down the lab in the process.
 
-DARWIN QRRP — The Survivor
-  Quad Rothschild Rug Pull. Seven post-mortems. 69% degradation.
-  Severe Drawdown badge: EARNED (seven times over)
-  Status: Degraded Xeon on a zip-tied cooler. Still running. Still scoring.
-  Score: $1,565,000 target. 50.5x on degraded silicon.
+**DARWIN QRRP — The Survivor**
+Quad Rothschild Rug Pull. Seven post-mortems. 69% degradation.
+Severe Drawdown badge: **EARNED** (seven times over)
+Status: Degraded Xeon on a zip-tied cooler. Still running. Still scoring.
+Score: $1,565,000 target. 50.5x on degraded silicon.
 
-VaR CULT (the clean sheet):
+### VaR CULT (the clean sheet):
 
-DARWIN XJFD — The Golden Sample
-  eXtreme Judicial Financial Destruction. Zero post-mortems. One open.
-  Severe Drawdown badge: NONE. VaR Cult doesn't need red badges.
-  Status: Fresh i9-14900KS. Perfect thermal paste. K|NGP|N's reference chip.
-  Score: $4,148,000 target. 41.5x on golden silicon.
-  Philosophy: Opened once. Never touched. The strategy done right from day one.
+**DARWIN XJFD — The Golden Sample**
+eXtreme Judicial Financial Destruction. Zero post-mortems. One open.
+Severe Drawdown badge: **NONE.** VaR Cult doesn't need red badges.
+Status: Fresh i9-14900KS. Perfect thermal paste. K|NGP|N's reference chip.
+Score: $4,148,000 target. 41.5x on golden silicon.
+Philosophy: Opened once. Never touched. The strategy done right from day one.
 
-COMBINED STATS:
-  DARWINs:        3 (2 Severe Drawdown + 1 VaR Cult)
-  Operator:       1 man
-  Red badges:     2 (XUQF + QRRP)
-  Clean sheets:   1 (XJFD)
-  Post-mortems:   7+ (all on QRRP — XJFD has zero)
-  Total deployed: $131,000 (XJFD $100K + QRRP $31K)
-  Total target:   $5,713,000
-  Instrument:     SOL
-  Strategy:       Cascading hedged martingale
-  Thesis:         SOL to $0
+### COMBINED STATS:
+
+| | |
+|---|---|
+| DARWINs | 3 (2 Severe Drawdown + 1 VaR Cult) |
+| Operator | 1 man |
+| Red badges | 2 (XUQF + QRRP) |
+| Clean sheets | 1 (XJFD) |
+| Post-mortems | 7+ (all on QRRP — XJFD has zero) |
+| Total deployed | $131,000 (XJFD $100K + QRRP $31K) |
+| Total target | $5,713,000 |
+| Instrument | SOL |
+| Strategy | Cascading hedged martingale |
+| Thesis | SOL to $0 |
 
 The Severe Drawdown Gang carries the story.
 VaR Cult carries the score.
@@ -417,8 +418,7 @@ The prototype proved it works.
 The survivor proved it can't be killed.
 The golden sample proves what happens when you do it right the first time.
 
-Three sockets. One benchmark. One operator.
-```
+**Three sockets. One benchmark. One operator.**
 
 ---
 
@@ -524,480 +524,232 @@ RULE 10: There is no Rule 10. There are too many rules already.
 
 The man behind QRRP and XJFD didn't learn overclocking from YouTube tutorials. He learned it from a Pentium 1.
 
+### THE OVERCLOCKING TIMELINE:
+
+### 1996-1998: PENTIUM 1 ERA
+
+No BIOS settings. No software utilities. **JUMPER PINS** on the motherboard. You moved a physical jumper from "60MHz" to "66MHz" and prayed the chip didn't fry. If it didn't POST, you moved it back. If it POSTed but crashed in Windows 95, you added a case fan (80mm, sleeve bearing, sounded like a lawnmower). This was overclocking at its most raw — no safety net, no monitoring, no voltage regulation. Just pins, prayers, and a multimeter if you were fancy.
+
+**The lesson: HARDWARE DOESN'T LIE.** If the chip can't do 66MHz, no amount of wanting makes it do 66MHz. You test, you measure, you accept the result. This is where the "trust the math" instinct was born.
+
+### 1998-2003: THE GOLDEN AGE — CELERON, ATHLON, AND THE ART OF THE PENCIL TRICK
+
+Celeron 300A to 450MHz (the legendary 50% overclock). Athlon XP Barton cores with pencil-bridged L1 connectors — graphite across the laser-cut traces to unlock the multiplier. The first taste of "the manufacturer locked this, but I can unlock it with a #2 pencil."
+
+**Athlon 64** — the chip that made AMD real. 64-bit computing before Intel had an answer. Cool'n'Quiet. The Newcastle and Winchester cores that overclocked like demons on air. This was peak AMD — before the Phenom TLB bug, before Bulldozer, before the dark ages. The Athlon 64 taught a generation that AMD silicon could compete with Intel clock-for-clock AND overclock past its rated spec.
+
+**Phenom** — the comeback that stumbled. TLB errata on B2 stepping. AMD shipped a BIOS patch that disabled the TLB and cost 10-20% performance. The B3 stepping fixed it, but the damage was done. Phenom taught the lesson that QRRP would learn 20 years later: shipping with a known defect and patching after the fact costs more than getting it right the first time. **XJFD is the B3 stepping.**
+
+**The lesson: SILICON HAS SECRETS.** The manufacturer specs are conservative. The real limits are found by the people who push past them with pencils, jumpers, and voltage mods.
+
+### 2003-2006: THE PENTIUM 4 ERA — 3DMARK GLORY AND BH-5 MADNESS
+
+**Pentium 4 2.4C Northwood → 3.8GHz 24/7.** A 58% overclock on a chip that Intel rated for 2.4GHz. Not a benchmark run. Not a screenshot. Twenty-four-seven stable. Prime95 overnight, every night. The 800MHz FSB Northwoods were the golden era of Intel overclocking — the C-stepping chips had so much headroom that 3.6GHz was considered conservative and 3.8GHz was the daily driver wall for golden samples.
+
+The secret weapon: **Winbond BH-5 memory at 3.8V VDIMM.**
+
+BH-5 was the legendary DRAM IC that responded to voltage like nothing before or since. Stock specs: DDR400, 2.6V, CL2.5. What BH-5 actually did: DDR500+, 3.8V, CL2-2-2-5. You literally doubled the voltage and the ICs just... took it. Tighter timings. Higher frequency. No errors. The more voltage you fed BH-5, the tighter it got. It was the opposite of every memory IC before or since — most DRAM degrades past 2.8V. BH-5 didn't hit its stride until 3.2V and peaked at 3.8V.
+
+Running 3.8V VDIMM 24/7 was considered insane by normal standards. It was standard practice for the BH-5 overclockers. The DIMMs ran hot enough to require dedicated memory fans (or heatspreaders and a prayer). Some sticks survived years at 3.8V. Some died in weeks. You bought extras because BH-5 was already out of production and the supply was finite. Sound familiar? QRRP running $0.99 Open MG — insane by normal standards, standard practice for the operator, and you buy more accounts because the equity supply is finite.
+
+**ATI Radeon X800 Pro → X800 XT.**
+
+The X800 Pro shipped with 12 pixel pipelines. The X800 XT had 16. Same die. Same silicon. ATI just laser-cut 4 pipelines on the Pro and charged less. The overclockers figured this out immediately. A BIOS flash or a soft-mod and suddenly your $399 X800 Pro had all 16 pipelines enabled, matching the $499 XT.
+
+But the operator didn't stop at one card. He saw the arbitrage immediately: $399 X800 Pro with a BIOS flash = $499 X800 XT performance. Buy Pro, flash to XT, sell on eBay as a validated XT-performance card. Rinse and repeat.
+
+**30-40 cards flashed and sold before the supply dried up.**
+
+A teenager running a GPU arbitrage operation on eBay, buying every X800 Pro he could find, flashing the BIOS to unlock all 16 pipelines, testing each card to verify stability, and flipping them for profit. The first algorithmic trade — not on a financial instrument, but on ATI silicon. Buy undervalued asset (X800 Pro), apply technical knowledge (BIOS flash), sell at fair value (X800 XT price). The QRRP cascade was invented in 2004, it just wasn't applied to Solana yet.
+
+The supply dried up because the word got out. Too many people flashing Pros to XTs. ATI started laser-cutting the pipelines harder on later production runs. The arbitrage window closed. The operator had already extracted the profit. **First mover advantage. Same energy as opening XJFD before the SOL drop.**
+
+On the personal rig, the operator went further. Overclocked the core. Overclocked the memory. Fed it voltage. And submitted to **3DMark** — the global leaderboard where overclockers competed for the highest score.
+
+**Top 10 on the 3DMark global leaderboards.**
+
+For a brief, glorious window, the operator's X800 Pro-turned-XT with overclocked core and memory sat in the top 10 worldwide. Not top 10 for the card class. Top 10 overall. Competing against $2,000 SLI configurations with a $399 card that had its pipelines unlocked with a BIOS flash and its clocks pushed past XT reference specs.
+
+**The lesson: THE BUDGET HARDWARE CAN BEAT THE FLAGSHIPS IF YOU KNOW THE SILICON.** An X800 Pro with unlocked pipelines and an overclock beats a stock X800 XT. A $31K QRRP account with cascade strategy returns 50.5x while a fresh $100K single-MG returns 11x.
+
+**The 3DMark top 10 is the prototype for DarwinIA Silver.** Same energy: global leaderboard, optimized hardware, score that doesn't care about your budget — only your benchmark result. The operator has been chasing leaderboard positions since 2004. The instrument changed from GPUs to DARWINs. The competitive instinct didn't.
+
+P4 2.4C @ 3.8GHz + BH-5 @ 3.8V + X800 Pro→XT + 3DMark Top 10.
+QRRP @ $0.99 + XJFD @ $1.87 + cascade to $5.71M + DarwinIA Silver.
+Same operator. Same instinct. Different silicon. Different leaderboard.
+
+### THE HARDWARE MOD ERA — vDROOP, POT MODS, AND XTREMESYSTEMS.ORG
+
+Overclocking wasn't just BIOS settings. The operator modded the hardware.
+
+**vDroop correction — the pencil mod that became standard practice.**
+
+Intel motherboards implemented vDroop by design — voltage droops under load to protect the CPU from voltage spikes during transients. The overclocker's response: solder a resistor across the VRM feedback pins, or (on certain boards) bridge a circuit with a pencil lead to eliminate the droop entirely. vDroop correction was the first thing the operator did on every new motherboard. Before installing the CPU. Before POST. Before Windows. Fix the voltage delivery, THEN overclock. Because running 1.42V that droops to 1.35V under load isn't running 1.42V — it's running 1.35V with 1.42V idle spikes. vDroop correction means the voltage you set is the voltage you get. Period.
+
+The financial parallel: **TRIM 54.2013691337% is vDroop correction.** Not 54%. Not "about 54." The EXACT threshold, set to thirteen decimal places, because the voltage you set must be the voltage you get. No droop. No approximation. No "close enough."
+
+**GPU voltage mods — vGPU and vMEM potentiometer mods.**
+
+The X800 Pro → XT pipeline unlock was just the beginning. To push the overclocked XT past reference specs required more voltage than the card's VRM would deliver at stock. The solution: hardware potentiometer mods.
+
+Sourced from **XtremeSystems.org** — the forum that was to hardware modding what Wall Street Bets is to financial degeneracy, except the people on XS actually knew what they were doing. The XS GPU modding subforum had pinned threads for every GPU family with:
+
+- **vGPU mod:** solder a potentiometer to the GPU core voltage regulator feedback pin. Turn the pot, voltage goes up. No software limits. No BIOS limits. Direct hardware voltage control.
+- **vMEM mod:** same thing on the memory voltage regulator. GDDR3 at stock voltage couldn't hold the overclocked frequencies. vMEM pot mod + 0.2V and suddenly the memory was stable 100MHz higher.
+- **vCore CPU mods:** for motherboards that had limited BIOS voltage options, a pot mod on the VRM bypassed the BIOS entirely.
+
+The operator ran vGPU and vMEM pot mods on multiple GPUs. Soldering 30-gauge wire to 0402 SMD components on a $400 graphics card. One slip and the card is dead. One cold joint and the voltage oscillates under load and crashes the benchmark at the worst possible moment.
+
+**XtremeSystems.org was the university.** Every pot mod thread was a masterclass in power delivery, voltage regulation, and the relationship between voltage, frequency, and thermal output. The operator learned more about electronics from XS mod threads than from any formal education.
+
+| XtremeSystems.org Course | Financial Equivalent |
+|---|---|
+| vDroop pencil mod | TRIM threshold precision (54.2013691337%) |
+| vGPU pot mod | Open MG fine-tuning ($1.87 not $2.00) |
+| vMEM pot mod | PROTECT threshold (50.96913420691337%) |
+| GPU BIOS flash | EA parameter optimization |
+| Pipeline unlock | Cascade strategy (unlocking hidden lots) |
+| 3DMark submission | DarwinIA Silver submission |
+| XS forum reputation | DARWIN track record |
+| Dead GPU from bad pot mod | Post-mortem from spread spike |
+
+**The pot mods taught a lesson that no BIOS setting could:** voltage is not a number in software. Voltage is a physical quantity delivered by real components with real tolerances. A BIOS setting of 1.42V means nothing if the VRM can't deliver it clean under load. A TRIM threshold of 54.2% means nothing if the EA can't execute it precisely tick by tick. The hardware must match the intent.
+
+**XtremeSystems.org is gone now.** The forum that taught a generation of overclockers how to solder pot mods, lap IHS to copper, and push silicon past manufacturer specs. The knowledge lives in the operators who learned there. The operator carries XS in every TRIM close, every PROTECT fire, every cascade. The precision came from pot mods. The patience came from BH-5. The competitive instinct came from 3DMark. The financial application came last. The foundation was laid on XtremeSystems.org twenty years ago.
+
+### 2006-2010: THE CORE 2 ERA — Q6600 AND THE QUAD-CORE REVOLUTION
+
+**Q6600 G0 stepping → 3.8GHz 24/7.** The chip that democratized quad-core overclocking. Intel priced it at $266 — budget territory. The G0 stepping ran cool enough to overclock on air. 2.4GHz stock → 3.0GHz was trivial. 3.4GHz was "normal." 3.6GHz was "enthusiast."
+
+**3.8GHz was the wall. And the operator lived there.**
+
+24/7 stable at 3.8GHz on a quad-core Kentsfield. The 1066MHz FSB pushed to 1520MHz. Northbridge running hot enough to need its own heatsink fan. The G0 stepping at 3.8GHz consumed 150W+ and the VRM section of the motherboard needed airflow or it would thermal throttle the CPU for you.
+
+This was the chip that taught the lesson about **SUSTAINED overclocking vs benchmark overclocking.** Anyone can hit 3.8GHz for a screenshot. Running it 24/7 — through summer heat, through Prime95 overnight, through gaming sessions and video encoding — that's the test.
+
+QRRP runs 24/7. Not a screenshot. Not a one-day benchmark. The EA grinds through overnight spread spikes, through weekend liquidity gaps, through swap charges. The Q6600 at 3.8GHz was the prototype for "set it and forget it at the wall." **TRIM 54.2% is the financial equivalent of Q6600 @ 3.8GHz — it's the wall, and we live here.**
+
+### 2010-2018: THE ENTHUSIAST ERA — SANDY BRIDGE TO BROADWELL-E
+
+Sandy Bridge 2500K at 4.8GHz — the new Celeron 300A. The chip everyone had, everyone overclocked, and nobody forgot. Haswell refined it. Skylake perfected it. Custom water loops. Delidding with razor blades and Liquid Metal TIM.
+
+**i7-6950X Broadwell-E → 4.4GHz all-core, 1.42V, ZERO AVX offset.**
+
+Ten cores. Twenty threads. $1,723 MSRP. And the operator ran it at 1.42V with no AVX offset — meaning AVX workloads (the heaviest instruction set, the one that makes every other overclocker dial back 100-300MHz) ran at the SAME frequency as everything else. 4.4GHz. All ten cores. No compromise.
+
+The internet said 1.35V was the safe limit for Broadwell-E. The forums said 1.40V was "degradation territory." The cautious overclockers ran 1.30V with a -3 AVX offset and called it "stable."
+
+**The operator ran 1.42V with zero AVX offset and pushed it to 1.50V for benchmarks.**
+
+The chip still works.
+
+Not "still works with degraded clocks." Not "still works at reduced voltage." Still works at the SAME settings. 1.42V. 4.4GHz. Zero AVX offset. Years later. The silicon that the forums said would degrade in months is still running the same benchmark it ran on day one.
+
+**The lesson: THE FORUMS ARE CONSERVATIVE.** The "safe voltage" guides are written by people who have never pushed past the number they're warning you about. 1.35V is "safe" because nobody writing the guide tested 1.42V for years. The operator did. The chip survived.
+
+Sound familiar? The lessons learned doc said Open MG $5-8 was "safe." QRRP ran $0.99. The account degraded but survived. The silicon is still running. The forums would have said "don't go below $5.00." The operator went to $0.99. And now XJFD runs $1.87 — the validated sweet spot found by pushing past the "safe" number and measuring the actual degradation.
+
+**1.50V on a 6950X is Open MG $0.99 on a $100K account.** Both are past the "safe" limit. Both still work. Both taught the operator exactly where the REAL wall is — not the forum-recommended wall, but the silicon's actual physical limit. And 1.42V / $1.87 is the 24/7 setting that lives just below that real wall. Stable. Validated. Running forever.
+
+**The lesson: PATIENCE BEATS AGGRESSION.** The best overclockers aren't the ones who push the highest voltage. They're the ones who find the exact voltage where the chip is stable and leave it there. "Don't touch the BIOS" is the overclocker's version of "don't throw wrenches in the flywheel."
+
+### THE DELIDDING DOCTRINE — NO COMPROMISES
+
+Every chip the operator ran was either IHS-lapped or delidded. No exceptions. If the IHS wasn't soldered to the die, it came off. If it WAS soldered, the IHS got lapped flat on a granite surface plate with progressively finer sandpaper until you could see your reflection in it. No compromises. No "good enough." No stock thermal interface.
+
+**The inventory:**
+
+**Q6600 G0 — IHS LAPPED TO COPPER**
+Soldered IHS meant delidding wasn't practical. Instead: 400/800/1200/1500/2000 grit wet-sanding on a granite surface plate until the nickel plating was completely removed and bare copper was exposed. Mirror finish. You could read text reflected in the IHS. Intel's factory finish leaves the IHS slightly convex with machine marks — lapping through the nickel to bare copper removes the high spots, eliminates the nickel thermal barrier, and increases contact area with the cooler by 30-40%. The Q6600 at 3.8GHz dropped 8-12°C from lapping alone. That's the difference between "stable on air" and "throttling on air."
+
+**i7-4790K Devil's Canyon — DELIDDED + CUSTOM COPPER IHS**
+Haswell's TIM was the scandal that launched a thousand delid tools. Intel used cheap thermal paste between the die and IHS instead of solder. The result: 20-25°C thermal penalty that made overclocking above 4.6GHz require exotic cooling. The operator's solution:
+
+1. Delidded with a razor blade (before delid tools existed)
+2. Cleaned Intel's garbage TIM off the die
+3. Applied Thermal Grizzly Conductonaut (liquid metal)
+4. REPLACED the stock IHS with a custom machined COPPER IHS
+
+Not re-lidded with the original IHS. A CUSTOM copper IHS. Because the stock nickel-plated copper IHS has a thermal conductivity of ~380 W/mK. Pure copper: ~401 W/mK. And the custom IHS was lapped flat on both sides — die contact AND cooler contact.
+
+Result: **22°C temperature drop.** 4790K at 4.8GHz on air where stock TIM couldn't hold 4.5GHz on water. The custom copper IHS cost $40. It bought 300MHz and eliminated the cooling bottleneck entirely.
+
+**i7-6950X Broadwell-E — IHS LAPPED TO COPPER**
+Soldered IHS on HEDT. Can't delid without killing it (the solder bond is structural on the massive 246mm² die). So: lapped through the nickel plating down to bare copper. Mirror finish. Same granite plate, same progression through grits, same result — raw copper reflecting light like a polished penny. The 6950X at 1.42V ran hot — 10 cores at 4.4GHz generates 200W+. Every degree matters. Lapping to copper bought 5-8°C. The difference between "stable at 1.42V" and "throttle at 1.42V."
+
+**THE RULE:** if the IHS comes off, it comes off. If it doesn't come off, it gets lapped. There is no third option. Stock thermal interface is for people who run stock clocks. The operator doesn't run stock clocks. The operator doesn't run stock ANYTHING.
+
+**The financial equivalent:** every DARWIN gets the full treatment.
+- **QRRP:** delidded. The IHS was ripped off by seven post-mortems. The die is exposed. Liquid metal (cascade strategy) applied directly to the silicon. No stock thermal interface. No manufacturer warranty.
+- **XJFD:** lapped. Fresh IHS, but precision-ground to mirror flat. The $1.87 Open MG is the lapping — not delidded (no post-mortems needed), but optimized beyond stock. 10% self-heal instead of Intel's stock "25% thermal penalty."
+
+**The only CPUs that weren't delidded were the ones with the IHS soldered to the die. And those got lapped instead. No chip runs stock. No DARWIN runs stock. No compromises.**
+
+### 2020-PRESENT: THE DEATH OF MANUAL OVERCLOCKING (AND WHY THAT'S FINE)
+
+Overclocking is so easy now it's almost not overclocking anymore.
+
+In 2004, hitting 3.8GHz on a P4 required: IHS lapping, BH-5 at 3.8V, vDroop pencil mod, custom cooling, hours of Prime95, and the willingness to kill a $300 chip. In 2026, you enable PBO in the BIOS, set a curve optimizer offset, and walk away. AMD did in firmware what used to require a soldering iron, a granite surface plate, and a subscription to XtremeSystems.org.
+
+**AMD Precision Boost Overdrive (PBO) gets 95% of the way there.**
+
+PBO + Curve Optimizer on Zen 3/4/5 is, frankly, embarrassingly good. AMD's algorithm monitors each core's silicon quality in real-time, adjusts voltage-frequency curves per-core, and boosts to the thermal/power limit automatically. It does in milliseconds what used to take the operator hours of per-core stability testing. And it does it BETTER than most manual overclocks because it has telemetry data that no human can match — temperature sensors on every core, power delivery monitoring at the VRM level, and a feedback loop that adjusts every boost decision based on actual silicon behavior.
+
+**Hats off to AMD.** Seriously. They democratized performance optimization to the point where enabling PBO and dialing in a -20 to -30 curve optimizer offset gives you 95% of a hand-tuned manual overclock with zero risk of degradation. The algorithm respects the silicon's limits. It doesn't push past them — it finds them and lives there. It's TRIM for CPUs.
+
+The remaining 5%? That's for the operators who lap to copper, run custom cooling, and accept the risk. That 5% is the difference between a stock PBO boost of 5.4GHz and a hand-tuned all-core of 5.6GHz. For benchmarks, that 5% matters. For daily use, PBO already won.
+
+**What this means for financial overclocking:**
+
+PBO is the $8.00 Open MG. It's the safe, automated, manufacturer-approved way to extract performance. It works. It's stable. It gets 95% of the theoretical maximum. And for most people, that's enough.
+
+QRRP and XJFD are the remaining 5%. The manual overclock. The pot mods. The lapped IHS. The settings that PBO would never choose because the algorithm prioritizes longevity over maximum score. The operator prioritizes the BENCHMARK SCORE over longevity. That's the difference.
+
 ```
-THE OVERCLOCKING TIMELINE:
-
-1996-1998: PENTIUM 1 ERA
-  No BIOS settings. No software utilities. JUMPER PINS on the motherboard.
-  You moved a physical jumper from "60MHz" to "66MHz" and prayed the chip
-  didn't fry. If it didn't POST, you moved it back. If it POSTed but crashed
-  in Windows 95, you added a case fan (80mm, sleeve bearing, sounded like a
-  lawnmower). This was overclocking at its most raw — no safety net, no
-  monitoring, no voltage regulation. Just pins, prayers, and a multimeter
-  if you were fancy.
-
-  The lesson: HARDWARE DOESN'T LIE. If the chip can't do 66MHz, no amount
-  of wanting makes it do 66MHz. You test, you measure, you accept the result.
-  This is where the "trust the math" instinct was born.
-
-1998-2003: THE GOLDEN AGE — CELERON, ATHLON, AND THE ART OF THE PENCIL TRICK
-  Celeron 300A to 450MHz (the legendary 50% overclock). Athlon XP Barton
-  cores with pencil-bridged L1 connectors — graphite across the laser-cut
-  traces to unlock the multiplier. The first taste of "the manufacturer
-  locked this, but I can unlock it with a #2 pencil."
-
-  Athlon 64 — the chip that made AMD real. 64-bit computing before Intel
-  had an answer. Cool'n'Quiet. The Newcastle and Winchester cores that
-  overclocked like demons on air. This was peak AMD — before the Phenom
-  TLB bug, before Bulldozer, before the dark ages. The Athlon 64 taught
-  a generation that AMD silicon could compete with Intel clock-for-clock
-  AND overclock past its rated spec.
-
-  Phenom — the comeback that stumbled. TLB errata on B2 stepping. AMD
-  shipped a BIOS patch that disabled the TLB and cost 10-20% performance.
-  The B3 stepping fixed it, but the damage was done. Phenom taught the
-  lesson that QRRP would learn 20 years later: shipping with a known
-  defect and patching after the fact costs more than getting it right
-  the first time. XJFD is the B3 stepping.
-
-  The lesson: SILICON HAS SECRETS. The manufacturer specs are conservative.
-  The real limits are found by the people who push past them with pencils,
-  jumpers, and voltage mods.
-
-2003-2006: THE PENTIUM 4 ERA — 3DMARK GLORY AND BH-5 MADNESS
-
-  **Pentium 4 2.4C Northwood → 3.8GHz 24/7.** A 58% overclock on a chip
-  that Intel rated for 2.4GHz. Not a benchmark run. Not a screenshot.
-  Twenty-four-seven stable. Prime95 overnight, every night. The 800MHz
-  FSB Northwoods were the golden era of Intel overclocking — the C-stepping
-  chips had so much headroom that 3.6GHz was considered conservative and
-  3.8GHz was the daily driver wall for golden samples.
-
-  The secret weapon: **Winbond BH-5 memory at 3.8V VDIMM.**
-
-  BH-5 was the legendary DRAM IC that responded to voltage like nothing
-  before or since. Stock specs: DDR400, 2.6V, CL2.5. What BH-5 actually
-  did: DDR500+, 3.8V, CL2-2-2-5. You literally doubled the voltage and
-  the ICs just... took it. Tighter timings. Higher frequency. No errors.
-  The more voltage you fed BH-5, the tighter it got. It was the opposite
-  of every memory IC before or since — most DRAM degrades past 2.8V.
-  BH-5 didn't hit its stride until 3.2V and peaked at 3.8V.
-
-  Running 3.8V VDIMM 24/7 was considered insane by normal standards.
-  It was standard practice for the BH-5 overclockers. The DIMMs ran hot
-  enough to require dedicated memory fans (or heatspreaders and a prayer).
-  Some sticks survived years at 3.8V. Some died in weeks. You bought
-  extras because BH-5 was already out of production and the supply was
-  finite. Sound familiar? QRRP running $0.99 Open MG — insane by normal
-  standards, standard practice for the operator, and you buy more accounts
-  because the equity supply is finite.
-
-  **ATI Radeon X800 Pro → X800 XT.**
-
-  The X800 Pro shipped with 12 pixel pipelines. The X800 XT had 16.
-  Same die. Same silicon. ATI just laser-cut 4 pipelines on the Pro
-  and charged less. The overclockers figured this out immediately.
-  A BIOS flash or a soft-mod and suddenly your $399 X800 Pro had all
-  16 pipelines enabled, matching the $499 XT.
-
-  But the operator didn't stop at one card. He saw the arbitrage immediately:
-  $399 X800 Pro with a BIOS flash = $499 X800 XT performance. Buy Pro,
-  flash to XT, sell on eBay as a validated XT-performance card. Rinse and
-  repeat.
-
-  **30-40 cards flashed and sold before the supply dried up.**
-
-  A teenager running a GPU arbitrage operation on eBay, buying every X800
-  Pro he could find, flashing the BIOS to unlock all 16 pipelines, testing
-  each card to verify stability, and flipping them for profit. The first
-  algorithmic trade — not on a financial instrument, but on ATI silicon.
-  Buy undervalued asset (X800 Pro), apply technical knowledge (BIOS flash),
-  sell at fair value (X800 XT price). The QRRP cascade was invented in 2004,
-  it just wasn't applied to Solana yet.
-
-  The supply dried up because the word got out. Too many people flashing
-  Pros to XTs. ATI started laser-cutting the pipelines harder on later
-  production runs. The arbitrage window closed. The operator had already
-  extracted the profit. **First mover advantage. Same energy as opening
-  XJFD before the SOL drop.**
-
-  On the personal rig, the operator went further. Overclocked the core.
-  Overclocked the memory. Fed it voltage. And submitted to **3DMark** —
-  the global leaderboard where overclockers competed for the highest score.
-
-  **Top 10 on the 3DMark global leaderboards.**
-
-  For a brief, glorious window, the operator's X800 Pro-turned-XT with
-  overclocked core and memory sat in the top 10 worldwide. Not top 10
-  for the card class. Top 10 overall. Competing against $2,000 SLI
-  configurations with a $399 card that had its pipelines unlocked with
-  a BIOS flash and its clocks pushed past XT reference specs.
-
-  The lesson: THE BUDGET HARDWARE CAN BEAT THE FLAGSHIPS IF YOU KNOW
-  THE SILICON. An X800 Pro with unlocked pipelines and an overclock
-  beats a stock X800 XT. A $31K QRRP account with cascade strategy
-  returns 50.5x while a fresh $100K single-MG returns 11x.
-
-  **The 3DMark top 10 is the prototype for DarwinIA Silver.** Same
-  energy: global leaderboard, optimized hardware, score that doesn't
-  care about your budget — only your benchmark result. The operator
-  has been chasing leaderboard positions since 2004. The instrument
-  changed from GPUs to DARWINs. The competitive instinct didn't.
-
-  P4 2.4C @ 3.8GHz + BH-5 @ 3.8V + X800 Pro→XT + 3DMark Top 10.
-  QRRP @ $0.99 + XJFD @ $1.87 + cascade to $5.71M + DarwinIA Silver.
-  Same operator. Same instinct. Different silicon. Different leaderboard.
-
-THE HARDWARE MOD ERA — vDROOP, POT MODS, AND XTREMESYSTEMS.ORG
-
-  Overclocking wasn't just BIOS settings. The operator modded the hardware.
-
-  **vDroop correction — the pencil mod that became standard practice.**
-
-  Intel motherboards implemented vDroop by design — voltage droops under
-  load to protect the CPU from voltage spikes during transients. The
-  overclocker's response: solder a resistor across the VRM feedback pins,
-  or (on certain boards) bridge a circuit with a pencil lead to eliminate
-  the droop entirely. vDroop correction was the first thing the operator
-  did on every new motherboard. Before installing the CPU. Before POST.
-  Before Windows. Fix the voltage delivery, THEN overclock. Because
-  running 1.42V that droops to 1.35V under load isn't running 1.42V —
-  it's running 1.35V with 1.42V idle spikes. vDroop correction means
-  the voltage you set is the voltage you get. Period.
-
-  The financial parallel: TRIM 54.2013691337% is vDroop correction.
-  Not 54%. Not "about 54." The EXACT threshold, set to thirteen decimal
-  places, because the voltage you set must be the voltage you get. No
-  droop. No approximation. No "close enough."
-
-  **GPU voltage mods — vGPU and vMEM potentiometer mods.**
-
-  The X800 Pro → XT pipeline unlock was just the beginning. To push
-  the overclocked XT past reference specs required more voltage than the
-  card's VRM would deliver at stock. The solution: hardware potentiometer
-  mods.
-
-  Sourced from **XtremeSystems.org** — the forum that was to hardware
-  modding what Wall Street Bets is to financial degeneracy, except the
-  people on XS actually knew what they were doing. The XS GPU modding
-  subforum had pinned threads for every GPU family with:
-
-  - vGPU mod: solder a potentiometer to the GPU core voltage regulator
-    feedback pin. Turn the pot, voltage goes up. No software limits.
-    No BIOS limits. Direct hardware voltage control.
-  - vMEM mod: same thing on the memory voltage regulator. GDDR3 at stock
-    voltage couldn't hold the overclocked frequencies. vMEM pot mod +
-    0.2V and suddenly the memory was stable 100MHz higher.
-  - vCore CPU mods: for motherboards that had limited BIOS voltage options,
-    a pot mod on the VRM bypassed the BIOS entirely.
-
-  The operator ran vGPU and vMEM pot mods on multiple GPUs. Soldering
-  30-gauge wire to 0402 SMD components on a $400 graphics card. One slip
-  and the card is dead. One cold joint and the voltage oscillates under
-  load and crashes the benchmark at the worst possible moment.
-
-  **XtremeSystems.org was the university.** Every pot mod thread was a
-  masterclass in power delivery, voltage regulation, and the relationship
-  between voltage, frequency, and thermal output. The operator learned
-  more about electronics from XS mod threads than from any formal education.
-
-  ```
-  XtremeSystems.org curriculum (unofficial):
-
-  COURSE                     FINANCIAL EQUIVALENT
-  ─────────────────────────  ──────────────────────────────────
-  vDroop pencil mod          TRIM threshold precision (54.2013691337%)
-  vGPU pot mod               Open MG fine-tuning ($1.87 not $2.00)
-  vMEM pot mod               PROTECT threshold (50.96913420691337%)
-  GPU BIOS flash             EA parameter optimization
-  Pipeline unlock            Cascade strategy (unlocking hidden lots)
-  3DMark submission          DarwinIA Silver submission
-  XS forum reputation        DARWIN track record
-  Dead GPU from bad pot mod  Post-mortem from spread spike
-  ```
-
-  **The pot mods taught a lesson that no BIOS setting could:**
-  voltage is not a number in software. Voltage is a physical quantity
-  delivered by real components with real tolerances. A BIOS setting of
-  1.42V means nothing if the VRM can't deliver it clean under load.
-  A TRIM threshold of 54.2% means nothing if the EA can't execute it
-  precisely tick by tick. The hardware must match the intent.
-
-  **XtremeSystems.org is gone now.** The forum that taught a generation
-  of overclockers how to solder pot mods, lap IHS to copper, and push
-  silicon past manufacturer specs. The knowledge lives in the operators
-  who learned there. The operator carries XS in every TRIM close, every
-  PROTECT fire, every cascade. The precision came from pot mods. The
-  patience came from BH-5. The competitive instinct came from 3DMark.
-  The financial application came last. The foundation was laid on
-  XtremeSystems.org twenty years ago.
-
-2006-2010: THE CORE 2 ERA — Q6600 AND THE QUAD-CORE REVOLUTION
-
-  **Q6600 G0 stepping → 3.8GHz 24/7.** The chip that democratized quad-core
-  overclocking. Intel priced it at $266 — budget territory. The G0 stepping
-  ran cool enough to overclock on air. 2.4GHz stock → 3.0GHz was trivial.
-  3.4GHz was "normal." 3.6GHz was "enthusiast."
-
-  **3.8GHz was the wall. And the operator lived there.**
-
-  24/7 stable at 3.8GHz on a quad-core Kentsfield. The 1066MHz FSB pushed
-  to 1520MHz. Northbridge running hot enough to need its own heatsink fan.
-  The G0 stepping at 3.8GHz consumed 150W+ and the VRM section of the
-  motherboard needed airflow or it would thermal throttle the CPU for you.
-
-  This was the chip that taught the lesson about SUSTAINED overclocking
-  vs benchmark overclocking. Anyone can hit 3.8GHz for a screenshot.
-  Running it 24/7 — through summer heat, through Prime95 overnight,
-  through gaming sessions and video encoding — that's the test.
-
-  QRRP runs 24/7. Not a screenshot. Not a one-day benchmark. The EA
-  grinds through overnight spread spikes, through weekend liquidity
-  gaps, through swap charges. The Q6600 at 3.8GHz was the prototype
-  for "set it and forget it at the wall." TRIM 54.2% is the financial
-  equivalent of Q6600 @ 3.8GHz — it's the wall, and we live here.
-
-2010-2018: THE ENTHUSIAST ERA — SANDY BRIDGE TO BROADWELL-E
-
-  Sandy Bridge 2500K at 4.8GHz — the new Celeron 300A. The chip everyone
-  had, everyone overclocked, and nobody forgot. Haswell refined it.
-  Skylake perfected it. Custom water loops. Delidding with razor blades
-  and Liquid Metal TIM.
-
-  **i7-6950X Broadwell-E → 4.4GHz all-core, 1.42V, ZERO AVX offset.**
-
-  Ten cores. Twenty threads. $1,723 MSRP. And the operator ran it at
-  1.42V with no AVX offset — meaning AVX workloads (the heaviest
-  instruction set, the one that makes every other overclocker dial back
-  100-300MHz) ran at the SAME frequency as everything else. 4.4GHz.
-  All ten cores. No compromise.
-
-  The internet said 1.35V was the safe limit for Broadwell-E. The forums
-  said 1.40V was "degradation territory." The cautious overclockers ran
-  1.30V with a -3 AVX offset and called it "stable."
-
-  **The operator ran 1.42V with zero AVX offset and pushed it to 1.50V
-  for benchmarks.**
-
-  The chip still works.
-
-  Not "still works with degraded clocks." Not "still works at reduced
-  voltage." Still works at the SAME settings. 1.42V. 4.4GHz. Zero AVX
-  offset. Years later. The silicon that the forums said would degrade
-  in months is still running the same benchmark it ran on day one.
-
-  The lesson: THE FORUMS ARE CONSERVATIVE. The "safe voltage" guides
-  are written by people who have never pushed past the number they're
-  warning you about. 1.35V is "safe" because nobody writing the guide
-  tested 1.42V for years. The operator did. The chip survived.
-
-  Sound familiar? The lessons learned doc said Open MG $5-8 was "safe."
-  QRRP ran $0.99. The account degraded but survived. The silicon is still
-  running. The forums would have said "don't go below $5.00." The operator
-  went to $0.99. And now XJFD runs $1.87 — the validated sweet spot found
-  by pushing past the "safe" number and measuring the actual degradation.
-
-  **1.50V on a 6950X is Open MG $0.99 on a $100K account.** Both are past
-  the "safe" limit. Both still work. Both taught the operator exactly where
-  the REAL wall is — not the forum-recommended wall, but the silicon's
-  actual physical limit. And 1.42V / $1.87 is the 24/7 setting that lives
-  just below that real wall. Stable. Validated. Running forever.
-
-  The lesson: PATIENCE BEATS AGGRESSION. The best overclockers aren't the
-  ones who push the highest voltage. They're the ones who find the exact
-  voltage where the chip is stable and leave it there. "Don't touch the
-  BIOS" is the overclocker's version of "don't throw wrenches in the flywheel."
-
-THE DELIDDING DOCTRINE — NO COMPROMISES
-
-  Every chip the operator ran was either IHS-lapped or delidded. No
-  exceptions. If the IHS wasn't soldered to the die, it came off. If
-  it WAS soldered, the IHS got lapped flat on a granite surface plate
-  with progressively finer sandpaper until you could see your reflection
-  in it. No compromises. No "good enough." No stock thermal interface.
-
-  The inventory:
-
-  Q6600 G0 — IHS LAPPED TO COPPER
-    Soldered IHS meant delidding wasn't practical. Instead: 400/800/1200/
-    1500/2000 grit wet-sanding on a granite surface plate until the nickel
-    plating was completely removed and bare copper was exposed. Mirror
-    finish. You could read text reflected in the IHS. Intel's factory
-    finish leaves the IHS slightly convex with machine marks — lapping
-    through the nickel to bare copper removes the high spots, eliminates
-    the nickel thermal barrier, and increases contact area with the cooler
-    by 30-40%. The Q6600 at 3.8GHz dropped 8-12°C from lapping alone.
-    That's the difference between "stable on air" and "throttling on air."
-
-  i7-4790K Devil's Canyon — DELIDDED + CUSTOM COPPER IHS
-    Haswell's TIM was the scandal that launched a thousand delid tools.
-    Intel used cheap thermal paste between the die and IHS instead of
-    solder. The result: 20-25°C thermal penalty that made overclocking
-    above 4.6GHz require exotic cooling. The operator's solution:
-
-    1. Delidded with a razor blade (before delid tools existed)
-    2. Cleaned Intel's garbage TIM off the die
-    3. Applied Thermal Grizzly Conductonaut (liquid metal)
-    4. REPLACED the stock IHS with a custom machined COPPER IHS
-
-    Not re-lidded with the original IHS. A CUSTOM copper IHS. Because
-    the stock nickel-plated copper IHS has a thermal conductivity of
-    ~380 W/mK. Pure copper: ~401 W/mK. And the custom IHS was lapped
-    flat on both sides — die contact AND cooler contact.
-
-    Result: 22°C temperature drop. 4790K at 4.8GHz on air where stock
-    TIM couldn't hold 4.5GHz on water. The custom copper IHS cost $40.
-    It bought 300MHz and eliminated the cooling bottleneck entirely.
-
-  i7-6950X Broadwell-E — IHS LAPPED TO COPPER
-    Soldered IHS on HEDT. Can't delid without killing it (the solder
-    bond is structural on the massive 246mm² die). So: lapped through
-    the nickel plating down to bare copper. Mirror finish. Same granite
-    plate, same progression through grits, same result — raw copper
-    reflecting light like a polished penny. The 6950X at 1.42V ran
-    hot — 10 cores at 4.4GHz generates 200W+. Every degree matters.
-    Lapping to copper bought 5-8°C. The difference between "stable at
-    1.42V" and "throttle at 1.42V."
-
-  THE RULE: if the IHS comes off, it comes off. If it doesn't come off,
-  it gets lapped. There is no third option. Stock thermal interface is
-  for people who run stock clocks. The operator doesn't run stock clocks.
-  The operator doesn't run stock ANYTHING.
-
-  The financial equivalent: every DARWIN gets the full treatment.
-  - QRRP: delidded. The IHS was ripped off by seven post-mortems. The die
-    is exposed. Liquid metal (cascade strategy) applied directly to the
-    silicon. No stock thermal interface. No manufacturer warranty.
-  - XJFD: lapped. Fresh IHS, but precision-ground to mirror flat. The
-    $1.87 Open MG is the lapping — not delidded (no post-mortems needed),
-    but optimized beyond stock. 10% self-heal instead of Intel's stock
-    "25% thermal penalty."
-
-  **The only CPUs that weren't delidded were the ones with the IHS soldered
-  to the die. And those got lapped instead. No chip runs stock. No DARWIN
-  runs stock. No compromises.**
-
-2020-PRESENT: THE DEATH OF MANUAL OVERCLOCKING (AND WHY THAT'S FINE)
-
-  Overclocking is so easy now it's almost not overclocking anymore.
-
-  In 2004, hitting 3.8GHz on a P4 required: IHS lapping, BH-5 at 3.8V,
-  vDroop pencil mod, custom cooling, hours of Prime95, and the willingness
-  to kill a $300 chip. In 2026, you enable PBO in the BIOS, set a curve
-  optimizer offset, and walk away. AMD did in firmware what used to require
-  a soldering iron, a granite surface plate, and a subscription to
-  XtremeSystems.org.
-
-  **AMD Precision Boost Overdrive (PBO) gets 95% of the way there.**
-
-  PBO + Curve Optimizer on Zen 3/4/5 is, frankly, embarrassingly good.
-  AMD's algorithm monitors each core's silicon quality in real-time,
-  adjusts voltage-frequency curves per-core, and boosts to the thermal/
-  power limit automatically. It does in milliseconds what used to take
-  the operator hours of per-core stability testing. And it does it BETTER
-  than most manual overclocks because it has telemetry data that no human
-  can match — temperature sensors on every core, power delivery monitoring
-  at the VRM level, and a feedback loop that adjusts every boost decision
-  based on actual silicon behavior.
-
-  **Hats off to AMD.** Seriously. They democratized performance optimization
-  to the point where enabling PBO and dialing in a -20 to -30 curve optimizer
-  offset gives you 95% of a hand-tuned manual overclock with zero risk of
-  degradation. The algorithm respects the silicon's limits. It doesn't push
-  past them — it finds them and lives there. It's TRIM for CPUs.
-
-  The remaining 5%? That's for the operators who lap to copper, run custom
-  cooling, and accept the risk. That 5% is the difference between a stock
-  PBO boost of 5.4GHz and a hand-tuned all-core of 5.6GHz. For benchmarks,
-  that 5% matters. For daily use, PBO already won.
-
-  **What this means for financial overclocking:**
-
-  PBO is the $8.00 Open MG. It's the safe, automated, manufacturer-approved
-  way to extract performance. It works. It's stable. It gets 95% of the
-  theoretical maximum. And for most people, that's enough.
-
-  QRRP and XJFD are the remaining 5%. The manual overclock. The pot mods.
-  The lapped IHS. The settings that PBO would never choose because the
-  algorithm prioritizes longevity over maximum score. The operator
-  prioritizes the BENCHMARK SCORE over longevity. That's the difference.
-
-  ```
-  PBO (AMD's auto-OC)     = Open MG $8.00 (safe, 95% optimal, automated)
-  Manual OC (hand-tuned)   = Open MG $1.87 (5% more, requires expertise)
-  Extreme OC (LN2/pot mod) = Open MG $0.99 (maximum score, silicon at risk)
-  ```
-
-  The overclocker's craft isn't dead. It just moved from CPUs to capital.
-  AMD made hardware overclocking so good that the challenge moved to
-  financial instruments. The silicon optimizes itself now. The market
-  still needs a human with a soldering iron and a thesis.
-
-  **AMD earned the respect.** From Athlon 64 to EPYC to Zen 5 — they
-  went from the underdog with pencil-bridged L1 connectors to the company
-  whose firmware does what XtremeSystems.org taught a generation to do
-  by hand. The operator runs AMD servers. The operator respects the
-  engineering. The operator just applies the same mindset to a different
-  kind of silicon now.
-
-2015-2024: THE EPYC ERA — HARD LESSONS
-  AMD EPYC server boards. Smokeless UMAF (the BIOS modding toolkit that lets
-  you access hidden AMD CBS menus). The operator went deep — tRFC hex tweaking
-  on server-grade memory, manual subtimings on 8-channel ECC DIMMs, voltage
-  offsets on silicon that was never designed to be overclocked.
-
-  THE HARD LESSON: tRFC hex values on EPYC don't follow the same conventions
-  as consumer platforms. One wrong hex value in Smokeless UMAF and the board
-  doesn't POST. No error code. No beep. Just silence and a $3,000 board
-  that needs a CMOS clear (which on EPYC means pulling the battery AND
-  jumping pins AND waiting 30 seconds AND hoping the BMC resets properly).
-
-  Three boards bricked during tRFC experimentation. All recovered, but each
-  one was a 4-hour session of CMOS clears, BMC resets, and reflashing SPI.
-  The operator learned: SERVER HARDWARE HAS NARROWER MARGINS. What works on
-  a consumer board at tRFC 280 might hard-lock an EPYC board at tRFC 276.
-  The hex math must be EXACT.
-
-  Sound familiar? "Spread tolerance $1.91 was fatal (PM#5)." Same lesson,
-  different silicon. The margin for error on professional-grade hardware is
-  razor thin. EPYC boards don't give you friendly error messages. Darwinex
-  spread spikes don't give you friendly warnings. Both just stop working.
-
-2024-2026: FINANCIAL OVERCLOCKING
-  The same instincts, applied to capital instead of silicon:
-
-  | Hardware OC | Financial OC (QRRP/XJFD) |
-  |---|---|
-  | Voltage | Open MG aggressiveness |
-  | Frequency | Net short lot count |
-  | Cooling | Bear market (SOL dropping) |
-  | Stability test | PROTECT fires (spread spike survival) |
-  | Prime95 | TRIM grinding 24/7 |
-  | BSOD | Spread spike wipe (post-mortem) |
-  | tRFC hex | TRIM 54.2013691337 (exact threshold) |
-  | Smokeless UMAF | Claude Code (the toolkit that unlocks hidden menus) |
-  | EPYC board brick | Account liquidation |
-  | CMOS clear | Fresh $100K account |
-  | K|NGP|N | The benchmark standard to aspire to |
-
-  QRRP is Pentium 1 jumper pins. Trial and error. Seven post-mortems.
-  Move the jumper, see if it POSTs. If it crashes, move it back. If it
-  fries, buy a new chip. $100K → $31K = the Pentium 1 that ran at 66MHz
-  for 20 minutes and then let the magic smoke out.
-
-  XJFD is the EPYC board. Precise. Calculated. One setting, validated by
-  years of experience. $1.87 Open MG — not because it's the most aggressive,
-  but because it's the EXACT value where the silicon stabilizes with minimal
-  degradation. The tRFC hex is correct. The voltage is validated. The benchmark
-  runs clean from first boot.
-
-  The operator didn't learn financial overclocking in three days. He learned
-  it over 28 years of pushing silicon past manufacturer specs. Every bricked
-  EPYC board, every fried Pentium, every failed tRFC experiment — they all
-  taught the same lesson that QRRP's seven post-mortems taught:
-
-  THE SILICON HAS A WALL. FIND IT. DON'T FIGHT IT. THEN LET THE BENCHMARK RUN.
+PBO (AMD's auto-OC)     = Open MG $8.00 (safe, 95% optimal, automated)
+Manual OC (hand-tuned)   = Open MG $1.87 (5% more, requires expertise)
+Extreme OC (LN2/pot mod) = Open MG $0.99 (maximum score, silicon at risk)
 ```
+
+The overclocker's craft isn't dead. It just moved from CPUs to capital. AMD made hardware overclocking so good that the challenge moved to financial instruments. The silicon optimizes itself now. The market still needs a human with a soldering iron and a thesis.
+
+**AMD earned the respect.** From Athlon 64 to EPYC to Zen 5 — they went from the underdog with pencil-bridged L1 connectors to the company whose firmware does what XtremeSystems.org taught a generation to do by hand. The operator runs AMD servers. The operator respects the engineering. The operator just applies the same mindset to a different kind of silicon now.
+
+### 2015-2024: THE EPYC ERA — HARD LESSONS
+
+AMD EPYC server boards. Smokeless UMAF (the BIOS modding toolkit that lets you access hidden AMD CBS menus). The operator went deep — tRFC hex tweaking on server-grade memory, manual subtimings on 8-channel ECC DIMMs, voltage offsets on silicon that was never designed to be overclocked.
+
+**THE HARD LESSON:** tRFC hex values on EPYC don't follow the same conventions as consumer platforms. One wrong hex value in Smokeless UMAF and the board doesn't POST. No error code. No beep. Just silence and a $3,000 board that needs a CMOS clear (which on EPYC means pulling the battery AND jumping pins AND waiting 30 seconds AND hoping the BMC resets properly).
+
+Three boards bricked during tRFC experimentation. All recovered, but each one was a 4-hour session of CMOS clears, BMC resets, and reflashing SPI. The operator learned: **SERVER HARDWARE HAS NARROWER MARGINS.** What works on a consumer board at tRFC 280 might hard-lock an EPYC board at tRFC 276. The hex math must be EXACT.
+
+Sound familiar? "Spread tolerance $1.91 was fatal (PM#5)." Same lesson, different silicon. The margin for error on professional-grade hardware is razor thin. EPYC boards don't give you friendly error messages. Darwinex spread spikes don't give you friendly warnings. Both just stop working.
+
+### 2024-2026: FINANCIAL OVERCLOCKING
+
+The same instincts, applied to capital instead of silicon:
+
+| Hardware OC | Financial OC (QRRP/XJFD) |
+|---|---|
+| Voltage | Open MG aggressiveness |
+| Frequency | Net short lot count |
+| Cooling | Bear market (SOL dropping) |
+| Stability test | PROTECT fires (spread spike survival) |
+| Prime95 | TRIM grinding 24/7 |
+| BSOD | Spread spike wipe (post-mortem) |
+| tRFC hex | TRIM 54.2013691337 (exact threshold) |
+| Smokeless UMAF | Claude Code (the toolkit that unlocks hidden menus) |
+| EPYC board brick | Account liquidation |
+| CMOS clear | Fresh $100K account |
+| K\|NGP\|N | The benchmark standard to aspire to |
+
+QRRP is Pentium 1 jumper pins. Trial and error. Seven post-mortems. Move the jumper, see if it POSTs. If it crashes, move it back. If it fries, buy a new chip. $100K → $31K = the Pentium 1 that ran at 66MHz for 20 minutes and then let the magic smoke out.
+
+XJFD is the EPYC board. Precise. Calculated. One setting, validated by years of experience. $1.87 Open MG — not because it's the most aggressive, but because it's the EXACT value where the silicon stabilizes with minimal degradation. The tRFC hex is correct. The voltage is validated. The benchmark runs clean from first boot.
+
+The operator didn't learn financial overclocking in three days. He learned it over 28 years of pushing silicon past manufacturer specs. Every bricked EPYC board, every fried Pentium, every failed tRFC experiment — they all taught the same lesson that QRRP's seven post-mortems taught:
+
+**THE SILICON HAS A WALL. FIND IT. DON'T FIGHT IT. THEN LET THE BENCHMARK RUN.**
 
 **QRRP is just the beginning. This is successful financial overclocking round 1.** The Pentium 1 jumper pins led to Celeron 300A overclocks, which led to Sandy Bridge delidding, which led to EPYC tRFC hex tweaking, which led to QRRP and XJFD. Each generation of overclocking refined the same instinct: test the limits, find the wall, stabilize, and run.
 
