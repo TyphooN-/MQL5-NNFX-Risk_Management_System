@@ -20,7 +20,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "https://www.marketwizardry.org/"
-#property version   "1.420"
+#property version   "1.425"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -96,6 +96,9 @@ bool EquityTPCalled = false,
      EquitySLCalled = false, breakEvenFoundLong = false, breakEvenFoundShort = false,
      breakEvenFound = false;
 int OrderDigits = 0;
+double g_volumeLimit = 0;  // Cached SYMBOL_VOLUME_LIMIT (or VOLUME_MAX fallback)
+double g_volumeMin = 0;    // Cached SYMBOL_VOLUME_MIN
+double g_tickSize = 0;     // Cached SYMBOL_TRADE_TICK_SIZE
 ENUM_ORDER_TYPE_FILLING g_cachedFillMode = (ENUM_ORDER_TYPE_FILLING)-1;
 // Dashboard cache (file-scope for reset on reinit)
 string g_prevInfoRR = "", g_prevInfoPL = "", g_prevInfoSLPL = "",
@@ -265,6 +268,11 @@ int OnInit()
       }
       if (OrderDigits < 0) OrderDigits = 0;
    }
+   g_volumeLimit = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_LIMIT);
+   if (g_volumeLimit <= 0) g_volumeLimit = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX);
+   g_volumeMin = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
+   if (g_volumeMin <= 0) g_volumeMin = 1;
+   g_tickSize = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
@@ -571,7 +579,7 @@ void OnTick()
    LotsInfo lots;
    lots.longLots = 0.0;
    lots.shortLots = 0.0;
-   double tickSz = TickSize(_Symbol);
+   double tickSz = g_tickSize;
    int total = PositionsTotal();
    for (int i = 0; i < total; i++)
    {
@@ -1198,8 +1206,7 @@ bool CloseProfitableOppositePositions(double marginLevel = 0)
    //    MG_SHORT hedges are BUYs → highest entry price first
    //    MG_LONG  hedges are SELLs → lowest entry price first
    bool preferHighEntry = (MartingaleMode == MG_SHORT);
-   double volumeLimit = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_LIMIT);
-   if (volumeLimit <= 0) volumeLimit = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX);
+   double volumeLimit = g_volumeLimit;
    ulong bestTicket = 0;
    double bestPL = 0;
    double bestVolume = 0;
@@ -1243,8 +1250,7 @@ bool CloseProfitableOppositePositions(double marginLevel = 0)
    // Forward-looking TRIM: close only enough lots to bring ML down to threshold
    // Each hedge close adds to net exposure → increases margin → lowers ML
    // We compute exactly how many lots we can afford before ML hits threshold
-   double minVol = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
-   if (minVol <= 0) minVol = 1;
+   double minVol = g_volumeMin;
    double equity = AccountInfoDouble(ACCOUNT_EQUITY);
    double currentMargin = AccountInfoDouble(ACCOUNT_MARGIN);
    // Maximum margin we can hold while ML stays at threshold
@@ -1319,14 +1325,12 @@ double CalculateMarginLevelPct()
    if (margin <= 0.01) return 999.0;
    return AccountInfoDouble(ACCOUNT_EQUITY) / margin * 100.0;
 }
-bool ProtectiveClose()
+bool ProtectiveClose(double marginLevel)
 {
    // PROTECT: balanced gross reduction — close BOTH sides equally to preserve net bias
    // Closing only one side un-hedges the position, worsening margin due to hedge netting
    // Dynamic PROTECT size: more urgent = bigger closes
-   double minVol = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
-   if (minVol <= 0) minVol = 1;
-   double marginLevel = CalculateMarginLevelPct();
+   double minVol = g_volumeMin;
    double totalHedgeLots = GetTotalHedgeLots();
    double urgency = MathMax(1.0 - (marginLevel / MartingaleDangerMarginPct), 0.01);
    double protectLots = MathMax(MathCeil(totalHedgeLots * urgency), minVol);
@@ -1339,51 +1343,41 @@ bool ProtectiveClose()
    else
       return false;
    bool preferHighEntry = (MartingaleMode == MG_SHORT);
-   double volumeLimit = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_LIMIT);
-   if (volumeLimit <= 0) volumeLimit = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX);
+   double volumeLimit = g_volumeLimit;
    int total = PositionsTotal();
-   // Find best hedge position (partials first, highest-cost entry)
-   ulong hedgeTicket = 0;
-   double hedgeEntry = -1, hedgeVolume = 0;
-   bool hedgeIsPartial = false;
+   // Single loop: find best hedge AND best bias position simultaneously
+   ulong hedgeTicket = 0, biasTicket = 0;
+   double hedgeEntry = -1, hedgeVolume = 0, biasEntry = -1, biasVolume = 0;
+   bool hedgeIsPartial = false, biasIsPartial = false;
    for (int i = 0; i < total; i++)
    {
       ulong ticket = PositionGetTicket(i);
       if (ticket == 0) continue;
       if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
       if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
-      if ((int)PositionGetInteger(POSITION_TYPE) != hedgeType) continue;
+      int pType = (int)PositionGetInteger(POSITION_TYPE);
       double entry = PositionGetDouble(POSITION_PRICE_OPEN);
       double vol = PositionGetDouble(POSITION_VOLUME);
       bool isPartial = (vol < volumeLimit);
-      if (hedgeIsPartial && !isPartial) continue;
-      bool better = false;
-      if (isPartial && !hedgeIsPartial) better = true;
-      else if (preferHighEntry) better = (entry > hedgeEntry);
-      else better = (entry < hedgeEntry);
-      if (better)
-      { hedgeEntry = entry; hedgeTicket = ticket; hedgeVolume = vol; hedgeIsPartial = isPartial; }
-   }
-   // Find best bias position (partials first, highest-cost entry)
-   ulong biasTicket = 0;
-   double biasEntry = -1, biasVolume = 0;
-   bool biasIsPartial = false;
-   for (int i = 0; i < total; i++)
-   {
-      ulong ticket = PositionGetTicket(i);
-      if (ticket == 0) continue;
-      if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
-      if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber) continue;
-      if ((int)PositionGetInteger(POSITION_TYPE) != biasType) continue;
-      double entry = PositionGetDouble(POSITION_PRICE_OPEN);
-      double vol = PositionGetDouble(POSITION_VOLUME);
-      bool isPartial = (vol < volumeLimit);
-      if (biasIsPartial && !isPartial) continue;
-      bool better = false;
-      if (isPartial && !biasIsPartial) better = true;
-      else better = (entry > biasEntry);
-      if (better)
-      { biasEntry = entry; biasTicket = ticket; biasVolume = vol; biasIsPartial = isPartial; }
+      if (pType == hedgeType)
+      {
+         if (hedgeIsPartial && !isPartial) continue;
+         bool better = false;
+         if (isPartial && !hedgeIsPartial) better = true;
+         else if (preferHighEntry) better = (entry > hedgeEntry);
+         else better = (entry < hedgeEntry);
+         if (better)
+         { hedgeEntry = entry; hedgeTicket = ticket; hedgeVolume = vol; hedgeIsPartial = isPartial; }
+      }
+      else if (pType == biasType)
+      {
+         if (biasIsPartial && !isPartial) continue;
+         bool better = false;
+         if (isPartial && !biasIsPartial) better = true;
+         else better = (entry > biasEntry);
+         if (better)
+         { biasEntry = entry; biasTicket = ticket; biasVolume = vol; biasIsPartial = isPartial; }
+      }
    }
    // Balanced close: both sides when hedged, single side if only one remains
    bool hedgeClosed = false, biasClosed = false;
@@ -1580,7 +1574,7 @@ void ProcessMartingale()
       }
       else
       {
-         if (ProtectiveClose())
+         if (ProtectiveClose(marginLevel))
          {
             ProtectFireCount++;
             return;
