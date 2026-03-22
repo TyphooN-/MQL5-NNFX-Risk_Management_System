@@ -1,6 +1,8 @@
-# DARWIN XJFD — eXtreme Judicial Financial Destruction
+# XJFD — eXtreme Judicial Financial Destruction (Account 2)
 
 **The golden sample. The reference chip. The one K|NGP|N keeps in the vault behind two padlocks and a retinal scanner, wrapped in anti-static foam, stored at exactly 21°C.**
+
+**Status (2026-03-21):** DARWIN closed. Running as pure QRRP Account 2. Zero DARWIN overhead. Equity $90,398, ML 52.6%, Net 1,927 SHORT.
 
 **See also:** [MARTINGALE_SIMULATION.md](MARTINGALE_SIMULATION.md) for full cascade tables, strategy mechanics, and the QRRP post-mortem archive.
 
@@ -206,41 +208,42 @@ Equity at $0: $1,500K + $2,648K = $4,148,000
 
 ---
 
-## The Dual-Socket Configuration
+## The Dual-Socket Configuration (Updated 2026-03-21 — 0 DARWINs)
 
 ```
 ╔══════════════════════════════════════════════════════════════════════╗
 ║                    DUAL-SOCKET BENCHMARK RIG                        ║
+║                    ZERO DARWINs — PURE QRRP                         ║
 ╠══════════════════════════════════════════════════════════════════════╣
 ║                                                                      ║
-║  SOCKET 1: XJFD                    SOCKET 2: QRRP                   ║
+║  SOCKET 1: Account 1 (Crypto CFD)   SOCKET 2: Account 2 (ex-XJFD)  ║
 ║  ─────────────────                  ─────────────────                 ║
-║  i9-14900KS Golden Sample           Xeon from eBay                   ║
-║  Fresh silicon. $100K budget.        7 post-mortems. $31K budget.     ║
-║  Opened ONCE. Never touched.         Opened... many times.            ║
-║  0 post-mortems.                     7 post-mortems.                  ║
-║  1-2 PROTECT fires (budgeted).       11+ PROTECT fires (unbudgeted). ║
-║  Score: $4,148,000                   Score: $1,565,000               ║
-║                                                                      ║
-║  CARRIES: The raw score.             CARRIES: The story.             ║
+║  Degraded silicon. 7 post-mortems.   Golden sample. Opened ONCE.     ║
+║  Equity: $37,944                     Equity: $90,398                 ║
+║  Short: 13,900 / Long: 13,092       Short: 25,142 / Long: 23,215   ║
+║  Net SHORT: 808                      Net SHORT: 1,927               ║
+║  ML: 52.4%                           ML: 52.6%                      ║
+║  TRIM 54.2 / PROTECT 51.0           TRIM 54.2 / PROTECT 51.0       ║
 ║                                                                      ║
 ╠══════════════════════════════════════════════════════════════════════╣
-║  COMBINED SCORE: $5,713,000                                         ║
-║  COMBINED BUDGET: $131,000                                           ║
-║  COMBINED RETURN: 43.6x                                              ║
+║  COMBINED EQUITY: $128,342                                           ║
+║  COMBINED NET SHORT: 2,735                                           ║
+║  TARGET SCORE: $3,250,000                                            ║
+║  TARGET RETURN: 25x                                                  ║
+║  DARWINs: 0                                                         ║
 ║  OPERATOR: 1                                                         ║
 ║  INSTRUMENTS: 1                                                      ║
 ║  THESIS: 1                                                           ║
 ╚══════════════════════════════════════════════════════════════════════╝
 ```
 
-K|NGP|N runs dual-socket rigs for a reason. Socket 1 is the golden sample — the chip that carries the raw benchmark score. Socket 2 is the validation chip — the one that proves the architecture works on lesser silicon. You don't throw away Socket 2 just because Socket 1 is better. You run them both. The benchmark doesn't care which socket the cycles come from. It cares about the combined score.
+K|NGP|N runs dual-socket rigs for a reason. Socket 1 is the degraded chip — scarred by seven post-mortems but still running. Socket 2 is the golden sample — opened once, never touched. Both DARWINs closed. No DARWIN rating overhead. No signal provider games. Pure QRRP on both sockets.
 
-**XJFD carries the raw score.** $4.15M from $100K. 41.5x. Clean execution. Zero drama. The golden sample ran the benchmark from POST to completion without a single BSOD.
+**Account 2 (ex-XJFD) carries the raw score.** $90K equity, 1,927 net short. The golden sample with the larger position.
 
-**QRRP carries the story.** Seven post-mortems. Sixty-nine percent degradation (nice). Three burst trim sessions. Nine wrenches at meme-number spacing. And STILL scoring $1.57M from $31K — 50.5x return on what's left of the silicon. The degraded Xeon that refused to die.
+**Account 1 carries the story.** Seven post-mortems. $100K degraded to $38K. The chip that refused to die.
 
-**Together: $5.71M from $131K. 43.6x combined return.** One operator. Two sockets. One benchmark. One thesis. SOL to $0.
+**Together: $128K equity, 2,735 net SHORT. Target $3.25M.** One operator. Two sockets. Zero DARWINs. One thesis. SOL to $0.
 
 ---
 
