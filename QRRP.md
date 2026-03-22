@@ -1,10 +1,10 @@
-# DARWIN QRRP — Quad Rothschild Rug Pull
+# QRRP — Quad Rothschild Rug Pull
 
-**DARWIN Name:** QRRP
-**Strategy:** Multi-instrument crypto short to $0, then flip long from bottom
-**Account:** One Darwinex Zero Crypto account. Forever.
+**Strategy:** Dual-account SOLUSD short to $0, then flip long from bottom
+**Accounts:** Two Darwinex accounts. Zero DARWINs. Pure cascade.
 **Weapon:** TyphooN EA v1.420 (BFG 9000)
-**Frag Count:** 23,886 (integer overflow confirmed)
+**Combined Net Short:** 2,735 lots across 2 accounts
+**Combined Equity:** $128,342
 
 ---
 

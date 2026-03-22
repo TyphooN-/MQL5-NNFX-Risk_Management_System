@@ -2,10 +2,10 @@
 
 The hedged martingale exploits net-based margin to carry massive directional exposure via a hedge that is systematically trimmed as the thesis plays out. The EA (TyphooN v1.420) manages the position automatically via forward-looking TRIM and dynamic PROTECT.
 
-**Current plan:** Dual-DARWIN Operation → $0. **SOL SPECIALIST. Cascading MGs. Two accounts. One thesis.**
-**DARWIN XJFD (Socket 1 — Golden Sample):** Fresh $100K, Open MG $1.87, opened ONCE, never touched. Cascade 3x. 176,500 final bias. **$100K → $4.15M (41.5x).** See [XJFD.md](XJFD.md) for full lore.
-**DARWIN QRRP (Socket 2 — Degraded Silicon):** $31K surviving, 7 post-mortems, 69% degradation. Cascade 3x. 65,000 final bias. **$31K → $1.57M (50.5x).**
-**Combined: $131K → $5.71M (43.6x).** Two DARWINs. One instrument. One operator.
+**Current plan:** Dual-Account Operation → $0. **SOL SPECIALIST. Cascading MGs. Two accounts. Zero DARWINs. One thesis.**
+**Account 1 (Crypto CFD):** Equity $37,944, Balance $34,493, ML 52.4%. Short 13,900 / Long 13,092 = Net 808 SHORT. TRIM 54.2% / PROTECT 51.0%.
+**Account 2 (Futures/Stocks):** Equity $90,398, Balance $96,551, ML 52.6%. Short 25,142 / Long 23,215 = Net 1,927 SHORT. TRIM 54.2% / PROTECT 51.0%.
+**Combined: $128K equity, 2,735 net SHORT. Two accounts. Zero DARWINs. One instrument. One operator.**
 **Key lesson (PM#6):** No ADA/DOGE until SOL hedge is consumed. Multi-instrument positions amplify spread spike damage during hedge phase.
 **Retired:** XNGUSD CFD long — martingale doesn't work at CFD lot sizes.
 **Historical:** SOLUSD crypto short (PM#1-6) — six spread-spike events, lessons preserved below.
@@ -82,47 +82,55 @@ Per side = Safe gross / 2
 
 ---
 
-## Active: SOLUSD Hedged Martingale SHORT (Opened 2026-03-17)
+## Active: SOLUSD Hedged Martingale SHORT — Dual Account, 0 DARWINs (2026-03-21)
 
-### Position State (from EA display 2026-03-20 ~04:45 — FRESH MG $0.99, TRIM FIRING)
+### Position State (from EA display 2026-03-21 22:12)
+
+**Account 1 — Crypto CFD:**
 
 | | Value |
 |---|---|
-| Account | $100K Darwinex Zero Crypto — **QRRP** (see also: [XJFD.md](XJFD.md) for dual-socket partner) |
-| SOL Price | ~$89.73 |
-| Balance | $38,463 |
-| Equity | $38,931 |
-| Margin | $0 → climbing as TRIM fires |
-| ML | 999% → grinding down to 54.2% |
-| **SOLUSD** | |
-| Long (hedge) | ~19,710 (20,516 opened, ~806 consumed by initial TRIM burst) |
-| Short (bias) | **20,516** (fresh MG at $0.99) |
-| Net Short | ~806 (TRIM rebuilding) |
-| SOL Gross | ~40,226 |
-| TRIM closes | 6 (initial burst: 348 + 450 + 3 + 3 + 1 + 1) |
-| PROTECT closes | 0 (awaiting first spread spike → self-healing) |
-| Spread tolerance | $38,931 / 40,226 = **$0.97/lot** ← will self-heal via PROTECT |
+| Short (bias) | **13,900** |
+| Long (hedge) | **13,092** |
+| Net Short | **808** |
+| Equity | **$37,944** |
+| Balance | $34,493 |
+| Margin | $72,389 |
+| ML | **52.4%** — in dead zone |
+| TRIM / PROTECT | 54.2% / 51.0% |
 
-**Account degradation: $100K → $47K (Day 1) → $39K (Day 2). 61% thermal budget consumed. Position self-heals each time via PROTECT balanced closes.**
-| **ADAUSD** | **CLOSED** — broker liquidated during PM#6 spread spike (profit realized to balance) |
-| **DOGEUSD** | **NOT OPEN** — waiting until SOL hedge is fully consumed |
+**Account 2 — Futures/Stocks (ex-XJFD):**
 
-**The PROTECT fires did what the lessons learned doc recommended from day one.** They reduced gross until spread tolerance is safe. The position is now equivalent to Open MG ~$6.75 — right in the $5-8 sweet spot. This is clean passive operation. No more reopening. No more MGs. Let it ride.
+| | Value |
+|---|---|
+| Short (bias) | **25,142** |
+| Long (hedge) | **23,215** |
+| Net Short | **1,927** |
+| Equity | **$90,398** |
+| Balance | $96,551 |
+| Margin | $171,811 |
+| ML | **52.6%** — in dead zone |
+| TRIM / PROTECT | 54.2% / 51.0% |
 
-### EA Configuration (LOCKED — will not change until hedge is unwound)
+**Combined: 39,042 short / 36,307 long = 2,735 net SHORT. $128,342 equity. Both accounts in dead zone (51.0%–54.2%). EA idle until threshold crossed.**
+
+All six DARWINs closed. No DARWIN rating games. No signal provider overhead. Pure QRRP on both accounts.
+
+### EA Configuration (LOCKED — both accounts, identical settings)
 
 | Parameter | Value |
 |---|---|
-| Mode | **MG: SHORT** |
-| TRIM | **54.2013691337%** |
-| PROTECT | **50.96913420691337%** |
-| Dead zone | **3.23%** (50.97%–54.20%) |
+| Mode | **MG: SHORT** (both accounts) |
+| TRIM | **54.2%** |
+| PROTECT | **51.0%** |
+| Dead zone | **3.2%** (51.0%–54.2%) |
 | Hard floor | **10.0%** |
-| Open MG | **N/A — no more Open MGs. Position is final.** |
+| Open MG | **N/A — no more Open MGs. Positions are final.** |
 | Bias protection | Never closes bias (shorts) in crisis |
 | **Instruments** | **SOL ONLY** — no ADA/DOGE until pure short |
+| **DARWINs** | **0** — all closed |
 
-**These settings are FINAL.** No more Open MGs. No more reopening after spread spikes. The position has self-healed to clean operation via PROTECT balanced closes. Spread tolerance $3.39 is deeply safe. The benchmark runs clean from here. Trim to win.
+**These settings are FINAL on both accounts.** Both sitting in the dead zone. EA idle. TRIM fires above 54.2%. PROTECT fires below 51.0%. The benchmark runs clean from here. Trim to win.
 
 ### Post-Mortem #7: Spread Spike Wipes Previous Position (2026-03-19 09:17)
 
@@ -216,22 +224,33 @@ Rebuilt SOL position immediately:
 3. TRIM fired immediately — consumed 1,573 longs in first burst
 4. Position is back to equivalent of pre-spike state
 
-### Position Sizing (Current — Fresh MG $0.99, Awaiting Self-Heal)
+### Position Sizing (Current — 2026-03-21, Dual Account, 0 DARWINs)
 
 ```
-SOLUSD (actual EA data 2026-03-20 ~04:45):
-  Shorts (bias) = 20,516 (fresh MG at $0.99)
-  Longs (hedge) = ~19,710 (after initial TRIM burst of 806)
-  Net short = ~806 (TRIM rebuilding)
-  SOL Price = $89.73
-  SOL Gross = ~40,226
-  Equity = $38,931
-  Spread tolerance = $38,931 / 40,226 = $0.97/lot ← will self-heal via PROTECT
+Account 1 — Crypto CFD (actual EA data 2026-03-21 22:12):
+  Shorts (bias) = 13,900
+  Longs (hedge) = 13,092
+  Net short = 808
+  Equity = $37,944
+  Balance = $34,493
+  Margin = $72,389
+  ML = 52.4%
+  TRIM 54.2% / PROTECT 51.0% / Dead zone 51.0%–54.2%
 
-  Expected post-self-heal (3-4 PROTECT fires, ~20% equity loss):
-    Equity: ~$31K
-    Bias: ~6,500-7,000
-    Spread tolerance: ~$2.50-3.00
+Account 2 — Futures/Stocks (actual EA data 2026-03-21 22:15):
+  Shorts (bias) = 25,142
+  Longs (hedge) = 23,215
+  Net short = 1,927
+  Equity = $90,398
+  Balance = $96,551
+  Margin = $171,811
+  ML = 52.6%
+  TRIM 54.2% / PROTECT 51.0% / Dead zone 51.0%–54.2%
+
+Combined:
+  Total short: 39,042 | Total long: 36,307 | Net short: 2,735
+  Combined equity: $128,342
+  Both accounts in dead zone — EA idle until threshold crossed
 ```
 
 ### TRIM Progression to Pure Short → First Cascade (SOL Only)
@@ -304,16 +323,16 @@ Equity at $0: $590K + $975K = $1,565,000
 | $5 | $1,240K | 65,000 | $19.08 | Locked in |
 | **$0** | **$1,565K** | **65,000** | **∞** | **DONE** |
 
-### Full Cascade Summary
+### Full Cascade Summary (Combined — Dual Account, 0 DARWINs)
 
-| Phase | SOL Price | Action | Bias Lots | Equity | Spread Tol |
-|---|---|---|---|---|---|
-| **1 (NOW)** | $89.73 → $40 | Self-heal + TRIM grind | ~6,500 | ~$31K → $133K | $2.54 → $20.46 |
-| **2** | $40 → $23 | New MG $8.00 | 23,125 | $133K → $335K | $3.35 → $14.49 |
-| **3** | $23 → $15 | New MG $8.00 | 65,000 | $335K → $590K | $3.13 → $9.08 |
-| **4** | $15 → $0 | Ride pure short | 65,000 | $590K → **$1,565K** | $9.08 → ∞ |
+| Phase | SOL Price | Action | Net Short Lots | Combined Equity |
+|---|---|---|---|---|
+| **1 (NOW)** | current → $40 | TRIM grind both accounts | ~2,735 → ~13,000 | $128K → $350K |
+| **2** | $40 → $23 | New MG $8.00 both accounts | ~46,000 | $350K → $750K |
+| **3** | $23 → $15 | New MG $8.00 both accounts | ~130,000 | $750K → $1.3M |
+| **4** | $15 → $0 | Ride pure short | ~130,000 | $1.3M → **$3.25M** |
 
-**~$31K → $1.57M = 50x return (post self-heal). Bias compounds: 6,500 → 23,125 → 65,000. Each cascade opens at $8.00 with safe spread tolerance. SOL specialist. QRRP cascades.**
+**$128K → $3.25M = 25x return. Dual-socket QRRP. Two accounts, zero DARWINs, pure cascade. Each account hits pure short independently and cascades on its own equity curve.**
 
 ### How TRIM Pacing Works (Phase 1 — Post Self-Heal)
 
@@ -328,9 +347,9 @@ Equity at $0: $590K + $975K = $1,565,000
 
 ---
 
-## DARWIN XJFD: Fresh $100K Account — Open MG $1.87 (LIVE — 2026-03-20)
+## Account 2 (formerly XJFD): $90K Account — Open MG $1.87 (LIVE — 2026-03-21)
 
-**The K|NGP|N benchmark on fresh silicon.** $100K, Open MG $1.87, opened ONCE, never touched again. Let PROTECT self-heal, let TRIM grind, cascade at each pure short with $8.00.
+**The K|NGP|N benchmark on fresh silicon.** $100K start, Open MG $1.87, opened ONCE, never touched again. DARWIN closed — now running as pure QRRP account with zero DARWIN overhead. Let PROTECT self-heal, let TRIM grind, cascade at each pure short with $8.00.
 
 ### Opening State (actual EA data)
 
