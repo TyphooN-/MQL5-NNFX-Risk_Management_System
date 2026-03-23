@@ -80,9 +80,10 @@ input double          TargetEquitySL             = 98000;
 input group           "[MARTINGALE MODE SETTINGS]"
 input bool            EnableMartingale = false;       // Enable Martingale (master switch)
 input double          MartingaleEquityTP = 0;         // $ profit target (0 = disabled)
-input double          MartingaleUnwindMarginPct = 65;  // TRIM — % margin level to start (0=off)
+input double          MartingaleUnwindMarginPct = 59;  // TRIM — % margin level to start (0=off)
 input double          MartingaleSpreadTolerance = 2.0; // Open MG — $ per lot safety rule
-input double          MartingaleDangerMarginPct = 56;  // PROTECT — % margin level to start (0=off)
+input double          MartingaleDangerMarginPct = 54;  // PROTECT — % margin level to start (0=off)
+input int             PreCloseMinutes = 5;             // Pre-close TRIM — minutes before close to force TRIM to threshold (0=off)
 input double          MartingaleMarginFloor = 10;     // PROTECT — hard floor %, stop below this (broker handles it)
 input group           "[DISCORD ANNOUNCEMENT SETTINGS]"
 input string          DiscordAPIKey =  "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
@@ -116,6 +117,8 @@ int MartingaleBiasCloses = 0;
 bool TrimFired = false;
 bool ProtectActive = false;
 int ProtectFireCount = 0;
+bool PreCloseFrozen = false;       // Pre-close freeze: no activity until next session
+datetime PreCloseFreezeTime = 0;   // When the freeze was activated
 // Init-time baselines for tracking progress
 double g_initEquity = 0, g_initBalance = 0, g_initMarginPct = 0;
 double g_initHedgeLots = 0, g_initBiasLots = 0, g_initNetLots = 0;
@@ -365,7 +368,8 @@ int OnInit()
          " | Mode: ", EnumToString(MartingaleMode),
          " | TRIM: ", DoubleToString(MartingaleUnwindMarginPct, 1), "% (dynamic lots/tick)",
          " | PROTECT: ", DoubleToString(MartingaleDangerMarginPct, 1), "% (dynamic lots/side, floor=", DoubleToString(MartingaleMarginFloor, 0), "%)",
-         " | Dead zone: ", DoubleToString(MartingaleDangerMarginPct, 1), "%-", DoubleToString(MartingaleUnwindMarginPct, 1), "%");
+         " | Dead zone: ", DoubleToString(MartingaleDangerMarginPct, 1), "%-", DoubleToString(MartingaleUnwindMarginPct, 1), "%",
+         PreCloseMinutes > 0 ? " | Pre-close TRIM: " + IntegerToString(PreCloseMinutes) + "min" : "");
    if (MartingaleMode == MG_LONG || MartingaleMode == MG_SHORT)
    {
       Print("  Closes: trim=", MartingaleHedgeCloses,
@@ -1325,6 +1329,31 @@ double CalculateMarginLevelPct()
    if (margin <= 0.01) return 999.0;
    return AccountInfoDouble(ACCOUNT_EQUITY) / margin * 100.0;
 }
+bool IsPreCloseWindow()
+{
+   // Returns true if we are within PreCloseMinutes of the symbol's trading session close
+   datetime from, to;
+   if (!SymbolInfoSessionTrade(_Symbol, DayOfWeekMQL(), 0, from, to))
+      return false;
+   // Convert session times to today's timestamps
+   MqlDateTime now;
+   TimeCurrent(now);
+   int nowSeconds = now.hour * 3600 + now.min * 60 + now.sec;
+   // Session 'to' is seconds since midnight
+   int closeSeconds = (int)(to % 86400);
+   // Handle case where close is midnight (0) — treat as 86400
+   if (closeSeconds == 0) closeSeconds = 86400;
+   int secondsToClose = closeSeconds - nowSeconds;
+   // If negative, session already closed or wraps midnight
+   if (secondsToClose < 0) return false;
+   return (secondsToClose <= PreCloseMinutes * 60);
+}
+ENUM_DAY_OF_WEEK DayOfWeekMQL()
+{
+   MqlDateTime dt;
+   TimeCurrent(dt);
+   return (ENUM_DAY_OF_WEEK)dt.day_of_week;
+}
 bool ProtectiveClose(double marginLevel)
 {
    // PROTECT: balanced gross reduction — close BOTH sides equally to preserve net bias
@@ -1525,6 +1554,12 @@ void PrintMartingaleStrategyBriefing(MartingaleState state)
    Print("  Stops     : when margin recovers above ", DoubleToString(MartingaleDangerMarginPct, 1), "% (PROTECT threshold)");
    Print("  Hard floor: ", DoubleToString(MartingaleMarginFloor, 1), "% — PROTECT halts below this (broker in control)");
    Print("");
+   if (PreCloseMinutes > 0)
+   {
+      Print("PRE-CLOSE      : ", PreCloseMinutes, " min before session close — single balanced close + FREEZE");
+      Print("                 Reduces gross exposure, then suspends all activity until next session");
+      Print("                 No TRIM (would lower ML). No PROTECT. Position sleeps safe.");
+   }
    if (MartingaleEquityTP > 0)
       Print("Equity TP      : close all at $", DoubleToString(MartingaleEquityTP, 2), " profit");
    Print("Current margin level: ", DoubleToString(marginPct, 1), "%");
@@ -1554,6 +1589,22 @@ void ProcessMartingale()
          return;
       }
    }
+   // === PRE-CLOSE FREEZE: ALL activity suspended until next session ===
+   // One balanced close was fired before close. Now hands-off. Broker handles stop-out.
+   if (PreCloseFrozen)
+   {
+      // Unfreeze when next session opens: no longer in pre-close window AND
+      // enough time has passed that we're in a new session (not still in the closing minute)
+      datetime lastTick = (datetime)SymbolInfoInteger(_Symbol, SYMBOL_TIME);
+      bool marketOpen = (TimeCurrent() - lastTick < 60);
+      if (!IsPreCloseWindow() && marketOpen && TimeCurrent() - PreCloseFreezeTime > 600)
+      {
+         PreCloseFrozen = false;
+         Print("PRE-CLOSE FREEZE lifted — market open, new session. Resuming normal operation.");
+      }
+      else
+         return;  // Frozen — no TRIM, no PROTECT, no action until next session
+   }
    // === PROTECT: below danger level ===
    if (MartingaleDangerMarginPct > 0 && marginLevel <= MartingaleDangerMarginPct)
       ProtectActive = true;
@@ -1580,6 +1631,35 @@ void ProcessMartingale()
             return;
          }
       }
+   }
+   // === PRE-CLOSE PROTECT: balanced closes to keep ML within 1% of TRIM before close ===
+   // If within PreCloseMinutes of session close:
+   //   - ML >= TRIM - 1%: close enough, freeze and ride into close
+   //   - ML < TRIM - 1%: fire one balanced close per tick to reduce gross, check again next tick
+   if (PreCloseMinutes > 0 && IsPreCloseWindow() && marginLevel > MartingaleDangerMarginPct)
+   {
+      double preCloseFloor = MartingaleUnwindMarginPct - 1.0;
+      if (marginLevel >= preCloseFloor)
+      {
+         // Within 1% of TRIM — close enough, freeze and ride into close
+         if (!PreCloseFrozen)
+         {
+            Print("PRE-CLOSE: ML ", DoubleToString(marginLevel, 1), "% >= ", DoubleToString(preCloseFloor, 1),
+                  "% (TRIM-1%). Close enough. FREEZING until next session.");
+            PreCloseFrozen = true;
+            PreCloseFreezeTime = TimeCurrent();
+         }
+         return;
+      }
+      // ML is more than 1% below TRIM — fire one balanced close to reduce gross
+      double totalHedgeLots = GetTotalHedgeLots();
+      if (totalHedgeLots > 0)
+      {
+         Print("PRE-CLOSE PROTECT: ML ", DoubleToString(marginLevel, 1), "% < ", DoubleToString(preCloseFloor, 1),
+               "% (TRIM-1%) — balanced close to reduce gross. Will check again next tick.");
+         ProtectiveClose(marginLevel);
+      }
+      return;
    }
    // === DEAD ZONE: between PROTECT and TRIM — do nothing ===
    if (MartingaleUnwindMarginPct > 0 && marginLevel <= MartingaleUnwindMarginPct)
