@@ -1625,6 +1625,15 @@ void ProcessMartingale()
       }
       else
       {
+         // Check if hedges still exist before attempting PROTECT
+         double hedgeLots = GetTotalHedgeLots();
+         if (hedgeLots <= 0)
+         {
+            // Pure short achieved — no hedges to balanced-close. Deactivate PROTECT.
+            ProtectActive = false;
+            Print("PROTECT deactivated — PURE SHORT achieved. No hedges remaining. Bias is sacred. Riding to $0.");
+            return;
+         }
          if (ProtectiveClose(marginLevel))
          {
             ProtectFireCount++;
