@@ -56,7 +56,7 @@ TRIM closes hedges to build net short exposure. PROTECT fires balanced closes to
 
 | | Old (QRRP/XJFD) | New (BBUD) |
 |---|---|---|
-| TRIM | 54.2% | **59%** |
+| TRIM | 54.2% | **58%** |
 | PROTECT | 51.0% | **54%** |
 | Dead zone | 3.2% | **5%** |
 | Buffer above liquidation | ~1% | **~4%** |
@@ -103,19 +103,19 @@ v1.420 was a race car with no seat belt. v1.426 is the same race car with a roll
 ```
 QRRP  (degraded): $100K → $31K → liquidated at 52.9%. Terminal equity: $0.
 XJFD  (golden):   $100K → $92K → liquidated at 53.0%. Terminal equity: $0.
-BBUD  (v1.426):   $100K → $92K → TRIM grinding → $4,694,000 (projected).
+BBUD  (v1.426):   $100K → $92K → TRIM grinding → $5,032,000 (projected).
 ```
 
-Same starting capital. Same instrument. Same operator. Different software. $4.7M difference.
+Same starting capital. Same instrument. Same operator. Different software. $5.0M difference.
 
 ### The Cascade Math (Why Fresh $100K Beats Degraded $31K)
 
 QRRP opened at ~$89 with $31K of degraded equity. BBUD opened at ~$87 with $100K of fresh equity. Same price range. 3x the capital:
 
 - **QRRP cascade (degraded):** $31K → $1.57M (50x) with 65,000 final lots
-- **BBUD cascade (fresh):** $100K → $4.7M (47x) with 207,250 final lots
+- **BBUD cascade (fresh):** $100K → $5.0M (50x) with 217,875 final lots
 
-The return multiple is similar (~47-50x) because the cascade ratio is a function of phases, not starting capital. But the absolute profit is **3x larger** because the starting equity is 3x larger. $4.7M beats $1.57M. And BBUD has v1.426 pre-close freeze — the 47x actually completes instead of dying at PM#9.
+The return multiple is similar (~47-50x) because the cascade ratio is a function of phases, not starting capital. But the absolute profit is **3x larger** because the starting equity is 3x larger. $5.0M beats $1.57M. And BBUD has v1.426 pre-close freeze — the 50x actually completes instead of dying at PM#9.
 
 ### The 400-Position Blunder That Accidentally Won Darwinex
 
@@ -166,7 +166,7 @@ PATCH v1.426 NOTES:
 - Fixed: spread spike at session open causing instant death
 - Added: pre-close freeze mechanism (5 min before close)
 - Changed: PROTECT 51% → 54% (4% buffer above liquidation, was 1%)
-- Changed: TRIM 54.2% → 59% (5% dead zone, was 3.2%)
+- Changed: TRIM 54.2% → 58% (4% dead zone, was 3.2%)
 - Changed: dead zone from "hope" to "managed"
 - Known issue: SOL still exists above $0 (working on it)
 ```
@@ -220,17 +220,18 @@ BBUD is the B0 stepping. QRRP was A0. XJFD was A1. The architecture was always c
 ║  Entry:       ~$87.10 SOL (same range as QRRP/XJFD)       ║
 ║  Open MG:     $1.87 (K|NGP|N sweet spot)                    ║
 ║  Bias lots:   24,477                                          ║
-║  TRIM:        59% (5% dead zone)                             ║
+║  TRIM:        58% (4% dead zone, saves ~$39K swap vs 59%)    ║
 ║  PROTECT:     54% (4% above liquidation)                     ║
 ║  Pre-close:   5 min freeze                                   ║
 ║                                                               ║
-║  Phase 1:     $87 → $35   |  21,000 lots  |  $470K           ║
-║  Phase 2:     $35 → $21   |  79,750 lots  |  $1,020K        ║
-║  Phase 3:     $21 → $13   |  207,250 lots |  $2,000K        ║
-║  Phase 4:     $13 → $0    |  207,250 lots |  $4,694K        ║
+║  Phase 1:     $87 → $37   |  21,000 lots  |  $475K           ║
+║  Phase 2:     $37 → $22   |  80,375 lots  |  $1,100K        ║
+║  Phase 3:     $22 → $13   |  217,875 lots |  $2,200K        ║
+║  Phase 4:     $13 → $0    |  217,875 lots |  $5,032K        ║
 ║                                                               ║
-║  TERMINAL SCORE: $4,694,000                                   ║
-║  RETURN: 47x                                                  ║
+║  TERMINAL SCORE: $5,032,000                                  ║
+║  RETURN: 50x                                                  ║
+║  SWAP SAVINGS vs 59%: ~$39,000                                ║
 ║  POST-MORTEMS: 0 (target)                                    ║
 ║  PREDECESSOR DEATHS: 8 (QRRP) + 1 (XJFD) = 9               ║
 ║  LESSONS APPLIED: All of them (this time for real)           ║
@@ -250,4 +251,4 @@ QRRP is dead. XJFD is dead. Long live BBUD.
 
 ---
 
-> **DISCLAIMER:** BBUD is a speculative trading strategy using leveraged crypto CFDs on a virtual (demo) account. This is NOT financial advice. The $4.7M projection assumes SOL reaches $0, which may never happen. Leveraged trading carries substantial risk of loss including loss exceeding your initial deposit. The previous two accounts running this strategy were liquidated. Do not trade money you cannot afford to lose. The author holds active short positions in SOLUSD via DARWIN BBUD.
+> **DISCLAIMER:** BBUD is a speculative trading strategy using leveraged crypto CFDs on a virtual (demo) account. This is NOT financial advice. The $5.0M projection assumes SOL reaches $0, which may never happen. Leveraged trading carries substantial risk of loss including loss exceeding your initial deposit. The previous two accounts running this strategy were liquidated. Do not trade money you cannot afford to lose. The author holds active short positions in SOLUSD via DARWIN BBUD.

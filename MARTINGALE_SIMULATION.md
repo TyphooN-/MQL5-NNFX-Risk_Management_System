@@ -114,17 +114,19 @@ Both accounts liquidated at 52.9% and 53.0% ML on market open spread spike. Old 
 | Parameter | Value |
 |---|---|
 | Mode | **MG: SHORT** |
-| TRIM | **59.0%** |
+| TRIM | **58.0%** |
 | PROTECT | **54.0%** |
-| Dead zone | **5.0%** (54.0%–59.0%) |
+| Dead zone | **4.0%** (54.0%–58.0%) |
 | Hard floor | **10.0%** |
-| Pre-close | **5 min** — balanced close if ML < 58%, then FREEZE until next session |
+| Pre-close | **5 min** — balanced close if ML < 57%, then FREEZE until next session |
 | Open MG | **$1.87** (123 lots/chunk) |
 | Bias protection | Never closes bias (shorts) in crisis |
 | **Instruments** | **SOL ONLY** |
 | **DARWIN** | **BBUD** |
 
-**Settings are FINAL.** TRIM grinds above 59%. Dead zone 54-59% is 5% wide. Pre-close mechanism fires balanced close and freezes EA before session close. Broker handles overnight. PM#8 lesson applied.
+**Why 58/54 not 59/54:** Simulated swap cost analysis shows 58% saves ~$39K over the life of the position vs 59% (faster hedge consumption = lower gross = less swap + more net short profit per price drop). 4% buffer above PROTECT is adequate with pre-close freeze handling overnight risk. The extra 1% buffer at 59% costs $39K for protection the freeze mechanism already provides.
+
+**Settings are FINAL.** TRIM grinds above 58%. Dead zone 54-58% is 4% wide. Pre-close mechanism fires balanced close and freezes EA before session close. Broker handles overnight. PM#8 lesson applied.
 
 ### Post-Mortem #7: Spread Spike Wipes Previous Position (2026-03-19 09:17)
 
@@ -231,97 +233,97 @@ DARWIN BBUD — Fresh $100K (actual EA data 2026-03-26 12:43):
   SOL Price = ~$87.10 (entry ~$87.19-87.04)
   Open MG = $1.87 (123 lots/chunk)
   Spread tolerance = $92,167 / 47,215 = $1.95 (will self-heal to ~$2.50+)
-  TRIM 59% / PROTECT 54% / Pre-close 5min + FREEZE
+  TRIM 58% / PROTECT 54% / Pre-close 5min + FREEZE
 ```
 
 ### TRIM Progression to Pure Short → First Cascade (DARWIN BBUD)
 
 **Pre-condition:** Position self-heals via 1-2 PROTECT fires. Estimated post-heal: ~$87K equity, ~21,000 bias, ~19,000 hedge. Then TRIM grinds to pure short.
 
-**Forward-looking TRIM math:** `maxSafe = floor((equity/0.59 - margin) / marginPerLot)`. TRIM maintains ML at exactly 59%.
+**Forward-looking TRIM math:** `maxSafe = floor((equity/0.58 - margin) / marginPerLot)`. TRIM maintains ML at exactly 58%.
 
 **Phase 1: Post-self-heal → Pure Short (~$87K equity, ~21,000 bias)**
 
 | SOL Price | Equity (est.) | SOL Hedge | SOL Net Short | Spread Tol. | ML | Status |
 |---|---|---|---|---|---|---|
-| **$87 (post-heal)** | **~$87,000** | **~19,000** | **~2,000** | **$2.18** | **59%** | **Safe — grinding** |
-| $80 | $101,000 | 18,200 | 2,800 | $2.63 | 59% | Grinding |
-| $70 | $129,000 | 16,500 | 4,500 | $3.15 | 59% | Building |
-| $60 | $174,000 | 13,500 | 7,500 | $4.15 | 59% | Comfortable |
-| $50 | $249,000 | 8,500 | 12,500 | $5.95 | 59% | Accelerating |
-| $40 | $374,000 | 2,000 | 19,000 | $8.90 | 59% | Nearly pure |
-| **~$35** | **~$470,000** | **0** | **21,000** | **$22.38** | **~80%** | **PURE SHORT #1** |
+| **$87 (post-heal)** | **~$87,000** | **~19,000** | **~2,100** | **$2.12** | **58%** | **Safe — grinding** |
+| $80 | $102,000 | 17,800 | 3,200 | $2.57 | 58% | Grinding |
+| $70 | $134,000 | 15,800 | 5,200 | $3.19 | 58% | Building |
+| $60 | $186,000 | 12,500 | 8,500 | $4.43 | 58% | Comfortable |
+| $50 | $271,000 | 7,000 | 14,000 | $6.45 | 58% | Accelerating |
+| $40 | $411,000 | 1,000 | 20,000 | $9.79 | 58% | Nearly pure |
+| **~$37** | **~$475,000** | **0** | **21,000** | **$22.62** | **~80%** | **PURE SHORT #1** |
 | | | | | | | **→ OPEN NEW MG $8.00** |
 
-**At ~$35 SOL: Phase 1 complete. ~21,000 pure short lots. Equity ~$470K. Immediately open MG: SHORT at $8.00.**
+**At ~$37 SOL: Phase 1 complete. ~21,000 pure short lots. Equity ~$475K. Immediately open MG: SHORT at $8.00.**
 
-### Phase 2 Cascade: New MG $8.00 at ~$35 SOL
+### Phase 2 Cascade: New MG $8.00 at ~$37 SOL
 
 ```
-Equity at trigger: ~$470,000
-Open MG $8.00: $470K / $8 = 58,750 per side
-Position after open: 58,750L / 79,750S (21,000 existing + 58,750 new)
-Spread tolerance: $470K / 138,500 = $3.39 ← SAFE from open
+Equity at trigger: ~$475,000
+Open MG $8.00: $475K / $8 = 59,375 per side
+Position after open: 59,375L / 80,375S (21,000 existing + 59,375 new)
+Spread tolerance: $475K / 139,750 = $3.40 ← SAFE from open
 ```
 
 | SOL Price | Equity | Hedge | Net Short | Spread Tol | Status |
 |---|---|---|---|---|---|
-| **$35 (cascade)** | **$470K** | **56,000** | **23,750** | **$3.39** | **Phase 2 starts** |
-| $30 | $589K | 42,000 | 37,750 | $4.17 | Accelerating |
-| $25 | $778K | 20,000 | 59,750 | $5.84 | Fast |
-| **~$21** | **~$1,020K** | **0** | **79,750** | **$12.79** | **PURE SHORT #2** |
+| **$37 (cascade)** | **$475K** | **56,500** | **23,875** | **$3.40** | **Phase 2 starts** |
+| $30 | $642K | 38,000 | 42,375 | $4.80 | Accelerating |
+| $25 | $854K | 15,000 | 65,375 | $6.62 | Fast |
+| **~$22** | **~$1,100K** | **0** | **80,375** | **$13.69** | **PURE SHORT #2** |
 | | | | | | **→ OPEN NEW MG $8.00** |
 
-### Phase 3 Cascade: New MG $8.00 at ~$21 SOL
+### Phase 3 Cascade: New MG $8.00 at ~$22 SOL
 
 ```
-Equity at trigger: ~$1,020,000
-Open MG $8.00: $1,020K / $8 = 127,500 per side
-Position after open: 127,500L / 207,250S (79,750 existing + 127,500 new)
-Spread tolerance: $1,020K / 334,750 = $3.05 ← SAFE
+Equity at trigger: ~$1,100,000
+Open MG $8.00: $1,100K / $8 = 137,500 per side
+Position after open: 137,500L / 217,875S (80,375 existing + 137,500 new)
+Spread tolerance: $1,100K / 355,375 = $3.09 ← SAFE
 ```
 
 | SOL Price | Equity | Hedge | Net Short | Spread Tol | Status |
 |---|---|---|---|---|---|
-| **$21 (cascade)** | **$1,020K** | **115,000** | **92,250** | **$3.05** | **Phase 3 starts** |
-| $17 | $1,389K | 65,000 | 142,250 | $4.24 | Fast |
-| **~$13** | **~$2,000K** | **0** | **207,250** | **$9.65** | **PURE SHORT #3 — RIDE TO $0** |
+| **$22 (cascade)** | **$1,100K** | **125,000** | **92,875** | **$3.09** | **Phase 3 starts** |
+| $17 | $1,564K | 65,000 | 152,875 | $4.53 | Fast |
+| **~$13** | **~$2,200K** | **0** | **217,875** | **$10.10** | **PURE SHORT #3 — RIDE TO $0** |
 
 ### Phase 4: Ride to $0
 
 ```
-207,250 pure short lots × $13 remaining = $2,694,250
-Equity at $0: $2,000K + $2,694K = $4,694,000
+217,875 pure short lots × $13 remaining = $2,832,375
+Equity at $0: $2,200K + $2,832K = $5,032,000
 ```
 
 | SOL Price | Equity | Net Short | Spread Tol | Status |
 |---|---|---|---|---|
-| $13 (pure short #3) | $2,000K | 207,250 | $9.65 | Riding |
-| $10 | $2,622K | 207,250 | $12.65 | Printing |
-| $5 | $3,658K | 207,250 | $17.65 | Locked in |
-| **$0** | **$4,694K** | **207,250** | **∞** | **DONE** |
+| $13 (pure short #3) | $2,200K | 217,875 | $10.10 | Riding |
+| $10 | $2,854K | 217,875 | $13.10 | Printing |
+| $5 | $3,943K | 217,875 | $18.10 | Locked in |
+| **$0** | **$5,032K** | **217,875** | **∞** | **DONE** |
 
 ### Full Cascade Summary (DARWIN BBUD — Single Account)
 
 | Phase | SOL Price | Action | Net Short Lots | Equity |
 |---|---|---|---|---|
-| **1 (NOW)** | $87 → $35 | Self-heal + TRIM grind | ~2,000 → 21,000 | $87K → $470K |
-| **2** | $35 → $21 | New MG $8.00 | 79,750 | $470K → $1,020K |
-| **3** | $21 → $13 | New MG $8.00 | 207,250 | $1,020K → $2,000K |
-| **4** | $13 → $0 | Ride pure short | 207,250 | $2,000K → **$4,694K** |
+| **1 (NOW)** | $87 → $37 | Self-heal + TRIM grind | ~2,100 → 21,000 | $87K → $475K |
+| **2** | $37 → $22 | New MG $8.00 | 80,375 | $475K → $1,100K |
+| **3** | $22 → $13 | New MG $8.00 | 217,875 | $1,100K → $2,200K |
+| **4** | $13 → $0 | Ride pure short | 217,875 | $2,200K → **$5,032K** |
 
-**$100K → $4.7M = 47x return. Single account. DARWIN BBUD. SOL from $87 to $0. v1.426 with pre-close freeze. Trim to win.**
+**$100K → $5.0M = 50x return. Single account. DARWIN BBUD. SOL from $87 to $0. v1.426 with TRIM 58% / PROTECT 54% + pre-close freeze. The 58% TRIM saves ~$39K in swap costs vs 59% while maintaining 4% buffer above PROTECT. Trim to win.**
 
 ### How TRIM Pacing Works (Phase 1 — Post Self-Heal, DARWIN BBUD)
 
 | SOL Drop | Equity Gained (from net) | Lots Trimmed | Net After | Status |
 |---|---|---|---|---|
-| $87 → $80 | $14,000 (2,000 × $7) | 800 | 2,800 | TRIM engaging |
-| $80 → $70 | $28,000 (2,800 × $10) | 1,700 | 4,500 | Building |
-| $70 → $60 | $45,000 (4,500 × $10) | 3,000 | 7,500 | Moderate |
-| $60 → $50 | $75,000 (7,500 × $10) | 5,000 | 12,500 | Accelerating |
-| $50 → $40 | $125,000 (12,500 × $10) | 6,500 | 19,000 | Fast |
-| $40 → $35 | $95,000 (19,000 × $5) | 2,000 (all) | 21,000 | **Complete → CASCADE** |
+| $87 → $80 | $14,700 (2,100 × $7) | 1,100 | 3,200 | TRIM engaging |
+| $80 → $70 | $32,000 (3,200 × $10) | 2,000 | 5,200 | Building |
+| $70 → $60 | $52,000 (5,200 × $10) | 3,300 | 8,500 | Moderate |
+| $60 → $50 | $85,000 (8,500 × $10) | 5,500 | 14,000 | Accelerating |
+| $50 → $40 | $140,000 (14,000 × $10) | 6,000 | 20,000 | Fast |
+| $40 → $37 | $60,000 (20,000 × $3) | 1,000 (all) | 21,000 | **Complete → CASCADE** |
 
 ---
 
