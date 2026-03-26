@@ -1,10 +1,11 @@
 # QRRP — Quad Rothschild Rug Pull
 
-**Strategy:** Dual-account SOLUSD short to $0, then flip long from bottom
-**Accounts:** Two Darwinex accounts. Zero DARWINs. Pure cascade.
-**Weapon:** TyphooN EA v1.420 (BFG 9000)
-**Combined Net Short:** 2,735 lots across 2 accounts
-**Combined Equity:** $128,342
+**Strategy:** SOLUSD short to $0, cascading martingale
+**Account:** Fresh $100K virtual — **DARWIN BBUD**
+**Weapon:** TyphooN EA v1.426 (BFG 9000 + pre-close freeze)
+**Net Short:** ~1,739 lots (TRIM grinding)
+**Equity:** $92,167
+**Previous:** PM#8 wiped both accounts (52.9%/53% liquidation at open). Rebuilt with v1.426 (TRIM 59 / PROTECT 54 / pre-close freeze).
 
 ---
 
