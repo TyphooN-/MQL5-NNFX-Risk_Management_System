@@ -135,6 +135,17 @@ Both accounts liquidated at 52.9% and 53.0% ML on market open spread spike. Old 
 
 **These settings are SET IN STONE.** They will not change until SOL reaches $0.
 
+### Pre-Close Freeze: First Live Test (2026-03-26 16:54 UTC)
+
+```
+16:54:58  PRE-CLOSE: ML 57.9% >= 57.0% (TRIM-1%). Close enough. FREEZING until next session.
+17:05:01  PRE-CLOSE FREEZE lifted — market open, new session. Resuming normal operation.
+```
+
+**v1.426 pre-close freeze confirmed in production.** ML was 57.9% — within 1% of TRIM (58%). Freeze activated 4 minutes before session close. EA went completely dark for ~10 minutes across the session boundary. Zero activity during the spread spike window that killed QRRP (52.9%) and XJFD (53.0%) on 2026-03-23. Market reopened, fresh ticks arrived, freeze lifted, normal TRIM resumed.
+
+**PM#8 cannot happen again.** The structural vulnerability is patched. The position survived its first overnight.
+
 ### Post-Mortem #7: Spread Spike Wipes Previous Position (2026-03-19 09:17)
 
 #### What Happened
