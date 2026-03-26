@@ -1,4 +1,4 @@
-# DARWIN BBUD — Big Bad Ugly Destruction
+# DARWIN BBUD — Blissfully Bankrupt Unicorn Destruction
 
 **In loving memory of QRRP and XJFD, who died as they lived: overleveraged and blaming the spread.**
 
@@ -85,10 +85,10 @@ BBUD does not pretend to be a golden sample. BBUD is the battle-hardened revisio
 
 **B.B.U.D.**
 
-- **B** — Big. As in big enough to hold $100K of fresh capital without flinching. As in the Big Friendly Giant except not friendly and not a giant — a medium-sized Rust binary with a $4.7M cascade projection.
-- **B** — Bad. As in bad for Solana. As in bad for anyone holding SOL above $0. As in "that's a bad idea" which is what everyone said about QRRP before it proved the cascade math works.
-- **U** — Ugly. As in the Ugly Duckling that turns into a $4.7M swan. As in the code is ugly because it was written in 10 days and ships at 28,000 lines of Rust. As in Clint Eastwood ugly — the one who survives.
-- **D** — Destruction. Same D as XJFD. The court has ruled. The sentence is $0. The execution is automatic. The only thing that changed is the executioner got a firmware update.
+- **B** — Blissfully. As in blissfully unaware — which is what SOL holders are. The staking dashboard shows green. The VCs are still tweeting. The conference keynotes are still scheduled. And 24,477 short lots are grinding toward $0 while nobody checks the inflation schedule. Blissfully. Peacefully. Terminally.
+- **B** — Bankrupt. As in what SOL's tokenomics guarantee on a long enough timeline. 4% annual inflation with no supply cap is not a monetary policy. It is a bankruptcy filing in slow motion. The market just hasn't read the paperwork yet.
+- **U** — Unicorn. As in the mythical creature that Silicon Valley uses to describe startups valued at $1B+. SOL is the crypto unicorn — the one VCs parade around conference stages, the one with the "Ethereum killer" narrative, the one with the valuation that assumes infinite demand against infinite supply. Unicorns do not exist. Neither does SOL's fair value above $0.
+- **D** — Destruction. Same D as XJFD. The court has ruled. The sentence is $0. The execution is automatic. The only thing that changed is the executioner got a firmware update and the unicorn still doesn't know it's in the courtroom.
 
 ### The EA: v1.426
 
