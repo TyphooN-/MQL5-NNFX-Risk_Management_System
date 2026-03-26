@@ -105,7 +105,9 @@ Both accounts liquidated at 52.9% and 53.0% ML on market open spread spike. Old 
 | **Post-TRIM net SHORT** | ~1,739 |
 | **ML** | Grinding down from 999% toward 59% |
 
-**Note:** 400-position limit stopped the opening before full allocation. Position is functional — TRIM is already grinding. Spread cost 7.8% is within the $1.87 budget (expected ~8-10%).
+**Note:** 400-position limit stopped the opening before full allocation (operator manually opened some positions first, then fired Open MG). Position is functional — TRIM is already grinding. Spread cost 7.8% is within the $1.87 budget (expected ~8-10%).
+
+**Darwinex advantage from the blunder:** 200 positions per side at 123 lots each means every TRIM close is one recorded trade. Darwinex will see hundreds of small consistent trades instead of QRRP/XJFD's 2-3 massive closes per phase. Low win rate (~5-10%) but tiny average loss ($5-20), astronomical profit factor, smooth equity curve. The 400-position granularity is exactly the trade structure D-Score rewards — many small consistent trades with positive expectancy. The accidental opening is better for Darwinex metrics than the planned one.
 
 ### EA Configuration (v1.426 — LOCKED)
 

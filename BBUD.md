@@ -117,6 +117,28 @@ QRRP opened at ~$89 with $31K of degraded equity. BBUD opened at ~$87 with $100K
 
 The return multiple is similar (~47-50x) because the cascade ratio is a function of phases, not starting capital. But the absolute profit is **3x larger** because the starting equity is 3x larger. $4.7M beats $1.57M. And BBUD has v1.426 pre-close freeze — the 47x actually completes instead of dying at PM#9.
 
+### The 400-Position Blunder That Accidentally Won Darwinex
+
+The opening was a blunder. The operator manually entered some positions first, then fired Open MG, which hit the 400-position limit and placed 123 lots per chunk instead of filling the full allocation. The position opened 24,477 bias / 24,600 hedge instead of the target ~26,700 per side.
+
+**This accident is better than the plan.**
+
+QRRP and XJFD opened with massive single positions -- the entire allocation in a handful of huge orders. Darwinex saw 2-3 trades per cascade phase. The D-Score had almost no data points to work with. Win rate was meaningless because there were barely any trades to rate.
+
+BBUD has **200 positions per side** at 123 lots each. Every TRIM close is one recorded trade. Every PROTECT balanced close is two recorded trades. Over the course of the TRIM grind from $87 to pure short, Darwinex will record **hundreds of individual trades** -- each one a small loss (closing a hedge at a minor spread cost), but the equity curve climbs relentlessly because the net short exposure grows with every close.
+
+**What Darwinex sees:**
+- **Win rate:** Low (~5-10%). Most trades are TRIM closes -- small losses by design.
+- **Average loss:** Tiny ($5-20 per trade). TRIM closes the cheapest hedge lots first.
+- **Profit factor:** Astronomical. The equity growth from net short exposure dwarfs the cumulative small losses.
+- **Trade count:** Hundreds. Statistically significant. D-Score has real data to work with.
+- **Consistency:** Every TRIM close is nearly identical in size (123 lots) and loss magnitude. Darwinex rewards consistency.
+- **Return curve:** Smooth upward slope. No 10x spikes from single massive closes. Just steady compounding.
+
+The 400-position limit forced BBUD into the exact trade structure that Darwinex's scoring algorithm rewards: **many small consistent trades with a strongly positive equity curve.** QRRP's 3 massive closes per phase looked like gambling. BBUD's 200 small closes per phase look like a system.
+
+K|NGP|N would appreciate the irony. The blundered opening produced better silicon characteristics than the golden sample's perfect execution.
+
 ### The Pre-Close Freeze: What the Others Didn't Have
 
 Every trading day, five minutes before session close:
