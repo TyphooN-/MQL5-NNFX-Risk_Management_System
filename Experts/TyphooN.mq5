@@ -2219,11 +2219,8 @@ void TyWindow::OnClickOpenMG(void)
       Print("Open MG: Martingale DISABLED in inputs. Set EnableMartingale=true to use.");
       return;
    }
-   if (MartingaleMode != MG_OFF)
-   {
-      Print("Open MG: Martingale already active (", EnumToString(MartingaleMode), "). Turn off first.");
-      return;
-   }
+   // Allow re-hedging when MG is active (adds hedge lots to existing position)
+   // This enables recovery from PROTECT consuming all hedges
    // Read SL/TP from chart lines
    double slLine = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
    double tpLine = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
