@@ -111,24 +111,29 @@ Both accounts liquidated at 52.9% and 53.0% ML on market open spread spike. Old 
 
 **Lesson: $1.87 Open MG is too aggressive for 58/54 settings.** The spread tolerance was below $2.00 at open, guaranteeing PROTECT fires. $5.00 opens clean. The simulation now uses $5.00 for all future cascade phases.
 
-### EA Configuration (v1.426 — LOCKED)
+### EA Configuration (v1.426 — SET IN STONE)
 
 | Parameter | Value |
 |---|---|
-| Mode | **MG: SHORT** |
+| Enable Martingale | **true** |
+| $ profit target | **0.0** (disabled) |
 | TRIM | **58.0%** |
+| Open MG | **$4.20133769** |
 | PROTECT | **54.0%** |
+| Pre-close TRIM | **4 min** before close → force TRIM to threshold, then FREEZE |
+| Hard floor | **10.0%** (broker handles stop-out below this) |
+| Mode | **MG: SHORT** |
 | Dead zone | **4.0%** (54.0%–58.0%) |
-| Hard floor | **10.0%** |
-| Pre-close | **5 min** — balanced close if ML < 57%, then FREEZE until next session |
-| Open MG | **$1.87** (123 lots/chunk) |
-| Bias protection | Never closes bias (shorts) in crisis |
 | **Instruments** | **SOL ONLY** |
 | **DARWIN** | **BBUD** |
 
-**Why 58/54 not 59/54:** Simulated swap cost analysis shows 58% saves ~$39K over the life of the position vs 59% (faster hedge consumption = lower gross = less swap + more net short profit per price drop). 4% buffer above PROTECT is adequate with pre-close freeze handling overnight risk. The extra 1% buffer at 59% costs $39K for protection the freeze mechanism already provides.
+**Why 58/54:** Simulated swap cost analysis shows 58% saves ~$39K over the life of the position vs 59% (faster hedge consumption = lower gross = less swap + more net short profit per price drop). 4% buffer above PROTECT is adequate with pre-close freeze handling overnight risk.
 
-**Settings are FINAL.** TRIM grinds above 58%. Dead zone 54-58% is 4% wide. Pre-close mechanism fires balanced close and freezes EA before session close. Broker handles overnight. PM#8 lesson applied.
+**Why $4.20133769:** Simulated every cent from $4.00 to $5.00. Sweet spot is $4.29 (Phase 2 spread tolerance exactly $2.00). $4.20 is 9 cents more aggressive — PROTECT fires 1-2 times on cascade open, pads Darwinex D-Score with consistent small trades, self-heals to clean operation. The meme number IS the math.
+
+**Why 4 min pre-close:** Balanced close to reduce gross exposure before overnight. EA freezes completely until next session opens. The mechanism that would have saved QRRP and XJFD.
+
+**These settings are SET IN STONE.** They will not change until SOL reaches $0.
 
 ### Post-Mortem #7: Spread Spike Wipes Previous Position (2026-03-19 09:17)
 
