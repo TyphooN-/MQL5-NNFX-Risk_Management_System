@@ -95,7 +95,7 @@ Both accounts liquidated at 52.9% and 53.0% ML on market open spread spike. Old 
 | | Value |
 |---|---|
 | **Account** | Fresh $100K virtual — **DARWIN BBUD** |
-| **SOL Price** | ~$140 |
+| **SOL Price** | ~$87.10 |
 | **Open MG** | $1.87, 123 lots per chunk |
 | **Bias placed** | **24,477** (of 26,609 target — hit 400 position limit) |
 | **Hedge placed** | **24,600** (of 26,732 target) |
@@ -226,7 +226,7 @@ DARWIN BBUD — Fresh $100K (actual EA data 2026-03-26 12:43):
   Post-TRIM hedge ≈ 22,738
   Post-TRIM net short ≈ 1,739
   Equity = $92,167
-  SOL Price = ~$140
+  SOL Price = ~$87.10 (entry ~$87.19-87.04)
   Open MG = $1.87 (123 lots/chunk)
   Spread tolerance = $92,167 / 47,215 = $1.95 (will self-heal to ~$2.50+)
   TRIM 59% / PROTECT 54% / Pre-close 5min + FREEZE
@@ -242,82 +242,84 @@ DARWIN BBUD — Fresh $100K (actual EA data 2026-03-26 12:43):
 
 | SOL Price | Equity (est.) | SOL Hedge | SOL Net Short | Spread Tol. | ML | Status |
 |---|---|---|---|---|---|---|
-| **$140 (post-heal)** | **~$87,000** | **~19,000** | **~2,000** | **$2.18** | **59%** | **Safe — grinding** |
-| $120 | $127,000 | 17,500 | 3,500 | $3.14 | 59% | Building |
-| $100 | $197,000 | 14,000 | 7,000 | $4.70 | 59% | Comfortable |
-| $80 | $337,000 | 8,000 | 13,000 | $8.03 | 59% | Accelerating |
-| $60 | $597,000 | 1,500 | 19,500 | $13.85 | 59% | Nearly pure |
-| **~$55** | **~$700,000** | **0** | **21,000** | **$33.33** | **~80%** | **PURE SHORT #1** |
+| **$87 (post-heal)** | **~$87,000** | **~19,000** | **~2,000** | **$2.18** | **59%** | **Safe — grinding** |
+| $80 | $101,000 | 18,200 | 2,800 | $2.63 | 59% | Grinding |
+| $70 | $129,000 | 16,500 | 4,500 | $3.15 | 59% | Building |
+| $60 | $174,000 | 13,500 | 7,500 | $4.15 | 59% | Comfortable |
+| $50 | $249,000 | 8,500 | 12,500 | $5.95 | 59% | Accelerating |
+| $40 | $374,000 | 2,000 | 19,000 | $8.90 | 59% | Nearly pure |
+| **~$35** | **~$470,000** | **0** | **21,000** | **$22.38** | **~80%** | **PURE SHORT #1** |
 | | | | | | | **→ OPEN NEW MG $8.00** |
 
-**At ~$55 SOL: Phase 1 complete. ~21,000 pure short lots. Equity ~$700K. Immediately open MG: SHORT at $8.00.**
+**At ~$35 SOL: Phase 1 complete. ~21,000 pure short lots. Equity ~$470K. Immediately open MG: SHORT at $8.00.**
 
-### Phase 2 Cascade: New MG $8.00 at ~$55 SOL
+### Phase 2 Cascade: New MG $8.00 at ~$35 SOL
 
 ```
-Equity at trigger: ~$700,000
-Open MG $8.00: $700K / $8 = 87,500 per side
-Position after open: 87,500L / 108,500S (21,000 existing + 87,500 new)
-Spread tolerance: $700K / 196,000 = $3.57 ← SAFE from open
+Equity at trigger: ~$470,000
+Open MG $8.00: $470K / $8 = 58,750 per side
+Position after open: 58,750L / 79,750S (21,000 existing + 58,750 new)
+Spread tolerance: $470K / 138,500 = $3.39 ← SAFE from open
 ```
 
 | SOL Price | Equity | Hedge | Net Short | Spread Tol | Status |
 |---|---|---|---|---|---|
-| **$55 (cascade)** | **$700K** | **85,000** | **23,500** | **$3.57** | **Phase 2 starts** |
-| $45 | $935K | 60,000 | 48,500 | $4.28 | Accelerating |
-| $35 | $1,420K | 25,000 | 83,500 | $6.55 | Fast |
-| **~$28** | **~$2,000K** | **0** | **108,500** | **$18.43** | **PURE SHORT #2** |
+| **$35 (cascade)** | **$470K** | **56,000** | **23,750** | **$3.39** | **Phase 2 starts** |
+| $30 | $589K | 42,000 | 37,750 | $4.17 | Accelerating |
+| $25 | $778K | 20,000 | 59,750 | $5.84 | Fast |
+| **~$21** | **~$1,020K** | **0** | **79,750** | **$12.79** | **PURE SHORT #2** |
 | | | | | | **→ OPEN NEW MG $8.00** |
 
-### Phase 3 Cascade: New MG $8.00 at ~$28 SOL
+### Phase 3 Cascade: New MG $8.00 at ~$21 SOL
 
 ```
-Equity at trigger: ~$2,000,000
-Open MG $8.00: $2M / $8 = 250,000 per side
-Position after open: 250,000L / 358,500S (108,500 existing + 250,000 new)
-Spread tolerance: $2M / 608,500 = $3.29 ← SAFE
+Equity at trigger: ~$1,020,000
+Open MG $8.00: $1,020K / $8 = 127,500 per side
+Position after open: 127,500L / 207,250S (79,750 existing + 127,500 new)
+Spread tolerance: $1,020K / 334,750 = $3.05 ← SAFE
 ```
 
 | SOL Price | Equity | Hedge | Net Short | Spread Tol | Status |
 |---|---|---|---|---|---|
-| **$28 (cascade)** | **$2,000K** | **220,000** | **138,500** | **$3.29** | **Phase 3 starts** |
-| $20 | $3,108K | 100,000 | 258,500 | $5.32 | Fast |
-| **~$15** | **~$4,500K** | **0** | **358,500** | **$12.55** | **PURE SHORT #3 — RIDE TO $0** |
+| **$21 (cascade)** | **$1,020K** | **115,000** | **92,250** | **$3.05** | **Phase 3 starts** |
+| $17 | $1,389K | 65,000 | 142,250 | $4.24 | Fast |
+| **~$13** | **~$2,000K** | **0** | **207,250** | **$9.65** | **PURE SHORT #3 — RIDE TO $0** |
 
 ### Phase 4: Ride to $0
 
 ```
-358,500 pure short lots × $15 remaining = $5,377,500
-Equity at $0: $4,500K + $5,378K = $9,878,000
+207,250 pure short lots × $13 remaining = $2,694,250
+Equity at $0: $2,000K + $2,694K = $4,694,000
 ```
 
 | SOL Price | Equity | Net Short | Spread Tol | Status |
 |---|---|---|---|---|
-| $15 (pure short #3) | $4,500K | 358,500 | $12.55 | Riding |
-| $10 | $6,293K | 358,500 | $17.55 | Printing |
-| $5 | $8,085K | 358,500 | $22.55 | Locked in |
-| **$0** | **$9,878K** | **358,500** | **∞** | **DONE** |
+| $13 (pure short #3) | $2,000K | 207,250 | $9.65 | Riding |
+| $10 | $2,622K | 207,250 | $12.65 | Printing |
+| $5 | $3,658K | 207,250 | $17.65 | Locked in |
+| **$0** | **$4,694K** | **207,250** | **∞** | **DONE** |
 
 ### Full Cascade Summary (DARWIN BBUD — Single Account)
 
 | Phase | SOL Price | Action | Net Short Lots | Equity |
 |---|---|---|---|---|
-| **1 (NOW)** | $140 → $55 | Self-heal + TRIM grind | ~2,000 → 21,000 | $87K → $700K |
-| **2** | $55 → $28 | New MG $8.00 | 108,500 | $700K → $2,000K |
-| **3** | $28 → $15 | New MG $8.00 | 358,500 | $2,000K → $4,500K |
-| **4** | $15 → $0 | Ride pure short | 358,500 | $4,500K → **$9,878K** |
+| **1 (NOW)** | $87 → $35 | Self-heal + TRIM grind | ~2,000 → 21,000 | $87K → $470K |
+| **2** | $35 → $21 | New MG $8.00 | 79,750 | $470K → $1,020K |
+| **3** | $21 → $13 | New MG $8.00 | 207,250 | $1,020K → $2,000K |
+| **4** | $13 → $0 | Ride pure short | 207,250 | $2,000K → **$4,694K** |
 
-**$100K → $9.9M = 99x return. Single account. DARWIN BBUD. SOL from $140 to $0. v1.426 with pre-close freeze. Trim to win.**
+**$100K → $4.7M = 47x return. Single account. DARWIN BBUD. SOL from $87 to $0. v1.426 with pre-close freeze. Trim to win.**
 
 ### How TRIM Pacing Works (Phase 1 — Post Self-Heal, DARWIN BBUD)
 
 | SOL Drop | Equity Gained (from net) | Lots Trimmed | Net After | Status |
 |---|---|---|---|---|
-| $140 → $120 | $40,000 (2,000 × $20) | 1,500 | 3,500 | TRIM engaging |
-| $120 → $100 | $70,000 (3,500 × $20) | 3,500 | 7,000 | Building |
-| $100 → $80 | $140,000 (7,000 × $20) | 6,000 | 13,000 | Accelerating |
-| $80 → $60 | $260,000 (13,000 × $20) | 6,500 | 19,500 | Fast |
-| $60 → $55 | $97,500 (19,500 × $5) | 1,500 (all) | 21,000 | **Complete → CASCADE** |
+| $87 → $80 | $14,000 (2,000 × $7) | 800 | 2,800 | TRIM engaging |
+| $80 → $70 | $28,000 (2,800 × $10) | 1,700 | 4,500 | Building |
+| $70 → $60 | $45,000 (4,500 × $10) | 3,000 | 7,500 | Moderate |
+| $60 → $50 | $75,000 (7,500 × $10) | 5,000 | 12,500 | Accelerating |
+| $50 → $40 | $125,000 (12,500 × $10) | 6,500 | 19,000 | Fast |
+| $40 → $35 | $95,000 (19,000 × $5) | 2,000 (all) | 21,000 | **Complete → CASCADE** |
 
 ---
 

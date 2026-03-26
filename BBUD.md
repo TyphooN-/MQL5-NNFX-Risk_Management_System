@@ -85,9 +85,9 @@ BBUD does not pretend to be a golden sample. BBUD is the battle-hardened revisio
 
 **B.B.U.D.**
 
-- **B** — Big. As in big enough to hold $100K of fresh capital without flinching. As in the Big Friendly Giant except not friendly and not a giant — a medium-sized Rust binary with a $9.9M cascade projection.
+- **B** — Big. As in big enough to hold $100K of fresh capital without flinching. As in the Big Friendly Giant except not friendly and not a giant — a medium-sized Rust binary with a $4.7M cascade projection.
 - **B** — Bad. As in bad for Solana. As in bad for anyone holding SOL above $0. As in "that's a bad idea" which is what everyone said about QRRP before it proved the cascade math works.
-- **U** — Ugly. As in the Ugly Duckling that turns into a $9.9M swan. As in the code is ugly because it was written in 10 days and ships at 28,000 lines of Rust. As in Clint Eastwood ugly — the one who survives.
+- **U** — Ugly. As in the Ugly Duckling that turns into a $4.7M swan. As in the code is ugly because it was written in 10 days and ships at 28,000 lines of Rust. As in Clint Eastwood ugly — the one who survives.
 - **D** — Destruction. Same D as XJFD. The court has ruled. The sentence is $0. The execution is automatic. The only thing that changed is the executioner got a firmware update.
 
 ### The EA: v1.426
@@ -103,21 +103,19 @@ v1.420 was a race car with no seat belt. v1.426 is the same race car with a roll
 ```
 QRRP  (degraded): $100K → $31K → liquidated at 52.9%. Terminal equity: $0.
 XJFD  (golden):   $100K → $92K → liquidated at 53.0%. Terminal equity: $0.
-BBUD  (v1.426):   $100K → $92K → TRIM grinding → $9,878,000 (projected).
+BBUD  (v1.426):   $100K → $92K → TRIM grinding → $4,694,000 (projected).
 ```
 
-Same starting capital. Same instrument. Same operator. Different software. $9.9M difference.
+Same starting capital. Same instrument. Same operator. Different software. $4.7M difference.
 
-### The Cascade Math (Why $140 Entry Is Better Than $89)
+### The Cascade Math (Why Fresh $100K Beats Degraded $31K)
 
-QRRP and XJFD opened at ~$89 SOL. BBUD opened at ~$140 SOL. Higher entry is better for a short cascade:
+QRRP opened at ~$89 with $31K of degraded equity. BBUD opened at ~$87 with $100K of fresh equity. Same price range. 3x the capital:
 
-- **More dollar profit per lot:** Each lot earns $140 on the way to $0, not $89. That is 57% more profit per lot.
-- **More equity at each cascade checkpoint:** Higher entry → more profit → more equity at pure short → larger next MG → geometrically more lots.
-- **QRRP cascade:** $31K → $1.57M (50x) with 65,000 final lots
-- **BBUD cascade:** $100K → $9.9M (99x) with 358,500 final lots
+- **QRRP cascade (degraded):** $31K → $1.57M (50x) with 65,000 final lots
+- **BBUD cascade (fresh):** $100K → $4.7M (47x) with 207,250 final lots
 
-The higher entry price makes the cascade math exponentially better because every cascade checkpoint has more equity to seed the next phase. BBUD at $140 compounds harder than QRRP at $89 could dream of.
+The return multiple is similar (~47-50x) because the cascade ratio is a function of phases, not starting capital. But the absolute profit is **3x larger** because the starting equity is 3x larger. $4.7M beats $1.57M. And BBUD has v1.426 pre-close freeze — the 47x actually completes instead of dying at PM#9.
 
 ### The Pre-Close Freeze: What the Others Didn't Have
 
@@ -197,20 +195,20 @@ BBUD is the B0 stepping. QRRP was A0. XJFD was A1. The architecture was always c
 ║                                                               ║
 ║  Silicon:     B0 stepping (v1.426, pre-close freeze)         ║
 ║  Budget:      $100,000 (fresh, no degradation)               ║
-║  Entry:       ~$140 SOL (57% more profit/lot than QRRP)     ║
+║  Entry:       ~$87.10 SOL (same range as QRRP/XJFD)       ║
 ║  Open MG:     $1.87 (K|NGP|N sweet spot)                    ║
 ║  Bias lots:   24,477                                          ║
 ║  TRIM:        59% (5% dead zone)                             ║
 ║  PROTECT:     54% (4% above liquidation)                     ║
 ║  Pre-close:   5 min freeze                                   ║
 ║                                                               ║
-║  Phase 1:     $140 → $55  |  21,000 lots  |  $700K          ║
-║  Phase 2:     $55 → $28   |  108,500 lots |  $2,000K        ║
-║  Phase 3:     $28 → $15   |  358,500 lots |  $4,500K        ║
-║  Phase 4:     $15 → $0    |  358,500 lots |  $9,878K        ║
+║  Phase 1:     $87 → $35   |  21,000 lots  |  $470K           ║
+║  Phase 2:     $35 → $21   |  79,750 lots  |  $1,020K        ║
+║  Phase 3:     $21 → $13   |  207,250 lots |  $2,000K        ║
+║  Phase 4:     $13 → $0    |  207,250 lots |  $4,694K        ║
 ║                                                               ║
-║  TERMINAL SCORE: $9,878,000                                   ║
-║  RETURN: 99x                                                  ║
+║  TERMINAL SCORE: $4,694,000                                   ║
+║  RETURN: 47x                                                  ║
 ║  POST-MORTEMS: 0 (target)                                    ║
 ║  PREDECESSOR DEATHS: 8 (QRRP) + 1 (XJFD) = 9               ║
 ║  LESSONS APPLIED: All of them (this time for real)           ║
@@ -230,4 +228,4 @@ QRRP is dead. XJFD is dead. Long live BBUD.
 
 ---
 
-> **DISCLAIMER:** BBUD is a speculative trading strategy using leveraged crypto CFDs on a virtual (demo) account. This is NOT financial advice. The $9.9M projection assumes SOL reaches $0, which may never happen. Leveraged trading carries substantial risk of loss including loss exceeding your initial deposit. The previous two accounts running this strategy were liquidated. Do not trade money you cannot afford to lose. The author holds active short positions in SOLUSD via DARWIN BBUD.
+> **DISCLAIMER:** BBUD is a speculative trading strategy using leveraged crypto CFDs on a virtual (demo) account. This is NOT financial advice. The $4.7M projection assumes SOL reaches $0, which may never happen. Leveraged trading carries substantial risk of loss including loss exceeding your initial deposit. The previous two accounts running this strategy were liquidated. Do not trade money you cannot afford to lose. The author holds active short positions in SOLUSD via DARWIN BBUD.
