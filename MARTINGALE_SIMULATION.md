@@ -107,7 +107,7 @@ Both accounts liquidated at 52.9% and 53.0% ML on market open spread spike. Old 
 
 **What happened:** The initial $1.87 Open MG created massive gross exposure with $1.94/lot spread tolerance. SOL dropped, ML hit PROTECT at 54%, and PROTECT fired balanced closes that consumed ~22,500 lots from EACH side — destroying 92% of the position. The EA correctly refused to close bias once hedges were gone ("no hedges remaining — standing down"), preserving 1,958 pure short lots.
 
-**Recovery:** Re-hedged at $5.00 Open MG with $2.37/lot spread tolerance (above $2.00 safety floor). Position is now functional with TRIM grinding back down to 58%. The 968-lot chunks give better Darwinex trade granularity than the original 123-lot chunks.
+**Recovery:** Re-hedged at $5.00 Open MG with $2.37/lot spread tolerance (above $2.00 safety floor), then re-opened at $4.20133769 (permanent setting). Position is now functional with TRIM grinding at 57%. The 968-lot chunks give better Darwinex trade granularity than the original 123-lot chunks.
 
 **Lesson: $1.87 Open MG is too aggressive for 58/54 settings.** The spread tolerance was below $2.00 at open, guaranteeing PROTECT fires. $5.00 opens clean. The simulation now uses $5.00 for all future cascade phases.
 
@@ -142,7 +142,7 @@ Both accounts liquidated at 52.9% and 53.0% ML on market open spread spike. Old 
 17:05:01  PRE-CLOSE FREEZE lifted — market open, new session. Resuming normal operation.
 ```
 
-**v1.426 pre-close freeze confirmed in production.** ML was 57.9% — within 1% of TRIM (58%). Freeze activated 4 minutes before session close. EA went completely dark for ~10 minutes across the session boundary. Zero activity during the spread spike window that killed QRRP (52.9%) and XJFD (53.0%) on 2026-03-23. Market reopened, fresh ticks arrived, freeze lifted, normal TRIM resumed.
+**v1.426 pre-close freeze confirmed in production.** ML was 57.9% — within 1% of TRIM (57%). Freeze activated 4 minutes before session close. EA went completely dark for ~10 minutes across the session boundary. Zero activity during the spread spike window that killed QRRP (52.9%) and XJFD (53.0%) on 2026-03-23. Market reopened, fresh ticks arrived, freeze lifted, normal TRIM resumed.
 
 **PM#8 cannot happen again.** The structural vulnerability is patched. The position survived its first overnight.
 
