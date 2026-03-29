@@ -2,10 +2,10 @@
 
 The hedged martingale exploits net-based margin to carry massive directional exposure via a hedge that is systematically trimmed as the thesis plays out. The EA (TyphooN v1.420) manages the position automatically via forward-looking TRIM and dynamic PROTECT.
 
-**Current plan:** Dual-Account Operation → $0. **SOL SPECIALIST. Cascading MGs. Two accounts. Zero DARWINs. One thesis.**
-**Account 1 (Crypto CFD):** Equity $37,944, Balance $34,493, ML 52.4%. Short 13,900 / Long 13,092 = Net 808 SHORT. TRIM 54.2% / PROTECT 51.0%.
-**Account 2 (Futures/Stocks):** Equity $90,398, Balance $96,551, ML 52.6%. Short 25,142 / Long 23,215 = Net 1,927 SHORT. TRIM 54.2% / PROTECT 51.0%.
-**Combined: $128K equity, 2,735 net SHORT. Two accounts. Zero DARWINs. One instrument. One operator.**
+**Current plan:** DARWIN BBUD → $0. **SOL SPECIALIST. Single account. Single DARWIN. One thesis.**
+**DARWIN BBUD** (2026-03-29): Equity $88K, 9,022L / 10,866S, net 1,844 SHORT. Open MG $4.20133769 at $81.88 SOL. TRIM 57/PROTECT 54 (active), widen to 58/54 overnight. Spread tol $2.01.
+**Previous DARWINs retired:** QRRP (degraded, liquidated), XJFD (reached pure short 1,953 lots → reopened as BBUD).
+**BBUD is the last DARWIN. The final chip. The K|NGP|N voltage: $4.20133769.**
 **Key lesson (PM#6):** No ADA/DOGE until SOL hedge is consumed. Multi-instrument positions amplify spread spike damage during hedge phase.
 **Retired:** XNGUSD CFD long — martingale doesn't work at CFD lot sizes.
 **Historical:** SOLUSD crypto short (PM#1-6) — six spread-spike events, lessons preserved below.
@@ -90,26 +90,29 @@ Both accounts liquidated at 52.9% and 53.0% ML on market open spread spike. Old 
 
 ## Active: DARWIN BBUD — Fresh $100K, SOLUSD SHORT (2026-03-26)
 
-### Position State (from EA log 2026-03-26 12:43)
+### Position State (from EA log 2026-03-29 17:11 — BBUD FINAL FORM)
 
 | | Value |
 |---|---|
-| **Account** | Fresh $100K virtual — **DARWIN BBUD** |
-| **SOL Price** | ~$87.10 (entry), ~$86.60 (re-hedge) |
-| **Initial Open MG** | $1.87, 123 lots per chunk (hit 400 position limit) |
-| **Initial position** | 24,477 bias / 24,600 hedge |
-| **PROTECT event** | SOL dropped, ML hit 54%, PROTECT balanced-closed ~22,500 lots each side |
-| **Post-PROTECT** | 1,958 pure short lots, ML 52.4%, no hedges |
-| **Re-hedge Open MG** | $5.00, 968 lots per chunk at ~$86.60 |
-| **Post re-hedge** | 8,744 bias / 9,024 hedge (TRIM grinding excess) |
-| **Equity** | **$87,524** |
-| **ML** | 360.8% → grinding down to 58% |
+| **Account** | **DARWIN BBUD** — last surviving DARWIN |
+| **SOL Price** | ~$81.88 (current, dropping hard) |
+| **Open MG** | **$4.20133769** (the meme number, the K\|NGP\|N voltage) |
+| **Position** | 9,022L (hedge) / 10,866S (bias), net 1,844 SHORT |
+| **Equity** | **$88,038** |
+| **Balance** | $81,255 |
+| **Margin** | $152,343 |
+| **ML** | 57.8% (at TRIM threshold — grinding) |
+| **TRIM closes** | 4 (initial burst: 1,053 + 791 + 25 + 1 = 1,870 longs consumed) |
+| **PROTECT closes** | 0 |
+| **Spread tolerance** | $88K / (9,022 + 10,866) = **$4.43/lot** ← SAFE |
+| **Settings** | TRIM 57%/PROTECT 54% active, widen to 58%/54% overnight |
+| **Pre-close** | 4 min before session close — balanced close + FREEZE |
 
-**What happened:** The initial $1.87 Open MG created massive gross exposure with $1.94/lot spread tolerance. SOL dropped, ML hit PROTECT at 54%, and PROTECT fired balanced closes that consumed ~22,500 lots from EACH side — destroying 92% of the position. The EA correctly refused to close bias once hedges were gone ("no hedges remaining — standing down"), preserving 1,958 pure short lots.
+**History:** QRRP ($31K degraded) → liquidated. XJFD ($100K fresh) → ground to 1,953 pure short lots through PROTECT fires → reached pure short → reopened as BBUD with Open MG $4.20133769 at $81.88. SOL cliff-diving with DEATH X across all timeframes. Bear Power INIT everywhere. Ehlers Fisher -1.71.
 
-**Recovery:** Re-hedged at $5.00 Open MG with $2.37/lot spread tolerance (above $2.00 safety floor), then re-opened at $4.20133769 (permanent setting). Position is now functional with TRIM grinding at 57%. The 968-lot chunks give better Darwinex trade granularity than the original 123-lot chunks.
+**BBUD is the last DARWIN. One account. One instrument. One number: $4.20133769.**
 
-**Lesson: $1.87 Open MG is too aggressive for 58/54 settings.** The spread tolerance was below $2.00 at open, guaranteeing PROTECT fires. $5.00 opens clean. The simulation now uses $5.00 for all future cascade phases.
+**Spread tolerance $4.43 is SAFE.** Previous disasters: XJFD at $1.87 gave $0.935 spread tol → 93% bias destroyed. BBUD at $4.20 gives $4.43 → should preserve 90%+ of bias through to pure short.
 
 ### EA Configuration (v1.426 — SET IN STONE)
 
@@ -258,24 +261,27 @@ DARWIN BBUD (actual EA data 2026-03-26 17:29):
 
 ### TRIM Progression to Pure Short → First Cascade (DARWIN BBUD)
 
-**Current state (2026-03-27):** $92,383 equity, 10,409 bias / 8,505 hedge, 1,904 net SHORT, ML 56.0% [DEAD], TRIM at 57%. P&L +$5,244. 76 TRIM closes, 0 PROTECT fires.
+**Current state (2026-03-29 17:11):** $88,038 equity, 10,866 bias / 9,022 hedge, 1,844 net SHORT, ML 57.8%, TRIM at 57%. SOL at $81.88 and dropping hard. DEATH X all TF. 4 TRIM closes, 0 PROTECT fires. Spread tol $4.43.
+
+**History:** XJFD reached pure short (1,953 lots) → reopened as BBUD with Open MG $4.20133769 at $81.88. QRRP liquidated. BBUD is the last DARWIN.
 
 **Forward-looking TRIM math:** `maxSafe = floor((equity/0.57 - margin) / marginPerLot)`. TRIM maintains ML at exactly 57%.
 
-**All cascade phases use Open MG $4.20133769. Settings locked.**
+**All cascade phases use Open MG $4.20133769. Settings: TRIM 57/PROTECT 54 active, 58/54 overnight.**
 
-**Phase 1: TRIM grind → Pure Short (10,409 bias, 8,505 hedge, TRIM 57%)**
+**Phase 1: TRIM grind → Pure Short (10,866 bias, 9,022 hedge, TRIM 57%)**
 
 | SOL Price | Equity (est.) | SOL Hedge | SOL Net Short | Spread Tol. | ML | Status |
 |---|---|---|---|---|---|---|
-| **$83 (now)** | **~$92,383** | **~8,505** | **~1,904** | **$4.88** | **56%** | **Dead zone — grinding** |
-| $75 | $107,500 | 7,000 | 3,400 | $5.19 | 57% | TRIM engaging |
-| $65 | $141,500 | 5,000 | 5,400 | $6.38 | 57% | Building |
-| $55 | $195,500 | 2,500 | 7,900 | $9.04 | 57% | Accelerating |
-| **~$45** | **~$267,000** | **0** | **~10,409** | **$25.65** | **~80%** | **PURE SHORT #1** |
+| **$81.88 (now)** | **$88,038** | **9,022** | **1,844** | **$4.43** | **57.8%** | **TRIM grinding** |
+| $75 | $100,700 | 8,200 | 2,666 | $4.60 | 57% | Building |
+| $65 | $127,360 | 6,900 | 3,966 | $5.85 | 57% | Comfortable |
+| $55 | $167,020 | 4,900 | 5,966 | $7.95 | 57% | Accelerating |
+| $45 | $226,680 | 2,200 | 8,666 | $12.35 | 57% | Nearly pure |
+| **~$42** | **~$252,000** | **0** | **10,866** | **$23.18** | **~80%** | **PURE SHORT #1** |
 | | | | | | | **→ OPEN MG $4.20133769** |
 
-**At ~$45 SOL: Phase 1 complete. 10,409 pure short lots. Equity ~$267K. Open MG: SHORT at $4.20133769.**
+**At ~$42 SOL: Phase 1 complete. 10,866 pure short lots. Equity ~$252K. Open MG: SHORT at $4.20133769.**
 
 ### Phase 2 Cascade: MG $4.20 at ~$45 SOL
 
