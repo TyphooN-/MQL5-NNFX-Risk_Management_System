@@ -277,12 +277,11 @@ DARWIN BBUD (actual EA data 2026-03-26 17:29):
 | SOL Price | Equity (est.) | SOL Hedge | SOL Net Short | Spread Tol. | ML | Status |
 |---|---|---|---|---|---|---|
 | **$82.79 (now)** | **$78,609** | **16,002** | **1,653** | **$2.34** | **57.0%** | **TRIM grinding** |
-| $80 | $82,375 | 17,100 | 2,100 | $2.15 | 57% | Spread safe |
-| $75 | $92,875 | 16,300 | 2,900 | $2.42 | 57% | Comfortable |
-| $65 | $121,875 | 13,700 | 5,500 | $3.24 | 57% | Building |
-| $55 | $176,875 | 8,700 | 10,500 | $5.09 | 57% | Accelerating |
-| $45 | $281,875 | 1,500 | 17,700 | $11.59 | 57% | Nearly pure |
-| **~$42** | **~$320,000** | **0** | **~19,944** | **$16.05** | **~75%** | **PURE SHORT #1** |
+| $75 | $91,472 | 15,200 | 2,455 | $2.61 | 57% | Building |
+| $65 | $116,022 | 13,500 | 4,155 | $3.38 | 57% | Comfortable |
+| $55 | $157,572 | 10,200 | 7,455 | $5.25 | 57% | Accelerating |
+| $45 | $232,122 | 4,400 | 13,255 | $10.65 | 57% | Nearly pure |
+| **~$42** | **~$272,000** | **0** | **17,655** | **$15.41** | **~75%** | **PURE SHORT #1** |
 | | | | | | | **→ OPEN MG $4.20133769** |
 
 **2 PROTECT fires reduced bias from 22,148 → 19,944. Pure short at ~$42 with ~19,944 lots and ~$320K equity.** Still the highest lot count at any pure short. The position survived the overnight session close (pre-close freeze saved it).
@@ -291,40 +290,40 @@ DARWIN BBUD (actual EA data 2026-03-26 17:29):
 
 ### Phase 2: FINAL Cascade — MG $5-6 at ~$42 SOL (LAST ENTRY)
 
-**TWO ENTRIES ONLY. This is the second and final Open MG. Conservative $5-6 for fast unwind. After this, ride pure short to $0, then flip long from the bottom.**
+**TWO ENTRIES ONLY. This is the second and final Open MG. Conservative $6.00 for fast unwind. After this, ride pure short to $0, then flip long from the bottom.**
 
 ```
-Equity at trigger: ~$320,000
+Equity at trigger: ~$272,000
 Open MG $6.00 (conservative — fast unwind, safe spread tol):
-  $320K / $6.00 = 53,333 per side
-Position after open: 53,333L / 73,277S (19,944 existing + 53,333 new)
-Spread tolerance: $320K / 126,610 = $2.53 ← SAFE, minimal PROTECT risk
+  $272K / $6.00 = 45,333 per side
+Position after open: 45,333L / 62,988S (17,655 existing + 45,333 new)
+Spread tolerance: $272K / 108,321 = $2.51 ← SAFE, minimal PROTECT risk
 ```
 
 | SOL Price | Equity | Hedge | Net Short | Spread Tol | Status |
 |---|---|---|---|---|---|
-| **$42 (cascade)** | **$320K** | **50,000** | **23,277** | **$2.53** | **Phase 2 starts — FINAL MG** |
-| $38 | $413K | 38,000 | 35,277 | $3.19 | Accelerating |
-| $35 | $519K | 25,000 | 48,277 | $4.12 | Fast |
-| **~$32** | **~$660K** | **0** | **73,277** | **$9.01** | **PURE SHORT — FINAL** |
+| **$42 (cascade)** | **$272K** | **43,000** | **19,988** | **$2.51** | **Phase 2 starts — FINAL MG** |
+| $38 | $352K | 30,000 | 32,988 | $4.04 | Accelerating |
+| $35 | $451K | 18,000 | 44,988 | $5.41 | Fast |
+| **~$33** | **~$541K** | **0** | **62,988** | **$8.59** | **PURE SHORT — FINAL** |
 
 ### Ride to $0 → Flip Long (No More Short Entries)
 
 ```
-73,277 pure short lots. No more Open MGs. Ride naked to $0.
-Every $1 SOL drops = $73,277 profit.
-Pure short at ~$32 (only $10 grind from $42 — fast unwind).
+62,988 pure short lots. No more Open MGs. Ride naked to $0.
+Every $1 SOL drops = $62,988 profit.
+Pure short at ~$33 (only $9 grind from $42 — fast unwind).
 Then flip long from the bottom.
 ```
 
 | SOL Price | Equity | Net Short | Spread Tol | Status |
 |---|---|---|---|---|
-| $32 (pure short) | $660K | 73,277 | $9.01 | Riding |
-| $25 | $1,173K | 73,277 | $16.01 | Printing |
-| $20 | $1,539K | 73,277 | $21.01 | Locked in |
-| $10 | $2,272K | 73,277 | $31.01 | Deep profit |
-| $5 | $2,639K | 73,277 | $36.01 | Nearly done |
-| **$0** | **$3,005K** | **73,277** | **∞** | **DONE → FLIP LONG** |
+| $33 (pure short) | $541K | 62,988 | $8.59 | Riding |
+| $25 | $1,045K | 62,988 | $16.59 | Printing |
+| $20 | $1,360K | 62,988 | $21.59 | Locked in |
+| $10 | $1,990K | 62,988 | $31.59 | Deep profit |
+| $5 | $2,305K | 62,988 | $36.59 | Nearly done |
+| **$0** | **$2,619K** | **62,988** | **∞** | **DONE → FLIP LONG** |
 
 ### Full Plan: 2 Martingale 2 Furious
 
@@ -332,12 +331,12 @@ Then flip long from the bottom.
 
 | Phase | SOL Price | Action | Bias Lots | Equity |
 |---|---|---|---|---|
-| **MG 1 (NOW)** | $84 → $42 | TRIM grind (17,817 bias, 91 trims, ML 57.5%) | 17,817 | $78K → $300K |
-| **MG 2 (FINAL)** | $42 → $33 | MG $5-6 — **LAST ENTRY, fast unwind** | ~67,817 | $300K → $580K |
-| **Ride** | $33 → $0 | Pure short — ride to $0 | ~67,817 | $580K → **$2,818K** |
+| **MG 1 (NOW)** | $82.79 → $42 | TRIM grind (17,655 bias, 28 trims, ML 57.0%) | 17,655 | $79K → $272K |
+| **MG 2 (FINAL)** | $42 → $33 | MG $6.00 — **LAST ENTRY, fast unwind** | 62,988 | $272K → $541K |
+| **Ride** | $33 → $0 | Pure short — ride to $0 | 62,988 | $541K → **$2,619K** |
 | **Flip** | ~$2-5 | Close shorts, open MG: LONG | — | Ride bull cycle to ATH |
 
-**2 Martingale 2 Furious: $78K → $2.8M = 36x return. Two entries. One instrument. Ride to $0. Flip long. Done.**
+**2 Martingale 2 Furious: $79K → $2.6M = 33x return. Two entries. One instrument. Ride to $0. Flip long. Done.**
 
 *The first martingale was the setup. The second martingale is the knockout. There is no third — because by then, SOL is at $0 and we're already flipping long.*
 
