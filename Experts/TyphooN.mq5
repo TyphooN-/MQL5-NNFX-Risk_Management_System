@@ -1605,46 +1605,60 @@ void ProcessMartingale()
       else
          return;  // Frozen — no TRIM, no PROTECT, no action until next session
    }
-   // === PRE-CLOSE: freeze or push ML up before session close ===
-   // This runs BEFORE regular PROTECT to prevent PROTECT from firing balanced closes
-   // into a widening-spread session close (which destroys bias for nothing).
+   // === PRE-CLOSE: close BIAS (shorts) to push ML above TRIM, then FREEZE ===
+   // Closing bias reduces net → reduces margin → INCREASES ML.
+   // This sacrifices a few bias lots to survive overnight. If the account gets
+   // stopped out, ALL bias is lost. Better to lose 200 lots than 19,000.
+   // TRIM rebuilds net on the next session's first tick by closing hedge longs.
    if (PreCloseMinutes > 0 && IsPreCloseWindow())
    {
-      double preCloseFloor = MartingaleUnwindMarginPct - 1.0; // TRIM - 1%
-      if (marginLevel <= MartingaleDangerMarginPct)
+      if (marginLevel >= MartingaleUnwindMarginPct)
       {
-         // ML is AT or BELOW PROTECT during pre-close — FREEZE IMMEDIATELY.
-         // Do NOT fire PROTECT into a closing session. Let broker handle stop-out.
-         // Firing balanced closes during spread spikes at session close destroys bias.
+         // ML >= TRIM — safe. Freeze and ride into close.
          if (!PreCloseFrozen)
          {
-            Print("PRE-CLOSE EMERGENCY FREEZE: ML ", DoubleToString(marginLevel, 1),
-                  "% <= PROTECT ", DoubleToString(MartingaleDangerMarginPct, 1),
-                  "%. Freezing — broker handles stop-out. Bias is sacred.");
+            Print("PRE-CLOSE FREEZE: ML ", DoubleToString(marginLevel, 1),
+                  "% >= TRIM ", DoubleToString(MartingaleUnwindMarginPct, 1),
+                  "%. Safe. Freezing until next session.");
             PreCloseFrozen = true;
             PreCloseFreezeTime = TimeCurrent();
          }
          return;
       }
-      if (marginLevel >= preCloseFloor)
+      // ML < TRIM — close bias (shorts) to reduce net exposure and push ML up
+      if (!PreCloseFrozen)
       {
-         // ML >= TRIM - 1% — close enough, freeze and ride into close
-         if (!PreCloseFrozen)
+         // Calculate how many bias lots to close to reach TRIM
+         // ML = equity / margin → target margin = equity / (TRIM/100)
+         double targetMargin = AccountInfoDouble(ACCOUNT_EQUITY) / (MartingaleUnwindMarginPct / 100.0);
+         double currentMargin = AccountInfoDouble(ACCOUNT_MARGIN);
+         double excessMargin = currentMargin - targetMargin;
+         if (excessMargin > 0)
          {
-            Print("PRE-CLOSE: ML ", DoubleToString(marginLevel, 1), "% >= ", DoubleToString(preCloseFloor, 1),
-                  "% (TRIM-1%). Close enough. FREEZING until next session.");
-            PreCloseFrozen = true;
-            PreCloseFreezeTime = TimeCurrent();
+            // Each bias lot closed reduces margin by ~price per lot
+            double pricePerLot = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+            if (pricePerLot <= 0) pricePerLot = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+            int lotsToClose = (int)MathCeil(excessMargin / pricePerLot);
+            if (lotsToClose < 1) lotsToClose = 1;
+            Print("PRE-CLOSE: ML ", DoubleToString(marginLevel, 1),
+                  "% < TRIM ", DoubleToString(MartingaleUnwindMarginPct, 1),
+                  "%. Closing ~", lotsToClose, " bias lots to push ML above TRIM. Bias sacrifice for overnight survival.");
+            // Close bias (shorts) — smallest positions first to minimize impact
+            int closed = 0;
+            for (int i = PositionsTotal() - 1; i >= 0 && closed < lotsToClose; i--)
+            {
+               ulong ticket = PositionGetTicket(i);
+               if (ticket == 0) continue;
+               if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
+               // Bias = SHORT for MG_SHORT mode
+               if (PositionGetInteger(POSITION_TYPE) != POSITION_TYPE_SELL) continue;
+               double lots = PositionGetDouble(POSITION_VOLUME);
+               CTrade trade;
+               if (trade.PositionClose(ticket))
+                  closed += (int)lots;
+            }
+            Print("PRE-CLOSE: closed ", closed, " bias lots. Rechecking ML next tick.");
          }
-         return;
-      }
-      // ML is between PROTECT and TRIM-1% — fire one balanced close per tick to push ML up
-      double totalHedgeLots = GetTotalHedgeLots();
-      if (totalHedgeLots > 0)
-      {
-         Print("PRE-CLOSE PROTECT: ML ", DoubleToString(marginLevel, 1), "% < ", DoubleToString(preCloseFloor, 1),
-               "% (TRIM-1%) — balanced close to reduce gross. Will check again next tick.");
-         ProtectiveClose(marginLevel);
       }
       return;
    }
