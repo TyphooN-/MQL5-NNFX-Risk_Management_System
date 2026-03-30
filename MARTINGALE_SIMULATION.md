@@ -304,7 +304,9 @@ Spread tolerance: $340K / 184,052 = $1.85 ← PROTECT fires 1-2x, self-heals
 | **~$22** | **~$1,332K** | **0** | **103,100** | **$12.92** | **PURE SHORT #2** |
 | | | | | | **→ OPEN MG $4.20133769** |
 
-### Phase 3 Cascade: MG $4.20 at ~$22 SOL
+### Phase 3: FINAL Cascade — MG $4.20 at ~$22 SOL (LAST ENTRY)
+
+**No more cascades below $20. This is the final Open MG. After this, ride pure short to $0.**
 
 ```
 Equity at trigger: ~$1,332,000
@@ -315,49 +317,36 @@ Spread tolerance: $1,332K / 737,384 = $1.81 ← PROTECT fires, self-heals
 
 | SOL Price | Equity | Hedge | Net Short | Spread Tol | Status |
 |---|---|---|---|---|---|
-| **$22 (cascade)** | **$1,332K** | **290,000** | **130,242** | **$1.81** | **Phase 3 starts** |
+| **$22 (cascade)** | **$1,332K** | **290,000** | **130,242** | **$1.81** | **Phase 3 starts — FINAL MG** |
 | $17 | $1,983K | 120,000 | 300,242 | $3.84 | Fast |
-| **~$12** | **~$3,493K** | **0** | **420,242** | **$8.31** | **PURE SHORT #3** |
-| | | | | | **→ OPEN MG $4.20133769** |
+| **~$12** | **~$3,493K** | **0** | **420,242** | **$8.31** | **PURE SHORT — FINAL** |
 
-### Phase 4 Cascade: MG $4.20 at ~$12 SOL
-
-```
-Equity at trigger: ~$3,493,000
-Open MG $4.20: $3,493K / $4.20 = 831,671 per side
-Position after open: 831,671L / 1,251,913S (420,242 existing + 831,671 new)
-Spread tolerance: $3,493K / 2,083,584 = $1.68 ← PROTECT fires, self-heals
-```
-
-| SOL Price | Equity | Hedge | Net Short | Spread Tol | Status |
-|---|---|---|---|---|---|
-| **$12 (cascade)** | **$3,493K** | **750,000** | **501,913** | **$1.68** | **Phase 4 starts** |
-| $10 | $4,497K | 350,000 | 901,913 | $3.59 | Fast |
-| **~$8** | **~$6,301K** | **0** | **1,251,913** | **$5.03** | **PURE SHORT #4 — RIDE TO $0** |
-
-### Ride to $0
+### Ride to $0 (No More Cascades)
 
 ```
-1,251,913 pure short lots × $8 remaining = $10,015,304
-Equity at $0: $6,301K + $10,015K = $16,316,000
+420,242 pure short lots. No more Open MGs. Ride naked to $0.
+Every $1 SOL drops = $420,242 profit.
 ```
 
 | SOL Price | Equity | Net Short | Spread Tol | Status |
 |---|---|---|---|---|
-| $8 (pure short #4) | $6,301K | 1,251,913 | $5.03 | Riding |
-| $5 | $10,057K | 1,251,913 | $8.03 | Printing |
-| $2 | $13,813K | 1,251,913 | $11.04 | Locked in |
-| **$0** | **$16,316K** | **1,251,913** | **∞** | **DONE** |
+| $12 (pure short) | $3,493K | 420,242 | $8.31 | Riding |
+| $10 | $4,334K | 420,242 | $10.31 | Printing |
+| $8 | $5,174K | 420,242 | $12.31 | Locked in |
+| $5 | $6,435K | 420,242 | $15.31 | Deep profit |
+| $2 | $7,697K | 420,242 | $18.31 | Nearly done |
+| **$0** | **$8,538K** | **420,242** | **∞** | **DONE** |
 
-### Full Cascade Summary (DARWIN BBUD — TRIM 57% / PROTECT 54%)
+### Full Cascade Summary (DARWIN BBUD — 3 cascades, final entry at ~$22)
 
 | Phase | SOL Price | Action | Bias Lots | Equity |
 |---|---|---|---|---|
 | **1 (NOW)** | $84 → $42 | TRIM grind (22,148 bias, 0 PROTECTs so far) | 22,148 | $78K → $340K |
 | **2** | $42 → $22 | MG $4.20133769 | 103,100 | $340K → $1,332K |
-| **3** | $22 → $12 | MG $4.20133769 | 420,242 | $1,332K → $3,493K |
-| **4** | $12 → $8 | MG $4.20133769 | 1,251,913 | $3,493K → $6,301K |
-| **Ride** | $8 → $0 | Pure short | 1,251,913 | $6,301K → **$16,316K** |
+| **3 (FINAL)** | $22 → $12 | MG $4.20133769 — **LAST ENTRY** | 420,242 | $1,332K → $3,493K |
+| **Ride** | $12 → $0 | Pure short — no more cascades | 420,242 | $3,493K → **$8,538K** |
+
+**$78K → $8.5M = 109x return. Three cascades. Final entry at ~$22. Then ride 420,242 pure short lots to $0. No more voltage after $20.**
 
 **$100K → $11.7M = 117x return.** TRIM 57% / PROTECT 54% / Open MG $4.20133769 at every cascade. The 1% tighter TRIM vs 58% adds $737K and 36,000 more final lots. K|NGP|N's extra millivolt.
 
