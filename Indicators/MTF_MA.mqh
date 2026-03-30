@@ -760,9 +760,37 @@ int OnCalculate(const int rates_total,
    UpdateInfoLabel(g_objNames[5][4], is10_20cross_H4, false, true);
    UpdateInfoLabel(g_objNames[6][4], is10_20cross_D1, false, true);
    UpdateInfoLabel(g_objNames[7][4], is10_20cross_W1, false, true);
-   // Only update GVs when values change
+   // Always update power text labels (fixes INIT bug — text only updated on color
+   // change inside UpdateInfoLabel, but if all crosses start in same state after
+   // ObjectsDeleteAll, no color change fires and text stays "INIT" forever)
    int bullLTF = BullPowerLTF * 5, bearLTF = BearPowerLTF * 5;
    int bullHTF = BullPowerHTF * 5, bearHTF = BearPowerHTF * 5;
+   ObjectSetString(0, g_nameBullLTF, OBJPROP_TEXT, "LTF Bull Power: " + IntegerToString(bullLTF));
+   ObjectSetString(0, g_nameBearLTF, OBJPROP_TEXT, "LTF Bear Power: " + IntegerToString(bearLTF));
+   ObjectSetString(0, g_nameBullHTF, OBJPROP_TEXT, "HTF Bull Power: " + IntegerToString(bullHTF));
+   ObjectSetString(0, g_nameBearHTF, OBJPROP_TEXT, "HTF Bear Power: " + IntegerToString(bearHTF));
+   // Update colors based on power balance
+   if (bearHTF > bullHTF) {
+      ObjectSetInteger(0, g_nameBullHTF, OBJPROP_COLOR, clrWhite);
+      ObjectSetInteger(0, g_nameBearHTF, OBJPROP_COLOR, clrRed);
+   } else if (bullHTF > bearHTF) {
+      ObjectSetInteger(0, g_nameBullHTF, OBJPROP_COLOR, clrLime);
+      ObjectSetInteger(0, g_nameBearHTF, OBJPROP_COLOR, clrWhite);
+   } else {
+      ObjectSetInteger(0, g_nameBullHTF, OBJPROP_COLOR, clrYellow);
+      ObjectSetInteger(0, g_nameBearHTF, OBJPROP_COLOR, clrYellow);
+   }
+   if (bearLTF > bullLTF) {
+      ObjectSetInteger(0, g_nameBullLTF, OBJPROP_COLOR, clrWhite);
+      ObjectSetInteger(0, g_nameBearLTF, OBJPROP_COLOR, clrRed);
+   } else if (bullLTF > bearLTF) {
+      ObjectSetInteger(0, g_nameBullLTF, OBJPROP_COLOR, clrLime);
+      ObjectSetInteger(0, g_nameBearLTF, OBJPROP_COLOR, clrWhite);
+   } else {
+      ObjectSetInteger(0, g_nameBullLTF, OBJPROP_COLOR, clrYellow);
+      ObjectSetInteger(0, g_nameBearLTF, OBJPROP_COLOR, clrYellow);
+   }
+   // Only update GVs when values change
    if (bullLTF != g_prevBullLTF) { GlobalVariableSet(g_gvBullLTF, bullLTF); g_prevBullLTF = bullLTF; }
    if (bearLTF != g_prevBearLTF) { GlobalVariableSet(g_gvBearLTF, bearLTF); g_prevBearLTF = bearLTF; }
    if (bullHTF != g_prevBullHTF) { GlobalVariableSet(g_gvBullHTF, bullHTF); g_prevBullHTF = bullHTF; }
