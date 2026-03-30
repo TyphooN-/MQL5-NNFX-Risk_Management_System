@@ -90,22 +90,20 @@ Both accounts liquidated at 52.9% and 53.0% ML on market open spread spike. Old 
 
 ## Active: DARWIN BBUD — Fresh $100K, SOLUSD SHORT (2026-03-26)
 
-### Position State (from EA display 2026-03-30 ~17:00 — BBUD PRE-CLOSE SURVIVED)
+### Position State (from EA log 2026-03-30 ~18:35 — BBUD TRIM GRINDING)
 
 | | Value |
 |---|---|
 | **Account** | **DARWIN BBUD** — last surviving DARWIN |
-| **SOL Price** | ~$84 |
+| **SOL Price** | ~$82.79 (dropping) |
 | **Open MG** | **$4.20133769** (initial), **$1.87** (reopened) |
-| **Position** | 16,174L (hedge) / 17,817S (bias), net 1,643 SHORT |
-| **Equity** | **$78,124** |
-| **Balance** | $77,874 |
-| **Margin** | $137,075 |
-| **ML** | **57.5% [TRIM]** — safe for overnight |
-| **P/L** | +$249.07 |
-| **TRIM closes** | 91 |
-| **PROTECT closes** | 2 |
-| **Spread tolerance** | $78K / 33,991 = **$2.30/lot** ← safe |
+| **Position** | 16,002L (hedge) / 17,655S (bias), net 1,653 SHORT |
+| **Equity** | **$78,609** |
+| **ML** | **57.0% [TRIM]** — grinding 1 lot at a time |
+| **P/L** | +$485 since init |
+| **TRIM closes** | 28 (since v1.428 recompile) |
+| **PROTECT closes** | 1 (since recompile) |
+| **Spread tolerance** | $78.6K / 33,657 = **$2.34/lot** ← safe |
 | **Settings** | TRIM 57%/PROTECT 54%, Pre-close 4min (v1.428) |
 
 **Pre-close freeze tested in production (2026-03-30):** ML was 55.6% before close. The v1.428 pre-close fired a balanced close which LOWERED ML to 50.7% (wrong — balanced close costs spread, reduces equity, lowers ML). Operator manually closed bias (shorts) to push ML from 50.7% to 57.5%. EA v1.428 now automates this: closes bias to push ML above TRIM before freeze.
@@ -278,7 +276,7 @@ DARWIN BBUD (actual EA data 2026-03-26 17:29):
 
 | SOL Price | Equity (est.) | SOL Hedge | SOL Net Short | Spread Tol. | ML | Status |
 |---|---|---|---|---|---|---|
-| **$84 (now)** | **$78,124** | **16,174** | **1,643** | **$2.30** | **57.5%** | **TRIM grinding** |
+| **$82.79 (now)** | **$78,609** | **16,002** | **1,653** | **$2.34** | **57.0%** | **TRIM grinding** |
 | $80 | $82,375 | 17,100 | 2,100 | $2.15 | 57% | Spread safe |
 | $75 | $92,875 | 16,300 | 2,900 | $2.42 | 57% | Comfortable |
 | $65 | $121,875 | 13,700 | 5,500 | $3.24 | 57% | Building |
