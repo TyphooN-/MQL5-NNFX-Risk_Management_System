@@ -106,7 +106,7 @@ Both accounts liquidated at 52.9% and 53.0% ML on market open spread spike. Old 
 | **Spread tolerance** | ~$75.9K / 37,582 = **$2.02/lot** ← just above $2.00 |
 | **Settings** | TRIM 57%/PROTECT 54%, Pre-close 4min |
 
-**What happened:** At pure short (1,953 lots), reopened MG $4.20 at $81.88 → 10,866 bias. SOL bounced to $84, equity dropped -$9K. Operator reopened another MG at $1.87 to add maximum lots before the expected drop. All timeframes still DEATH X, Bear Power INIT.
+**What happened:** At pure short (1,953 lots), reopened MG $4.20 at $81.88 → 10,866 bias. SOL bounced to $84, equity dropped -$9K. Operator reopened another MG at $1.87 to add maximum lots before the expected drop. .
 
 **The bet:** SOL drops hard before the next spread spike. If it does, TRIM eats the massive hedge and builds net rapidly. If a spread spike hits first, PROTECT fires and reduces bias (same pattern as XJFD).
 
@@ -264,7 +264,7 @@ DARWIN BBUD (actual EA data 2026-03-26 17:29):
 
 ### TRIM Progression to Pure Short → First Cascade (DARWIN BBUD)
 
-**Current state (2026-03-29 17:11):** $88,038 equity, 10,866 bias / 9,022 hedge, 1,844 net SHORT, ML 57.8%, TRIM at 57%. SOL at $81.88 and dropping hard. DEATH X all TF. 4 TRIM closes, 0 PROTECT fires. Spread tol $4.43.
+**Current state (2026-03-29 17:11):** $88,038 equity, 10,866 bias / 9,022 hedge, 1,844 net SHORT, ML 57.8%, TRIM at 57%. SOL at $81.88 and dropping hard.  4 TRIM closes, 0 PROTECT fires. Spread tol $4.43.
 
 **History:** XJFD reached pure short (1,953 lots) → reopened as BBUD with Open MG $4.20133769 at $81.88. QRRP liquidated. BBUD is the last DARWIN.
 
@@ -1246,7 +1246,7 @@ THE WALL:   $0.97 spread tolerance IS the wall.
 
 Four charts. Four timeframes. One thesis. Zero bull power.
 
-**H1 (Top-Left):** Supply [Proven] at ~$91 — price rejected hard, dropping through $88. DEATH X across all timeframes (M1→W1). LTF Bear Power INIT. Ehlers Fisher: -1.40 (deeply bearish). The hourly is a waterfall. Every bounce sold into supply. SELL 792 at 90.066 visible — the 792 surviving bias lots from PM#7, the cockroaches that survived the nuclear blast, now joined by 26,324 fresh reinforcements.
+**H1 (Top-Left):** Supply [Proven] at ~$91 — price rejected hard, dropping through $88.  LTF . Ehlers Fisher: -1.40 (deeply bearish). The hourly is a waterfall. Every bounce sold into supply. SELL 792 at 90.066 visible — the 792 surviving bias lots from PM#7, the cockroaches that survived the nuclear blast, now joined by 26,324 fresh reinforcements.
 
 **Daily (Top-Right):** The broader picture. SOL dropped from $95+ supply zone, now grinding through $88. All MA crosses bearish across every timeframe. Ehlers Fisher crossing zero → going negative on the daily. BetterVol showing distribution. The daily chart is a textbook breakdown — lower highs, lower lows, supply tested and rejected, demand zones being consumed one by one.
 
