@@ -328,16 +328,20 @@ Then flip long from the bottom.
 | $5 | $2,639K | 73,277 | $36.01 | Nearly done |
 | **$0** | **$3,005K** | **73,277** | **∞** | **DONE → FLIP LONG** |
 
-### Full Plan (DARWIN BBUD — TWO ENTRIES ONLY)
+### Full Plan: 2 Martingale 2 Furious
+
+**Two entries. One instrument. No sequels. No trilogy. Just the original and the final chapter.**
 
 | Phase | SOL Price | Action | Bias Lots | Equity |
 |---|---|---|---|---|
-| **1 (NOW)** | $84 → $42 | TRIM grind (19,944 bias) | 19,944 | $76K → $320K |
-| **2 (FINAL)** | $42 → $32 | MG $5-6 — **LAST ENTRY, fast unwind** | 73,277 | $320K → $660K |
+| **MG 1 (NOW)** | $84 → $42 | TRIM grind (19,944 bias) | 19,944 | $76K → $320K |
+| **MG 2 (FINAL)** | $42 → $32 | MG $5-6 — **LAST ENTRY, fast unwind** | 73,277 | $320K → $660K |
 | **Ride** | $32 → $0 | Pure short — ride to $0 | 73,277 | $660K → **$3,005K** |
 | **Flip** | ~$2-5 | Close shorts, open MG: LONG | — | Ride bull cycle to ATH |
 
-**$76K → $3.0M = 40x return. TWO ENTRIES. One instrument. Ride to $0. Flip long. Done.**
+**2 Martingale 2 Furious: $76K → $3.0M = 40x return. Two entries. One instrument. Ride to $0. Flip long. Done.**
+
+*The first martingale was the setup. The second martingale is the knockout. There is no third — because by then, SOL is at $0 and we're already flipping long.*
 
 **$100K → $11.7M = 117x return.** TRIM 57% / PROTECT 54% / Open MG $4.20133769 at every cascade. The 1% tighter TRIM vs 58% adds $737K and 36,000 more final lots. K|NGP|N's extra millivolt.
 
