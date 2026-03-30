@@ -1605,7 +1605,50 @@ void ProcessMartingale()
       else
          return;  // Frozen — no TRIM, no PROTECT, no action until next session
    }
-   // === PROTECT: below danger level ===
+   // === PRE-CLOSE: freeze or push ML up before session close ===
+   // This runs BEFORE regular PROTECT to prevent PROTECT from firing balanced closes
+   // into a widening-spread session close (which destroys bias for nothing).
+   if (PreCloseMinutes > 0 && IsPreCloseWindow())
+   {
+      double preCloseFloor = MartingaleUnwindMarginPct - 1.0; // TRIM - 1%
+      if (marginLevel <= MartingaleDangerMarginPct)
+      {
+         // ML is AT or BELOW PROTECT during pre-close — FREEZE IMMEDIATELY.
+         // Do NOT fire PROTECT into a closing session. Let broker handle stop-out.
+         // Firing balanced closes during spread spikes at session close destroys bias.
+         if (!PreCloseFrozen)
+         {
+            Print("PRE-CLOSE EMERGENCY FREEZE: ML ", DoubleToString(marginLevel, 1),
+                  "% <= PROTECT ", DoubleToString(MartingaleDangerMarginPct, 1),
+                  "%. Freezing — broker handles stop-out. Bias is sacred.");
+            PreCloseFrozen = true;
+            PreCloseFreezeTime = TimeCurrent();
+         }
+         return;
+      }
+      if (marginLevel >= preCloseFloor)
+      {
+         // ML >= TRIM - 1% — close enough, freeze and ride into close
+         if (!PreCloseFrozen)
+         {
+            Print("PRE-CLOSE: ML ", DoubleToString(marginLevel, 1), "% >= ", DoubleToString(preCloseFloor, 1),
+                  "% (TRIM-1%). Close enough. FREEZING until next session.");
+            PreCloseFrozen = true;
+            PreCloseFreezeTime = TimeCurrent();
+         }
+         return;
+      }
+      // ML is between PROTECT and TRIM-1% — fire one balanced close per tick to push ML up
+      double totalHedgeLots = GetTotalHedgeLots();
+      if (totalHedgeLots > 0)
+      {
+         Print("PRE-CLOSE PROTECT: ML ", DoubleToString(marginLevel, 1), "% < ", DoubleToString(preCloseFloor, 1),
+               "% (TRIM-1%) — balanced close to reduce gross. Will check again next tick.");
+         ProtectiveClose(marginLevel);
+      }
+      return;
+   }
+   // === PROTECT: below danger level (normal operation, NOT during pre-close) ===
    if (MartingaleDangerMarginPct > 0 && marginLevel <= MartingaleDangerMarginPct)
       ProtectActive = true;
    if (ProtectActive)
@@ -1640,35 +1683,6 @@ void ProcessMartingale()
             return;
          }
       }
-   }
-   // === PRE-CLOSE PROTECT: balanced closes to keep ML within 1% of TRIM before close ===
-   // If within PreCloseMinutes of session close:
-   //   - ML >= TRIM - 1%: close enough, freeze and ride into close
-   //   - ML < TRIM - 1%: fire one balanced close per tick to reduce gross, check again next tick
-   if (PreCloseMinutes > 0 && IsPreCloseWindow() && marginLevel > MartingaleDangerMarginPct)
-   {
-      double preCloseFloor = MartingaleUnwindMarginPct - 1.0;
-      if (marginLevel >= preCloseFloor)
-      {
-         // Within 1% of TRIM — close enough, freeze and ride into close
-         if (!PreCloseFrozen)
-         {
-            Print("PRE-CLOSE: ML ", DoubleToString(marginLevel, 1), "% >= ", DoubleToString(preCloseFloor, 1),
-                  "% (TRIM-1%). Close enough. FREEZING until next session.");
-            PreCloseFrozen = true;
-            PreCloseFreezeTime = TimeCurrent();
-         }
-         return;
-      }
-      // ML is more than 1% below TRIM — fire one balanced close to reduce gross
-      double totalHedgeLots = GetTotalHedgeLots();
-      if (totalHedgeLots > 0)
-      {
-         Print("PRE-CLOSE PROTECT: ML ", DoubleToString(marginLevel, 1), "% < ", DoubleToString(preCloseFloor, 1),
-               "% (TRIM-1%) — balanced close to reduce gross. Will check again next tick.");
-         ProtectiveClose(marginLevel);
-      }
-      return;
    }
    // === DEAD ZONE: between PROTECT and TRIM — do nothing ===
    if (MartingaleUnwindMarginPct > 0 && marginLevel <= MartingaleUnwindMarginPct)
