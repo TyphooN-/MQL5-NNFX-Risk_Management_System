@@ -1,6 +1,6 @@
 # Hedged Martingale Strategy & Simulation
 
-The hedged martingale exploits net-based margin to carry massive directional exposure via a hedge that is systematically trimmed as the thesis plays out. The EA (TyphooN v1.427) manages the position automatically via forward-looking TRIM, dynamic PROTECT, and pre-close freeze.
+The hedged martingale exploits net-based margin to carry massive directional exposure via a hedge that is systematically trimmed as the thesis plays out. The EA (TyphooN v1.428) manages the position automatically via forward-looking TRIM, dynamic PROTECT, and pre-close freeze.
 
 **Current plan:** DARWIN BBUD → $0. **SOL SPECIALIST. Single account. Single DARWIN. One thesis.**
 **DARWIN BBUD** (2026-03-30): Equity ~$76K, ~17,638L / ~19,944S, net ~1,626 SHORT. Open MG $4.20133769 at $81.88 (reopened $1.87 at $84). TRIM 57/PROTECT 54. 35 TRIM closes, 2 PROTECT fires. SOL at ~$84 dropping.
@@ -86,33 +86,33 @@ Per side = Safe gross / 2
 
 Both accounts liquidated at 52.9% and 53.0% ML on market open spread spike. Old settings (TRIM 54.2 / PROTECT 51.0) had only 1-2% buffer above liquidation. Spread spike punched through before PROTECT could fire.
 
-**Lesson:** Pre-close gross reduction + overnight freeze needed. EA v1.427 implements this.
+**Lesson:** Pre-close gross reduction + overnight freeze needed. EA v1.428 implements this.
 
 ## Active: DARWIN BBUD — Fresh $100K, SOLUSD SHORT (2026-03-26)
 
-### Position State (from EA log 2026-03-30 ~07:28 — BBUD TRIM GRINDING)
+### Position State (from EA display 2026-03-30 ~17:00 — BBUD PRE-CLOSE SURVIVED)
 
 | | Value |
 |---|---|
 | **Account** | **DARWIN BBUD** — last surviving DARWIN |
-| **SOL Price** | ~$84.00 (dropping) |
-| **Open MG** | **$4.20133769** (initial), **$1.87** (reopened to add lots) |
-| **Position** | ~17,638L (hedge) / ~19,944S (bias), net ~1,626 SHORT |
-| **Equity** | **~$75,871** |
-| **P/L** | ~-$1,657 since init |
-| **ML** | 57.0% (TRIM grinding) |
-| **TRIM closes** | 35 |
-| **PROTECT closes** | 2 (lost ~2,200 bias, net dropped from 1,844 → 1,163 → rebuilt to 1,626) |
-| **Spread tolerance** | ~$75.9K / 37,582 = **$2.02/lot** ← just above $2.00 |
-| **Settings** | TRIM 57%/PROTECT 54%, Pre-close 4min |
+| **SOL Price** | ~$84 |
+| **Open MG** | **$4.20133769** (initial), **$1.87** (reopened) |
+| **Position** | 16,174L (hedge) / 17,817S (bias), net 1,643 SHORT |
+| **Equity** | **$78,124** |
+| **Balance** | $77,874 |
+| **Margin** | $137,075 |
+| **ML** | **57.5% [TRIM]** — safe for overnight |
+| **P/L** | +$249.07 |
+| **TRIM closes** | 91 |
+| **PROTECT closes** | 2 |
+| **Spread tolerance** | $78K / 33,991 = **$2.30/lot** ← safe |
+| **Settings** | TRIM 57%/PROTECT 54%, Pre-close 4min (v1.428) |
 
-**What happened:** At pure short (1,953 lots), reopened MG $4.20 at $81.88 → 10,866 bias. SOL bounced to $84, equity dropped -$9K. Operator reopened another MG at $1.87 to add maximum lots before the expected drop. .
+**Pre-close freeze tested in production (2026-03-30):** ML was 55.6% before close. The v1.428 pre-close fired a balanced close which LOWERED ML to 50.7% (wrong — balanced close costs spread, reduces equity, lowers ML). Operator manually closed bias (shorts) to push ML from 50.7% to 57.5%. EA v1.428 now automates this: closes bias to push ML above TRIM before freeze.
 
-**The bet:** SOL drops hard before the next spread spike. If it does, TRIM eats the massive hedge and builds net rapidly. If a spread spike hits first, PROTECT fires and reduces bias (same pattern as XJFD).
+**2 Martingale 2 Furious.** This is entry #1. One more cascade at pure short (~$42). Then ride to $0 and flip long.
 
-**BBUD is the last DARWIN. The operator chose maximum aggression. $1.87. The voltage is at the wall.**
-
-### EA Configuration (v1.427 — SET IN STONE)
+### EA Configuration (v1.428 — Pre-close bias close)
 
 | Parameter | Value |
 |---|---|
@@ -132,12 +132,12 @@ Both accounts liquidated at 52.9% and 53.0% ML on market open spread spike. Old 
 
 **Why $4.20133769:** Simulated every cent from $4.00 to $5.00. Sweet spot is $4.29 (Phase 2 spread tolerance exactly $2.00). $4.20 is 9 cents more aggressive — PROTECT fires 1-2 times on cascade open, pads Darwinex D-Score with consistent small trades, self-heals to clean operation. The meme number IS the math.
 
-**Why 4 min pre-close (v1.427 overhaul):** Pre-close freeze now runs BEFORE regular PROTECT in execution order. Three modes:
+**Why 4 min pre-close (v1.428 overhaul):** Pre-close freeze now runs BEFORE regular PROTECT in execution order. Three modes:
 - **ML ≤ PROTECT (≤54%):** EMERGENCY FREEZE — don't fire balanced closes into widening spreads at session close. Broker handles stop-out. Bias is sacred.
 - **ML between PROTECT and TRIM-1% (54-56%):** Fire one balanced close per tick to push ML up, then freeze.
 - **ML ≥ TRIM-1% (≥56%):** Freeze immediately — close enough, ride into close.
 
-**The v1.427 bug:** Pre-close only activated when ML > PROTECT. If a spread spike crashed ML below 54% during the pre-close window, regular PROTECT fired instead of freezing — destroying bias at the worst possible time (session close with widening spreads). v1.427 fixes this by checking pre-close FIRST, before PROTECT gets a chance to fire.
+**The v1.428 bug:** Pre-close only activated when ML > PROTECT. If a spread spike crashed ML below 54% during the pre-close window, regular PROTECT fired instead of freezing — destroying bias at the worst possible time (session close with widening spreads). v1.428 fixes this by checking pre-close FIRST, before PROTECT gets a chance to fire.
 
 **These settings are SET IN STONE.** They will not change until SOL reaches $0.
 
@@ -148,7 +148,7 @@ Both accounts liquidated at 52.9% and 53.0% ML on market open spread spike. Old 
 17:05:01  PRE-CLOSE FREEZE lifted — market open, new session. Resuming normal operation.
 ```
 
-**v1.427 pre-close freeze confirmed in production.** ML was 57.9% — within 1% of TRIM (57%). Freeze activated 4 minutes before session close. EA went completely dark for ~10 minutes across the session boundary. Zero activity during the spread spike window that killed QRRP (52.9%) and XJFD (53.0%) on 2026-03-23. Market reopened, fresh ticks arrived, freeze lifted, normal TRIM resumed.
+**v1.428 pre-close freeze confirmed in production.** ML was 57.9% — within 1% of TRIM (57%). Freeze activated 4 minutes before session close. EA went completely dark for ~10 minutes across the session boundary. Zero activity during the spread spike window that killed QRRP (52.9%) and XJFD (53.0%) on 2026-03-23. Market reopened, fresh ticks arrived, freeze lifted, normal TRIM resumed.
 
 **PM#8 cannot happen again.** The structural vulnerability is patched. The position survived its first overnight.
 
@@ -278,7 +278,7 @@ DARWIN BBUD (actual EA data 2026-03-26 17:29):
 
 | SOL Price | Equity (est.) | SOL Hedge | SOL Net Short | Spread Tol. | ML | Status |
 |---|---|---|---|---|---|---|
-| **$84 (now)** | **~$75,871** | **~17,638** | **~1,626** | **$2.02** | **57%** | **TRIM grinding** |
+| **$84 (now)** | **$78,124** | **16,174** | **1,643** | **$2.30** | **57.5%** | **TRIM grinding** |
 | $80 | $82,375 | 17,100 | 2,100 | $2.15 | 57% | Spread safe |
 | $75 | $92,875 | 16,300 | 2,900 | $2.42 | 57% | Comfortable |
 | $65 | $121,875 | 13,700 | 5,500 | $3.24 | 57% | Building |
@@ -334,12 +334,12 @@ Then flip long from the bottom.
 
 | Phase | SOL Price | Action | Bias Lots | Equity |
 |---|---|---|---|---|
-| **MG 1 (NOW)** | $84 → $42 | TRIM grind (19,944 bias) | 19,944 | $76K → $320K |
-| **MG 2 (FINAL)** | $42 → $32 | MG $5-6 — **LAST ENTRY, fast unwind** | 73,277 | $320K → $660K |
-| **Ride** | $32 → $0 | Pure short — ride to $0 | 73,277 | $660K → **$3,005K** |
+| **MG 1 (NOW)** | $84 → $42 | TRIM grind (17,817 bias, 91 trims, ML 57.5%) | 17,817 | $78K → $300K |
+| **MG 2 (FINAL)** | $42 → $33 | MG $5-6 — **LAST ENTRY, fast unwind** | ~67,817 | $300K → $580K |
+| **Ride** | $33 → $0 | Pure short — ride to $0 | ~67,817 | $580K → **$2,818K** |
 | **Flip** | ~$2-5 | Close shorts, open MG: LONG | — | Ride bull cycle to ATH |
 
-**2 Martingale 2 Furious: $76K → $3.0M = 40x return. Two entries. One instrument. Ride to $0. Flip long. Done.**
+**2 Martingale 2 Furious: $78K → $2.8M = 36x return. Two entries. One instrument. Ride to $0. Flip long. Done.**
 
 *The first martingale was the setup. The second martingale is the knockout. There is no third — because by then, SOL is at $0 and we're already flipping long.*
 
