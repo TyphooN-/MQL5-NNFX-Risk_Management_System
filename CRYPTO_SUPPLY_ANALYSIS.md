@@ -1,8 +1,8 @@
 # Darwinex Crypto Supply & Emission Analysis (March 2026)
 
-**Purpose:** Evaluate supply/demand dynamics for all Darwinex crypto CFDs. Primary reference for the BBUD SOL specialist short thesis.
+**Purpose:** Evaluate supply/demand dynamics for all Darwinex crypto CFDs. Primary reference for the AJTK SOL specialist short thesis.
 
-**Strategy:** SOL specialist cascade via DARWIN BBUD. One instrument, one direction, cascading martingale phases to $0.
+**Strategy:** SOL specialist cascade via DARWIN AJTK. One instrument, one direction, cascading martingale phases to $0.
 
 ---
 
@@ -34,7 +34,7 @@
 - **Fundamental value:** Zero. Pure meme/sentiment driven. No smart contracts, no DeFi, no staking yield.
 - **Supply thesis:** Perpetual emission + zero utility = constant sell pressure with no demand floor except meme momentum. When sentiment turns, there's nothing to support price.
 
-### 2. SOLUSD — Weak Supply (ACTIVE SHORT — BBUD)
+### 2. SOLUSD — Weak Supply (ACTIVE SHORT — AJTK)
 
 - **Inflation:** ~4.0% annually, declining 15% per year toward a 1.5% floor (reached ~2031).
 - **No max supply cap.**
@@ -107,7 +107,7 @@ One instrument, one set of margin calculations, one TRIM threshold, one cascade 
 
 PM#6 killed QRRP and XJFD because a spread spike on SOLUSD at session open punched through the dead zone in a single tick. If you are running hedged martingales on SOL, ADA, and DOGE simultaneously, you are exposed to spread spikes on **three** instruments at every session open. Each spike independently threatens the margin level. Three chances to die instead of one.
 
-BBUD runs one instrument. One spread to manage. One pre-close freeze to calculate.
+AJTK runs one instrument. One spread to manage. One pre-close freeze to calculate.
 
 ### 4. Spread Efficiency
 
@@ -128,41 +128,37 @@ DOGE has the weakest supply dynamics, but its spread makes it poison for high-fr
 | Rank | Symbol | Status | Annual Inflation | Cap | Notes |
 |---|---|---|---|---|---|
 | **#1 Weakest** | **DOGE** | May re-evaluate later | 3.4% forever | **None** | Best supply thesis but 1.06% spread kills MG efficiency |
-| **#2 Weak** | **SOL** | **ACTIVE — BBUD** | 4.0% declining | **None** | Best combination of weak supply + tradeable spread |
+| **#2 Weak** | **SOL** | **ACTIVE — AJTK** | 4.0% declining | **None** | Best combination of weak supply + tradeable spread |
 | **#3 Moderate** | **ADA** | May re-evaluate later | 2.45% declining | 45B | Moderate dilution, spread acceptable but lower profit/margin |
 
 **SOL is the specialist target.** DOGE and ADA remain reference entries — the supply analysis stands and they may become targets in future if spread conditions or strategy requirements change. For now, all capital concentrates on SOL.
 
 ---
 
-## DARWIN BBUD Current State (2026-03-30)
+## DARWIN AJTK Current State (2026-03-31)
 
 | Metric | Value |
 |---|---|
-| **Lots Long** | 17,638 |
-| **Lots Short** | 19,944 |
-| **Net Short** | 1,626 |
-| **Gross Lots** | 37,582 |
-| **Equity** | ~$76,000 |
+| **Lots Long** | ~24,753 |
+| **Lots Short** | 26,737 |
+| **Net Short** | ~1,984 |
+| **Gross Lots** | ~51,490 |
+| **Equity** | ~$91,373 |
 | **TRIM/PROTECT** | 57% / 54% |
-| **Spread Tolerance** | $2.02 |
-| **Open MG** | $4.20133769 |
-| **Pre-Close Freeze** | Active (5 min balanced close + freeze) |
+| **Spread Tolerance** | $1.77 (self-heals to ~$2.18 after 1-2 PROTECT fires) |
+| **Open MG** | $1.87 |
+| **Pre-Close Freeze** | Active (4 min + freeze) |
+| **EA Version** | v1.429 |
 
 ### Cascade Plan
 
 | Phase | Entry | Pure Short Price | Action | Projected Equity |
 |---|---|---|---|---|
-| **Phase 1** (current) | $89 | **~$42** | TRIM eats hedge → pure short | ~$168K |
-| **Phase 2** | $42 | **~$22** | Open new MG, cascade lots | ~$403K |
-| **Phase 3 (FINAL)** | $22 | **~$14** | Final cascade, maximum lot count | ~$1.1M |
-| **Ride to $0** | $14 → $0 | — | Pure short, no more cascades | **~$6.7M** |
+| **Phase 1** (current) | $81 | **~$35** | TRIM eats hedge → pure short (~18,500 lots) | ~$360K |
+| **Phase 2 CASCADE** | $35 | **~$22** | Open MG $3.00, cascade lots → ~130K bias | ~$1,190K |
+| **Naked Ride** | $22 → $5 | — | Pure short, ~$130K/dollar | **~$3,400K** |
 
-**Below $20 is the final entry.** No more cascades after Phase 3. The lot count at that point is sufficient to ride SOL from $14 to $0 and capture terminal equity of approximately **$6.7M** — an **88x return** on the ~$76K starting equity.
-
-### Why No More Cascades Below $20
-
-At sub-$20 SOL, the margin per lot is so low that you hit Darwinex's maximum lot count limits before you can meaningfully deploy another cascade. The existing lot count from Phase 3 is already sufficient. Adding more lots below $20 risks margin fragmentation for negligible incremental gain. The right move is to ride.
+**$100K → $3.4M.** Then deploy full crypto basket: MG LONG ETH/BTC + naked DOGE/SOL/ADA/XRP/BNB. 400 positions. 7 symbols. 4.236 fib targets. **~$190M+** at theoretical maximums.
 
 ---
 
@@ -194,7 +190,7 @@ BTC, BNB, and ETH are avoided because their supply dynamics work against a short
 
 ## Crypto LONG Analysis: Post-SOL Bear Market Deployment (2026-03-30)
 
-**Premise:** BBUD's SOL short cascade extracts ~$2.08M equity by $5 SOL (naked ride from ~$44 to $5, with opportunistic cascade at $20). At $5, close all shorts. Deploy $2.08M into a crypto LONG at the bear market bottom. MG LONG at $4.20133769 — TRIM instantly consumes the short hedge at low prices because the equity/margin ratio is enormous.
+**Premise:** AJTK's SOL short cascade extracts ~$3.4M equity by $5 SOL (MG $1.87 → cascade $3.00 at pure short → naked ride to $5). At $5, close all shorts. Deploy ~$3.4M into a crypto LONG at the bear market bottom. MG LONG at $4.20133769 — TRIM instantly consumes the short hedge at low prices because the equity/margin ratio is enormous.
 
 **The question: which of the 7 Darwinex cryptos gives the best long?**
 
@@ -511,7 +507,7 @@ Total at $3.00: $2.08M + $30.16M = $32.24M
 
 **The play:** Split deployment. 60% ETH ($1.25M) + 40% BTC ($830K). SOL only if it shows structural bottom with catalyst (staking yield increase, emission reduction, ecosystem growth). Do not long DOGE under any circumstances.
 
-**Or: 100% ETH for maximum return.** One instrument. One direction. One DARWIN. The same philosophy that made BBUD's SOL short work. If the SOL short succeeds because of supply thesis purity, the ETH long should succeed for the same reason — supply thesis purity in the other direction.
+**Or: 100% ETH for maximum return.** One instrument. One direction. One DARWIN. The same philosophy that made AJTK's SOL short work. If the SOL short succeeds because of supply thesis purity, the ETH long should succeed for the same reason — supply thesis purity in the other direction.
 
 ---
 
