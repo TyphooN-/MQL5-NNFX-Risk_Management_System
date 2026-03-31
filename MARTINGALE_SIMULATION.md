@@ -338,33 +338,65 @@ Short the worst supply (SOL). Long the best supply (BTC/ETH/BNB). Different symb
 | **SOL** | ~$5 | $200 | 503,810 pure long | **$100.5M** |
 | **BNB** | ~$50 | $1K | 7,298 pure long | **$71.1M** |
 
-### Flip Long: Best Crypto from Bottom → Bull Cycle ATH
+### Deploy at Bottom: MG LONG + DOGE Naked Long
 
-**Close SOL shorts at $5 with ~$2.75M equity. Deploy into the BEST long candidate.**
+**Close SOL shorts at $5 with ~$2.75M equity. Split deployment:**
 
-Short the worst supply (SOL). Long the best supply (BTC/ETH). Different symbols for different directions. See CRYPTO_SUPPLY_ANALYSIS.md for full long candidate ranking.
+```
+$2.50M (91%) → MG LONG best crypto (ETH or BTC — whichever fell further from ATH)
+$250K  (9%)  → DOGE naked long (no MG — spread 1.06% kills martingale)
+```
 
-| Long Candidate | Est. Bottom | Target | Equity at Target |
-|---|---|---|---|
-| **BTC** | ~$10K | $200K | **$95M+** |
-| **ETH** | ~$200 | $5K | **$120M+** |
-| **SOL** | ~$5 | $200 | **$107M+** |
-| **BNB** | ~$50 | $1K | **$95M+** |
+**MG LONG: ETH or BTC (decision at bottom based on relative value)**
 
-### Full Plan: 3 Martingale 3 Furious
-
-**MG 1: Short SOL. MG 2: Cascade SOL at pure short. MG 3: Long best crypto from bottom.**
-
-| Phase | Symbol | SOL Price | Action | Equity |
+| Long Candidate | Est. Bottom | Target | MG $4.20 Lots | Equity at Target |
 |---|---|---|---|---|
-| **MG 1 (NOW)** | SOL SHORT | $83.58 → ~$44 | TRIM grind (14,305 bias, 101 trims) | $78K → $268K |
+| **ETH** | ~$200 | $5,000 | ~21,930 pure long | **$112M** |
+| **BTC** | ~$10K | $200,000 | ~439 pure long | **$86M** |
+
+**DOGE: Naked Long (no martingale — swap-aware, 6-month hold max)**
+
+```
+DOGE must be at $0.005-0.01 to open meaningful size.
+$250K at $0.005 = 50,000,000 lots (5 orders of 10M)
+Swap cost: -3.2 points/day × 50M lots = ~$1,600/day = $288K over 6 months
+Ride to $0.50: 50M × $0.495 = $24.75M - $288K swap = $24.46M
+
+$250K at $0.01 = 25,000,000 lots (2.5 orders)
+Swap: ~$800/day = $144K over 6 months
+Ride to $0.50: 25M × $0.49 = $12.25M - $144K = $12.1M
+```
+
+| DOGE Entry | Lots | Swap (6mo) | Equity at $0.50 | Return |
+|---|---|---|---|---|
+| $0.005 | 50M | $288K | **$24.5M** | 98x |
+| $0.01 | 25M | $144K | **$12.1M** | 48x |
+| $0.02 | 12.5M | $72K | **$5.7M** | 23x |
+| $0.05 | 5M | $29K | **$2.0M** | 8x |
+
+**DOGE rules:**
+- Only deploy at sub-$0.01 (ideally $0.005)
+- No martingale — naked long only (spread too wide for MG)
+- 6-month max hold (swap bleeds $1,600/day at 50M lots)
+- Sell at meme cycle peak ($0.30-0.70)
+- One position, one bet, Elon does the rest
+
+### Full Plan: 3 Martingale 3 Furious + DOGE Lottery
+
+**MG 1: Short SOL. MG 2: Cascade SOL at pure short. MG 3: Long best crypto. DOGE: Naked long lottery ticket.**
+
+| Phase | Symbol | Price | Action | Equity |
+|---|---|---|---|---|
+| **MG 1 (NOW)** | SOL SHORT | $83 → ~$44 | TRIM grind (14,305 bias, 101 trims) | $78K → $268K |
 | **MG 2 CASCADE** | SOL SHORT | $44 → $30 | MG $4.20 at pure short → 78,115 bias | $268K → $796K |
 | **Naked Ride** | SOL SHORT | $30 → $5 | Smooth, $78,115/dollar, 25 dollars of ride | $796K → $2,749K |
-| **MG 3 LONG** | **Best crypto** | Bottom → ATH | Deploy $2.75M into strongest supply | $2,749K → **$95-120M** |
+| **MG 3 LONG** | **ETH or BTC** | Bottom → ATH | Deploy $2.50M into strongest supply | $2,500K → **$86-112M** |
+| **DOGE** | **DOGE naked** | $0.005 → $0.50 | Deploy $250K, 50M lots, 6mo hold | $250K → **$24.5M** |
+| | | | **Combined at targets** | **$110-136M** |
 
-**3 Martingale 3 Furious: $78K → $2.75M (SOL short + cascade at pure short) → $95-120M (best crypto long). Short the weakest. Cascade early. Smooth ride to bottom. Long the strongest.**
+**3 Martingale 3 Furious + DOGE lottery: $78K → $2.75M (SOL short + cascade) → $110-136M (MG long + DOGE naked). Short the weakest. Cascade early. Smooth ride to bottom. Long the strongest. Elon does the rest.**
 
-*The first martingale shorts SOL down. The second martingale cascades immediately at pure short — TRIM grinds, unwound by $30, smooth ride to $5. The third martingale longs the best crypto up from the bottom. $4.20133769 all the way.*
+*The first martingale shorts SOL down. The second cascades at pure short. The third longs the best crypto up. DOGE is the lottery ticket — no martingale, just 50 million lots and a prayer to Elon. $4.20133769 for the MGs. Naked aggression for the meme coin.*
 
 ### How TRIM Pacing Works (Phase 1 — TRIM 57%, DARWIN BBUD)
 
