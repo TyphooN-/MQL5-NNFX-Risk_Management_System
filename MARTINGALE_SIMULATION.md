@@ -285,57 +285,45 @@ DARWIN BBUD (actual EA data 2026-03-26 17:29):
 | $45 | $254,353 | 400 | 13,905 | $17.30 | 57% | Nearly pure |
 | **~$44** | **~$268,000** | **0** | **14,305** | **$18.73** | **~70%** | **PURE SHORT** |
 
-**At ~$44 SOL: Pure short. 14,305 naked lots. Equity ~$268K. Ride naked to $20, then CASCADE.**
+**At ~$44 SOL: Pure short. 14,305 naked lots. Equity ~$268K. CASCADE IMMEDIATELY.**
 
-### Naked Ride: Pure Short ~$44 → $20 (Smooth DarwinIA Phase)
+### Phase 2 CASCADE: MG $4.20 at Pure Short (~$44 SOL)
 
-```
-14,305 pure short lots. $14,305 per dollar. Perfectly linear.
-Ride naked from ~$44 to $20 — smooth equity curve, DarwinIA prints.
-Then cascade at $20 with MG $4.20133769 to extract maximum value.
-```
-
-| SOL Price | Equity | Net Short | Profit/$ | Status |
-|---|---|---|---|---|
-| ~$44 (pure short) | $268K | 14,305 | $14,305 | Pure short achieved |
-| $40 | $325K | 14,305 | $14,305 | Printing |
-| $35 | $397K | 14,305 | $14,305 | Building |
-| $30 | $468K | 14,305 | $14,305 | Locked in |
-| $25 | $540K | 14,305 | $14,305 | Cruising |
-| **$20** | **$611K** | **14,305** | **$14,305** | **→ CASCADE MG $4.20133769** |
-
-### Phase 2 CASCADE: MG $4.20 at ~$20 SOL (FINAL SHORT ENTRY)
-
-**Cascade at $20 to extract maximum SOL short value. This equity deploys into the BEST crypto long from the bottom.**
+**Cascade immediately at pure short. Grind through hedge. Be unwound well before $20. Smooth naked ride to $5.**
 
 ```
-Equity at $20: ~$611K
-Open MG $4.20: $611K / $4.20 = 145,476 per side
-Total bias: 14,305 + 145,476 = 159,781
-Spread tol: $611K / 305,257 = $2.00 → at $20 SOL = equiv $8.20 at $82. SAFE.
-Pure short #2 at ~$9 (fast unwind — only $11 grind)
+Equity at $44: ~$268,000
+Open MG $4.20: $268K / $4.20 = 63,810 per side
+Total bias: 14,305 + 63,810 = 78,115
+Spread tol: $268K / 141,925 = $1.89 → at $44 SOL = equiv $3.52 at $82. SAFE.
+Pure short #2 at ~$30 — unwound well before $20
 ```
 
 | SOL Price | Equity | Hedge | Net Short | Spread Tol | Status |
 |---|---|---|---|---|---|
-| **$20 (cascade)** | **$611K** | **140,000** | **19,781** | **$2.00** | **Phase 2 starts** |
-| $15 | $710K | 80,000 | 79,781 | $3.31 | Accelerating |
-| $12 | $949K | 20,000 | 139,781 | $4.15 | Fast |
-| **~$9** | **~$1,478K** | **0** | **159,781** | **$9.25** | **PURE SHORT — FINAL** |
+| **$44 (cascade)** | **$268K** | **60,000** | **18,115** | **$1.89** | **Phase 2 starts** |
+| $40 | $340K | 45,000 | 33,115 | $2.56 | Accelerating |
+| $35 | $506K | 20,000 | 58,115 | $4.38 | Fast |
+| **~$30** | **~$796K** | **0** | **78,115** | **$10.19** | **PURE SHORT — FINAL** |
 
-### Naked Ride: $9 → $5 → Close SOL Shorts
+### Naked Ride: $30 → $5 → Close SOL Shorts
+
+**Unwound at ~$30. Smooth naked ride for 25 dollars. $78,115 per dollar. DarwinIA loves this.**
 
 ```
-159,781 pure short lots × $4 ($9 → $5) = $639,124
-Equity at $5: $1,478K + $639K = ~$2,117K
-Close all SOL shorts. Extract $2.1M. Deploy into BEST crypto long.
+78,115 pure short lots × $25 ($30 → $5) = $1,952,875
+Equity at $5: $796K + $1,953K = ~$2,749K
+Close all SOL shorts. Extract $2.75M. Deploy into BEST crypto long.
 ```
 
-| SOL Price | Equity | Lots | Status |
-|---|---|---|---|
-| $9 (pure short #2) | $1,478K | 159,781 | Riding |
-| $7 | $1,798K | 159,781 | Printing |
-| **$5** | **$2,117K** | **159,781** | **CLOSE ALL → LONG BEST CRYPTO** |
+| SOL Price | Equity | Lots | Profit/$ | Status |
+|---|---|---|---|---|
+| $30 (pure short #2) | $796K | 78,115 | $78,115 | Smooth ride begins |
+| $25 | $1,187K | 78,115 | $78,115 | Printing |
+| $20 | $1,577K | 78,115 | $78,115 | Cruising |
+| $15 | $1,968K | 78,115 | $78,115 | Deep profit |
+| $10 | $2,359K | 78,115 | $78,115 | Nearly there |
+| **$5** | **$2,749K** | **78,115** | **$78,115** | **CLOSE ALL → LONG BEST CRYPTO** |
 
 ### Flip Long: Best Crypto from Bottom → Bull Cycle ATH
 
@@ -350,21 +338,33 @@ Short the worst supply (SOL). Long the best supply (BTC/ETH/BNB). Different symb
 | **SOL** | ~$5 | $200 | 503,810 pure long | **$100.5M** |
 | **BNB** | ~$50 | $1K | 7,298 pure long | **$71.1M** |
 
+### Flip Long: Best Crypto from Bottom → Bull Cycle ATH
+
+**Close SOL shorts at $5 with ~$2.75M equity. Deploy into the BEST long candidate.**
+
+Short the worst supply (SOL). Long the best supply (BTC/ETH). Different symbols for different directions. See CRYPTO_SUPPLY_ANALYSIS.md for full long candidate ranking.
+
+| Long Candidate | Est. Bottom | Target | Equity at Target |
+|---|---|---|---|
+| **BTC** | ~$10K | $200K | **$95M+** |
+| **ETH** | ~$200 | $5K | **$120M+** |
+| **SOL** | ~$5 | $200 | **$107M+** |
+| **BNB** | ~$50 | $1K | **$95M+** |
+
 ### Full Plan: 3 Martingale 3 Furious
 
-**1 MG Short (SOL). 1 Cascade (SOL at $20). 1 MG Long (best crypto from bottom). Short the weakest supply down, long the strongest supply up.**
+**MG 1: Short SOL. MG 2: Cascade SOL at pure short. MG 3: Long best crypto from bottom.**
 
 | Phase | Symbol | SOL Price | Action | Equity |
 |---|---|---|---|---|
-| **MG 1 (NOW)** | SOL SHORT | $83.58 → ~$44 | TRIM grind (14,305 bias) | $78K → $268K |
-| **Naked Ride** | SOL SHORT | ~$44 → $20 | Smooth, $14,305/dollar | $268K → $611K |
-| **MG 2 CASCADE** | SOL SHORT | $20 → $9 | MG $4.20 → 159,781 bias, fast unwind | $611K → $1,478K |
-| **Naked Ride** | SOL SHORT | $9 → $5, close | Extract maximum value | $1,478K → $2,117K |
-| **MG 3 LONG** | **Best crypto** | Bottom → ATH | Deploy $2.1M into strongest long | $2,117K → **$71-100M** |
+| **MG 1 (NOW)** | SOL SHORT | $83.58 → ~$44 | TRIM grind (14,305 bias, 101 trims) | $78K → $268K |
+| **MG 2 CASCADE** | SOL SHORT | $44 → $30 | MG $4.20 at pure short → 78,115 bias | $268K → $796K |
+| **Naked Ride** | SOL SHORT | $30 → $5 | Smooth, $78,115/dollar, 25 dollars of ride | $796K → $2,749K |
+| **MG 3 LONG** | **Best crypto** | Bottom → ATH | Deploy $2.75M into strongest supply | $2,749K → **$95-120M** |
 
-**3 Martingale 3 Furious: $78K → $2.1M (SOL short + cascade) → $71-100M (best crypto long). Short the weakest. Long the strongest. Extract maximum value both ways.**
+**3 Martingale 3 Furious: $78K → $2.75M (SOL short + cascade at pure short) → $95-120M (best crypto long). Short the weakest. Cascade early. Smooth ride to bottom. Long the strongest.**
 
-*The first martingale shorts SOL down. The second martingale cascades for maximum extraction. The third martingale longs the best crypto up. Different symbols. Same meme number. $4.20133769 all the way.*
+*The first martingale shorts SOL down. The second martingale cascades immediately at pure short — TRIM grinds, unwound by $30, smooth ride to $5. The third martingale longs the best crypto up from the bottom. $4.20133769 all the way.*
 
 ### How TRIM Pacing Works (Phase 1 — TRIM 57%, DARWIN BBUD)
 
