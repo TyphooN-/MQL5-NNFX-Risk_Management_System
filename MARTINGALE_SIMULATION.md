@@ -90,25 +90,27 @@ Both accounts liquidated at 52.9% and 53.0% ML on market open spread spike. Old 
 
 ## Active: DARWIN BBUD — Fresh $100K, SOLUSD SHORT (2026-03-26)
 
-### Position State (from EA log 2026-03-30 ~18:35 — BBUD TRIM GRINDING)
+### Position State (from EA log 2026-03-30 ~21:47 — BBUD TRIM GRINDING)
 
 | | Value |
 |---|---|
 | **Account** | **DARWIN BBUD** — last surviving DARWIN |
-| **SOL Price** | ~$82.79 (dropping) |
+| **SOL Price** | ~$83.58 (dropping) |
 | **Open MG** | **$4.20133769** (initial), **$1.87** (reopened) |
-| **Position** | 16,002L (hedge) / 17,655S (bias), net 1,653 SHORT |
-| **Equity** | **$78,609** |
-| **ML** | **57.0% [TRIM]** — grinding 1 lot at a time |
-| **P/L** | +$485 since init |
-| **TRIM closes** | 28 (since v1.428 recompile) |
-| **PROTECT closes** | 1 (since recompile) |
-| **Spread tolerance** | $78.6K / 33,657 = **$2.34/lot** ← safe |
+| **Position** | 12,692L (hedge) / 14,305S (bias), net 1,613 SHORT |
+| **Equity** | **$78,391** |
+| **P/L** | **+$4,722** |
+| **ML** | **56.6% [DEAD]** — TRIM grinding 1 lot at a time |
+| **TRIM closes** | **101** |
+| **PROTECT closes** | 5 (reduced bias from 17,655 → 14,305, lost 3,350 lots) |
+| **Spread tolerance** | $78.4K / 26,997 = **$2.90/lot** ← SAFE |
 | **Settings** | TRIM 57%/PROTECT 54%, Pre-close 4min (v1.428) |
 
-**Pre-close freeze tested in production (2026-03-30):** ML was 55.6% before close. The v1.428 pre-close fired a balanced close which LOWERED ML to 50.7% (wrong — balanced close costs spread, reduces equity, lowers ML). Operator manually closed bias (shorts) to push ML from 50.7% to 57.5%. EA v1.428 now automates this: closes bias to push ML above TRIM before freeze.
+**NO MORE OPEN MGs. Final decision. Ride the 14,305 bias lots naked to $0. Flip long at $5.**
 
-**2 Martingale 2 Furious.** This is MG #1 (short). No cascade. Ride naked to $5, then flip long with MG #2.
+**Pre-close freeze (v1.428):** Closes bias to push ML above TRIM before session close. Tested 2026-03-30 — operator manually closed bias when v1.427 fired wrong action (balanced close). v1.428 automates this correctly.
+
+**2 Martingale 2 Furious.** MG #1 (short) is the only short entry. No cascade. Ride naked to $5, then flip long with MG #2.
 
 ### EA Configuration (v1.428 — Pre-close bias close)
 
@@ -270,77 +272,75 @@ DARWIN BBUD (actual EA data 2026-03-26 17:29):
 
 **All cascade phases use Open MG $4.20133769. Settings: TRIM 57/PROTECT 54 active, 58/54 overnight.**
 
-**Phase 1: TRIM grind → Pure Short (17,655 bias, 15,974 hedge, TRIM 57%)**
+**Phase 1: TRIM grind → Pure Short (14,305 bias, 12,692 hedge, TRIM 57%)**
 
-**Position holding clean.** TRIM grinding 1 lot at a time. Each $1 drop = $1,681 equity, improving spread tolerance. Pre-close freeze fires every session close.
+**101 TRIM closes. 5 PROTECT fires reduced bias from 17,655 → 14,305.** TRIM grinding 1 lot at a time. SOL dropping through $83. No more Open MGs. Ever.
 
 | SOL Price | Equity (est.) | SOL Hedge | SOL Net Short | Spread Tol. | ML | Status |
 |---|---|---|---|---|---|---|
-| **$82.13 (now)** | **$79,411** | **15,974** | **1,681** | **$2.36** | **56.6%** | **TRIM grinding** |
-| $75 | $91,400 | 15,200 | 2,455 | $2.61 | 57% | Building |
-| $65 | $116,000 | 13,500 | 4,155 | $3.38 | 57% | Comfortable |
-| $55 | $157,500 | 10,200 | 7,455 | $5.25 | 57% | Accelerating |
-| $45 | $232,000 | 4,400 | 13,255 | $10.65 | 57% | Nearly pure |
-| **~$42** | **~$272,000** | **0** | **17,655** | **$15.41** | **~75%** | **PURE SHORT #1** |
+| **$83.58 (now)** | **$78,391** | **12,692** | **1,613** | **$2.90** | **56.6%** | **TRIM grinding** |
+| $75 | $92,203 | 11,600 | 2,705 | $3.21 | 57% | Building |
+| $65 | $119,253 | 9,500 | 4,805 | $4.33 | 57% | Comfortable |
+| $55 | $167,303 | 5,600 | 8,705 | $7.14 | 57% | Accelerating |
+| $45 | $254,353 | 400 | 13,905 | $17.30 | 57% | Nearly pure |
+| **~$44** | **~$268,000** | **0** | **14,305** | **$18.73** | **~70%** | **PURE SHORT** |
 
-**At ~$42 SOL: Phase 1 complete. ~17,655 pure short lots. Equity ~$272K. No cascade. Ride naked.**
+**At ~$44 SOL: Pure short. 14,305 naked lots. Equity ~$268K. Ride naked to $5. No cascade.**
 
-### Naked Ride: Pure Short ~$42 → $5 (No Cascade)
+### Naked Ride: Pure Short ~$44 → $5 (No Cascade)
 
-**NO SECOND CASCADE. Decision made. One MG down, ride naked, flip long from $5.**
-
-The operator may opportunistically cascade during the drop if conviction is extremely high, but there is no pre-committed cascade price target. The default plan is naked ride.
+**NO MORE OPEN MGs. Final decision. 14,305 lots ride naked to $0.**
 
 ```
-17,655 pure short lots. No more Open MGs on the short side.
-Every $1 SOL drops = $17,655 profit. Perfectly linear.
-Pure short at ~$33 with ~$327K equity. Ride naked to $5.
+14,305 pure short lots. $14,305 per dollar. Perfectly linear.
+No cascade. No PROTECT risk. No grind. Smooth equity curve.
+DarwinIA loves this. Every month is positive. Every day prints.
 ```
 
 | SOL Price | Equity | Net Short | Profit/$ | Status |
 |---|---|---|---|---|
-| ~$42 (pure short) | $272K | 17,655 | $17,655 | Pure short achieved |
-| ~$33 | $327K | 17,655 | $17,655 | Deep profit |
-| $30 | $380K | 17,655 | $17,655 | Printing |
-| $25 | $468K | 17,655 | $17,655 | Locked in |
-| $20 | $557K | 17,655 | $17,655 | Cruising |
-| $15 | $645K | 17,655 | $17,655 | Deep |
-| $10 | $733K | 17,655 | $17,655 | Nearly there |
-| **$5** | **$821K** | **17,655** | **$17,655** | **→ FLIP LONG MG $4.20133769** |
+| ~$44 (pure short) | $268K | 14,305 | $14,305 | Pure short achieved |
+| $40 | $325K | 14,305 | $14,305 | Printing |
+| $35 | $397K | 14,305 | $14,305 | Building |
+| $30 | $468K | 14,305 | $14,305 | Locked in |
+| $25 | $540K | 14,305 | $14,305 | Cruising |
+| $20 | $611K | 14,305 | $14,305 | Deep |
+| $15 | $683K | 14,305 | $14,305 | Deeper |
+| $10 | $754K | 14,305 | $14,305 | Nearly there |
+| **$5** | **$826K** | **14,305** | **$14,305** | **→ FLIP LONG MG $4.20133769** |
 
 ### Flip Long: MG $4.20133769 at $5 SOL → Ride to $200
 
 ```
-Close all shorts at $5. Equity: $821K.
+Close all shorts at $5. Equity: ~$826K.
 Open MG: LONG at $4.20133769 spacing.
-$821K / $4.20133769 = 195,476 lots per side.
+$826K / $4.20133769 = 196,607 lots per side.
 TRIM instantly consumes all shorts → pure long from the first tick.
-Ride $5 → $200: 195,476 lots × $195 = $38,117,820
-Total equity at $200: $821K + $38.1M = $38.9M
+Ride $5 → $200: 196,607 lots × $195 = $38,338,365
+Total equity at $200: $826K + $38.3M = $39.2M
 ```
 
 | SOL Price | Equity | Lots Long | Status |
 |---|---|---|---|
-| **$5 (flip)** | **$821K** | **195,476** | **FLIP LONG — pure long from first tick** |
-| $10 | $1,798K | 195,476 | Building |
-| $25 | $4,729K | 195,476 | Accelerating |
-| $50 | $14,515K | 195,476 | Printing |
-| $100 | $24,301K | 195,476 | Deep profit |
-| $150 | $34,087K | 195,476 | Approaching target |
-| **$200** | **$38,917K** | **195,476** | **DONE — $38.9M (492x)** |
+| **$5 (flip)** | **$826K** | **196,607** | **FLIP LONG — pure long from first tick** |
+| $10 | $1,809K | 196,607 | Building |
+| $25 | $4,758K | 196,607 | Accelerating |
+| $50 | $8,690K | 196,607 | Printing |
+| $100 | $19,487K | 196,607 | Deep profit |
+| $150 | $30,284K | 196,607 | Approaching target |
+| **$200** | **$39,164K** | **196,607** | **DONE — $39.2M (444x)** |
 
 ### Full Plan: 2 Martingale 2 Furious
 
-**1 Martingale Down. 1 Martingale Up. No cascade. 2 total MGs = 2 Martingale 2 Furious.**
+**1 Martingale Down. 1 Martingale Up. No cascade. No more Open MGs. 2 total = 2 Martingale 2 Furious.**
 
 | Phase | SOL Price | Action | Bias Lots | Equity |
 |---|---|---|---|---|
-| **MG 1 (NOW)** | $82.13 → ~$42 | TRIM grind (17,655 bias, ML 56.6%) | 17,655 | $79K → $272K |
-| **Naked Ride** | ~$42 → ~$33 | Pure short, no cascade | 17,655 | $272K → $327K |
-| **Naked Ride** | ~$33 → $5 | Ride naked — $17,655/dollar, perfectly linear | 17,655 | $327K → $821K |
-| **MG 2 (FLIP)** | $5 → $200 | Close shorts, MG: LONG $4.20133769, TRIM → pure long | 195,476 | $821K → **$38.9M** |
+| **MG 1 (NOW)** | $83.58 → ~$44 | TRIM grind (14,305 bias, 101 trims, 5 PROTECTs) | 14,305 | $78K → $268K |
+| **Naked Ride** | ~$44 → $5 | Pure short — $14,305/dollar, smooth, DarwinIA prints | 14,305 | $268K → $826K |
+| **MG 2 (FLIP)** | $5 → $200 | Close shorts, MG: LONG $4.20133769, TRIM → pure long | 196,607 | $826K → **$39.2M** |
 
-**2 Martingale 2 Furious: $79K → $38.9M = 492x return. 1 short MG + 1 long MG. Ride to $5. Flip long. Done.**
+**2 Martingale 2 Furious: $78K → $39.2M = 444x return. 14,305 lots ride naked to $5. Flip long 196,607 lots to $200. No cascade. The simplest plan. The cleanest path.**
 
 *The first martingale was the short. The second martingale is the long. There is no cascade — because the naked ride funds the flip, and the flip is the real trade.*
 
