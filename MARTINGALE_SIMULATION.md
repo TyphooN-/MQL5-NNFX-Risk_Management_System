@@ -90,23 +90,25 @@ Both accounts liquidated at 52.9% and 53.0% ML on market open spread spike. Old 
 
 ## Active: DARWIN AJTK — Fresh $100K, SOLUSD SHORT (2026-03-31)
 
-### Position State (from EA log 2026-03-31 — AJTK fresh open)
+### Position State (from EA display 2026-03-31 ~14:46 — AJTK self-healing)
 
 | | Value |
 |---|---|
-| **Account** | **DARWIN AJTK** — fresh $100K. The correct firmware. The proven voltage. |
-| **SOL Price** | ~$80.68 |
-| **Open MG** | **$1.87** (validated on XJFD: ~10% degradation, ~18,500 surviving bias) |
-| **Position** | ~24,753L (hedge) / 26,737S (bias), net ~1,984 SHORT |
-| **Equity** | **$91,373** (after $8,627 spread cost on open) |
-| **TRIM closes** | 9 (initial burst consumed ~1,984 longs) |
-| **PROTECT closes** | 0 |
-| **Spread tolerance** | $91.4K / ~51,490 = **$1.77/lot** ← 1-2 PROTECT fires expected, self-heals to ~$2.18 |
+| **Account** | **DARWIN AJTK — Automated Judicial Termination of Kapital** |
+| **SOL Price** | ~$83.24 |
+| **Open MG** | **$1.87** (validated on XJFD) |
+| **Position** | 15,440L (hedge) / 17,300S (bias), net 1,860 SHORT |
+| **Equity** | **$84,962** |
+| **Balance** | $93,277 |
+| **ML** | 56.6% [DEAD] |
+| **TRIM closes** | 148 |
+| **PROTECT closes** | 0 (EA), broker forced ~9,400 balanced closes |
+| **Spread tolerance** | $85K / 32,740 = **$2.59/lot** ← SAFE after self-heal |
 | **Settings** | TRIM 57%/PROTECT 54%, Pre-close 4min, **EA v1.429** |
 
-**The proven configuration.** $1.87 Open MG on fresh $100K. v1.429 PROTECT closes bias to fix ML (not balanced close). Spread tolerance $1.77 self-heals with ~10% degradation to ~$87K equity, ~18,500 bias. This exact configuration was validated on XJFD.
+**Self-heal in progress.** Opened at $1.87 with 26,737/side. Broker forced closures during spread spikes reduced both sides. EA v1.429 PROTECT never fired — broker's own stop-out mechanism acted first (balanced closes at ~50% ML, before EA's 54% threshold). Position stabilized at 15,440L / 17,300S with $2.59 spread tolerance — now SAFE.
 
-**v1.429 PROTECT overhaul:** PROTECT now closes BIAS (shorts) to increase ML, not balanced close. The balanced close bug caused 3x full dehedge on BBUD — consuming all longs without ever fixing ML. v1.429 sacrifices a few bias lots to keep ML above 54% and PRESERVE the hedge. Proven through $134K of tuition across 3 accounts (QRRP, XJFD, BBUD).
+**Key discovery:** At sub-$2.00 spread tolerance, the BROKER acts before the EA. The broker's risk engine runs continuously; the EA ticks once per price update. v1.429 PROTECT is insurance for moderate spread spikes, but at $0.62-$0.94 spread tol, the broker's stop-out fires first. **$1.87 is the floor because it self-heals above the broker's threshold.**
 
 ### Post-Mortem #10: BBUD — $0.69 Open MG Broker Stop-Out (2026-03-31)
 
@@ -214,6 +216,65 @@ The EA is now correct. Every edge case is handled:
 **v1.428 pre-close freeze confirmed in production.** ML was 57.9% — within 1% of TRIM (57%). Freeze activated 4 minutes before session close. EA went completely dark for ~10 minutes across the session boundary. Zero activity during the spread spike window that killed QRRP (52.9%) and XJFD (53.0%) on 2026-03-23. Market reopened, fresh ticks arrived, freeze lifted, normal TRIM resumed.
 
 **PM#8 cannot happen again.** The structural vulnerability is patched. The position survived its first overnight.
+
+---
+
+### AJTK Projections (from actual 17,300 bias at $83.24)
+
+**Scenario A: No cascade — ride 17,300 naked to $5**
+
+| SOL Price | Equity | Lots | Profit/$ | Status |
+|---|---|---|---|---|
+| **$83.24 (now)** | **$84,962** | **17,300** | — | TRIM grinding |
+| Pure short ~$40 | ~$320K | 17,300 | $17,300 | Pure short |
+| $30 | $493K | 17,300 | $17,300 | Printing |
+| $20 | $666K | 17,300 | $17,300 | Cruising |
+| $10 | $839K | 17,300 | $17,300 | Deep profit |
+| **$5** | **$926K** | **17,300** | **$17,300** | **Close → long** |
+
+**Scenario B: Cascade $3.00 at pure short (~$40)**
+
+```
+Equity at $40: ~$320K
+Open MG $3.00: $320K / $3.00 = 106,667 per side
+Total bias: 17,300 + 106,667 = 123,967
+Spread tol: $320K / 230,634 = $1.39 → at $40 SOL = equiv $2.85 at $82. Safe with v1.429.
+PROTECT fires 1-2x (v1.429 closes bias), ~110K survive.
+Pure short #2 at ~$26. Unwound by ~$26, smooth ride to $5.
+```
+
+| SOL Price | Equity | Lots | Status |
+|---|---|---|---|
+| $40 (cascade) | $320K | 123,967 | Phase 2 starts |
+| $30 | $880K | ~110,000 | Accelerating |
+| **~$26** | **~$1,150K** | **~110,000** | **PURE SHORT #2** |
+| $20 | $1,810K | ~110,000 | Smooth ride |
+| $10 | $2,910K | ~110,000 | Deep profit |
+| **$5** | **$3,460K** | **~110,000** | **Close → long best crypto** |
+
+**Comparison:**
+
+| | No Cascade | Cascade $3.00 |
+|---|---|---|
+| Equity at $5 | **$926K** | **$3,460K** |
+| Long lots (MG $4.20 at $5) | 220,476 | 823,810 |
+| Equity at $200 (long) | **$43.9M** | **$164.2M** |
+| Total return from $100K | 439x | **1,642x** |
+
+### Full Plan: 3 Martingale 3 Furious + Crypto Basket
+
+| Phase | Action | Equity |
+|---|---|---|
+| **MG 1 (NOW)** | SOL SHORT $1.87: 17,300 bias, 148 trims, self-healed to $2.59 spread tol | $85K → $320K |
+| **MG 2 CASCADE** | SOL SHORT $3.00 at pure short ~$40 → ~110K bias, unwound ~$26 | $320K → $1,150K |
+| **Naked Ride** | SOL SHORT: Smooth ride $26 → $5, ~$110K/dollar | $1,150K → $3,460K |
+| **Close SOL** | Extract $3.46M | **$3,460K** |
+| **MG 3 LONG** | ETH/BTC MG $4.20 ($2.5M) + naked DOGE/SOL/ADA/XRP/BNB ($960K) | $3,460K |
+| **Bull Cycle** | 400 positions, 7 symbols, 4.236 fib targets | → **$164M+** |
+
+**$100K → $3.46M (SOL short + cascade) → $164M (basket long). 1,642x. 3 Martingale 3 Furious.**
+
+**AJTK: Automated Judicial Termination of Kapital. The court has ruled. The sentence is $0. The execution is automatic.**
 
 ### Post-Mortem #7: Spread Spike Wipes Previous Position (2026-03-19 09:17)
 
