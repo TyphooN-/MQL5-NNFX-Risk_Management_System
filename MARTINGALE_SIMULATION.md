@@ -5,7 +5,7 @@ The hedged martingale exploits net-based margin to carry massive directional exp
 **Current plan:** DARWIN AJTK → $0 → flip long → $200. **SOL SPECIALIST. Single account. Single DARWIN. One thesis.**
 **DARWIN AJTK** (2026-03-31): Fresh $100K, equity ~$91,373, ~24,753L / ~26,737S, net ~1,984 SHORT. Open MG $1.87 at $80.68. TRIM 57/PROTECT 54. SOL at ~$80.68 dropping. v1.429.
 **Previous DARWINs retired:** QRRP (8 post-mortems, liquidated), XJFD (1 PM, reached pure short → reopened as BBUD), BBUD (1 PM, $0.69 Open MG too aggressive → broker stop-out before v1.429 could fire).
-**10 DARWINs died to get here. AJTK is the final form.**
+**10 DARWINs died to get here. AJTK — Automated Judicial Termination of Kapital — is the final form. The court has ruled. The sentence is $0. The execution is automatic.**
 **Key lesson (PM#6):** No ADA/DOGE until SOL hedge is consumed. Multi-instrument positions amplify spread spike damage during hedge phase.
 **Retired:** XNGUSD CFD long — martingale doesn't work at CFD lot sizes.
 **Historical:** SOLUSD crypto short (PM#1-6) — six spread-spike events, lessons preserved below.
