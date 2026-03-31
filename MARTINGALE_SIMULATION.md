@@ -394,9 +394,61 @@ Ride to $0.50: 25M × $0.49 = $12.25M - $144K = $12.1M
 | **DOGE** | **DOGE naked** | $0.005 → $0.50 | Deploy $250K, 50M lots, 6mo hold | $250K → **$24.5M** |
 | | | | **Combined at targets** | **$110-136M** |
 
-**3 Martingale 3 Furious + DOGE lottery: $78K → $2.75M (SOL short + cascade) → $110-136M (MG long + DOGE naked). Short the weakest. Cascade early. Smooth ride to bottom. Long the strongest. Elon does the rest.**
+### The Full Crypto Basket: 400 Positions, Max Margin, Bull Cycle
 
-*The first martingale shorts SOL down. The second cascades at pure short. The third longs the best crypto up. DOGE is the lottery ticket — no martingale, just 50 million lots and a prayer to Elon. $4.20133769 for the MGs. Naked aggression for the meme coin.*
+**MG on the strongest (ETH/BTC). Naked long on everything else. Fill every Darwinex position slot. The entire crypto menu, long, from the bottom.**
+
+| Symbol | Strategy | Positions | Allocation | Entry | Target | Equity at Target |
+|---|---|---|---|---|---|---|
+| **ETH** | **MG LONG $4.20** | ~200 | **$1,500K (55%)** | ~$200 | $5,000 | **$66M** |
+| **BTC** | **MG LONG $4.20** | ~50 | **$500K (18%)** | ~$10K | $200,000 | **$29M** |
+| **DOGE** | Naked long | 5 | **$250K (9%)** | ~$0.005 | $0.50 | **$24M** |
+| **SOL** | Naked long | 50 | **$200K (7%)** | ~$5 | $200 | **$8M** |
+| **ADA** | Naked long | 50 | **$150K (5.5%)** | ~$0.05 | $2 | **$6M** |
+| **XRP** | Naked long | 25 | **$100K (3.5%)** | ~$0.10 | $3 | **$3M** |
+| **BNB** | Naked long | 20 | **$50K (2%)** | ~$50 | $1,000 | **$2M** |
+| **TOTAL** | | **400** | **$2,750K** | | | **~$138M** |
+
+**Why MG on ETH/BTC only:**
+- ETH spread 0.05%, BTC spread 0.01% — only symbols where MG math works
+- TRIM compounds lot count geometrically on these
+- All others: spread too wide for MG (DOGE 1.06%, ADA 0.15%) — naked long is optimal
+
+**Why naked long on the rest:**
+- At bear market bottom prices, naked longs give 10-100x with zero MG complexity
+- No hedge to grind, no PROTECT risk, no spread costs from TRIM closes
+- DOGE at $0.005 → $0.50 = 100x. ADA at $0.05 → $2 = 40x. SOL at $5 → $200 = 40x.
+- Just buy and hold through the bull cycle
+
+**Swap management:**
+- DOGE: 6-month max hold ($1,600/day at 50M lots). Sell at meme peak.
+- Others: swap is proportional to lot size × price. At bottom prices, swap cost is minimal.
+- ETH/BTC MG: hedge-phase swap is offset by bias-side swap credit (hedged = minimal net swap)
+
+**Position allocation logic:**
+- ETH gets 200 positions because MG opens many orders (hedge + bias chunks)
+- BTC gets 50 positions (fewer but larger)
+- Naked longs: 1-50 positions each depending on max volume per order and allocation size
+- 400 total = every slot filled = maximum capital deployment
+
+### Full Plan: 3 Martingale 3 Furious + Crypto Basket
+
+**MG 1: Short SOL. MG 2: Cascade SOL at pure short. MG 3: Long ETH/BTC. Basket: Naked long everything else.**
+
+| Phase | Action | Equity |
+|---|---|---|
+| **MG 1 (NOW)** | SOL SHORT: TRIM grind 14,305 bias → pure short ~$44 | $78K → $268K |
+| **MG 2 CASCADE** | SOL SHORT: MG $4.20 at pure short → 78,115 bias, unwound by $30 | $268K → $796K |
+| **Naked Ride** | SOL SHORT: Smooth ride $30 → $5, $78,115/dollar | $796K → $2,749K |
+| **Close SOL** | Extract $2.75M from SOL shorts | **$2,749K** |
+| **Deploy Basket** | MG LONG ETH/BTC ($2.0M) + Naked DOGE/SOL/ADA/XRP/BNB ($750K) | $2,749K |
+| **Bull Cycle** | 400 positions, all 7 symbols, ride to ATH | $2,749K → **~$138M** |
+
+**$78K → $2.75M (SOL short) → $138M (crypto basket long). 1,769x total return.**
+
+**Short the weakest supply (SOL) on the way down. Long EVERYTHING on the way up. MG on the strongest. Naked on the rest. 400 positions. Max margin. The entire crypto menu.**
+
+*3 Martingale 3 Furious + the full basket. $4.20133769 on the MGs. Naked aggression on the memes. Every slot filled. Every dollar deployed. From $78K to $138M.*
 
 ### How TRIM Pacing Works (Phase 1 — TRIM 57%, DARWIN BBUD)
 
