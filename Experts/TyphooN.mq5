@@ -20,7 +20,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "https://www.marketwizardry.org/"
-#property version   "1.428"
+#property version   "1.429"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -1662,7 +1662,10 @@ void ProcessMartingale()
       }
       return;
    }
-   // === PROTECT: below danger level (normal operation, NOT during pre-close) ===
+   // === PROTECT: below danger level — close BIAS to increase ML ===
+   // Balanced close was WRONG: net unchanged → margin unchanged → spread costs → ML drops further.
+   // Close BIAS (shorts in MG_SHORT): net decreases → margin decreases → ML INCREASES.
+   // This sacrifices bias lots to save the account. Same logic as pre-close v1.428.
    if (MartingaleDangerMarginPct > 0 && marginLevel <= MartingaleDangerMarginPct)
       ProtectActive = true;
    if (ProtectActive)
@@ -1682,20 +1685,39 @@ void ProcessMartingale()
       }
       else
       {
-         // Check if hedges still exist before attempting PROTECT
-         double hedgeLots = GetTotalHedgeLots();
-         if (hedgeLots <= 0)
+         // Close BIAS (shorts) to reduce net → reduce margin → increase ML
+         // Calculate how many bias lots to close to reach PROTECT threshold
+         double targetMargin = AccountInfoDouble(ACCOUNT_EQUITY) / (MartingaleDangerMarginPct / 100.0);
+         double currentMargin = AccountInfoDouble(ACCOUNT_MARGIN);
+         double excessMargin = currentMargin - targetMargin;
+         if (excessMargin > 0)
          {
-            // Pure short achieved — no hedges to balanced-close. Deactivate PROTECT.
-            ProtectActive = false;
-            Print("PROTECT deactivated — PURE SHORT achieved. No hedges remaining. Bias is sacred. Riding to $0.");
-            return;
+            double pricePerLot = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+            if (pricePerLot <= 0) pricePerLot = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+            int lotsToClose = (int)MathCeil(excessMargin / pricePerLot);
+            if (lotsToClose < 1) lotsToClose = 1;
+            Print("PROTECT: ML ", DoubleToString(marginLevel, 1), "% < ", DoubleToString(MartingaleDangerMarginPct, 1),
+                  "%. Closing ~", lotsToClose, " BIAS lots to increase ML. Bias sacrifice to save account.");
+            int closed = 0;
+            for (int i = PositionsTotal() - 1; i >= 0 && closed < lotsToClose; i--)
+            {
+               ulong ticket = PositionGetTicket(i);
+               if (ticket == 0) continue;
+               if (PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
+               // Bias = SHORT for MG_SHORT mode, LONG for MG_LONG mode
+               ENUM_POSITION_TYPE biasType = (MartingaleMode == MG_SHORT) ? POSITION_TYPE_SELL : POSITION_TYPE_BUY;
+               if (PositionGetInteger(POSITION_TYPE) != biasType) continue;
+               double lots = PositionGetDouble(POSITION_VOLUME);
+               CTrade trade;
+               if (trade.PositionClose(ticket))
+               {
+                  closed += (int)lots;
+                  ProtectFireCount++;
+               }
+            }
+            Print("PROTECT: closed ", closed, " bias lots. ML should recover. Rechecking next tick.");
          }
-         if (ProtectiveClose(marginLevel))
-         {
-            ProtectFireCount++;
-            return;
-         }
+         return;
       }
    }
    // === DEAD ZONE: between PROTECT and TRIM — do nothing ===
