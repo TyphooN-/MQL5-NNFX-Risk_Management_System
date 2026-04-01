@@ -3,7 +3,7 @@
 The hedged martingale exploits net-based margin to carry massive directional exposure via a hedge that is systematically trimmed as the thesis plays out. The EA (TyphooN v1.429) manages the position automatically via forward-looking TRIM, dynamic PROTECT, and pre-close freeze.
 
 **Current plan:** DARWIN AJTK → $0 → flip long → $200. **SOL SPECIALIST. Single account. Single DARWIN. One thesis.**
-**DARWIN AJTK** (2026-04-01 06:33 UTC): 11,090L / 12,900S, net 1,810 SHORT. Equity $83,050. Balance $90,709. ML 56.9% [DEAD]. Spread tol $3.46 — SAFE. TRIM closes: 126. v1.429.
+**DARWIN AJTK** (2026-04-01 12:55 UTC): 8,974L / 10,700S, net 1,726 SHORT. Equity $79,405. Balance $89,509. ML 57.0%. Spread tol $4.04 — SAFE. TRIM closes: 182. v1.429.
 **Previous DARWINs retired:** QRRP (8 post-mortems, liquidated), XJFD (1 PM, reached pure short → reopened as BBUD), BBUD (1 PM, $0.69 Open MG too aggressive → broker stop-out before v1.429 could fire).
 **10 DARWINs died to get here. AJTK — Automated Judicial Termination of Kapital — is the final form. The court has ruled. The sentence is $0. The execution is automatic.**
 **Key lesson (PM#6):** No ADA/DOGE until SOL hedge is consumed. Multi-instrument positions amplify spread spike damage during hedge phase.
@@ -90,25 +90,25 @@ Both accounts liquidated at 52.9% and 53.0% ML on market open spread spike. Old 
 
 ## Active: DARWIN AJTK — Fresh $100K, SOLUSD SHORT (2026-03-31)
 
-### Position State (from EA log 2026-04-01 06:33 UTC — exact data)
+### Position State (from EA log 2026-04-01 12:55 UTC — exact data)
 
 | | Value |
 |---|---|
 | **Account** | **DARWIN AJTK — Automated Judicial Termination of Kapital** |
-| **SOL Price** | ~$83.23 |
+| **SOL Price** | ~$85.05 |
 | **Open MG** | **$1.87** (validated on XJFD) |
-| **Position** | 11,090L (hedge) / 12,900S (bias), net 1,810 SHORT |
-| **Equity** | **$83,050.18** |
-| **Balance** | $90,709.17 |
-| **Margin** | $146,070.02 |
-| **ML** | 56.9% [DEAD] — below TRIM 57%, TRIM paused |
+| **Position** | 8,974L (hedge) / 10,700S (bias), net 1,726 SHORT |
+| **Equity** | **$79,405.49** |
+| **Balance** | $89,509.29 |
+| **Margin** | $139,286.34 |
+| **ML** | 57.0% — TRIM actively firing |
 | **VaR** | 11.04% |
-| **TRIM closes** | 126 |
+| **TRIM closes** | 182 |
 | **PROTECT closes** | 0 |
-| **Spread tolerance** | $83,050 / 23,990 = **$3.46/lot** ← SAFE |
+| **Spread tolerance** | $79,405 / 19,674 = **$4.04/lot** ← SAFE |
 | **Settings** | TRIM 57%/PROTECT 54%, Pre-close 4min, **EA v1.429** |
 
-**Self-heal in progress.** Opened at $1.87 with 26,737/side. Broker forced closures during spread spikes and session boundaries reduced both sides from 26,737 → 11,090 (longs) and 26,737 → 12,900 (shorts). EA TRIM closed 126 hedge longs. Net short preserved at 1,810. EA PROTECT never fired — broker's own mechanism acts first at ~50% ML before EA's 54% threshold. Spread tolerance now $3.46 — well above the $2.00 survival floor. ML 56.9% [DEAD] — TRIM paused 0.1% below threshold, resumes automatically when SOL drops and ML recovers above 57%.
+**Self-heal complete, TRIM grinding.** Opened at $1.87 with 26,737/side. Broker forced closures during spread spikes and session boundaries reduced both sides significantly. EA TRIM closed 182 hedge longs — each close profitable at ~$530-566 (SOL below MG entry). Net short preserved at 1,726. EA PROTECT never fired. Spread tolerance now $4.04 — well above the $2.00 survival floor. SOL moved up to ~$85 but TRIM keeps firing, consuming hedge and building spread tolerance. Each TRIM close reduces gross lots while preserving net short direction.
 
 **Key discovery:** At sub-$2.00 spread tolerance, the BROKER acts before the EA. The broker's risk engine runs continuously; the EA ticks once per price update. v1.429 PROTECT is insurance for moderate spread spikes, but at $0.62-$0.94 spread tol, the broker's stop-out fires first. **$1.87 is the floor because it self-heals above the broker's threshold.**
 
@@ -173,7 +173,7 @@ The EA is now correct. Every edge case is handled:
 
 **v1.429 is the first version where ALL three safeguards (TRIM, PROTECT, pre-close) use the correct close direction.**
 
-**Plan: MG $1.87 → TRIM grind to pure short ~$40 → cascade $3.00 → smooth ride → extract ~$2.7M → deploy full crypto basket.**
+**Plan: MG $1.87 → TRIM grind to pure short ~$40 → cascade $3.00 → smooth ride → extract ~$2.3M → deploy full crypto basket.**
 
 **Pre-close freeze (v1.428+):** Closes bias to push ML above TRIM before session close. Tested and confirmed in production.
 
@@ -221,60 +221,63 @@ The EA is now correct. Every edge case is handled:
 
 ---
 
-### AJTK Projections (from actual 12,900 bias at $83.23)
+### AJTK Projections (from actual 10,700 bias at $85.05)
 
-**Scenario A: No cascade — ride 12,900 naked to $5**
+**Scenario A: No cascade — ride 10,700 naked to $5**
 
 | SOL Price | Equity | Lots | Profit/$ | Status |
 |---|---|---|---|---|
-| **$83.23 (now)** | **$83,050** | **12,900** | — | TRIM paused [DEAD], resumes on ML recovery |
-| Pure short ~$40 | ~$260K | 12,900 | $12,900 | Pure short |
-| $30 | $389K | 12,900 | $12,900 | Printing |
-| $20 | $518K | 12,900 | $12,900 | Cruising |
-| $10 | $647K | 12,900 | $12,900 | Deep profit |
-| **$5** | **$712K** | **12,900** | **$12,900** | **Close → long** |
+| **$85.05 (now)** | **$79,405** | **10,700** | — | TRIM firing, ML 57.0% |
+| $80 | $88,000 | 9,200 | 2,500 | TRIM grinding |
+| $70 | $107,000 | 6,500 | 5,000 | Accelerating |
+| $60 | $128,000 | 3,200 | 8,200 | Deep safety |
+| **~$40** | **~$225,000** | **0 hedge / 10,700 pure** | **$10,700** | **PURE SHORT → CASCADE** |
+| $30 | $332K | 10,700 | $10,700 | Printing |
+| $20 | $439K | 10,700 | $10,700 | Cruising |
+| $10 | $546K | 10,700 | $10,700 | Deep profit |
+| **$5** | **$600K** | **10,700** | **$10,700** | **Close → long** |
 
 **Scenario B: Cascade $3.00 at pure short (~$40)**
 
 ```
-Equity at $40: ~$260K
-Open MG $3.00: $260K / $3.00 = 86,667 per side
-Total bias: 12,900 + 86,667 = 99,567
-Spread tol: $260K / 186,234 = $1.40 → at $40 SOL = equiv $2.87 at $82. Safe with v1.429.
-PROTECT fires 1-2x (v1.429 closes bias), ~90K survive.
+Equity at $40: ~$225K
+Open MG $3.00: $225K / $3.00 = 75,000 per side
+Total bias: 10,700 + 75,000 = 85,700
+Spread tol: $225K / 160,700 = $1.40 → at $40 SOL = equiv $2.87 at $82. Safe with v1.429.
+PROTECT fires 1-2x (v1.429 closes bias), ~77K survive.
 Pure short #2 at ~$24. Unwound by ~$24, smooth ride to $5.
 ```
 
 | SOL Price | Equity | Lots | Status |
 |---|---|---|---|
-| $40 (cascade) | $260K | 99,567 | Phase 2 starts |
-| $30 | $700K | ~90,000 | Accelerating |
-| **~$24** | **~$940K** | **~90,000** | **PURE SHORT #2** |
-| $20 | $1,300K | ~90,000 | Smooth ride |
-| $10 | $2,200K | ~90,000 | Deep profit |
-| **$5** | **$2,650K** | **~90,000** | **Close → long best crypto** |
+| $40 (cascade) | $225K | 85,700 | Phase 2 starts |
+| $30 | $600K | ~77,000 | Accelerating |
+| **~$24** | **~$800K** | **~77,000** | **PURE SHORT #2** |
+| $20 | $1,108K | ~77,000 | Smooth ride |
+| $10 | $1,878K | ~77,000 | Deep profit |
+| **$5** | **$2,263K** | **~77,000** | **Close → long best crypto** |
 
 **Comparison:**
 
 | | No Cascade | Cascade $3.00 |
 |---|---|---|
-| Equity at $5 | **$712K** | **$2,650K** |
-| Long lots (MG $4.20 at $5) | 169,524 | 630,952 |
-| Equity at $200 (long) | **$33.1M** | **$123.1M** |
-| Total return from $100K | 331x | **1,231x** |
+| Equity at $5 | **$600K** | **$2,263K** |
+| Long lots (MG $4.20 at $5) | 142,857 | 538,810 |
+| Equity at $200 (long) | **$27.9M** | **$105.1M** |
+| Total return from $100K | 279x | **1,051x** |
 
 ### Full Plan: 3 Martingale 3 Furious + Crypto Basket
 
 | Phase | Action | Equity |
 |---|---|---|
-| **MG 1 (NOW)** | SOL SHORT $1.87: 12,900 bias, $3.46 spread tol, ML 56.9% [DEAD], v1.429 | $83K → $260K |
-| **MG 2 CASCADE** | SOL SHORT $3.00 at pure short ~$40 → ~90K bias, unwound ~$24 | $260K → $940K |
-| **Naked Ride** | SOL SHORT: Smooth ride $24 → $5, ~$90K/dollar | $940K → $2,650K |
-| **Close SOL** | Extract $2.7M | **$2,650K** |
-| **MG 3 LONG** | ETH/BTC MG $4.20 ($1.8M) + naked DOGE/SOL/ADA/XRP/BNB ($850K) | $2,650K |
-| **Bull Cycle** | 400 positions, 7 symbols, 4.236 fib targets | → **$123M+** |
+| **MG 1 (NOW)** | SOL SHORT $1.87: 10,700 bias, $4.04 spread tol, ML 57.0%, v1.429, TRIM firing | $79K → $225K |
+| **MG 2 CASCADE** | SOL SHORT $3.00 at pure short ~$40 → ~77K bias, unwound ~$24 | $225K → $800K |
+| **Naked Ride** | SOL SHORT: Smooth ride $24 → $5, ~$77K/dollar | $800K → $2,263K |
+| **Close SOL** | Extract $2.3M | **$2,263K** |
+| **MG 3 LONG** | ETH/BTC MG $4.20 ($1.5M) + naked DOGE/SOL/ADA/XRP/BNB ($763K) | $2,263K |
+| **Bull Cycle** | 400 positions, 7 symbols, 4.236 fib targets | → **$105M+** |
 
-**$100K → $2.7M (SOL short + cascade) → $123M (basket long). 1,231x. 3 Martingale 3 Furious.**
+**$100K → $2.3M (SOL short + cascade) → $105M (basket long). 1,051x. 3 Martingale 3 Furious.**
 
 **AJTK: Automated Judicial Termination of Kapital. The court has ruled. The sentence is $0. The execution is automatic.**
 
