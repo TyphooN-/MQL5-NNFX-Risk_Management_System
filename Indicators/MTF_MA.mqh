@@ -760,9 +760,30 @@ int OnCalculate(const int rates_total,
    UpdateInfoLabel(g_objNames[5][4], is10_20cross_H4, false, true);
    UpdateInfoLabel(g_objNames[6][4], is10_20cross_D1, false, true);
    UpdateInfoLabel(g_objNames[7][4], is10_20cross_W1, false, true);
-   // Always update power text labels (fixes INIT bug — text only updated on color
-   // change inside UpdateInfoLabel, but if all crosses start in same state after
-   // ObjectsDeleteAll, no color change fires and text stays "INIT" forever)
+   // Recount power from object colors directly — eliminates INIT bug entirely.
+   // The incremental color-change tracking in UpdateInfoLabel can desync after
+   // ObjectsDeleteAll, template reload, or recompile. Counting object colors
+   // is authoritative and costs nothing (8 ObjectGetInteger calls per group).
+   BullPowerLTF = 0; BearPowerLTF = 0;
+   BullPowerHTF = 0; BearPowerHTF = 0;
+   for (int ci = 0; ci < 4; ci++)   // LTF: M1(0), M5(1), M15(2), M30(3)
+   {
+      for (int ri = 0; ri < 5; ri++)
+      {
+         color c = (color)ObjectGetInteger(0, g_objNames[ci][ri], OBJPROP_COLOR);
+         if (c == clrLime) BullPowerLTF++;
+         else if (c == clrRed) BearPowerLTF++;
+      }
+   }
+   for (int ci = 4; ci < 8; ci++)   // HTF: H1(4), H4(5), D1(6), W1(7)
+   {
+      for (int ri = 0; ri < 5; ri++)
+      {
+         color c = (color)ObjectGetInteger(0, g_objNames[ci][ri], OBJPROP_COLOR);
+         if (c == clrLime) BullPowerHTF++;
+         else if (c == clrRed) BearPowerHTF++;
+      }
+   }
    int bullLTF = BullPowerLTF * 5, bearLTF = BearPowerLTF * 5;
    int bullHTF = BullPowerHTF * 5, bearHTF = BearPowerHTF * 5;
    ObjectSetString(0, g_nameBullLTF, OBJPROP_TEXT, "LTF Bull Power: " + IntegerToString(bullLTF));
