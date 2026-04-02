@@ -1643,7 +1643,7 @@ void ProcessMartingale()
             Print("PRE-CLOSE: ML ", DoubleToString(marginLevel, 1),
                   "% < TRIM ", DoubleToString(MartingaleUnwindMarginPct, 1),
                   "%. Closing ~", lotsToClose, " bias lots to push ML above TRIM. Bias sacrifice for overnight survival.");
-            // Close bias (shorts) — smallest positions first to minimize impact
+            // Close bias (shorts) — partial close to minimize lot destruction
             int closed = 0;
             for (int i = PositionsTotal() - 1; i >= 0 && closed < lotsToClose; i--)
             {
@@ -1653,9 +1653,19 @@ void ProcessMartingale()
                // Bias = SHORT for MG_SHORT mode
                if (PositionGetInteger(POSITION_TYPE) != POSITION_TYPE_SELL) continue;
                double lots = PositionGetDouble(POSITION_VOLUME);
+               double needed = (double)(lotsToClose - closed);
+               double closeVol = MathMin(lots, needed);
                CTrade trade;
-               if (trade.PositionClose(ticket))
-                  closed += (int)lots;
+               if (closeVol >= lots)
+               {
+                  if (trade.PositionClose(ticket))
+                     closed += (int)lots;
+               }
+               else
+               {
+                  if (trade.PositionClosePartial(ticket, closeVol))
+                     closed += (int)closeVol;
+               }
             }
             Print("PRE-CLOSE: closed ", closed, " bias lots. Rechecking ML next tick.");
          }
@@ -1708,11 +1718,24 @@ void ProcessMartingale()
                ENUM_POSITION_TYPE biasType = (MartingaleMode == MG_SHORT) ? POSITION_TYPE_SELL : POSITION_TYPE_BUY;
                if (PositionGetInteger(POSITION_TYPE) != biasType) continue;
                double lots = PositionGetDouble(POSITION_VOLUME);
+               double needed = (double)(lotsToClose - closed);
+               double closeVol = MathMin(lots, needed);
                CTrade trade;
-               if (trade.PositionClose(ticket))
+               if (closeVol >= lots)
                {
-                  closed += (int)lots;
-                  ProtectFireCount++;
+                  if (trade.PositionClose(ticket))
+                  {
+                     closed += (int)lots;
+                     ProtectFireCount++;
+                  }
+               }
+               else
+               {
+                  if (trade.PositionClosePartial(ticket, closeVol))
+                  {
+                     closed += (int)closeVol;
+                     ProtectFireCount++;
+                  }
                }
             }
             Print("PROTECT: closed ", closed, " bias lots. ML should recover. Rechecking next tick.");
