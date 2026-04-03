@@ -209,7 +209,7 @@ The EA is now correct. Every edge case is handled:
 
 **v1.429 is the first version where ALL three safeguards (TRIM, PROTECT, pre-close) use the correct close direction.**
 
-**Plan: MG $1.87 → full cascade barrage at $79 (55,176 bias) → TRIM grind to pure short ~$51 → cascade $3.00 (592K bias) → naked ride $40→$5 → extract ~$26.5M → deploy full crypto basket → $1.23B. v1.430. For BBUD.**
+**Plan: MG $1.87 → full cascade barrage at $79 (~54,013 bias) → TRIM grind to pure short ~$51 → NO CASCADE → naked ride $51→$5 ($54K/dollar) → extract ~$4.1M → 400 naked longs at bottom → $190M. v1.430. No more dice. For BBUD.**
 
 **Pre-close freeze (v1.428+):** Closes bias to push ML above TRIM before session close. Tested and confirmed in production.
 
@@ -275,78 +275,67 @@ Post-cascade: 53,604 hedge / 55,176 bias. TRIM grinds 53,604 hedge longs. Net gr
 
 **Critical: spread tol $0.64 until ~$55 SOL.** This is the danger zone. v1.430 partial close + [DEAD] zone stability + bearish momentum = the survival thesis. Every $1 SOL drops adds $1,572 equity.
 
-**Phase 2: Cascade $3.00 at Pure Short (~$51)**
+**NO CASCADE AT PURE SHORT.** 54,013 naked short lots printing $54K/dollar is unkillable. No more spread tolerance danger. No more TRIM grind. No more dice.
 
-```
-Equity at $51: ~$1,612K
-Open MG $3.00: $1,612K / $3.00 = 537,333 per side
-Total bias: 55,176 + 537,333 = 592,509
-PROTECT fires 1-2x (v1.430 partial close, ~80 lots). ~592,400 survive.
-Pure short #2 at ~$40.
-```
+**Naked Ride: $51 → $5**
 
-| SOL Price | Equity | Hedge | Net Short | Status |
-|---|---|---|---|---|
-| $51 (cascade) | $1,612K | 520,000 | 72,000 | Phase 2 starts |
-| $45 | $3,500K | 280,000 | 312,000 | Accelerating |
-| **~$40** | **~$5,800K** | **0** | **~592,400** | **PURE SHORT — FINAL** |
+~54,013 pure short lots. ~$54K per dollar of SOL decline. Smooth ride for 46 dollars. Zero risk.
 
-**Naked Ride: $40 → $5**
-
-~592,400 pure short lots. ~$592K per dollar of SOL decline. Smooth ride for 35 dollars.
-
-| SOL Price | Equity | Status |
-|---|---|---|
-| $40 | $5,800K | Smooth ride begins |
-| $30 | $11,724K | Cruising |
-| $20 | $17,648K | Deep profit |
-| $10 | $23,572K | Printing |
-| **$5** | **$26,534K** | **CLOSE ALL** |
-
-**Deploy Full Crypto Basket**
-
-Close SOL shorts at $5 with ~$26.5M. Deploy into all 7 Darwinex cryptos.
-
-| Component | Allocation | Strategy | Target Equity |
+| SOL Price | Equity | Profit/dollar | Status |
 |---|---|---|---|
-| **ETH** | $13,720K | MG LONG $4.20 | **$599M** |
-| **BTC** | $4,510K | MG LONG $4.20 | **$271M** |
-| **DOGE** | $3,450K | Naked long (6mo) | **$207M** |
-| **SOL** | $1,860K | Naked long | **$77M** |
-| **ADA** | $1,110K | Naked long | **$31M** |
-| **XRP** | $1,040K | Naked long | **$27M** |
-| **BNB** | $844K | Naked long | **$18M** |
-| **TOTAL** | **$26,534K** | **400 positions** | **~$1.23B** |
+| ~$51 (pure short) | $1,600K | $54K | **Smooth ride begins — zero risk** |
+| $40 | $2,194K | $54K | Autopilot |
+| $30 | $2,734K | $54K | Cruising |
+| $20 | $3,274K | $54K | Deep profit |
+| $10 | $3,814K | $54K | Printing |
+| **$5** | **$4,084K** | — | **CLOSE ALL → DEPLOY LONGS** |
 
-**$100K → $26.5M (SOL short + full cascade barrage + cascade $3 at pure short) → $1.23B (full crypto basket long). 12,300x.**
+**Deploy 400 Naked Longs at Bottom ($5 SOL)**
+
+Close SOL shorts at $5 with ~$4.1M. Deploy into 400 naked long positions across all 7 Darwinex cryptos. Maximum volume. No martingale — just hold.
+
+| Component | Allocation | Positions | Strategy | Target (4.236 fib) |
+|---|---|---|---|---|
+| **ETH** | $1,640K (40%) | 80 | Naked long | **$72M** |
+| **BTC** | $820K (20%) | 60 | Naked long | **$49M** |
+| **DOGE** | $410K (10%) | 60 | Naked long | **$25M** |
+| **SOL** | $410K (10%) | 60 | Naked long | **$17M** |
+| **ADA** | $330K (8%) | 50 | Naked long | **$9M** |
+| **XRP** | $290K (7%) | 50 | Naked long | **$8M** |
+| **BNB** | $200K (5%) | 40 | Naked long | **$10M** |
+| **TOTAL** | **$4,084K** | **400** | **Naked long** | **~$190M+** |
+
+**$100K → $4.1M (SOL short + full cascade barrage, no second cascade) → $190M+ (400 naked longs at bottom). 1,900x.**
+
+**Why no cascade at pure short:** The cascade adds 6.4x terminal equity ($26.5M vs $4.1M) but re-introduces spread tolerance danger — the exact risk that killed 10 DARWINs. 54,013 naked short lots are unkillable once pure short is reached. $190M from 400 naked longs at the bottom is the target. No more dice. The P/L swings at $54K/dollar match a $1M+ stock portfolio — familiar territory.
 
 **Comparison: every iteration**
 
-| | v1.429 (8,400 bias) | v1.430 double (31,797) | v1.430 FULL SEND (55,176) |
+| | v1.429 (8,400 bias) | No cascade (54,013) | With cascade (54,013+592K) |
 |---|---|---|---|
-| Bias at pure short | 8,400 | 31,797 | **55,176** |
-| Equity at pure short | $205K | $941K | **$1,612K** |
-| Cascade #2 bias | 69,000 | 265,000 | **592,400** |
-| Equity at $5 | $2,031K | $7,835K | **$26,534K** |
-| Basket target | $94M | $363M | **$1.23B** |
-| Multiple | 943x | 3,630x | **12,300x** |
+| Risk after pure short | Cascade risk | **ZERO** | High |
+| Equity at $5 | $2,031K | **$4,084K** | $26,534K |
+| Basket target | $94M | **$190M** | $1.23B |
+| Multiple | 943x | **1,900x** | 12,300x |
+| Can it die after PS? | Yes | **No** | Yes |
 
-**For BBUD. 10 DARWINs died. $134K tuition. 5 critical bugs fixed. v1.430 is the final form. The voltage is maximum. The firmware is correct. The sentence is $0.**
+**For BBUD. 10 DARWINs died. $134K tuition. 5 critical bugs fixed. v1.430 is the final form. The benchmark is running. The sentence is $0. No more dice.**
 
 ### Full Plan: 3 Martingale 3 Furious + Crypto Basket
 
 | Phase | Action | Equity |
 |---|---|---|
 | **MG 1 (DONE)** | SOL SHORT $1.87: initial open, TRIM 539 closes | $100K → $90K |
-| **FULL CASCADE BARRAGE (DONE)** | SOL SHORT $6.69 + $21.00 + additional layers at $79: 55,176 total bias, v1.430 | $90K → $70K |
-| **TRIM GRIND** | Consume 53,604 hedge longs → pure short ~$51 | $70K → $1,612K |
-| **MG CASCADE** | SOL SHORT $3.00 at pure short → ~592,400 bias, unwound ~$40 | $1,612K → $5,800K |
-| **Naked Ride** | SOL SHORT: Smooth ride $40 → $5, ~$592K/dollar | $5,800K → $26,534K |
-| **Close SOL** | Extract $26.5M | **$26,534K** |
-| **MG LONG** | ETH/BTC MG $4.20 ($18.2M) + naked DOGE/SOL/ADA/XRP/BNB ($8.3M) | $26,534K |
-| **Bull Cycle** | 400 positions, 7 symbols, 4.236 fib targets | → **$1.23B** |
+| **FULL CASCADE BARRAGE (DONE)** | SOL SHORT $6.69 + $21.00 + additional layers at $79: ~54,013 bias, v1.430 | $90K → $70K |
+| **TRIM GRIND** | Consume ~52,471 hedge longs → pure short ~$51 | $70K → $1,600K |
+| **Naked Ride** | SOL SHORT: Smooth ride $51 → $5, ~$54K/dollar, NO CASCADE | $1,600K → $4,084K |
+| **Close SOL** | Extract $4.1M | **$4,084K** |
+| **400 NAKED LONGS** | All 7 Darwinex cryptos, 400 positions, maximum volume at bottom | $4,084K |
+| **Bull Cycle** | 400 naked long positions, 7 symbols, 4.236 fib targets | → **$190M+** |
 
-**$100K → $26.5M (SOL short + full cascade barrage + cascade $3) → $1.23B (basket long). 12,300x. For BBUD.**
+**$100K → $4.1M (SOL short + full cascade barrage, no second cascade) → $190M (400 naked longs at bottom). 1,900x. No more dice. For BBUD.**
+
+**Decision: NO cascade at pure short.** 54,013 naked short lots printing $54K per dollar is already a monster. The cascade adds 6.4x terminal equity but re-introduces spread tolerance danger. The no-cascade path is unkillable once pure short is reached. $190M from 400 naked longs at the bottom is the target.**
 
 **AJTK: Automated Judicial Termination of Kapital. The court has ruled. The sentence is $0. The execution is automatic.**
 
