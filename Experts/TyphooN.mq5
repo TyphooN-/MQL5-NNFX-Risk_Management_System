@@ -2397,10 +2397,13 @@ void TyWindow::OnClickOpenMG(void)
          " | Chunk: ", DoubleToString(chunk, 0));
    // Phase 1: Hedge-only orders to rebalance existing net exposure to zero
    // On net-margin brokers, this REDUCES margin, making room for alternation
+   int maxPositions = (int)AccountInfoInteger(ACCOUNT_LIMIT_ORDERS);
+   if (maxPositions <= 0) maxPositions = 400;  // Default if broker doesn't report
    double rem_rebalance = rebalanceLots;
    while (rem_rebalance > 0)
    {
       if (IsStopped()) { Print("Open MG: EA stopping."); break; }
+      if (PositionsTotal() >= maxPositions) { Print("Open MG: Hit ", maxPositions, " position limit. Stopping."); break; }
       double lots = NormalizeDouble(MathMin(rem_rebalance, chunk), OrderDigits);
       if (lots < minVol) lots = minVol;
       bool placed = false;
@@ -2440,6 +2443,7 @@ void TyWindow::OnClickOpenMG(void)
    while (remaining_hedge > 0 || remaining_bias > 0)
    {
       if (IsStopped()) { Print("Open MG: EA stopping."); break; }
+      if (PositionsTotal() >= maxPositions) { Print("Open MG: Hit ", maxPositions, " position limit. Stopping."); break; }
       bool isHedge = false;
       double orderSL = 0, orderTP = 0;
       double remaining = 0;
