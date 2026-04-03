@@ -292,18 +292,32 @@ Post-cascade: 53,604 hedge / 55,176 bias. TRIM grinds 53,604 hedge longs. Net gr
 
 **Deploy 400 Naked Longs at Bottom ($5 SOL)**
 
-Close SOL shorts at $5 with ~$4.1M. Deploy into 400 naked long positions across all 7 Darwinex cryptos. Maximum volume. No martingale — just hold.
+Close SOL shorts at $5 with ~$4.1M. Deploy into 400 naked long positions across all 7 Darwinex cryptos. Maximum volume per slot. No martingale. Just hold.
 
-| Component | Allocation | Positions | Strategy | Target (4.236 fib) |
-|---|---|---|---|---|
-| **ETH** | $1,640K (40%) | 80 | Naked long | **$72M** |
-| **BTC** | $820K (20%) | 60 | Naked long | **$49M** |
-| **DOGE** | $410K (10%) | 60 | Naked long | **$25M** |
-| **SOL** | $410K (10%) | 60 | Naked long | **$17M** |
-| **ADA** | $330K (8%) | 50 | Naked long | **$9M** |
-| **XRP** | $290K (7%) | 50 | Naked long | **$8M** |
-| **BNB** | $200K (5%) | 40 | Naked long | **$10M** |
-| **TOTAL** | **$4,084K** | **400** | **Naked long** | **~$190M+** |
+**Deployment framework (live data at execution time, NOT pre-simulated):**
+
+1. **Target portfolio VaR: 3.25%** (floor of Darwinex corridor). Maximum VaR multiplier = maximum investor leverage = maximum AuM.
+2. **Fill iteratively, not all at once.** Each batch sized based on VaR impact of positions already open.
+3. **Fill order:** BTC/ETH first (anchors, lowest individual VaR), then XRP/BNB (VaR compressors, lowest BTC correlation), then SOL/ADA/DOGE (thesis + satellites).
+4. **After each batch:** Run TyphooN-Terminal correlation matrix + VaR calculator on live positions. Adjust remaining allocations to keep portfolio VaR at 3.25%.
+5. **Maximum volume per slot.** Every position is the largest lot size the pair allows. 400 slots, all max volume.
+6. **Size inversely to VaR.** Low-VaR pairs (BTC) get more slots. High-VaR pairs (DOGE) get fewer but still max volume per slot.
+7. **Minimum 1 position per pair.** All 7 cryptos represented. The 7 core swing positions ride the entire cycle to 4.236+ and beyond.
+8. **Crypto correlations shift in bull markets.** Exact allocation computed at deployment with live data. Framework is fixed, numbers are not.
+
+**VaR compression strategy:**
+
+Portfolio VaR = √(Σ w²σ² + 2Σ wᵢwⱼσᵢσⱼρᵢⱼ). When ρ < 1, portfolio VaR < weighted sum.
+
+| Role | Pairs | Logic |
+|---|---|---|
+| **Anchors** (fill first) | BTC, ETH | Lowest individual VaR, most liquid |
+| **Compressors** (fill second) | XRP, BNB | Lowest BTC correlation (~0.60-0.70) — pull portfolio VaR down |
+| **Thesis + Satellites** (fill last) | SOL, ADA, DOGE | Higher VaR, sized to keep portfolio at 3.25% |
+
+**Hold strategy:** 7 core swing positions (1 per pair) hold to 4.236 fib and beyond — permanent portfolio, ride until thesis invalidation or end of cycle. Remaining 393 positions may be partially trimmed at fib levels (1.618, 2.618, 3.618) to lock profits. The swings cost $0 after the SOL short paid for them.
+
+**Target: ~$190M+ at 4.236 fib targets.** Exact number depends on live correlations and VaR at deployment, computed by TyphooN-Terminal in real-time.
 
 **$100K → $4.1M (SOL short + full cascade barrage, no second cascade) → $190M+ (400 naked longs at bottom). 1,900x.**
 
