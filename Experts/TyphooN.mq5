@@ -1630,23 +1630,22 @@ void ProcessPyramid()
       if (pyramidTP > 0)
          pyramidTP = MathRound(pyramidTP / tickSz) * tickSz;
    }
-   // Set global SL/TP for ExecuteBuyOrder/ExecuteSellOrder
-   double savedSL = SL, savedTP = TP;
-   SL = pyramidSL;
-   TP = pyramidTP;
+   // Place order directly via CTrade (ProcessPyramid is not a class member)
+   bool success = false;
    if (isShort)
-      ExecuteSellOrder(PyramidLots);
+      success = Trade.Sell(PyramidLots, _Symbol, 0, pyramidSL, pyramidTP, NULL);
    else
-      ExecuteBuyOrder(PyramidLots);
-   SL = savedSL;
-   TP = savedTP;
-   PyramidLayerCount++;
-   PyramidLastAddTime = TimeCurrent();
-   Print("Pyramid layer #", PyramidLayerCount, " added: ",
-         (isShort ? "SELL" : "BUY"), " ", DoubleToString(PyramidLots, 2),
-         " lots | Free margin: $", DoubleToString(freeMargin, 2),
-         " | Required: $", DoubleToString(requiredFreeMargin, 2),
-         " | Margin/lot: $", DoubleToString(marginRequired, 2));
+      success = Trade.Buy(PyramidLots, _Symbol, 0, pyramidSL, pyramidTP, NULL);
+   if (success)
+   {
+      PyramidLayerCount++;
+      PyramidLastAddTime = TimeCurrent();
+      Print("Pyramid layer #", PyramidLayerCount, " added: ",
+            (isShort ? "SELL" : "BUY"), " ", DoubleToString(PyramidLots, 2),
+            " lots | Free margin: $", DoubleToString(freeMargin, 2),
+            " | Required: $", DoubleToString(requiredFreeMargin, 2),
+            " | Margin/lot: $", DoubleToString(marginRequired, 2));
+   }
 }
 void ProcessMartingale()
 {
