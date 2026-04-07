@@ -20,7 +20,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "https://www.marketwizardry.org/"
-#property version   "1.430"
+#property version   "1.440"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -85,6 +85,12 @@ input double          MartingaleSpreadTolerance = 2.0; // Open MG — $ per lot 
 input double          MartingaleDangerMarginPct = 54;  // PROTECT — % margin level to start (0=off)
 input int             PreCloseMinutes = 5;             // Pre-close TRIM — minutes before close to force TRIM to threshold (0=off)
 input double          MartingaleMarginFloor = 10;     // PROTECT — hard floor %, stop below this (broker handles it)
+input group           "[PYRAMID MODE SETTINGS]"
+input bool            EnablePyramid = false;          // Enable Pyramid (master switch)
+input double          PyramidLots = 0.01;             // Lots per pyramid layer
+input double          PyramidMarginBuffer = 200;      // Min free margin % to add layer (e.g. 200 = 2x margin required)
+input int             PyramidMaxLayers = 50;          // Max pyramid layers (0 = unlimited up to broker limit)
+input int             PyramidCooldownSec = 60;        // Min seconds between pyramid layers
 input group           "[DISCORD ANNOUNCEMENT SETTINGS]"
 input string          DiscordAPIKey =  "https://discord.com/api/webhooks/your_webhook_id/your_webhook_token";
 input bool            EnableBroadcast = false;
@@ -119,6 +125,9 @@ bool ProtectActive = false;
 int ProtectFireCount = 0;
 bool PreCloseFrozen = false;       // Pre-close freeze: no activity until next session
 datetime PreCloseFreezeTime = 0;   // When the freeze was activated
+// Pyramid state
+int PyramidLayerCount = 0;
+datetime PyramidLastAddTime = 0;
 // Init-time baselines for tracking progress
 double g_initEquity = 0, g_initBalance = 0, g_initMarginPct = 0;
 double g_initHedgeLots = 0, g_initBiasLots = 0, g_initNetLots = 0;
@@ -375,6 +384,14 @@ int OnInit()
       Print("  Closes: trim=", MartingaleHedgeCloses,
             " protect=", MartingaleBiasCloses);
    }
+   if (EnablePyramid)
+   {
+      Print("  Pyramid: ENABLED | Lots: ", DoubleToString(PyramidLots, 2),
+            " | Buffer: ", DoubleToString(PyramidMarginBuffer, 0), "%",
+            " | Max layers: ", (PyramidMaxLayers > 0 ? IntegerToString(PyramidMaxLayers) : "unlimited"),
+            " | Cooldown: ", IntegerToString(PyramidCooldownSec), "s",
+            " | Layers placed: ", IntegerToString(PyramidLayerCount));
+   }
       EventSetTimer(1);
       return(INIT_SUCCEEDED);
 }
@@ -548,6 +565,7 @@ void OnTick()
    if (priceChanged)
    {
       ProcessMartingale();
+      ProcessPyramid();
       prevBidPrice = Bid;
       prevAskPrice = Ask;
    }
@@ -1563,6 +1581,72 @@ void PrintMartingaleStrategyBriefing(MartingaleState state)
    if (MartingaleEquityTP > 0)
       Print("Equity TP      : close all at $", DoubleToString(MartingaleEquityTP, 2), " profit");
    Print("Current margin level: ", DoubleToString(marginPct, 1), "%");
+}
+void ProcessPyramid()
+{
+   if (!EnablePyramid)
+      return;
+   // Need SL line to determine direction (TP > price = long bias, SL > price = short bias)
+   double slLine = ObjectGetDouble(0, "SL_Line", OBJPROP_PRICE, 0);
+   if (slLine <= 0)
+      return;  // No SL line on chart — can't determine direction or place orders
+   // Determine direction: if SL is above current price, we're short; below = long
+   double freshBid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+   double freshAsk = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+   bool isShort = (slLine > freshBid);
+   // Cooldown check
+   if (PyramidLastAddTime > 0 && (int)(TimeCurrent() - PyramidLastAddTime) < PyramidCooldownSec)
+      return;
+   // Max layers check
+   if (PyramidMaxLayers > 0 && PyramidLayerCount >= PyramidMaxLayers)
+      return;
+   // Volume limit check
+   double limitVolume = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_LIMIT);
+   double existingVolume = GetTotalVolumeForSymbol(_Symbol);
+   if (limitVolume > 0 && existingVolume + PyramidLots > limitVolume)
+      return;
+   // Calculate margin required for the pyramid layer
+   double marginRequired = 0;
+   ENUM_ORDER_TYPE orderType = isShort ? ORDER_TYPE_SELL : ORDER_TYPE_BUY;
+   double orderPrice = isShort ? freshBid : freshAsk;
+   if (!OrderCalcMargin(orderType, _Symbol, PyramidLots, orderPrice, marginRequired))
+      return;
+   if (marginRequired <= 0)
+      return;
+   // Check free margin with buffer: free margin must be >= PyramidMarginBuffer% of margin required
+   double freeMargin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
+   double requiredFreeMargin = marginRequired * (PyramidMarginBuffer / 100.0);
+   if (freeMargin < requiredFreeMargin)
+      return;
+   // All checks passed — place the pyramid layer
+   double tpLine = ObjectGetDouble(0, "TP_Line", OBJPROP_PRICE, 0);
+   double pyramidSL = slLine;
+   double pyramidTP = (tpLine > 0) ? tpLine : 0;
+   // Snap SL/TP to tick size
+   double tickSz = TickSize(_Symbol);
+   if (tickSz > 0)
+   {
+      pyramidSL = MathRound(pyramidSL / tickSz) * tickSz;
+      if (pyramidTP > 0)
+         pyramidTP = MathRound(pyramidTP / tickSz) * tickSz;
+   }
+   // Set global SL/TP for ExecuteBuyOrder/ExecuteSellOrder
+   double savedSL = SL, savedTP = TP;
+   SL = pyramidSL;
+   TP = pyramidTP;
+   if (isShort)
+      ExecuteSellOrder(PyramidLots);
+   else
+      ExecuteBuyOrder(PyramidLots);
+   SL = savedSL;
+   TP = savedTP;
+   PyramidLayerCount++;
+   PyramidLastAddTime = TimeCurrent();
+   Print("Pyramid layer #", PyramidLayerCount, " added: ",
+         (isShort ? "SELL" : "BUY"), " ", DoubleToString(PyramidLots, 2),
+         " lots | Free margin: $", DoubleToString(freeMargin, 2),
+         " | Required: $", DoubleToString(requiredFreeMargin, 2),
+         " | Margin/lot: $", DoubleToString(marginRequired, 2));
 }
 void ProcessMartingale()
 {
