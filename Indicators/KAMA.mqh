@@ -81,14 +81,34 @@ int OnInit()
    return(INIT_SUCCEEDED);
   }
 //+------------------------------------------------------------------+
-//| Calculate ER value                                               |
+//| Calculate ER value — O(1) per tick via cached base noise         |
+//| On same bar: only the delta=0 term changes (current price moves) |
+//| On new bar: full O(Period) recomputation, cache base noise       |
 //+------------------------------------------------------------------+
+double g_cachedBaseNoise = 0;  // sum of |price[pos-d] - price[pos-d-1]| for d=1..Period-1
+int    g_cachedNoiseBar  = -1; // bar index of cached noise
 double CalculateER(const int nPosition,const double &PriceData[])
   {
    double dSignal=fabs(PriceData[nPosition]-PriceData[nPosition-ExtPeriodAMA]);
-   double dNoise=0.0;
-   for(int delta=0;delta<ExtPeriodAMA;delta++)
-      dNoise+=fabs(PriceData[nPosition-delta]-PriceData[nPosition-delta-1]);
+   double dNoise;
+   if(g_cachedNoiseBar == nPosition)
+     {
+      //--- Same bar updating — base noise unchanged, only delta=0 term varies
+      dNoise = g_cachedBaseNoise + fabs(PriceData[nPosition] - PriceData[nPosition - 1]);
+     }
+   else
+     {
+      //--- New bar — full computation, cache base noise for subsequent ticks
+      dNoise = 0.0;
+      g_cachedBaseNoise = 0.0;
+      for(int delta=0;delta<ExtPeriodAMA;delta++)
+        {
+         double term = fabs(PriceData[nPosition-delta]-PriceData[nPosition-delta-1]);
+         dNoise += term;
+         if(delta > 0) g_cachedBaseNoise += term;
+        }
+      g_cachedNoiseBar = nPosition;
+     }
    if(dNoise!=0.0)
       return(dSignal/dNoise);
    return(0.0);
@@ -116,6 +136,7 @@ int OnCalculate(const int rates_total,
       pos=ExtPeriodAMA+begin;
       for(i=0;i<pos-1;i++) ExtAMABuffer[i]=0.0;
       ExtAMABuffer[pos-1]=price[pos-1];
+      g_cachedNoiseBar = -1; // reset ER cache on full recalc
      }
 //--- main cycle
    for(i=pos;i<rates_total && !IsStopped();i++)
@@ -154,6 +175,7 @@ int OnCalculate(const int rates_total,
       pos=ExtPeriodAMA;
       for(i=0;i<pos-1;i++) ExtAMABuffer[i]=0.0;
       ExtAMABuffer[pos-1]=close[pos-1];
+      g_cachedNoiseBar = -1; // reset ER cache on full recalc
      }
 //--- main cycle
    for(i=pos;i<rates_total && !IsStopped();i++)

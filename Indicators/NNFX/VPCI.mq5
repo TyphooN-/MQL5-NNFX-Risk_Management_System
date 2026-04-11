@@ -121,21 +121,66 @@ int OnCalculate(const int rates_total,
       BufferCV[i]=close[i]*BufferVol[i];
      }
 
-//--- Расчёт индикатора
-   for(int i=limit; i>=0 && !IsStopped(); i--)
+//--- O(1) per-bar computation using running sums instead of O(Period) GetSMA
+   double ptSq = Point() * Point();
+   if(ptSq == 0) return 0;
+   //--- Initialize running sums at the first bar to process
+   double sumVolSlow=0, sumVolFast=0, sumCVSlow=0, sumCVFast=0;
+   int initBar = limit;
+   //--- Build initial sums for bar = initBar (series: i + period - 1 = oldest end)
+   if(initBar <= rates_total - period_slow - 1)
      {
-      double Volume_Slow=GetSMA(rates_total,i,period_slow,BufferVol)*period_slow;
-      double Volume_Fast=GetSMA(rates_total,i,period_fast,BufferVol)*period_fast;
-      
-      double VWMA_Slow=(Volume_Slow!=0 ? GetSMA(rates_total,i,period_slow,BufferCV)*period_slow/Volume_Slow : 0);
-      double VWMA_Fast=(Volume_Fast!=0 ? GetSMA(rates_total,i,period_fast,BufferCV)*period_fast/Volume_Fast : 0);
-      double SMA_Fast=BufferFMA[i];
+      for(int k = 0; k < period_slow; k++) sumVolSlow += BufferVol[initBar + k];
+      for(int k = 0; k < period_slow; k++) sumCVSlow  += BufferCV[initBar + k];
+      for(int k = 0; k < period_fast; k++) sumVolFast += BufferVol[initBar + k];
+      for(int k = 0; k < period_fast; k++) sumCVFast  += BufferCV[initBar + k];
 
-      double VPC=VWMA_Slow-BufferSMA[i];
-      double VPR=(SMA_Fast!=0 ? VWMA_Fast/SMA_Fast : 1);
-      double VM=(Volume_Slow!=0 ? (Volume_Fast*period_slow)/(Volume_Slow*period_fast) : 1);
+      //--- Process first bar
+      double Volume_Slow = sumVolSlow;
+      double Volume_Fast = sumVolFast;
+      double VWMA_Slow = (Volume_Slow != 0 ? sumCVSlow / Volume_Slow : 0);
+      double VWMA_Fast = (Volume_Fast != 0 ? sumCVFast / Volume_Fast : 0);
+      double SMA_Fast = BufferFMA[initBar];
+      double VPC = VWMA_Slow - BufferSMA[initBar];
+      double VPR = (SMA_Fast != 0 ? VWMA_Fast / SMA_Fast : 1);
+      double VM  = (Volume_Slow != 0 ? (Volume_Fast * period_slow) / (Volume_Slow * period_fast) : 1);
+      BufferVPCI[initBar] = VPC * VPR * VM / ptSq;
 
-      BufferVPCI[i]=VPC*VPR*VM/(Point()*Point());
+      //--- Process remaining bars with O(1) running sum updates
+      for(int i = initBar - 1; i >= 0 && !IsStopped(); i--)
+        {
+         //--- Slide window: add element at i, remove element at i + period
+         sumVolSlow += BufferVol[i] - BufferVol[i + period_slow];
+         sumCVSlow  += BufferCV[i]  - BufferCV[i + period_slow];
+         sumVolFast += BufferVol[i] - BufferVol[i + period_fast];
+         sumCVFast  += BufferCV[i]  - BufferCV[i + period_fast];
+
+         Volume_Slow = sumVolSlow;
+         Volume_Fast = sumVolFast;
+         VWMA_Slow = (Volume_Slow != 0 ? sumCVSlow / Volume_Slow : 0);
+         VWMA_Fast = (Volume_Fast != 0 ? sumCVFast / Volume_Fast : 0);
+         SMA_Fast = BufferFMA[i];
+         VPC = VWMA_Slow - BufferSMA[i];
+         VPR = (SMA_Fast != 0 ? VWMA_Fast / SMA_Fast : 1);
+         VM  = (Volume_Slow != 0 ? (Volume_Fast * period_slow) / (Volume_Slow * period_fast) : 1);
+         BufferVPCI[i] = VPC * VPR * VM / ptSq;
+        }
+     }
+   else
+     {
+      //--- Not enough bars for running sums, fall back to GetSMA
+      for(int i=limit; i>=0 && !IsStopped(); i--)
+        {
+         double Volume_Slow=GetSMA(rates_total,i,period_slow,BufferVol)*period_slow;
+         double Volume_Fast=GetSMA(rates_total,i,period_fast,BufferVol)*period_fast;
+         double VWMA_Slow=(Volume_Slow!=0 ? GetSMA(rates_total,i,period_slow,BufferCV)*period_slow/Volume_Slow : 0);
+         double VWMA_Fast=(Volume_Fast!=0 ? GetSMA(rates_total,i,period_fast,BufferCV)*period_fast/Volume_Fast : 0);
+         double SMA_Fast=BufferFMA[i];
+         double VPC=VWMA_Slow-BufferSMA[i];
+         double VPR=(SMA_Fast!=0 ? VWMA_Fast/SMA_Fast : 1);
+         double VM=(Volume_Slow!=0 ? (Volume_Fast*period_slow)/(Volume_Slow*period_fast) : 1);
+         BufferVPCI[i]=VPC*VPR*VM/ptSq;
+        }
      }
 
 //--- return value of prev_calculated for next call
