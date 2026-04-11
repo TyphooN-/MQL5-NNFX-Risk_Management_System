@@ -286,7 +286,8 @@ void DrawHorizontalLine(double price, string label, color clr, datetime startTim
       ObjectMove(0, label, 1, endTime, price);
       return;
    }
-   ObjectCreate(0, label, OBJ_TREND, 0, startTime, price, endTime, price);
+   if (!ObjectCreate(0, label, OBJ_TREND, 0, startTime, price, endTime, price))
+   { int err = GetLastError(); if (err != 4200) Print("PreviousCandleLevels: failed to create '", label, "': ", err); }
    ObjectSetInteger(0, label, OBJPROP_COLOR, clr);
    ObjectSetInteger(0, label, OBJPROP_STYLE, STYLE_SOLID);
    #ifdef __MQL5__ // In MT4 this will return error 4201

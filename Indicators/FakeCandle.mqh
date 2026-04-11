@@ -65,19 +65,23 @@ int OnCalculate(const int rates_total,
    }
    else
    {
-      ObjectCreate(0, "FakeCandleBody", OBJ_RECTANGLE, 0, body_left, body_top, body_right, body_bottom);
+      if (!ObjectCreate(0, "FakeCandleBody", OBJ_RECTANGLE, 0, body_left, body_top, body_right, body_bottom))
+      { int err = GetLastError(); if (err != 4200) Print("FakeCandle: failed to create Body: ", err); }
       ObjectSetInteger(0, "FakeCandleBody", OBJPROP_COLOR, clrGray);
       ObjectSetInteger(0, "FakeCandleBody", OBJPROP_STYLE, STYLE_SOLID);
       ObjectSetInteger(0, "FakeCandleBody", OBJPROP_FILL, true);
-      ObjectCreate(0, "FakeCandleWickBottom", OBJ_TREND, 0, wick_x, body_bottom, wick_x, FakeLow);
+      if (!ObjectCreate(0, "FakeCandleWickBottom", OBJ_TREND, 0, wick_x, body_bottom, wick_x, FakeLow))
+      { int err = GetLastError(); if (err != 4200) Print("FakeCandle: failed to create WickBottom: ", err); }
       ObjectSetInteger(0, "FakeCandleWickBottom", OBJPROP_COLOR, clrGray);
       ObjectSetInteger(0, "FakeCandleWickBottom", OBJPROP_STYLE, STYLE_SOLID);
       ObjectSetInteger(0, "FakeCandleWickBottom", OBJPROP_RAY_RIGHT, false);
-      ObjectCreate(0, "FakeCandleWickTop", OBJ_TREND, 0, wick_x, FakeHigh, wick_x, body_top);
+      if (!ObjectCreate(0, "FakeCandleWickTop", OBJ_TREND, 0, wick_x, FakeHigh, wick_x, body_top))
+      { int err = GetLastError(); if (err != 4200) Print("FakeCandle: failed to create WickTop: ", err); }
       ObjectSetInteger(0, "FakeCandleWickTop", OBJPROP_COLOR, clrGray);
       ObjectSetInteger(0, "FakeCandleWickTop", OBJPROP_STYLE, STYLE_SOLID);
       ObjectSetInteger(0, "FakeCandleWickTop", OBJPROP_RAY_RIGHT, false);
-      ObjectCreate(0, "FakeCloseLine", OBJ_HLINE, 0, time[rates_total - 1], FakeClose);
+      if (!ObjectCreate(0, "FakeCloseLine", OBJ_HLINE, 0, time[rates_total - 1], FakeClose))
+      { int err = GetLastError(); if (err != 4200) Print("FakeCandle: failed to create CloseLine: ", err); }
       ObjectSetInteger(0, "FakeCloseLine", OBJPROP_COLOR, clrGray);
       ObjectSetInteger(0, "FakeCloseLine", OBJPROP_STYLE, STYLE_SOLID);
    }

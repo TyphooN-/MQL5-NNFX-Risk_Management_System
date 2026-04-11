@@ -311,8 +311,9 @@ int OnCalculate(const int rates_total,
 
       //--- Draw swing high/low connector
       string swingName = PREFIX + "Swing";
-      ObjectCreate(0, swingName, OBJ_TREND, 0,
-         bestLow.time, bestLow.price, bestHigh.time, bestHigh.price);
+      if (!ObjectCreate(0, swingName, OBJ_TREND, 0,
+         bestLow.time, bestLow.price, bestHigh.time, bestHigh.price))
+      { int err = GetLastError(); if (err != 4200) Print("AutoFib: failed to create swing line: ", err); }
       ObjectSetInteger(0, swingName, OBJPROP_COLOR, InpSwingLineColor);
       ObjectSetInteger(0, swingName, OBJPROP_STYLE, STYLE_DASH);
       ObjectSetInteger(0, swingName, OBJPROP_WIDTH, 1);
@@ -393,7 +394,8 @@ void DrawFibLevels(double highPrice, double lowPrice, double range,
       color lineColor = g_levels[lv].isExtension ? InpExtensionColor : InpRetracementColor;
 
       string lineName = PREFIX + "L" + IntegerToString(lv);
-      ObjectCreate(0, lineName, OBJ_TREND, 0, startTime, price, endTime, price);
+      if (!ObjectCreate(0, lineName, OBJ_TREND, 0, startTime, price, endTime, price))
+      { int err = GetLastError(); if (err != 4200) Print("AutoFib: failed to create level '", lineName, "': ", err); }
       ObjectSetInteger(0, lineName, OBJPROP_COLOR, lineColor);
       ObjectSetInteger(0, lineName, OBJPROP_STYLE, InpLineStyle);
       ObjectSetInteger(0, lineName, OBJPROP_WIDTH, InpLineWidth);
@@ -408,7 +410,8 @@ void DrawFibLevels(double highPrice, double lowPrice, double range,
       if(InpShowLabels)
       {
          string labelName = PREFIX + "T" + IntegerToString(lv);
-         ObjectCreate(0, labelName, OBJ_TEXT, 0, 0, 0);
+         if (!ObjectCreate(0, labelName, OBJ_TEXT, 0, 0, 0))
+         { int err = GetLastError(); if (err != 4200) Print("AutoFib: failed to create label '", labelName, "': ", err); }
          ObjectSetInteger(0, labelName, OBJPROP_TIME, endTime);
          ObjectSetDouble(0, labelName, OBJPROP_PRICE, price);
          ObjectSetString(0, labelName, OBJPROP_TEXT,

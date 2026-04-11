@@ -1036,7 +1036,7 @@ void BroadcastDiscordAnnouncement(string announcement)
    StringReplace(escaped, "\t", "\\t");
    string json = "{\"content\":\""+ escaped +"\"}";
    char jsonArray[];
-   StringToCharArray(json, jsonArray);
+   if (StringToCharArray(json, jsonArray) <= 0) { Print("StringToCharArray failed in Discord broadcast"); return; }
    // Remove null-terminator if any
    int arrSize = ArraySize(jsonArray);
    if(arrSize > 0 && jsonArray[arrSize - 1] == '\0')

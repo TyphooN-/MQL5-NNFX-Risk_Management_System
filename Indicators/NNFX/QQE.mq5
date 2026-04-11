@@ -272,17 +272,21 @@ int OnCalculate(const int rates_total,
                 string name = ObjectPrefix + "CArrow" + TimeToString(Time[cur_i]);
                 if ((RsiMa[pre_i] < TrLevelSlow[pre_i]) && (RsiMa[cur_i] > TrLevelSlow[cur_i]))
                 {
-                    ObjectCreate(ChartID(), name, OBJ_ARROW_THUMB_UP, 0, Time[cur_i], Low[cur_i] - 1 * _Point);
-                    ObjectSetInteger(ChartID(), name, OBJPROP_COLOR, LevelUpArrow);
-                    ObjectSetInteger(ChartID(), name, OBJPROP_ANCHOR, ANCHOR_TOP);
-                    ObjectSetInteger(ChartID(), name, OBJPROP_WIDTH, 5);
+                    if (ObjectCreate(ChartID(), name, OBJ_ARROW_THUMB_UP, 0, Time[cur_i], Low[cur_i] - 1 * _Point))
+                    {
+                       ObjectSetInteger(ChartID(), name, OBJPROP_COLOR, LevelUpArrow);
+                       ObjectSetInteger(ChartID(), name, OBJPROP_ANCHOR, ANCHOR_TOP);
+                       ObjectSetInteger(ChartID(), name, OBJPROP_WIDTH, 5);
+                    }
                 }
                 else if ((RsiMa[pre_i] > TrLevelSlow[pre_i]) && (RsiMa[cur_i] < TrLevelSlow[cur_i]))
                 {
-                    ObjectCreate(ChartID(), name, OBJ_ARROW_THUMB_DOWN, 0, Time[cur_i], High[cur_i] + 1 * _Point);
-                    ObjectSetInteger(ChartID(), name, OBJPROP_COLOR, LevelDnArrow);
-                    ObjectSetInteger(ChartID(), name, OBJPROP_ANCHOR, ANCHOR_BOTTOM);
-                    ObjectSetInteger(ChartID(), name, OBJPROP_WIDTH, 5);
+                    if (ObjectCreate(ChartID(), name, OBJ_ARROW_THUMB_DOWN, 0, Time[cur_i], High[cur_i] + 1 * _Point))
+                    {
+                       ObjectSetInteger(ChartID(), name, OBJPROP_COLOR, LevelDnArrow);
+                       ObjectSetInteger(ChartID(), name, OBJPROP_ANCHOR, ANCHOR_BOTTOM);
+                       ObjectSetInteger(ChartID(), name, OBJPROP_WIDTH, 5);
+                    }
                 }
             }
             if (ArrowsOnLevel)
@@ -290,17 +294,21 @@ int OnCalculate(const int rates_total,
                 string name = ObjectPrefix + "LArrow" + TimeToString(Time[cur_i]);
                 if ((RsiMa[pre_i] < AlertLevel) && (RsiMa[cur_i] > AlertLevel))
                 {
-                    ObjectCreate(ChartID(), name, OBJ_ARROW_UP, 0, Time[cur_i], Low[cur_i] - 1 * _Point);
-                    ObjectSetInteger(ChartID(), name, OBJPROP_COLOR, LevelUpArrow);
-                    ObjectSetInteger(ChartID(), name, OBJPROP_ANCHOR, ANCHOR_TOP);
-                    ObjectSetInteger(ChartID(), name, OBJPROP_WIDTH, 5);
+                    if (ObjectCreate(ChartID(), name, OBJ_ARROW_UP, 0, Time[cur_i], Low[cur_i] - 1 * _Point))
+                    {
+                       ObjectSetInteger(ChartID(), name, OBJPROP_COLOR, LevelUpArrow);
+                       ObjectSetInteger(ChartID(), name, OBJPROP_ANCHOR, ANCHOR_TOP);
+                       ObjectSetInteger(ChartID(), name, OBJPROP_WIDTH, 5);
+                    }
                 }
                 else if ((RsiMa[pre_i] > AlertLevel) && (RsiMa[cur_i] < AlertLevel))
                 {
-                    ObjectCreate(ChartID(), name, OBJ_ARROW_DOWN, 0, Time[cur_i], High[cur_i] + 1 * _Point);
-                    ObjectSetInteger(ChartID(), name, OBJPROP_COLOR, LevelDnArrow);
-                    ObjectSetInteger(ChartID(), name, OBJPROP_ANCHOR, ANCHOR_BOTTOM);
-                    ObjectSetInteger(ChartID(), name, OBJPROP_WIDTH, 5);
+                    if (ObjectCreate(ChartID(), name, OBJ_ARROW_DOWN, 0, Time[cur_i], High[cur_i] + 1 * _Point))
+                    {
+                       ObjectSetInteger(ChartID(), name, OBJPROP_COLOR, LevelDnArrow);
+                       ObjectSetInteger(ChartID(), name, OBJPROP_ANCHOR, ANCHOR_BOTTOM);
+                       ObjectSetInteger(ChartID(), name, OBJPROP_WIDTH, 5);
+                    }
                 }
             }
         }

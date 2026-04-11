@@ -210,10 +210,12 @@ int start()
            {
             if(Alert_On==true) Alert("Alert: Possible Breakout - "+Symbol()+" - "+TimeToStr(TimeLocal()));
             Last_Alert_Time=Time[0];
-            ObjectCreate("Breakout"+Time[0],OBJ_ARROW,0,Time[0],Ask);
-            ObjectSet("Breakout"+Time[0],OBJPROP_ARROWCODE,1);
-            ObjectSet("Breakout"+Time[0],OBJPROP_COLOR,Blue);
-            ObjectSet("Breakout"+Time[0],OBJPROP_WIDTH,2);
+            if (ObjectCreate("Breakout"+Time[0],OBJ_ARROW,0,Time[0],Ask))
+            {
+               ObjectSet("Breakout"+Time[0],OBJPROP_ARROWCODE,1);
+               ObjectSet("Breakout"+Time[0],OBJPROP_COLOR,Blue);
+               ObjectSet("Breakout"+Time[0],OBJPROP_WIDTH,2);
+            }
            }
         }
 
@@ -223,10 +225,12 @@ int start()
            {
             if(Alert_On==true) Alert("Alert: Possible Breakout - "+Symbol()+" - "+TimeToStr(TimeLocal()));
             Last_Alert_Time=Time[0];
-            ObjectCreate("Breakout"+Time[0],OBJ_ARROW,0,Time[0],Bid);
-            ObjectSet("Breakout"+Time[0],OBJPROP_ARROWCODE,1);
-            ObjectSet("Breakout"+Time[0],OBJPROP_COLOR,Red);
-            ObjectSet("Breakout"+Time[0],OBJPROP_WIDTH,2);
+            if (ObjectCreate("Breakout"+Time[0],OBJ_ARROW,0,Time[0],Bid))
+            {
+               ObjectSet("Breakout"+Time[0],OBJPROP_ARROWCODE,1);
+               ObjectSet("Breakout"+Time[0],OBJPROP_COLOR,Red);
+               ObjectSet("Breakout"+Time[0],OBJPROP_WIDTH,2);
+            }
            }
         }
 

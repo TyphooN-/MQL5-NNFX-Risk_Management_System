@@ -420,7 +420,8 @@ void DeleteZoneObjects(int uid)
 void DrawSingleZone(int idx, datetime endTime)
 {
    string name = PREFIX + "Z" + IntegerToString(g_zones[idx].uid);
-   ObjectCreate(0, name, OBJ_RECTANGLE, 0, 0, 0, 0, 0);
+   if (!ObjectCreate(0, name, OBJ_RECTANGLE, 0, 0, 0, 0, 0))
+   { int err = GetLastError(); if (err != 4200) Print("SupplyDemand: failed to create zone '", name, "': ", err); }
    ObjectSetInteger(0, name, OBJPROP_TIME, 0, g_zones[idx].startTime);
    ObjectSetInteger(0, name, OBJPROP_TIME, 1, endTime);
    ObjectSetDouble(0, name, OBJPROP_PRICE, 0, g_zones[idx].hi);
@@ -453,7 +454,8 @@ void DrawSingleLabel(int idx, datetime endTime)
    else
       vpos = g_zones[idx].lo + (g_zones[idx].hi - g_zones[idx].lo) * 0.15;
 
-   ObjectCreate(0, name, OBJ_TEXT, 0, 0, 0);
+   if (!ObjectCreate(0, name, OBJ_TEXT, 0, 0, 0))
+   { int err = GetLastError(); if (err != 4200) Print("SupplyDemand: failed to create label '", name, "': ", err); }
    ObjectSetInteger(0, name, OBJPROP_TIME, endTime);
    ObjectSetDouble(0, name, OBJPROP_PRICE, vpos);
    ObjectSetString(0, name, OBJPROP_TEXT, text);

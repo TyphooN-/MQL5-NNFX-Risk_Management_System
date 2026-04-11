@@ -456,7 +456,7 @@ int OnCalculate(const int rates_total,
    string objnameInfo1 = objname + "Info1";
    if (ObjectFind(0, objnameInfo1) == -1)
    {
-      ObjectCreate(0, objnameInfo1, OBJ_LABEL, 0, 0, 0);
+      if (!ObjectCreate(0, objnameInfo1, OBJ_LABEL, 0, 0, 0)) Print("MTF_MA: failed to create ", objnameInfo1);
       ObjectSetInteger(0, objnameInfo1, OBJPROP_XDISTANCE, HorizPos);
       ObjectSetInteger(0, objnameInfo1, OBJPROP_YDISTANCE, VertPos);
       ObjectSetInteger(0, objnameInfo1, OBJPROP_CORNER, Corner);
@@ -468,7 +468,7 @@ int OnCalculate(const int rates_total,
    string objnameInfo2 = objname + "Info2";
    if (ObjectFind(0, objnameInfo2) == -1)
    {
-      ObjectCreate(0, objnameInfo2, OBJ_LABEL, 0, 0, 0);
+      if (!ObjectCreate(0, objnameInfo2, OBJ_LABEL, 0, 0, 0)) Print("MTF_MA: failed to create ", objnameInfo2);
       ObjectSetInteger(0, objnameInfo2, OBJPROP_XDISTANCE, HorizPos);
       ObjectSetInteger(0, objnameInfo2, OBJPROP_YDISTANCE, VertPos + 13);
       ObjectSetInteger(0, objnameInfo2, OBJPROP_CORNER, Corner);
@@ -480,7 +480,7 @@ int OnCalculate(const int rates_total,
    string objnameInfo3 = objname + "Info3";
    if (ObjectFind(0, objnameInfo3) == -1)
    {
-      ObjectCreate(0, objnameInfo3, OBJ_LABEL, 0, 0, 0);
+      if (!ObjectCreate(0, objnameInfo3, OBJ_LABEL, 0, 0, 0)) Print("MTF_MA: failed to create ", objnameInfo3);
       ObjectSetInteger(0, objnameInfo3, OBJPROP_XDISTANCE, HorizPos);
       ObjectSetInteger(0, objnameInfo3, OBJPROP_YDISTANCE, VertPos + 26);
       ObjectSetInteger(0, objnameInfo3, OBJPROP_CORNER, Corner);
@@ -492,7 +492,7 @@ int OnCalculate(const int rates_total,
    string objnameInfo4 = objname + "Info4";
    if (ObjectFind(0, objnameInfo4) == -1)
    {
-      ObjectCreate(0, objnameInfo4, OBJ_LABEL, 0, 0, 0);
+      if (!ObjectCreate(0, objnameInfo4, OBJ_LABEL, 0, 0, 0)) Print("MTF_MA: failed to create ", objnameInfo4);
       ObjectSetInteger(0, objnameInfo4, OBJPROP_XDISTANCE, HorizPos);
       ObjectSetInteger(0, objnameInfo4, OBJPROP_YDISTANCE, VertPos + 39);
       ObjectSetInteger(0, objnameInfo4, OBJPROP_CORNER, Corner);
@@ -504,7 +504,7 @@ int OnCalculate(const int rates_total,
    string objnameInfo5 = objname + "Info5";
    if (ObjectFind(0, objnameInfo5) == -1)
    {
-      ObjectCreate(0, objnameInfo5, OBJ_LABEL, 0, 0, 0);
+      if (!ObjectCreate(0, objnameInfo5, OBJ_LABEL, 0, 0, 0)) Print("MTF_MA: failed to create ", objnameInfo5);
       ObjectSetInteger(0, objnameInfo5, OBJPROP_XDISTANCE, HorizPos);
       ObjectSetInteger(0, objnameInfo5, OBJPROP_YDISTANCE, VertPos + 52);
       ObjectSetInteger(0, objnameInfo5, OBJPROP_CORNER, Corner);
@@ -524,7 +524,7 @@ int OnCalculate(const int rates_total,
       string objnameInfo200SMA = objname + timeFrames[i] + "200SMA";
       if (ObjectFind(0, objnameInfo200SMA) == -1)
       {
-         ObjectCreate(0, objnameInfo200SMA, OBJ_LABEL, 0, 0, 0);
+         if (!ObjectCreate(0, objnameInfo200SMA, OBJ_LABEL, 0, 0, 0)) Print("MTF_MA: failed to create ", objnameInfo200SMA);
          ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
          ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_YDISTANCE, VertPos);
          ObjectSetInteger(0, objnameInfo200SMA, OBJPROP_CORNER, Corner);
@@ -536,7 +536,7 @@ int OnCalculate(const int rates_total,
       string objnameInfoDEATH = objname + timeFrames[i] + "DEATH";
       if (ObjectFind(0, objnameInfoDEATH) == -1)
       {
-         ObjectCreate(0, objnameInfoDEATH, OBJ_LABEL, 0, 0, 0);
+         if (!ObjectCreate(0, objnameInfoDEATH, OBJ_LABEL, 0, 0, 0)) Print("MTF_MA: failed to create ", objnameInfoDEATH);
          ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
          ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_YDISTANCE, VertPos+13);
          ObjectSetInteger(0, objnameInfoDEATH, OBJPROP_CORNER, Corner);
@@ -548,7 +548,7 @@ int OnCalculate(const int rates_total,
       string objnameInfo100_200 = objname + timeFrames[i] + "100_200";
       if (ObjectFind(0, objnameInfo100_200) == -1)
       {
-         ObjectCreate(0, objnameInfo100_200, OBJ_LABEL, 0, 0, 0);
+         if (!ObjectCreate(0, objnameInfo100_200, OBJ_LABEL, 0, 0, 0)) Print("MTF_MA: failed to create ", objnameInfo100_200);
          ObjectSetInteger(0, objnameInfo100_200, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
          ObjectSetInteger(0, objnameInfo100_200, OBJPROP_YDISTANCE, VertPos+26);
          ObjectSetInteger(0, objnameInfo100_200, OBJPROP_CORNER, Corner);
@@ -560,7 +560,7 @@ int OnCalculate(const int rates_total,
       string objname20_50 = objname + timeFrames[i] + "20_50";
       if (ObjectFind(0, objname20_50) == -1)
       {
-         ObjectCreate(0, objname20_50, OBJ_LABEL, 0, 0, 0);
+         if (!ObjectCreate(0, objname20_50, OBJ_LABEL, 0, 0, 0)) Print("MTF_MA: failed to create ", objname20_50);
          ObjectSetInteger(0, objname20_50, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
          ObjectSetInteger(0, objname20_50, OBJPROP_YDISTANCE, VertPos+39);
          ObjectSetInteger(0, objname20_50, OBJPROP_CORNER, Corner);
@@ -572,7 +572,7 @@ int OnCalculate(const int rates_total,
       string objname10_20 = objname + timeFrames[i] + "10_20";
       if (ObjectFind(0, objname10_20) == -1)
       {
-         ObjectCreate(0, objname10_20, OBJ_LABEL, 0, 0, 0);
+         if (!ObjectCreate(0, objname10_20, OBJ_LABEL, 0, 0, 0)) Print("MTF_MA: failed to create ", objname10_20);
          ObjectSetInteger(0, objname10_20, OBJPROP_XDISTANCE, HorizPos - 65 - (i * 29 + additionalSpacing));
          ObjectSetInteger(0, objname10_20, OBJPROP_YDISTANCE, VertPos+52);
          ObjectSetInteger(0, objname10_20, OBJPROP_CORNER, Corner);
@@ -588,7 +588,7 @@ int OnCalculate(const int rates_total,
    string BearPowerTextHTF = "HTF Bear Power INIT";
    if (ObjectFind(0, g_nameBullLTF) == -1)
    {
-      ObjectCreate(0, g_nameBullLTF, OBJ_LABEL, 0, 0, 0);
+      if (!ObjectCreate(0, g_nameBullLTF, OBJ_LABEL, 0, 0, 0)) Print("MTF_MA: failed to create ", g_nameBullLTF);
       ObjectSetInteger(0, g_nameBullLTF, OBJPROP_XDISTANCE, HorizPos);
       ObjectSetInteger(0, g_nameBullLTF, OBJPROP_YDISTANCE, VertPos + 65);
       ObjectSetInteger(0, g_nameBullLTF, OBJPROP_CORNER, Corner);
@@ -599,7 +599,7 @@ int OnCalculate(const int rates_total,
    }
    if (ObjectFind(0, g_nameBearLTF) == -1)
    {
-      ObjectCreate(0, g_nameBearLTF, OBJ_LABEL, 0, 0, 0);
+      if (!ObjectCreate(0, g_nameBearLTF, OBJ_LABEL, 0, 0, 0)) Print("MTF_MA: failed to create ", g_nameBearLTF);
       ObjectSetInteger(0, g_nameBearLTF, OBJPROP_XDISTANCE, HorizPos - 160);
       ObjectSetInteger(0, g_nameBearLTF, OBJPROP_YDISTANCE, VertPos + 65);
       ObjectSetInteger(0, g_nameBearLTF, OBJPROP_CORNER, Corner);
@@ -610,7 +610,7 @@ int OnCalculate(const int rates_total,
    }
    if (ObjectFind(0, g_nameBullHTF) == -1)
    {
-      ObjectCreate(0, g_nameBullHTF, OBJ_LABEL, 0, 0, 0);
+      if (!ObjectCreate(0, g_nameBullHTF, OBJ_LABEL, 0, 0, 0)) Print("MTF_MA: failed to create ", g_nameBullHTF);
       ObjectSetInteger(0, g_nameBullHTF, OBJPROP_XDISTANCE, HorizPos);
       ObjectSetInteger(0, g_nameBullHTF, OBJPROP_YDISTANCE, VertPos + 77);
       ObjectSetInteger(0, g_nameBullHTF, OBJPROP_CORNER, Corner);
@@ -621,7 +621,7 @@ int OnCalculate(const int rates_total,
    }
    if (ObjectFind(0, g_nameBearHTF) == -1)
    {
-      ObjectCreate(0, g_nameBearHTF, OBJ_LABEL, 0, 0, 0);
+      if (!ObjectCreate(0, g_nameBearHTF, OBJ_LABEL, 0, 0, 0)) Print("MTF_MA: failed to create ", g_nameBearHTF);
       ObjectSetInteger(0, g_nameBearHTF, OBJPROP_XDISTANCE, HorizPos - 160);
       ObjectSetInteger(0, g_nameBearHTF, OBJPROP_YDISTANCE, VertPos + 77);
       ObjectSetInteger(0, g_nameBearHTF, OBJPROP_CORNER, Corner);

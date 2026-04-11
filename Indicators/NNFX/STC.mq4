@@ -192,10 +192,12 @@ int OnCalculate(const int rates_total,
 	   		{
 	      		string name = "ST_down_" + TimeToString(Time[shift]);
 	      		double offset = (High[shift] - Low[shift]) / 2;
-	      		ObjectCreate(0, name, OBJ_ARROW, 0, Time[shift], High[shift] + offset + MarketInfo(Symbol(), MODE_SPREAD) * Point);
-	      		ObjectSet(name, OBJPROP_ARROWCODE, 234);
-	      		ObjectSet(name, OBJPROP_COLOR, DownColor);
-	      		ObjectSet(name, OBJPROP_SELECTABLE, false);
+	      		if (ObjectCreate(0, name, OBJ_ARROW, 0, Time[shift], High[shift] + offset + MarketInfo(Symbol(), MODE_SPREAD) * Point))
+	      		{
+	      		   ObjectSet(name, OBJPROP_ARROWCODE, 234);
+	      		   ObjectSet(name, OBJPROP_COLOR, DownColor);
+	      		   ObjectSet(name, OBJPROP_SELECTABLE, false);
+	      		}
 	      	}
 		      if ((shift == 1) && (LastAlert != Time[0]))
 		      {
@@ -212,10 +214,12 @@ int OnCalculate(const int rates_total,
 	   		{
 	      		string name = "ST_up_" + TimeToString(Time[shift]);
 	      		double offset = (High[shift] - Low[shift]) / 2;
-	      		ObjectCreate(0, name, OBJ_ARROW, 0, Time[shift], Low[shift] - offset);
-	      		ObjectSet(name, OBJPROP_ARROWCODE, 233);
-	      		ObjectSet(name, OBJPROP_COLOR, UpColor);
-	      		ObjectSet(name, OBJPROP_SELECTABLE, false);
+	      		if (ObjectCreate(0, name, OBJ_ARROW, 0, Time[shift], Low[shift] - offset))
+	      		{
+	      		   ObjectSet(name, OBJPROP_ARROWCODE, 233);
+	      		   ObjectSet(name, OBJPROP_COLOR, UpColor);
+	      		   ObjectSet(name, OBJPROP_SELECTABLE, false);
+	      		}
 	      	}
 		      if ((shift == 1) && (LastAlert != Time[0]))
 		      {

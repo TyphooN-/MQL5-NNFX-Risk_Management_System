@@ -331,13 +331,15 @@ int OnCalculate(const int        rates_total,
    if (!g_infoObjectsCreated)
    {
       g_infoObjectsCreated = true;
-      ObjectCreate(0, g_nameInfo1, OBJ_LABEL, 0, 0, 0);
+      if (!ObjectCreate(0, g_nameInfo1, OBJ_LABEL, 0, 0, 0))
+      { int err = GetLastError(); if (err != 4200) Print("ATR_Projection: failed to create ", g_nameInfo1, ": ", err); }
       ObjectSetInteger(0, g_nameInfo1, OBJPROP_XDISTANCE, HorizPos);
       ObjectSetInteger(0, g_nameInfo1, OBJPROP_YDISTANCE, VertPos);
       ObjectSetInteger(0, g_nameInfo1, OBJPROP_CORNER, Corner);
       ObjectSetString(0, g_nameInfo1, OBJPROP_FONT, FontName);
       ObjectSetInteger(0, g_nameInfo1, OBJPROP_FONTSIZE, FontSize);
-      ObjectCreate(0, g_nameInfo2, OBJ_LABEL, 0, 0, 0);
+      if (!ObjectCreate(0, g_nameInfo2, OBJ_LABEL, 0, 0, 0))
+      { int err = GetLastError(); if (err != 4200) Print("ATR_Projection: failed to create ", g_nameInfo2, ": ", err); }
       ObjectSetInteger(0, g_nameInfo2, OBJPROP_XDISTANCE, HorizPos);
       ObjectSetInteger(0, g_nameInfo2, OBJPROP_YDISTANCE, VertPos + 13);
       ObjectSetInteger(0, g_nameInfo2, OBJPROP_CORNER, Corner);
@@ -416,7 +418,8 @@ void DrawHorizontalLine(double price, string label, datetime StartTime, datetime
       ObjectMove(0, label, 1, EndTime, price);
       return;
    }
-   ObjectCreate(0, label, OBJ_TREND, 0, StartTime, price, EndTime, price);
+   if (!ObjectCreate(0, label, OBJ_TREND, 0, StartTime, price, EndTime, price))
+   { int err = GetLastError(); if (err != 4200) Print("ATR_Projection: failed to create line '", label, "': ", err); }
    ObjectSetInteger(0, label, OBJPROP_STYLE, ATR_linestyle);
    ObjectSetInteger(0, label, OBJPROP_WIDTH, ATR_Line_Thickness);
    ObjectSetInteger(0, label, OBJPROP_COLOR, ATR_Line_Color);

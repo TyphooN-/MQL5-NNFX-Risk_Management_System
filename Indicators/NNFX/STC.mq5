@@ -229,10 +229,12 @@ int OnCalculate(const int rates_total,
       		{
 	      		string name = "ST_down_" + TimeToString(Time[shift]);
 	      		double offset = (High[shift] - Low[shift]) / 2;
-	      		ObjectCreate(0, name, OBJ_ARROW, 0, Time[shift], High[shift] + offset + spread[shift] * Point());
-	      		ObjectSetInteger(0, name, OBJPROP_ARROWCODE, 234);
-	      		ObjectSetInteger(0, name, OBJPROP_COLOR, DownColor);
-	      		ObjectSetInteger(0, name, OBJPROP_SELECTABLE, false);
+	      		if (ObjectCreate(0, name, OBJ_ARROW, 0, Time[shift], High[shift] + offset + spread[shift] * Point()))
+	      		{
+	      		   ObjectSetInteger(0, name, OBJPROP_ARROWCODE, 234);
+	      		   ObjectSetInteger(0, name, OBJPROP_COLOR, DownColor);
+	      		   ObjectSetInteger(0, name, OBJPROP_SELECTABLE, false);
+	      		}
 	      	}
 		      if ((shift == rates_total - 2) && (LastAlert != Time[rates_total - 1]))
 		      {
@@ -249,10 +251,12 @@ int OnCalculate(const int rates_total,
       		{
 	      		string name = "ST_up_" + TimeToString(Time[shift]);
 	      		double offset = (High[shift] - Low[shift]) / 2;
-	      		ObjectCreate(0, name, OBJ_ARROW, 0, Time[shift], Low[shift] - offset);
-	      		ObjectSetInteger(0, name, OBJPROP_ARROWCODE, 233);
-	      		ObjectSetInteger(0, name, OBJPROP_COLOR, UpColor);
-	      		ObjectSetInteger(0, name, OBJPROP_SELECTABLE, false);
+	      		if (ObjectCreate(0, name, OBJ_ARROW, 0, Time[shift], Low[shift] - offset))
+	      		{
+	      		   ObjectSetInteger(0, name, OBJPROP_ARROWCODE, 233);
+	      		   ObjectSetInteger(0, name, OBJPROP_COLOR, UpColor);
+	      		   ObjectSetInteger(0, name, OBJPROP_SELECTABLE, false);
+	      		}
 	      	}
 		      if ((shift == rates_total - 2) && (LastAlert != Time[rates_total - 1]))
 		      {
