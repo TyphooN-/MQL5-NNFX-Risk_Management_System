@@ -24,6 +24,9 @@
 //  Fractal-based Auto Fibonacci — finds most significant recent swing
 //  high/low and draws retracement (0-100%) + extension (127.2-423.6%) levels.
 //  Mirrors the TyphooN-Terminal calcAutoFibonacci() implementation exactly.
+//
+//  O(1) per bar: after initial build, each new bar only checks one
+//  candidate fractal, prunes old fractals, and redraws only on change.
 //+------------------------------------------------------------------+
 
 //--- Inputs
@@ -44,7 +47,6 @@ const string PREFIX = "AutoFib#";
 //--- Swing point struct
 struct SSwing
 {
-   int      idx;
    double   price;
    datetime time;
 };
@@ -59,6 +61,20 @@ struct SFibLevel
 
 //--- Globals
 datetime g_lastBarTime = 0;
+bool     g_fibInitialized = false;
+
+//--- Persistent swing lists
+SSwing   g_swingHighs[];
+SSwing   g_swingLows[];
+int      g_highCount = 0;
+int      g_lowCount  = 0;
+
+//--- Cached best swing points for change detection
+double   g_prevBestHighPrice = 0;
+double   g_prevBestLowPrice  = 0;
+datetime g_prevBestHighTime  = 0;
+datetime g_prevBestLowTime   = 0;
+datetime g_prevEndTime       = 0;
 
 //+------------------------------------------------------------------+
 //| Fib levels (retracement + extension)                              |
@@ -95,6 +111,16 @@ int OnInit()
 
    InitLevels();
    g_lastBarTime = 0;
+   g_fibInitialized = false;
+   g_highCount = 0;
+   g_lowCount = 0;
+   ArrayResize(g_swingHighs, 0, 64);
+   ArrayResize(g_swingLows, 0, 64);
+   g_prevBestHighPrice = 0;
+   g_prevBestLowPrice = 0;
+   g_prevBestHighTime = 0;
+   g_prevBestLowTime = 0;
+   g_prevEndTime = 0;
 
 #ifdef __MQL5__
    IndicatorSetString(INDICATOR_SHORTNAME,
@@ -143,71 +169,116 @@ int OnCalculate(const int rates_total,
       return rates_total;
    g_lastBarTime = time[0];
 
-   //--- Clean previous objects
-   ObjectsDeleteAll(0, PREFIX);
+   int recentBar = (int)MathFloor(rates_total * InpRecentPct);
+   datetime cutoffTime = time[recentBar < rates_total ? recentBar : rates_total - 1];
 
-   //--- Find all fractal swing highs and lows
-   SSwing swingHighs[];
-   SSwing swingLows[];
-   int highCount = 0, lowCount = 0;
-
-   int limit = rates_total - InpFractalLookback;
-   for(int i = InpFractalLookback; i < limit; i++)
+   if(!g_fibInitialized)
    {
-      if(IsFractalHigh(high, i, InpFractalLookback, rates_total))
+      //--- Full scan on first run
+      g_highCount = 0;
+      g_lowCount = 0;
+      ArrayResize(g_swingHighs, 0, 64);
+      ArrayResize(g_swingLows, 0, 64);
+
+      int limit = rates_total - InpFractalLookback;
+      for(int i = InpFractalLookback; i < limit; i++)
       {
-         highCount++;
-         ArrayResize(swingHighs, highCount, 64);
-         swingHighs[highCount - 1].idx   = i;
-         swingHighs[highCount - 1].price = high[i];
-         swingHighs[highCount - 1].time  = time[i];
+         if(IsFractalHigh(high, i, InpFractalLookback, rates_total))
+         {
+            g_highCount++;
+            ArrayResize(g_swingHighs, g_highCount, 64);
+            g_swingHighs[g_highCount - 1].price = high[i];
+            g_swingHighs[g_highCount - 1].time  = time[i];
+         }
+         if(IsFractalLow(low, i, InpFractalLookback, rates_total))
+         {
+            g_lowCount++;
+            ArrayResize(g_swingLows, g_lowCount, 64);
+            g_swingLows[g_lowCount - 1].price = low[i];
+            g_swingLows[g_lowCount - 1].time  = time[i];
+         }
       }
-      if(IsFractalLow(low, i, InpFractalLookback, rates_total))
+      g_fibInitialized = true;
+   }
+   else
+   {
+      //--- O(1) incremental: check the one new candidate bar
+      int candidate = InpFractalLookback;
+      if(candidate < rates_total - InpFractalLookback)
       {
-         lowCount++;
-         ArrayResize(swingLows, lowCount, 64);
-         swingLows[lowCount - 1].idx   = i;
-         swingLows[lowCount - 1].price = low[i];
-         swingLows[lowCount - 1].time  = time[i];
+         if(IsFractalHigh(high, candidate, InpFractalLookback, rates_total))
+         {
+            g_highCount++;
+            ArrayResize(g_swingHighs, g_highCount, 64);
+            g_swingHighs[g_highCount - 1].price = high[candidate];
+            g_swingHighs[g_highCount - 1].time  = time[candidate];
+         }
+         if(IsFractalLow(low, candidate, InpFractalLookback, rates_total))
+         {
+            g_lowCount++;
+            ArrayResize(g_swingLows, g_lowCount, 64);
+            g_swingLows[g_lowCount - 1].price = low[candidate];
+            g_swingLows[g_lowCount - 1].time  = time[candidate];
+         }
       }
+
+      //--- Prune fractals older than cutoff (outside recent portion)
+      PruneSwings(g_swingHighs, g_highCount, cutoffTime);
+      PruneSwings(g_swingLows, g_lowCount, cutoffTime);
    }
 
-   if(highCount == 0 || lowCount == 0)
+   if(g_highCount == 0 || g_lowCount == 0)
+   {
+      //--- No valid swings — clear drawing
+      if(g_prevBestHighPrice != 0 || g_prevBestLowPrice != 0)
+      {
+         ObjectsDeleteAll(0, PREFIX);
+         g_prevBestHighPrice = 0;
+         g_prevBestLowPrice = 0;
+         g_prevBestHighTime = 0;
+         g_prevBestLowTime = 0;
+      }
       return rates_total;
+   }
 
-   //--- Filter to recent portion of chart (series indexing: 0 = newest)
-   int recentBar = (int)MathFloor(rates_total * InpRecentPct);
-
-   //--- Find highest high and lowest low in the recent portion
-   //--- In series mode, bar 0 = newest, bar N = oldest. "Recent" = small bar indices.
+   //--- Find highest high and lowest low in stored swings
+   //--- (only considers fractals in the recent portion — old ones pruned above)
    SSwing bestHigh, bestLow;
    bool foundHigh = false, foundLow = false;
 
-   for(int i = 0; i < highCount; i++)
+   for(int i = 0; i < g_highCount; i++)
    {
-      if(swingHighs[i].idx <= recentBar)
+      if(g_swingHighs[i].time >= cutoffTime)
       {
-         if(!foundHigh || swingHighs[i].price > bestHigh.price)
+         if(!foundHigh || g_swingHighs[i].price > bestHigh.price)
          {
-            bestHigh = swingHighs[i];
+            bestHigh = g_swingHighs[i];
             foundHigh = true;
          }
       }
    }
-   for(int i = 0; i < lowCount; i++)
+   for(int i = 0; i < g_lowCount; i++)
    {
-      if(swingLows[i].idx <= recentBar)
+      if(g_swingLows[i].time >= cutoffTime)
       {
-         if(!foundLow || swingLows[i].price < bestLow.price)
+         if(!foundLow || g_swingLows[i].price < bestLow.price)
          {
-            bestLow = swingLows[i];
+            bestLow = g_swingLows[i];
             foundLow = true;
          }
       }
    }
 
    if(!foundHigh || !foundLow)
+   {
+      if(g_prevBestHighPrice != 0 || g_prevBestLowPrice != 0)
+      {
+         ObjectsDeleteAll(0, PREFIX);
+         g_prevBestHighPrice = 0;
+         g_prevBestLowPrice = 0;
+      }
       return rates_total;
+   }
 
    double highPrice = bestHigh.price;
    double lowPrice  = bestLow.price;
@@ -215,49 +286,106 @@ int OnCalculate(const int rates_total,
    if(range <= 0)
       return rates_total;
 
-   //--- Determine bull or bear: in series mode, smaller idx = more recent
-   //--- Bull = low came before high in time (low has larger idx in series)
-   bool isBull = (bestLow.idx > bestHigh.idx);  // larger idx = older = came first
+   datetime endTime = time[0];
+   bool bestChanged = (bestHigh.price != g_prevBestHighPrice ||
+                       bestLow.price  != g_prevBestLowPrice  ||
+                       bestHigh.time  != g_prevBestHighTime   ||
+                       bestLow.time   != g_prevBestLowTime);
 
-   //--- Draw start/end times
-   datetime startTime = MathMin(bestHigh.time, bestLow.time);
-   datetime endTime   = time[0];
+   if(bestChanged)
+   {
+      //--- Full redraw: best swing points changed
+      ObjectsDeleteAll(0, PREFIX);
 
-   //--- Draw swing high/low connector
-   string swingName = PREFIX + "Swing";
-   ObjectCreate(0, swingName, OBJ_TREND, 0,
-      bestLow.time, bestLow.price, bestHigh.time, bestHigh.price);
-   ObjectSetInteger(0, swingName, OBJPROP_COLOR, InpSwingLineColor);
-   ObjectSetInteger(0, swingName, OBJPROP_STYLE, STYLE_DASH);
-   ObjectSetInteger(0, swingName, OBJPROP_WIDTH, 1);
-   ObjectSetInteger(0, swingName, OBJPROP_RAY_RIGHT, false);
-   ObjectSetInteger(0, swingName, OBJPROP_SELECTABLE, false);
-   ObjectSetInteger(0, swingName, OBJPROP_BACK, true);
+      //--- Determine bull or bear: low came before high in time = bullish
+      bool isBull = (bestLow.time < bestHigh.time);
 
-   //--- Draw each Fibonacci level
+      //--- Draw start/end times
+      datetime startTime = MathMin(bestHigh.time, bestLow.time);
+
+      //--- Draw swing high/low connector
+      string swingName = PREFIX + "Swing";
+      ObjectCreate(0, swingName, OBJ_TREND, 0,
+         bestLow.time, bestLow.price, bestHigh.time, bestHigh.price);
+      ObjectSetInteger(0, swingName, OBJPROP_COLOR, InpSwingLineColor);
+      ObjectSetInteger(0, swingName, OBJPROP_STYLE, STYLE_DASH);
+      ObjectSetInteger(0, swingName, OBJPROP_WIDTH, 1);
+      ObjectSetInteger(0, swingName, OBJPROP_RAY_RIGHT, false);
+      ObjectSetInteger(0, swingName, OBJPROP_SELECTABLE, false);
+      ObjectSetInteger(0, swingName, OBJPROP_BACK, true);
+
+      //--- Draw each Fibonacci level
+      DrawFibLevels(highPrice, lowPrice, range, isBull, startTime, endTime);
+
+      g_prevBestHighPrice = bestHigh.price;
+      g_prevBestLowPrice  = bestLow.price;
+      g_prevBestHighTime  = bestHigh.time;
+      g_prevBestLowTime   = bestLow.time;
+      g_prevEndTime       = endTime;
+
+      ChartRedraw(0);
+   }
+   else if(endTime != g_prevEndTime)
+   {
+      //--- Same swing points, just extend end time (right edge of fib levels)
+      bool isBull = (bestLow.time < bestHigh.time);
+      datetime startTime = MathMin(bestHigh.time, bestLow.time);
+
+      //--- Update swing line end point (extend to newest bar visually)
+      //--- Level lines: update end time
+      for(int lv = 0; lv < g_levelCount; lv++)
+      {
+         string lineName = PREFIX + "L" + IntegerToString(lv);
+         if(ObjectFind(0, lineName) != -1)
+         {
+            double price = ComputeFibPrice(lv, highPrice, lowPrice, range, isBull);
+            ObjectMove(0, lineName, 1, endTime, price);
+         }
+         if(InpShowLabels)
+         {
+            string labelName = PREFIX + "T" + IntegerToString(lv);
+            if(ObjectFind(0, labelName) != -1)
+               ObjectSetInteger(0, labelName, OBJPROP_TIME, endTime);
+         }
+      }
+      g_prevEndTime = endTime;
+   }
+
+   return rates_total;
+}
+
+//+------------------------------------------------------------------+
+//| Compute fib price for a given level index                         |
+//+------------------------------------------------------------------+
+double ComputeFibPrice(int lv, double highPrice, double lowPrice, double range, bool isBull)
+{
+   if(isBull)
+   {
+      if(g_levels[lv].isExtension && g_levels[lv].ratio > 1.0)
+         return lowPrice + range * g_levels[lv].ratio;
+      else
+         return highPrice - range * g_levels[lv].ratio;
+   }
+   else
+   {
+      if(g_levels[lv].isExtension && g_levels[lv].ratio > 1.0)
+         return highPrice - range * g_levels[lv].ratio;
+      else
+         return lowPrice + range * g_levels[lv].ratio;
+   }
+}
+
+//+------------------------------------------------------------------+
+//| Draw all Fibonacci levels                                         |
+//+------------------------------------------------------------------+
+void DrawFibLevels(double highPrice, double lowPrice, double range,
+                   bool isBull, datetime startTime, datetime endTime)
+{
    for(int lv = 0; lv < g_levelCount; lv++)
    {
-      double price;
-      if(isBull)
-      {
-         // Bull: retrace from high toward low; extensions above high
-         if(g_levels[lv].isExtension && g_levels[lv].ratio > 1.0)
-            price = lowPrice + range * g_levels[lv].ratio;
-         else
-            price = highPrice - range * g_levels[lv].ratio;
-      }
-      else
-      {
-         // Bear: retrace from low toward high; extensions below low
-         if(g_levels[lv].isExtension && g_levels[lv].ratio > 1.0)
-            price = highPrice - range * g_levels[lv].ratio;
-         else
-            price = lowPrice + range * g_levels[lv].ratio;
-      }
-
+      double price = ComputeFibPrice(lv, highPrice, lowPrice, range, isBull);
       color lineColor = g_levels[lv].isExtension ? InpExtensionColor : InpRetracementColor;
 
-      //--- Draw the horizontal level line
       string lineName = PREFIX + "L" + IntegerToString(lv);
       ObjectCreate(0, lineName, OBJ_TREND, 0, startTime, price, endTime, price);
       ObjectSetInteger(0, lineName, OBJPROP_COLOR, lineColor);
@@ -271,7 +399,6 @@ int OnCalculate(const int rates_total,
          g_levels[lv].label + " @ " + DoubleToString(price, _Digits));
 #endif
 
-      //--- Draw label
       if(InpShowLabels)
       {
          string labelName = PREFIX + "T" + IntegerToString(lv);
@@ -287,9 +414,28 @@ int OnCalculate(const int rates_total,
          ObjectSetInteger(0, labelName, OBJPROP_SELECTABLE, false);
       }
    }
+}
 
-   ChartRedraw(0);
-   return rates_total;
+//+------------------------------------------------------------------+
+//| Prune swings older than cutoff time                               |
+//+------------------------------------------------------------------+
+void PruneSwings(SSwing &swings[], int &count, datetime cutoffTime)
+{
+   int writeIdx = 0;
+   for(int i = 0; i < count; i++)
+   {
+      if(swings[i].time >= cutoffTime)
+      {
+         if(writeIdx != i)
+            swings[writeIdx] = swings[i];
+         writeIdx++;
+      }
+   }
+   if(writeIdx != count)
+   {
+      count = writeIdx;
+      ArrayResize(swings, count, 64);
+   }
 }
 
 //+------------------------------------------------------------------+

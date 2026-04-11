@@ -60,6 +60,7 @@ bool g_objectsCreated = false;
 bool g_buffersLoaded = false;
 datetime g_prevTime = 0;
 int g_prevBullLTF = -1, g_prevBearLTF = -1, g_prevBullHTF = -1, g_prevBearHTF = -1;
+int g_mql4LastPlottedTotal = 0;  // MQL4 incremental plotted buffer tracking
 // Cached object name strings (8 TFs x 5 labels = 40, plus 4 power labels)
 string g_objNames[8][5];  // [tf_index][label_index] for UpdateInfoLabel
 string g_nameBullLTF, g_nameBearLTF, g_nameBullHTF, g_nameBearHTF;
@@ -253,6 +254,7 @@ int OnInit()
    g_prevTime = 0;
    g_prevBullLTF = -1; g_prevBearLTF = -1;
    g_prevBullHTF = -1; g_prevBearHTF = -1;
+   g_mql4LastPlottedTotal = 0;
    // Cache object name strings for UpdateInfoLabel (avoids 40+ string allocations per tick)
    string tfNames[] = {"M1", "M5", "M15", "M30", "H1", "H4", "D1", "W1"};
    string lblNames[] = {"200SMA", "DEATH", "100_200", "20_50", "10_20"};
@@ -876,9 +878,17 @@ bool UpdateBuffers()
       ok = false;
 #else
    // MQL4: direct iMA() calls -- only fetch bar 0 for calc-only buffers (dashboard grid)
-   // Plotted buffers (6): fill all visible bars for chart line rendering
+   // Plotted buffers (6): O(1) incremental — only fill new bars since last update
    int total = ArraySize(MABufferH1_200SMA);
-   for (int i = 0; i < total; i++)
+   // On first run or history expansion, fill from the new end; otherwise just bar 0 + 1
+   int startFrom;
+   if (g_mql4LastPlottedTotal <= 0 || g_mql4LastPlottedTotal > total)
+      startFrom = total - 1;  // full fill needed
+   else
+      startFrom = total - g_mql4LastPlottedTotal + 1;  // new bars + refresh current
+   if (startFrom < 0) startFrom = 0;
+   if (startFrom >= total) startFrom = 0;  // safety: always refresh bar 0
+   for (int i = startFrom; i >= 0; i--)
    {
       MABufferH1_200SMA[i]  = iMA(NULL, PERIOD_H1,  200, 0, MODE_SMA, PRICE_CLOSE, i);
       MABufferH4_200SMA[i]  = iMA(NULL, PERIOD_H4,  200, 0, MODE_SMA, PRICE_CLOSE, i);
@@ -887,6 +897,7 @@ bool UpdateBuffers()
       MABufferW1_100SMA[i]  = iMA(NULL, PERIOD_W1,  100, 0, MODE_SMA, PRICE_CLOSE, i);
       MABufferMN1_100SMA[i] = iMA(NULL, PERIOD_MN1, 100, 0, MODE_SMA, PRICE_CLOSE, i);
    }
+   g_mql4LastPlottedTotal = total;
    // Calculation-only buffers: only bar 0 matters for the dashboard grid
    MABufferM1_200SMA[0]  = iMA(NULL, PERIOD_M1,  200, 0, MODE_SMA, PRICE_CLOSE, 0);
    MABufferM5_200SMA[0]  = iMA(NULL, PERIOD_M5,  200, 0, MODE_SMA, PRICE_CLOSE, 0);

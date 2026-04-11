@@ -41,6 +41,13 @@ double valGreen[],valRed[],valGray[],signal[],prices[],work[];
 double g_prevBias = -999;
 string g_fisherGVName = "";
 
+//--- Monotone deque for O(1) sliding window max/min
+//--- Stores indices into prices[]. Front = extremum for the current window.
+int g_maxDeque[];   // indices for sliding window maximum
+int g_minDeque[];   // indices for sliding window minimum
+int g_maxHead, g_maxTail;  // deque range [head, tail)
+int g_minHead, g_minTail;
+
 int OnInit()
 {
    g_fisherGVName = "FisherBias_" + _Symbol + "_" + IntegerToString(Period());
@@ -78,6 +85,12 @@ int OnInit()
       return INIT_FAILED;
    }
 
+   //--- Pre-allocate deque arrays to period size (maximum possible entries)
+   ArrayResize(g_maxDeque, inpPeriod + 1);
+   ArrayResize(g_minDeque, inpPeriod + 1);
+   g_maxHead = 0; g_maxTail = 0;
+   g_minHead = 0; g_minTail = 0;
+
 #ifdef __MQL5__
    IndicatorSetString(INDICATOR_SHORTNAME,"Ehlers Fisher transform ("+(string)inpPeriod+")");
 #else
@@ -114,20 +127,53 @@ int OnCalculate(const int rates_total, const int prev_calculated, const datetime
     if (rates_total <= 0) return 0;
     int i = prev_calculated - 1;
     if (i < 0) i = 0;
+
+    //--- Reset deques on full recalculation
+    if (prev_calculated <= 0)
+    {
+        g_maxHead = 0; g_maxTail = 0;
+        g_minHead = 0; g_minTail = 0;
+    }
+
+    int dequeSize = inpPeriod + 1;
+
     for (; i < rates_total && !IsStopped(); i++)
     {
         _setPrice(inpPrice, prices[i], i);
-        int _start = i - inpPeriod + 1;
-        if (_start < 0) _start = 0;
-        int _count = i - _start + 1;
-#ifdef __MQL5__
-        double _hi = inpCalcMode == calc_hl ? MathMax(high[i], prices[ArrayMaximum(prices, _start, _count)]) : prices[ArrayMaximum(prices, _start, _count)];
-        double _lo = inpCalcMode == calc_hl ? MathMin(low[i], prices[ArrayMinimum(prices, _start, _count)]) : prices[ArrayMinimum(prices, _start, _count)];
-#else
-        // MQL4 ArrayMaximum/ArrayMinimum: (array, count, start) -- param order swapped
-        double _hi = inpCalcMode == calc_hl ? MathMax(high[i], prices[ArrayMaximum(prices, _count, _start)]) : prices[ArrayMaximum(prices, _count, _start)];
-        double _lo = inpCalcMode == calc_hl ? MathMin(low[i], prices[ArrayMinimum(prices, _count, _start)]) : prices[ArrayMinimum(prices, _count, _start)];
-#endif
+
+        int windowStart = i - inpPeriod + 1;
+        if (windowStart < 0) windowStart = 0;
+
+        //--- O(1) amortized sliding window max using monotone deque
+        //--- Remove elements outside the window from front
+        while (g_maxHead != g_maxTail && g_maxDeque[g_maxHead % dequeSize] < windowStart)
+            g_maxHead++;
+        //--- Remove elements smaller than current from back (maintain decreasing order)
+        while (g_maxHead != g_maxTail && prices[g_maxDeque[(g_maxTail - 1) % dequeSize]] <= prices[i])
+            g_maxTail--;
+        //--- Push current index
+        g_maxDeque[g_maxTail % dequeSize] = i;
+        g_maxTail++;
+
+        //--- O(1) amortized sliding window min using monotone deque
+        while (g_minHead != g_minTail && g_minDeque[g_minHead % dequeSize] < windowStart)
+            g_minHead++;
+        while (g_minHead != g_minTail && prices[g_minDeque[(g_minTail - 1) % dequeSize]] >= prices[i])
+            g_minTail--;
+        g_minDeque[g_minTail % dequeSize] = i;
+        g_minTail++;
+
+        //--- Read the window extremes from deque fronts
+        double _hi = prices[g_maxDeque[g_maxHead % dequeSize]];
+        double _lo = prices[g_minDeque[g_minHead % dequeSize]];
+
+        //--- Include current bar high/low if calc_hl mode
+        if (inpCalcMode == calc_hl)
+        {
+            if (high[i] > _hi) _hi = high[i];
+            if (low[i] < _lo) _lo = low[i];
+        }
+
         double _os = (_hi != _lo) ? 2.0 * ((prices[i] - _lo) / (_hi - _lo) - 0.5) : 0;
 
 #ifdef __MQL5__
