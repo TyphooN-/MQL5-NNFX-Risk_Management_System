@@ -45,7 +45,7 @@ double getPrice(int priceType, const double &open[], const double &close[],
    if (priceType >= pr_ha_close)
    {
       if (ArrayRange(g_workHa, 0) != bars)
-         ArrayResize(g_workHa, bars);
+      { if (ArrayResize(g_workHa, bars) == -1) return 0; }
 
       double haOpen = (i > 0) ? (g_workHa[i-1][2] + g_workHa[i-1][3]) / 2.0
                                : (open[i] + close[i]) / 2.0;
@@ -160,10 +160,11 @@ void InitDominantCycle(DominantCycleState &s, int lp, int hp)
    s.lpPeriod = lp;
    s.hpPeriod = hp;
    s.maxPwr   = 0;
-   ArrayResize(s.corr,  hp + 1);
-   ArrayResize(s.sqSum, hp + 1);
-   ArrayResize(s.r,     hp + 1);
-   ArrayResize(s.pwr,   hp + 1);
+   if (ArrayResize(s.corr,  hp + 1) == -1 ||
+       ArrayResize(s.sqSum, hp + 1) == -1 ||
+       ArrayResize(s.r,     hp + 1) == -1 ||
+       ArrayResize(s.pwr,   hp + 1) == -1)
+   { Print("InitDominantCycle: ArrayResize failed for hp=", hp); return; }
    ArrayInitialize(s.corr,  0);
    ArrayInitialize(s.sqSum, 0);
    ArrayInitialize(s.pwr,   0);

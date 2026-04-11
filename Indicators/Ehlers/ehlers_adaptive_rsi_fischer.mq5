@@ -68,7 +68,7 @@ int OnCalculate(const int rates_total,
 {
    if (rates_total < hpPeriod + 3) return 0;
    if (ArrayRange(work, 0) != rates_total)
-      ArrayResize(work, rates_total);
+      if (ArrayResize(work, rates_total) == -1) return 0;
 
    if (prev_calculated == 0) { ResetDominantCycle(g_dc); g_closesUpOld = 0; }
    int start = (int)MathMax(prev_calculated - 1, 0);

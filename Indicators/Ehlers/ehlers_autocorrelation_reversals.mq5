@@ -45,8 +45,9 @@ int OnInit()
    if (lpPeriod < 1 || hpPeriod < 1) return INIT_PARAMETERS_INCORRECT;
    ComputeHPCoeffs(hpPeriod, g_hp);
    ComputeLPCoeffs(lpPeriod, g_lp);
-   ArrayResize(g_corr, hpPeriod + 1);
-   ArrayResize(g_corrPrev, hpPeriod + 1);
+   if (ArrayResize(g_corr, hpPeriod + 1) == -1 ||
+       ArrayResize(g_corrPrev, hpPeriod + 1) == -1)
+   { Print("ACRev: ArrayResize failed"); return INIT_FAILED; }
    ArrayInitialize(g_corr, 0);
    ArrayInitialize(g_corrPrev, 0);
    return INIT_SUCCEEDED;
@@ -65,7 +66,7 @@ int OnCalculate(const int rates_total,
 {
    if (rates_total < hpPeriod + 3) return 0;
    if (ArrayRange(work, 0) != rates_total)
-      ArrayResize(work, rates_total);
+      if (ArrayResize(work, rates_total) == -1) return 0;
 
    int avLen = (avgLength == 0) ? hpPeriod : avgLength;
 

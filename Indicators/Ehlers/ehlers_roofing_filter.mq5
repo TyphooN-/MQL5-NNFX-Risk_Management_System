@@ -61,7 +61,7 @@ int OnCalculate(const int rates_total,
 {
    if (rates_total < 5) return 0;
    if (ArrayRange(work, 0) != rates_total)
-      ArrayResize(work, rates_total);
+      if (ArrayResize(work, rates_total) == -1) return 0;
 
    int start = (int)MathMax(prev_calculated - 1, 0);
    for (int i = start; i < rates_total && !IsStopped(); i++)

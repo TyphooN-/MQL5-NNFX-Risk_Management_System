@@ -77,7 +77,7 @@ double workCorrMa[][_corrMaInstances*_corrMaInstancesSize];
 //
 double iCorrMa(double _avg, double price, int period, int i, int _bars, int instanceNo=0)
 {
-   if (ArrayRange(workCorrMa,0)!= _bars) ArrayResize(workCorrMa,_bars); instanceNo*=_corrMaInstancesSize;
+   if (ArrayRange(workCorrMa,0)!= _bars) { if (ArrayResize(workCorrMa,_bars)==-1) return(0); } instanceNo*=_corrMaInstancesSize;
       workCorrMa[i][_price] = price;
       workCorrMa[i][_orig]  = _avg;
 

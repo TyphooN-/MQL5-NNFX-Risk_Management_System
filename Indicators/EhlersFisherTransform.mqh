@@ -86,8 +86,9 @@ int OnInit()
    }
 
    //--- Pre-allocate deque arrays to period size (maximum possible entries)
-   ArrayResize(g_maxDeque, inpPeriod + 1);
-   ArrayResize(g_minDeque, inpPeriod + 1);
+   if (ArrayResize(g_maxDeque, inpPeriod + 1) == -1 ||
+       ArrayResize(g_minDeque, inpPeriod + 1) == -1)
+   { Print("EhlersFisher: deque ArrayResize failed"); return INIT_FAILED; }
    g_maxHead = 0; g_maxTail = 0;
    g_minHead = 0; g_minTail = 0;
 

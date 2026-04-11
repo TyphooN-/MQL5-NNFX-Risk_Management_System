@@ -1329,7 +1329,7 @@ int maMovingMedian(const int rates_total,
 //--- bar index start
    int bar_index;
    double temp_place_holder[];
-   ArrayResize(temp_place_holder, value_length);
+   if (ArrayResize(temp_place_holder, value_length) == -1) return;
    ArrayInitialize(temp_place_holder, 0.0);
    if(prev_calculated == 0)
       bar_index = 0;

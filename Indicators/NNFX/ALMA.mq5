@@ -212,7 +212,7 @@ double workFil[][filterInstances*3];
 double iFilter(double tprice, double filter, int period, int i, int bars, int instanceNo=0)
 {
    if (filter<=0) return(tprice);
-   if (ArrayRange(workFil,0)!= bars) ArrayResize(workFil,bars); instanceNo*=3;
+   if (ArrayRange(workFil,0)!= bars) { if (ArrayResize(workFil,bars)==-1) return(0); } instanceNo*=3;
    
    //
    //
@@ -245,7 +245,7 @@ double  almaWork[][almaInstances];
 double iAlma(double price, int period, double sigma, double sample, int bars, int r, int instanceNo=0)
 {
    if (period<=1) return(price);
-   if (ArrayRange(almaWork,0)!=bars) ArrayResize(almaWork,bars); almaWork[r][instanceNo] = price;
+   if (ArrayRange(almaWork,0)!=bars) { if (ArrayResize(almaWork,bars)==-1) return(0); } almaWork[r][instanceNo] = price;
    
    //
    //
@@ -281,7 +281,7 @@ double getPrice(int price, const double& open[], const double& close[], const do
 {
   if (price>=pr_haclose)
    {
-      if (ArrayRange(workHa,0)!= bars) ArrayResize(workHa,bars); instanceNo *= 4;
+      if (ArrayRange(workHa,0)!= bars) { if (ArrayResize(workHa,bars)==-1) return(0); } instanceNo *= 4;
          
          //
          //
