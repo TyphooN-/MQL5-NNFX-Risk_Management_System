@@ -546,7 +546,12 @@ void FindZones(const double &open[], const double &high[],
 void AddZone(SZone &zone)
 {
    g_zoneCount++;
-   ArrayResize(g_zones, g_zoneCount, 128);
+   if (ArrayResize(g_zones, g_zoneCount, 128) == -1)
+   {
+      g_zoneCount--;
+      Print("AddZone: ArrayResize failed");
+      return;
+   }
    g_zones[g_zoneCount - 1] = zone;
 }
 

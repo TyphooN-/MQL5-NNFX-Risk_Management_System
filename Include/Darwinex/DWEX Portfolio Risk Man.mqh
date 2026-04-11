@@ -67,8 +67,10 @@ void CPortfolioRiskMan::CPortfolioRiskMan(ENUM_TIMEFRAMES VaRTF, int SDPeriods, 
    VaRConfidenceLevel       = ConfidenceLevel;
    m_cacheCount             = 0;
    // Pre-allocate work arrays to avoid per-call heap churn
-   ArrayResize(m_returns, SDPeriods + 1);
-   ArrayResize(m_dailyReturns, SDPeriods);
+   if (ArrayResize(m_returns, SDPeriods + 1) == -1)
+      Print("CPortfolioRiskMan: failed to allocate m_returns[", SDPeriods + 1, "]");
+   if (ArrayResize(m_dailyReturns, SDPeriods) == -1)
+      Print("CPortfolioRiskMan: failed to allocate m_dailyReturns[", SDPeriods, "]");
 }
 void CPortfolioRiskMan::ClearCache()
 {
@@ -81,9 +83,12 @@ void CPortfolioRiskMan::ClearCache()
 }
 void CPortfolioRiskMan::ReserveCache(int size)
 {
-   ArrayResize(m_symbolCache, size);
-   ArrayResize(m_stdDevReturnsCache, size);
-   ArrayResize(m_cacheTimestamp, size);
+   if (ArrayResize(m_symbolCache, size) == -1 ||
+       ArrayResize(m_stdDevReturnsCache, size) == -1 ||
+       ArrayResize(m_cacheTimestamp, size) == -1)
+   {
+      Print("CPortfolioRiskMan::ReserveCache: ArrayResize failed for size ", size);
+   }
    m_cacheCount = 0;
 }
 // Inline StdDev — avoids #include <Math\Stat\Math.mqh> (heavy)
@@ -232,7 +237,13 @@ bool CPortfolioRiskMan::GetAssetStdDevReturns(string VolSymbolName, double &Stan
     // Compute daily returns into pre-allocated work array
     int numReturns = copied - 1;
     if (ArraySize(m_dailyReturns) < numReturns)
-        ArrayResize(m_dailyReturns, numReturns);
+    {
+        if (ArrayResize(m_dailyReturns, numReturns) == -1)
+        {
+            Print("GetAssetStdDevReturns: failed to resize m_dailyReturns to ", numReturns);
+            return false;
+        }
+    }
 
     for (int i = 0; i < numReturns; i++)
     {
@@ -259,9 +270,13 @@ bool CPortfolioRiskMan::GetAssetStdDevReturns(string VolSymbolName, double &Stan
         if (m_cacheCount >= capacity)
         {
             int newCap = (capacity == 0) ? 256 : capacity * 2;
-            ArrayResize(m_symbolCache, newCap);
-            ArrayResize(m_stdDevReturnsCache, newCap);
-            ArrayResize(m_cacheTimestamp, newCap);
+            if (ArrayResize(m_symbolCache, newCap) == -1 ||
+                ArrayResize(m_stdDevReturnsCache, newCap) == -1 ||
+                ArrayResize(m_cacheTimestamp, newCap) == -1)
+            {
+                Print("GetAssetStdDevReturns: cache resize failed at capacity ", newCap);
+                return false;
+            }
         }
         slot = m_cacheCount++;
     }

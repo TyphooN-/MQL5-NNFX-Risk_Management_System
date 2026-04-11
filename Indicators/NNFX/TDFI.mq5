@@ -188,7 +188,7 @@ double iCustomMa(int mode, double price, double length, int r, int bars, int ins
 double workSma[][_maWorkBufferx1];
 double iSma(double price, int period, int r, int _bars, int instanceNo=0)
 {
-   if (ArrayRange(workSma,0)!= _bars) ArrayResize(workSma,_bars); int k=1;
+   if (ArrayRange(workSma,0)!= _bars) { if (ArrayResize(workSma,_bars)==-1) return(0); } int k=1;
 
    workSma[r][instanceNo+0] = price;
    double avg = price; for(; k<period && (r-k)>=0; k++) avg += workSma[r-k][instanceNo+0];  avg /= (double)k;
@@ -204,7 +204,7 @@ double iSma(double price, int period, int r, int _bars, int instanceNo=0)
 double workEma[][_maWorkBufferx1];
 double iEma(double price, double period, int r, int _bars, int instanceNo=0)
 {
-   if (ArrayRange(workEma,0)!= _bars) ArrayResize(workEma,_bars);
+   if (ArrayRange(workEma,0)!= _bars) { if (ArrayResize(workEma,_bars)==-1) return(0); }
 
    workEma[r][instanceNo] = price;
    if (r>0 && period>1)
@@ -221,7 +221,7 @@ double iEma(double price, double period, int r, int _bars, int instanceNo=0)
 double workSmma[][_maWorkBufferx1];
 double iSmma(double price, double period, int r, int _bars, int instanceNo=0)
 {
-   if (ArrayRange(workSmma,0)!= _bars) ArrayResize(workSmma,_bars);
+   if (ArrayRange(workSmma,0)!= _bars) { if (ArrayResize(workSmma,_bars)==-1) return(0); }
 
    workSmma[r][instanceNo] = price;
    if (r>1 && period>1)
@@ -238,7 +238,7 @@ double iSmma(double price, double period, int r, int _bars, int instanceNo=0)
 double workLwma[][_maWorkBufferx1];
 double iLwma(double price, double period, int r, int _bars, int instanceNo=0)
 {
-   if (ArrayRange(workLwma,0)!= _bars) ArrayResize(workLwma,_bars);
+   if (ArrayRange(workLwma,0)!= _bars) { if (ArrayResize(workLwma,_bars)==-1) return(0); }
    
    workLwma[r][instanceNo] = price; if (period<1) return(price);
       double sumw = period;
@@ -270,7 +270,7 @@ double getPrice(int tprice, const double& open[], const double& close[], const d
 {
   if (tprice>=pr_haclose)
    {
-      if (ArrayRange(workHa,0)!= _bars) ArrayResize(workHa,_bars); instanceNo*=_pricesSize;
+      if (ArrayRange(workHa,0)!= _bars) { if (ArrayResize(workHa,_bars)==-1) return(0); } instanceNo*=_pricesSize;
          
          //
          //
@@ -374,7 +374,7 @@ double  _smthWork[][_smoothInstances*_smoothInstancesSize];
 
 double iSmooth(double price, double length, double phase, int r, int bars, int instanceNo=0)
 {
-   if (ArrayRange(_smthWork,0)!=bars) ArrayResize(_smthWork,bars); instanceNo*=_smoothInstancesSize;
+   if (ArrayRange(_smthWork,0)!=bars) { if (ArrayResize(_smthWork,bars)==-1) return(0); } instanceNo*=_smoothInstancesSize;
    if (price==EMPTY_VALUE) price=0;
 
    int k = 0; if (r==0) { for(; k<7; k++) _smthWork[0][instanceNo+k]=price; for(; k<10; k++) _smthWork[0][instanceNo+k]=0; return(price); }

@@ -100,7 +100,7 @@ int init()
 // ====================
 // Array Initialization
 // ====================
-   ArrayResize(Squeeze,Back_Bars); // Stores whether histogram is above/below zero line
+   if (ArrayResize(Squeeze,Back_Bars) == -1) { Print("ArrayResize failed for Squeeze[", Back_Bars, "]"); return(-1); }
    ArrayInitialize(Squeeze,0);  // initialises array with 0's
 
    return(0);
@@ -135,7 +135,7 @@ int start()
    int limit=Bars-Counted_Bars;
    if(Counted_Bars==0) limit-=1+MathMax(Momentum_Period,Keltner_Period);
 
-   ArrayResize(Squeeze,ArraySize(Momentum));
+   if (ArrayResize(Squeeze,ArraySize(Momentum)) == -1) return(-1);
 
 //=======================
 // On-Screen Information

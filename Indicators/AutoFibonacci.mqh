@@ -186,14 +186,14 @@ int OnCalculate(const int rates_total,
          if(IsFractalHigh(high, i, InpFractalLookback, rates_total))
          {
             g_highCount++;
-            ArrayResize(g_swingHighs, g_highCount, 64);
+            if (ArrayResize(g_swingHighs, g_highCount, 64) == -1) { g_highCount--; continue; }
             g_swingHighs[g_highCount - 1].price = high[i];
             g_swingHighs[g_highCount - 1].time  = time[i];
          }
          if(IsFractalLow(low, i, InpFractalLookback, rates_total))
          {
             g_lowCount++;
-            ArrayResize(g_swingLows, g_lowCount, 64);
+            if (ArrayResize(g_swingLows, g_lowCount, 64) == -1) { g_lowCount--; continue; }
             g_swingLows[g_lowCount - 1].price = low[i];
             g_swingLows[g_lowCount - 1].time  = time[i];
          }
@@ -209,16 +209,22 @@ int OnCalculate(const int rates_total,
          if(IsFractalHigh(high, candidate, InpFractalLookback, rates_total))
          {
             g_highCount++;
-            ArrayResize(g_swingHighs, g_highCount, 64);
-            g_swingHighs[g_highCount - 1].price = high[candidate];
-            g_swingHighs[g_highCount - 1].time  = time[candidate];
+            if (ArrayResize(g_swingHighs, g_highCount, 64) != -1)
+            {
+               g_swingHighs[g_highCount - 1].price = high[candidate];
+               g_swingHighs[g_highCount - 1].time  = time[candidate];
+            }
+            else g_highCount--;
          }
          if(IsFractalLow(low, candidate, InpFractalLookback, rates_total))
          {
             g_lowCount++;
-            ArrayResize(g_swingLows, g_lowCount, 64);
-            g_swingLows[g_lowCount - 1].price = low[candidate];
-            g_swingLows[g_lowCount - 1].time  = time[candidate];
+            if (ArrayResize(g_swingLows, g_lowCount, 64) != -1)
+            {
+               g_swingLows[g_lowCount - 1].price = low[candidate];
+               g_swingLows[g_lowCount - 1].time  = time[candidate];
+            }
+            else g_lowCount--;
          }
       }
 

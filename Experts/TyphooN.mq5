@@ -225,7 +225,12 @@ bool TyWindow::Create(const long chart,const string name,const int subwin,const 
 TyWindow ExtDialog;
 void CreateAndSetObjectProperties(string name, int xDistance, int yDistance, int corner = CORNER_RIGHT_UPPER, color textColor = clrWhite)
 {
-   ObjectCreate(0, name, OBJ_LABEL, 0, 0, 0);
+   if (!ObjectCreate(0, name, OBJ_LABEL, 0, 0, 0))
+   {
+      int err = GetLastError();
+      if (err != 4200) // ERR_OBJECT_ALREADY_EXISTS is benign on reinit
+         Print("Failed to create dashboard object '", name, "': ", err);
+   }
    ObjectSetString(0, name, OBJPROP_FONT, "Courier New");
    ObjectSetInteger(0, name, OBJPROP_FONTSIZE, FontSize);
    ObjectSetInteger(0, name, OBJPROP_XDISTANCE, xDistance);
@@ -1036,7 +1041,7 @@ void BroadcastDiscordAnnouncement(string announcement)
    int arrSize = ArraySize(jsonArray);
    if(arrSize > 0 && jsonArray[arrSize - 1] == '\0')
    {
-      ArrayResize(jsonArray, arrSize - 1);
+      if (ArrayResize(jsonArray, arrSize - 1) == -1) { Print("ArrayResize failed in Discord broadcast"); return; }
    }
    int httpCode = WebRequest("POST", DiscordAPIKey, headers, 5000, jsonArray, result, result_headers);
    if (httpCode == -1)
@@ -1271,6 +1276,7 @@ bool CloseProfitableOppositePositions(double marginLevel = 0)
    double equity = AccountInfoDouble(ACCOUNT_EQUITY);
    double currentMargin = AccountInfoDouble(ACCOUNT_MARGIN);
    // Maximum margin we can hold while ML stays at threshold
+   if (MartingaleUnwindMarginPct <= 0) return false;
    double maxMargin = equity / (MartingaleUnwindMarginPct / 100.0);
    double availableRoom = maxMargin - currentMargin;
    // Get margin cost per lot of net exposure
@@ -1374,6 +1380,7 @@ bool ProtectiveClose(double marginLevel)
    // Dynamic PROTECT size: more urgent = bigger closes
    double minVol = g_volumeMin;
    double totalHedgeLots = GetTotalHedgeLots();
+   if (MartingaleDangerMarginPct <= 0) return false;
    double urgency = MathMax(1.0 - (marginLevel / MartingaleDangerMarginPct), 0.01);
    double protectLots = MathMax(MathCeil(totalHedgeLots * urgency), minVol);
    protectLots = NormalizeDouble(protectLots, OrderDigits);
@@ -1688,6 +1695,7 @@ void ProcessMartingale()
       {
          // Calculate how many bias lots to close to reach TRIM
          // ML = equity / margin → target margin = equity / (TRIM/100)
+         if (MartingaleUnwindMarginPct <= 0) return;
          double targetMargin = AccountInfoDouble(ACCOUNT_EQUITY) / (MartingaleUnwindMarginPct / 100.0);
          double currentMargin = AccountInfoDouble(ACCOUNT_MARGIN);
          double excessMargin = currentMargin - targetMargin;
@@ -1696,6 +1704,7 @@ void ProcessMartingale()
             // Each bias lot closed reduces margin by ~price per lot
             double pricePerLot = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
             if (pricePerLot <= 0) pricePerLot = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+            if (pricePerLot <= 0) { Print("PRE-CLOSE: no valid price for lot margin calc"); return; }
             int lotsToClose = (int)MathCeil(excessMargin / pricePerLot);
             if (lotsToClose < 1) lotsToClose = 1;
             Print("PRE-CLOSE: ML ", DoubleToString(marginLevel, 1),
@@ -1755,6 +1764,7 @@ void ProcessMartingale()
       {
          // Close BIAS (shorts) to reduce net → reduce margin → increase ML
          // Calculate how many bias lots to close to reach PROTECT threshold
+         if (MartingaleDangerMarginPct <= 0) return;
          double targetMargin = AccountInfoDouble(ACCOUNT_EQUITY) / (MartingaleDangerMarginPct / 100.0);
          double currentMargin = AccountInfoDouble(ACCOUNT_MARGIN);
          double excessMargin = currentMargin - targetMargin;
@@ -1762,6 +1772,7 @@ void ProcessMartingale()
          {
             double pricePerLot = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
             if (pricePerLot <= 0) pricePerLot = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+            if (pricePerLot <= 0) { Print("PROTECT: no valid price for lot margin calc"); return; }
             int lotsToClose = (int)MathCeil(excessMargin / pricePerLot);
             if (lotsToClose < 1) lotsToClose = 1;
             Print("PROTECT: ML ", DoubleToString(marginLevel, 1), "% < ", DoubleToString(MartingaleDangerMarginPct, 1),
@@ -2271,8 +2282,10 @@ void OrderLines(bool isBuy)
          break;
       }
    }
-   ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, slPrice);
-   ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, tpPrice);
+   if (!ObjectCreate(0, "SL_Line", OBJ_HLINE, 0, 0, slPrice))
+   { int err = GetLastError(); if (err != 4200) Print("Failed to create SL_Line: ", err); }
+   if (!ObjectCreate(0, "TP_Line", OBJ_HLINE, 0, 0, tpPrice))
+   { int err = GetLastError(); if (err != 4200) Print("Failed to create TP_Line: ", err); }
    ObjectSetInteger(0, "SL_Line", OBJPROP_COLOR, clrRed);
    ObjectSetInteger(0, "SL_Line", OBJPROP_WIDTH, HorizontalLineThickness);
    ObjectSetInteger(0, "SL_Line", OBJPROP_SELECTABLE, 1);
@@ -2696,7 +2709,7 @@ void TyWindow::OnClickClosePartial(void)
 {
    PositionInfo positions[];
    int total = PositionsTotal();
-   ArrayResize(positions, total);
+   if (ArrayResize(positions, total) == -1) { Print("ArrayResize failed in ClosePartial"); return; }
    int count = 0;
    for (int i = 0; i < total; i++)
    {
@@ -2710,7 +2723,7 @@ void TyWindow::OnClickClosePartial(void)
          count++;
       }
    }
-   ArrayResize(positions, count);
+   if (ArrayResize(positions, count) == -1) { Print("ArrayResize failed in ClosePartial (trim)"); return; }
    if(ArraySize(positions) == 0)
    {
       Print("There are no positions to close on ", _Symbol + ".");

@@ -51,7 +51,17 @@ int OnInit() {
    ArraySetAsSeries( DirectionBuffer, true );
 
    HighHandle = iMA( Symbol(), Period(), InpPeriod, 0, MODE_SMA, PRICE_HIGH );
+   if ( HighHandle == INVALID_HANDLE )
+   {
+      Print( "Failed to create High MA handle: ", GetLastError() );
+      return ( INIT_FAILED );
+   }
    LowHandle  = iMA( Symbol(), Period(), InpPeriod, 0, MODE_SMA, PRICE_LOW );
+   if ( LowHandle == INVALID_HANDLE )
+   {
+      Print( "Failed to create Low MA handle: ", GetLastError() );
+      return ( INIT_FAILED );
+   }
 
    ArraySetAsSeries( highValues, true );
    ArraySetAsSeries( lowValues, true );

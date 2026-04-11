@@ -534,7 +534,13 @@ ENUM_ORDER_TYPE_FILLING SelectFillingMode()
 // Function to create and set properties of an object
 void CreateAndSetObject(string name, int x_dist, int y_dist, color clr, int corner, string font = "Courier New", int size = 8)
 {
-   ObjectCreate(0, name, OBJ_LABEL, 0, 0, 0);
+   if (!ObjectCreate(0, name, OBJ_LABEL, 0, 0, 0))
+   {
+      int err = GetLastError();
+      // ERR_OBJECT_ALREADY_EXISTS (4200) is benign on reinit
+      if (err != 4200)
+         Print("Failed to create dashboard object '", name, "': ", err);
+   }
    ObjectSetString(0, name, OBJPROP_FONT, font);
    ObjectSetInteger(0, name, OBJPROP_FONTSIZE, size);
    ObjectSetInteger(0, name, OBJPROP_XDISTANCE, x_dist);
