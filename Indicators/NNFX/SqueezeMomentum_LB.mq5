@@ -39,6 +39,9 @@ double HistData[], HistClr[];
 double DotData[],  DotClr[];
 double RangeBuf[], LinSrc[];
 
+//--- Monotone deques for O(1) amortized sliding HH/LL over KCLength window
+int g_maxDq[], g_minDq[];
+
 int OnInit()
 {
    SetIndexBuffer(0, HistData, INDICATOR_DATA);
@@ -57,6 +60,9 @@ int OnInit()
    ArraySetAsSeries(DotClr,   true);
    ArraySetAsSeries(RangeBuf, true);
    ArraySetAsSeries(LinSrc,   true);
+   int dqCap = (int)MathMax(BBLength, KCLength) + 2;
+   if(ArrayResize(g_maxDq, dqCap) == -1 || ArrayResize(g_minDq, dqCap) == -1)
+      return INIT_FAILED;
    return INIT_SUCCEEDED;
 }
 
@@ -87,18 +93,50 @@ int OnCalculate(const int rates_total,
    if (limit > rates_total - lookback) limit = rates_total - lookback;
    if (limit < 0) limit = 0;
 
+   // --- O(1) running sums for BB close, KC close, KC range ---
+   double sumBB = 0, sumBBSq = 0;
+   for (int j = 0; j < BBLength; j++)
+   {
+      double c = close[limit + j];
+      sumBB   += c;
+      sumBBSq += c * c;
+   }
+   double sumKC = 0, sumRG = 0;
+   for (int j = 0; j < KCLength; j++)
+   {
+      int idx = limit + j;
+      RangeBuf[idx] = UseTrueRange ? TrueRange(high, low, close, idx) : (high[idx] - low[idx]);
+      sumKC += close[idx];
+      sumRG += RangeBuf[idx];
+   }
+
+   // --- Monotone deques seeded with window [limit, limit+KCLength-1] ---
+   int dqCap = (int)ArraySize(g_maxDq);
+   int maxH = 0, maxT = 0, minH = 0, minT = 0;
+   for (int j = limit + KCLength - 1; j >= limit; j--)
+   {
+      while (maxT > maxH && high[g_maxDq[(maxT - 1) % dqCap]] <= high[j]) maxT--;
+      g_maxDq[maxT % dqCap] = j; maxT++;
+      while (minT > minH && low[g_minDq[(minT - 1) % dqCap]]  >= low[j])  minT--;
+      g_minDq[minT % dqCap] = j; minT++;
+   }
+
+   double invBB = 1.0 / BBLength;
+   double invKC = 1.0 / KCLength;
+
    for (int pos = limit; pos >= 0; pos--)
    {
-      // --- Bollinger Bands ---
-      double basis = SMA(close, BBLength, pos);
-      double dev   = BBMult * StdDev(close, BBLength, pos, basis);
+      // --- Bollinger Bands (running sum + sum-of-squares variance) ---
+      double basis = sumBB * invBB;
+      double var   = (sumBBSq - sumBB * sumBB * invBB) * invBB;
+      if (var < 0) var = 0;
+      double dev   = BBMult * MathSqrt(var);
       double upperBB = basis + dev;
       double lowerBB = basis - dev;
 
       // --- Keltner Channel ---
-      double ma = SMA(close, KCLength, pos);
-      RangeBuf[pos] = UseTrueRange ? TrueRange(high, low, close, pos) : (high[pos] - low[pos]);
-      double rangema = SMA(RangeBuf, KCLength, pos);
+      double ma      = sumKC * invKC;
+      double rangema = sumRG * invKC;
       double upperKC = ma + rangema * KCMult;
       double lowerKC = ma - rangema * KCMult;
 
@@ -107,10 +145,9 @@ int OnCalculate(const int rates_total,
       bool sqzOff = (lowerBB < lowerKC) && (upperBB > upperKC);
 
       // --- Momentum via linear regression ---
-      double highest = high[Highest(high, KCLength, pos)];
-      double lowest  = low[Lowest(low, KCLength, pos)];
-      double sma     = SMA(close, KCLength, pos);
-      LinSrc[pos] = close[pos] - ((highest + lowest) / 2.0 + sma) / 2.0;
+      double highest = high[g_maxDq[maxH % dqCap]];
+      double lowest  = low[g_minDq[minH % dqCap]];
+      LinSrc[pos] = close[pos] - ((highest + lowest) / 2.0 + ma) / 2.0;
       double val  = LinReg(LinSrc, KCLength, pos);
       HistData[pos] = val;
 
@@ -126,6 +163,36 @@ int OnCalculate(const int rates_total,
       if (sqzOn)       DotClr[pos] = 0; // Blue:  squeeze on
       else if (sqzOff) DotClr[pos] = 1; // Black: squeeze off
       else             DotClr[pos] = 2; // Gray:  neutral
+
+      // --- Slide window to pos-1 (newer bar) ---
+      if (pos > 0)
+      {
+         int addK  = pos - 1;
+         int remBB = addK + BBLength;
+         int remKC = addK + KCLength;
+
+         double cAdd   = close[addK];
+         double cRemBB = close[remBB];
+         sumBB   += cAdd - cRemBB;
+         sumBBSq += cAdd * cAdd - cRemBB * cRemBB;
+
+         double cRemKC = close[remKC];
+         sumKC += cAdd - cRemKC;
+
+         RangeBuf[addK] = UseTrueRange ? TrueRange(high, low, close, addK) : (high[addK] - low[addK]);
+         sumRG += RangeBuf[addK] - RangeBuf[remKC];
+
+         // Drop expiring index (addK+KCLength = pos+KCLength-1 no longer in new window)
+         int dropIdx = pos + KCLength - 1;
+         if (maxH < maxT && g_maxDq[maxH % dqCap] == dropIdx) maxH++;
+         if (minH < minT && g_minDq[minH % dqCap] == dropIdx) minH++;
+
+         // Push new index addK
+         while (maxT > maxH && high[g_maxDq[(maxT - 1) % dqCap]] <= high[addK]) maxT--;
+         g_maxDq[maxT % dqCap] = addK; maxT++;
+         while (minT > minH && low[g_minDq[(minT - 1) % dqCap]]  >= low[addK])  minT--;
+         g_minDq[minT % dqCap] = addK; minT++;
+      }
    }
    return rates_total;
 }
@@ -133,41 +200,9 @@ int OnCalculate(const int rates_total,
 //+------------------------------------------------------------------+
 //| Helper functions — self-contained, no handles needed             |
 //+------------------------------------------------------------------+
-double SMA(const double &a[], int p, int s)
-{
-   double sum = 0;
-   for (int i = 0; i < p; i++) sum += a[s + i];
-   return sum / p;
-}
-
-double StdDev(const double &a[], int p, int s, double mean)
-{
-   double sq = 0;
-   for (int i = 0; i < p; i++) { double d = a[s + i] - mean; sq += d * d; }
-   return MathSqrt(sq / p);
-}
-
 double TrueRange(const double &h[], const double &l[], const double &c[], int s)
 {
    return MathMax(h[s] - l[s], MathMax(MathAbs(h[s] - c[s + 1]), MathAbs(l[s] - c[s + 1])));
-}
-
-int Highest(const double &a[], int cnt, int start)
-{
-   int idx = start;
-   double mx = a[start];
-   for (int i = 1; i < cnt; i++)
-      if (a[start + i] > mx) { mx = a[start + i]; idx = start + i; }
-   return idx;
-}
-
-int Lowest(const double &a[], int cnt, int start)
-{
-   int idx = start;
-   double mn = a[start];
-   for (int i = 1; i < cnt; i++)
-      if (a[start + i] < mn) { mn = a[start + i]; idx = start + i; }
-   return idx;
 }
 
 double LinReg(const double &src[], int p, int s)

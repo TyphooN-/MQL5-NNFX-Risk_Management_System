@@ -28,6 +28,9 @@ input bool  alertsNotify    = false;    // Send push notification on alerts?
 
 double MaBuffer[],ColorBuffer[];
 
+//--- Monotone deques for O(1) amortized sliding HH/LL over Kijun window
+int g_maxDq[], g_minDq[];
+
 //------------------------------------------------------------------
 //
 //------------------------------------------------------------------
@@ -42,6 +45,9 @@ int OnInit()
    SetIndexBuffer(0,MaBuffer,INDICATOR_DATA);
    SetIndexBuffer(1,ColorBuffer,INDICATOR_COLOR_INDEX);
    IndicatorSetString(INDICATOR_SHORTNAME,"Kijun-Sen ("+(string)Kijun+")");
+   int dqCap = Kijun + 1;
+   if(ArrayResize(g_maxDq, dqCap) == -1 || ArrayResize(g_minDq, dqCap) == -1)
+      return INIT_FAILED;
    return(0);
 }
 
@@ -65,34 +71,35 @@ int OnCalculate(const int rates_total,const int prev_calculated,
                 const int &Spread[])
 {
    if (Bars(_Symbol,_Period)<rates_total) return(-1);
-   
-   //
-   //
-   //
-   //
-   //
-      
-   for (int i=(int)MathMax(prev_calculated-1,0); i<rates_total; i++)
+
+   //--- Monotone deque: O(1) amortized HH/LL over sliding window [i-Kijun+1, i]
+   int dqCap = Kijun + 1;
+   int firstOutput = (int)MathMax(prev_calculated - 1, 0);
+   int startBar    = (int)MathMax(firstOutput - Kijun + 1, 0);
+   int maxH = 0, maxT = 0, minH = 0, minT = 0;
+
+   for (int i = startBar; i < rates_total && !IsStopped(); i++)
    {
-      if  (i<Kijun) continue;
-      double khi = high[i];
-      double klo = low[i];
-        for (int k = 1; k<Kijun && (i-k)>=0; k++)
-        {
-           if(khi < high[i-k]) khi = high[i-k];
-           if(klo > low [i-k]) klo = low[i-k];
-        }
-        if ((khi+klo) > 0.0) 
-             MaBuffer[i] = (khi + klo)/2; 
-        else MaBuffer[i] = 0;
-        
-        //
-        //
-        //
-        //
-        //
-        
-        ColorBuffer[i] = (close[i]>MaBuffer[i]) ? 0 : (close[i]<MaBuffer[i]) ? 1 : (i > 0 ? ColorBuffer[i-1] : 0);
+      int windowStart = i - Kijun + 1;
+      if(windowStart < 0) windowStart = 0;
+
+      while(maxT > maxH && high[g_maxDq[(maxT - 1) % dqCap]] <= high[i]) maxT--;
+      g_maxDq[maxT % dqCap] = i; maxT++;
+      while(maxH < maxT && g_maxDq[maxH % dqCap] < windowStart) maxH++;
+
+      while(minT > minH && low[g_minDq[(minT - 1) % dqCap]] >= low[i]) minT--;
+      g_minDq[minT % dqCap] = i; minT++;
+      while(minH < minT && g_minDq[minH % dqCap] < windowStart) minH++;
+
+      if(i < Kijun || i < firstOutput) continue;
+
+      double khi = high[g_maxDq[maxH % dqCap]];
+      double klo = low[g_minDq[minH % dqCap]];
+      if ((khi + klo) > 0.0)
+           MaBuffer[i] = (khi + klo) / 2;
+      else MaBuffer[i] = 0;
+
+      ColorBuffer[i] = (close[i]>MaBuffer[i]) ? 0 : (close[i]<MaBuffer[i]) ? 1 : (i > 0 ? ColorBuffer[i-1] : 0);
    }
    manageAlerts(time,ColorBuffer,rates_total);
    return(rates_total);

@@ -58,6 +58,10 @@ double MALongBuf[];
 int hMAShort;
 int hMALong;
 
+//---- Monotone deques for O(1) amortized sliding HHV/LLV (MACD and ST windows)
+int g_maxMACDDq[], g_minMACDDq[];
+int g_maxSTDq[],   g_minSTDq[];
+
 //+------------------------------------------------------------------+
 //| Custom indicator initialization function                         |
 //+------------------------------------------------------------------+
@@ -80,6 +84,11 @@ int OnInit()
    if(hMAShort == INVALID_HANDLE) { Print("Failed to create iMA(",MAShort,") handle"); return INIT_FAILED; }
    hMALong = iMA(NULL, 0, MALong, 0, MODE_EMA, PRICE_CLOSE);
    if(hMALong == INVALID_HANDLE) { Print("Failed to create iMA(",MALong,") handle"); return INIT_FAILED; }
+
+   int dqCap = Cycle + 1;
+   if(ArrayResize(g_maxMACDDq, dqCap) == -1 || ArrayResize(g_minMACDDq, dqCap) == -1 ||
+      ArrayResize(g_maxSTDq,   dqCap) == -1 || ArrayResize(g_minSTDq,   dqCap) == -1)
+      return INIT_FAILED;
 
    return INIT_SUCCEEDED;
 }
@@ -110,15 +119,15 @@ int OnCalculate(const int rates_total,
                 const int &spread[])
 {
    if (rates_total <= BarsRequired) return(rates_total);
-   
+
    int counted_bars = prev_calculated;
-   
+
    double LLV = 0, HHV = 0;
-   int shift, n = 1, i;
+   int shift, i;
+   int n_macd = 0, n_st = 0;
    // Static variables are used to flag that we already have calculated curves from the previous indicator run.
    static bool st1_pass = false;
    static bool st2_pass = false;
-   int st1_count = 0;
    bool check_st1 = false, check_st2 = false;
 
    if (counted_bars < BarsRequired)
@@ -132,7 +141,7 @@ int OnCalculate(const int rates_total,
    if (counted_bars > 0) counted_bars--;
 
    shift = counted_bars - BarsRequired + MALong - 1;
-   
+
    if (shift < 0) shift = 0;
 
    // Incremental MA buffer update: full copy on first run, partial on ticks
@@ -160,63 +169,83 @@ int OnCalculate(const int rates_total,
       }
    }
 
+   // --- Monotone-deque O(1) sliding HHV/LLV over Cycle-sized windows ---
+   int dqCap = Cycle + 1;
+   int maxMH = 0, maxMT = 0, minMH = 0, minMT = 0;
+   int maxSH = 0, maxST = 0, minSH = 0, minST2 = 0;
+
+   // Pre-warmup: on incremental update, populate deques using already-stored MACD/ST values.
+   int warmStart = MathMax(0, shift - Cycle + 1);
+   for (int b = warmStart; b < shift; b++)
+   {
+      while (maxMT > maxMH && MACD[g_maxMACDDq[(maxMT - 1) % dqCap]] <= MACD[b]) maxMT--;
+      g_maxMACDDq[maxMT % dqCap] = b; maxMT++;
+      while (maxMH < maxMT && g_maxMACDDq[maxMH % dqCap] < b - Cycle + 1) maxMH++;
+      while (minMT > minMH && MACD[g_minMACDDq[(minMT - 1) % dqCap]] >= MACD[b]) minMT--;
+      g_minMACDDq[minMT % dqCap] = b; minMT++;
+      while (minMH < minMT && g_minMACDDq[minMH % dqCap] < b - Cycle + 1) minMH++;
+      n_macd++;
+
+      if (st1_pass)
+      {
+         while (maxST > maxSH && ST[g_maxSTDq[(maxST - 1) % dqCap]] <= ST[b]) maxST--;
+         g_maxSTDq[maxST % dqCap] = b; maxST++;
+         while (maxSH < maxST && g_maxSTDq[maxSH % dqCap] < b - Cycle + 1) maxSH++;
+         while (minST2 > minSH && ST[g_minSTDq[(minST2 - 1) % dqCap]] >= ST[b]) minST2--;
+         g_minSTDq[minST2 % dqCap] = b; minST2++;
+         while (minSH < minST2 && g_minSTDq[minSH % dqCap] < b - Cycle + 1) minSH++;
+         n_st++;
+      }
+   }
+
    while (shift < rates_total)
    {
-	   MACD[shift] = MAShortBuf[shift] - MALongBuf[shift];
-	   
-      if (n >= Cycle) check_st1 = true;
-      else n++;
-	
-      if (check_st1)  
+      MACD[shift] = MAShortBuf[shift] - MALongBuf[shift];
+
+      // Push MACD[shift] onto deques
+      while (maxMT > maxMH && MACD[g_maxMACDDq[(maxMT - 1) % dqCap]] <= MACD[shift]) maxMT--;
+      g_maxMACDDq[maxMT % dqCap] = shift; maxMT++;
+      while (maxMH < maxMT && g_maxMACDDq[maxMH % dqCap] < shift - Cycle + 1) maxMH++;
+      while (minMT > minMH && MACD[g_minMACDDq[(minMT - 1) % dqCap]] >= MACD[shift]) minMT--;
+      g_minMACDDq[minMT % dqCap] = shift; minMT++;
+      while (minMH < minMT && g_minMACDDq[minMH % dqCap] < shift - Cycle + 1) minMH++;
+
+      n_macd++;
+      if (n_macd >= Cycle) check_st1 = true;
+
+      if (check_st1)
       {
-         // Finding Max and Min on Cycle of MA differences (MACD).
-         for (i = 0; i < Cycle; i++)
-         {	
-            if (i == 0)
-            {
-               LLV = MACD[shift - i];
-               HHV = MACD[shift - i];
-            }
-            else
-            {
-               if (LLV > MACD[shift - i]) LLV = MACD[shift - i];
-               if (HHV < MACD[shift - i]) HHV = MACD[shift - i];
-            }
-         }
+         HHV = MACD[g_maxMACDDq[maxMH % dqCap]];
+         LLV = MACD[g_minMACDDq[minMH % dqCap]];
          // Calculating first Stochastic.
          if (HHV - LLV != 0) ST[shift] = ((MACD[shift] - LLV) / (HHV - LLV)) * 100;
-         else ST[shift] = ST[shift - 1];
-         
+         else ST[shift] = (shift > 0) ? ST[shift - 1] : 0;
+
          // Smoothing first Stochastic
-         if (st1_pass) ST[shift] = Factor * (ST[shift] - ST[shift - 1]) + ST[shift - 1];
+         if (st1_pass && shift > 0) ST[shift] = Factor * (ST[shift] - ST[shift - 1]) + ST[shift - 1];
          st1_pass = true;
-                  
-         // Have enough elements of first Stochastic to proceed to second.
-         if (st1_count >= Cycle) check_st2 = true;
-         else st1_count++;
-         
+
+         // Push ST[shift] onto deques
+         while (maxST > maxSH && ST[g_maxSTDq[(maxST - 1) % dqCap]] <= ST[shift]) maxST--;
+         g_maxSTDq[maxST % dqCap] = shift; maxST++;
+         while (maxSH < maxST && g_maxSTDq[maxSH % dqCap] < shift - Cycle + 1) maxSH++;
+         while (minST2 > minSH && ST[g_minSTDq[(minST2 - 1) % dqCap]] >= ST[shift]) minST2--;
+         g_minSTDq[minST2 % dqCap] = shift; minST2++;
+         while (minSH < minST2 && g_minSTDq[minSH % dqCap] < shift - Cycle + 1) minSH++;
+
+         n_st++;
+         if (n_st >= Cycle) check_st2 = true;
+
          if (check_st2)
          {
-            // Finding Max and Min on Cycle of first smoothed Stochastic.
-            for (i = 0; i < Cycle; i++)
-            {	
-               if (i == 0)
-               {
-                  LLV = ST[shift - i];
-                  HHV = ST[shift - i];
-               }
-               else
-               {
-                  if (LLV > ST[shift - i]) LLV = ST[shift - i];
-                  if (HHV < ST[shift - i]) HHV = ST[shift - i];
-               }
-            }
+            HHV = ST[g_maxSTDq[maxSH % dqCap]];
+            LLV = ST[g_minSTDq[minSH % dqCap]];
             // Calculating second Stochastic.
             if (HHV - LLV != 0) ST2[shift] = ((ST[shift] - LLV) / (HHV - LLV)) * 100;
-            else ST2[shift] = ST2[shift - 1];
-            
+            else ST2[shift] = (shift > 0) ? ST2[shift - 1] : 0;
+
             // Smoothing second Stochastic.
-            if (st2_pass) ST2[shift] = Factor * (ST2[shift] - ST2[shift - 1]) + ST2[shift - 1];
+            if (st2_pass && shift > 0) ST2[shift] = Factor * (ST2[shift] - ST2[shift - 1]) + ST2[shift - 1];
             st2_pass = true;
          }
       }

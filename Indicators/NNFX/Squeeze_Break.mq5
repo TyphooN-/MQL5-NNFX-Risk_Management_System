@@ -91,21 +91,39 @@ int OnCalculate(const int rates_total,
    if (limit > rates_total - lookback) limit = rates_total - lookback;
    if (limit < 0) limit = 0;
 
+   // --- O(1) sliding running sums (window = [pos, pos+P-1]) ---
+   double sumHi = 0, sumLo = 0, sumTP = 0;
+   for (int j = 0; j < KeltnerPeriod; j++)
+   {
+      sumHi += high[limit + j];
+      sumLo += low[limit + j];
+      sumTP += (high[limit + j] + low[limit + j] + close[limit + j]) / 3.0;
+   }
+   double sumCl = 0, sumClSq = 0;
+   for (int j = 0; j < BollPeriod; j++)
+   {
+      double c = close[limit + j];
+      sumCl   += c;
+      sumClSq += c * c;
+   }
+
+   double invKP = 1.0 / KeltnerPeriod;
+   double invBP = 1.0 / BollPeriod;
+
    for (int i = limit; i >= 0; i--)
    {
       // --- Keltner Channel (SMA of High/Low/Typical) ---
-      double maHi  = SMA(high, KeltnerPeriod, i);
-      double maLo  = SMA(low,  KeltnerPeriod, i);
-      double keltMid = 0;
-      for (int j = 0; j < KeltnerPeriod; j++)
-         keltMid += (high[i + j] + low[i + j] + close[i + j]) / 3.0;
-      keltMid /= KeltnerPeriod;
+      double maHi   = sumHi * invKP;
+      double maLo   = sumLo * invKP;
+      double keltMid = sumTP * invKP;
       double keltUpper = keltMid + (maHi - maLo) * KeltnerMul;
       double keltLower = keltMid - (maHi - maLo) * KeltnerMul;
 
-      // --- Bollinger Bands ---
-      double bollMid = SMA(close, BollPeriod, i);
-      double stddev  = StdDev(close, BollPeriod, i, bollMid);
+      // --- Bollinger Bands (running sum + sum-of-squares variance) ---
+      double bollMid = sumCl * invBP;
+      double var     = (sumClSq - sumCl * sumCl * invBP) * invBP;
+      if (var < 0) var = 0;
+      double stddev  = MathSqrt(var);
       double bollUpper = bollMid + BollDev * stddev;
       double bollLower = bollMid - BollDev * stddev;
 
@@ -140,24 +158,25 @@ int OnCalculate(const int rates_total,
          g_lastAlertTime = time[0];
       }
       if (i == 0) g_prevSqueeze = squeeze;
+
+      // --- Slide window: bar to add is (i-1), bar to remove falls off the window ---
+      if (i > 0)
+      {
+         int add_k  = i - 1;
+         int rem_kk = add_k + KeltnerPeriod;
+         sumHi += high[add_k] - high[rem_kk];
+         sumLo += low[add_k]  - low[rem_kk];
+         sumTP += (high[add_k] + low[add_k] + close[add_k]) / 3.0
+                - (high[rem_kk] + low[rem_kk] + close[rem_kk]) / 3.0;
+
+         int rem_bb = add_k + BollPeriod;
+         double c_add = close[add_k];
+         double c_rem = close[rem_bb];
+         sumCl   += c_add - c_rem;
+         sumClSq += c_add * c_add - c_rem * c_rem;
+      }
    }
    return rates_total;
 }
 
-//+------------------------------------------------------------------+
-//| Helper functions                                                 |
-//+------------------------------------------------------------------+
-double SMA(const double &a[], int p, int s)
-{
-   double sum = 0;
-   for (int i = 0; i < p; i++) sum += a[s + i];
-   return sum / p;
-}
-
-double StdDev(const double &a[], int p, int s, double mean)
-{
-   double sq = 0;
-   for (int i = 0; i < p; i++) { double d = a[s + i] - mean; sq += d * d; }
-   return MathSqrt(sq / p);
-}
 //+------------------------------------------------------------------+

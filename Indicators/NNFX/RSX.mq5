@@ -81,21 +81,45 @@ double iCorrMa(double _avg, double price, int period, int i, int _bars, int inst
       workCorrMa[i][_price] = price;
       workCorrMa[i][_orig]  = _avg;
 
-      //
-      //---
-      //
-      
-      double oldMean   = price;
-      double newMean   = price;
-      double squares   = 0; int k=1;
-      for (; k<period && (i-k)>=0; k++)
+      //--- Running-sum variance over window [max(0,i-period+1), i] (population variance).
+      //--- Rebuilds on restart (first call, period change, out-of-order i); incremental otherwise.
+      static double s_sum    = 0;
+      static double s_sumSq  = 0;
+      static int    s_lastI  = -2;
+      static int    s_period = -1;
+
+      if (s_period != period || i != s_lastI + 1)
       {
-         newMean  = (workCorrMa[i-k][_price]-oldMean)/(k+1)+oldMean;
-         squares += (workCorrMa[i-k][_price]-oldMean)*(workCorrMa[i-k][_price]-newMean);
-         oldMean  = newMean;
+         s_sum = 0; s_sumSq = 0;
+         int start = MathMax(0, i - period + 1);
+         for (int j = start; j <= i; j++)
+         {
+            double p = workCorrMa[j][_price];
+            s_sum   += p;
+            s_sumSq += p * p;
+         }
+         s_period = period;
       }
-      double _deviation = MathSqrt(squares/k);
-      double v1         = MathPow(_deviation,2);
+      else
+      {
+         s_sum   += price;
+         s_sumSq += price * price;
+         int old = i - period;
+         if (old >= 0)
+         {
+            double po = workCorrMa[old][_price];
+            s_sum   -= po;
+            s_sumSq -= po * po;
+         }
+      }
+      s_lastI = i;
+
+      int    n        = (i + 1 < period) ? (i + 1) : period;
+      double mean     = s_sum / n;
+      double variance = s_sumSq / n - mean * mean;
+      if (variance < 0) variance = 0;
+
+      double v1         = variance;
       double v2         = (i>0) ? MathPow(workCorrMa[i-1][_corr]-workCorrMa[i][_orig],2) : 0;
       double c          = (v2<v1||v2==0) ? 0 : 1-v1/v2;
           workCorrMa[i][_corr] = (i>0) ? workCorrMa[i-1][_corr]+c*(workCorrMa[i][_orig]-workCorrMa[i-1][_corr]) : workCorrMa[i][_orig];

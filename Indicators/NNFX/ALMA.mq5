@@ -90,6 +90,9 @@ input enFilter fltFilterOn = flt_val;  // Filter to be applied to :
 double MaBuffer[],levup[],levmi[],levdn[];
 double ColorBuffer[];
 
+//--- Monotone deques for O(1) amortized MaBuffer min/max over flLookBack window
+int g_almaMaxDq[], g_almaMinDq[];
+
 //------------------------------------------------------------------
 //                                                                  
 //------------------------------------------------------------------
@@ -107,6 +110,9 @@ int OnInit()
    SetIndexBuffer(0,MaBuffer,INDICATOR_DATA);
    SetIndexBuffer(1,ColorBuffer,INDICATOR_COLOR_INDEX);
    IndicatorSetString(INDICATOR_SHORTNAME,"Alma ("+(string)AlmaPeriod+","+(string)AlmaSigma+","+(string)AlmaSample+")");
+   int dqCap = flLookBack + 1;
+   if(ArrayResize(g_almaMaxDq, dqCap) == -1 || ArrayResize(g_almaMinDq, dqCap) == -1)
+      return INIT_FAILED;
    return(0);
 }
 
@@ -141,17 +147,36 @@ int OnCalculate(const int rates_total,const int prev_calculated,
       int    fperiod = fltPeriod; if (fperiod<=0)           fperiod=AlmaPeriod;
       double pfilter = fltFilter; if (fltFilterOn==flt_val) pfilter=0;
       double vfilter = fltFilter; if (fltFilterOn==flt_prc) vfilter=0;
-      for (int i=(int)MathMax(prev_calculated-1,0); i<rates_total && !IsStopped(); i++)
+
+      //--- Monotone deque over MaBuffer for O(1) sliding min/max (window = flLookBack)
+      int    dqCap = flLookBack + 1;
+      int    firstOutput = (int)MathMax(prev_calculated - 1, 0);
+      int    dqStart     = (int)MathMax(firstOutput - flLookBack + 1, 0);
+      int    maxH = 0, maxT = 0, minH = 0, minT = 0;
+      //--- Pre-warmup: seed deques with already-written MaBuffer values from previous calls
+      for (int b = dqStart; b < firstOutput; b++)
+      {
+         while (maxT > maxH && MaBuffer[g_almaMaxDq[(maxT - 1) % dqCap]] <= MaBuffer[b]) maxT--;
+         g_almaMaxDq[maxT % dqCap] = b; maxT++;
+         while (maxH < maxT && g_almaMaxDq[maxH % dqCap] < b - flLookBack + 1) maxH++;
+         while (minT > minH && MaBuffer[g_almaMinDq[(minT - 1) % dqCap]] >= MaBuffer[b]) minT--;
+         g_almaMinDq[minT % dqCap] = b; minT++;
+         while (minH < minT && g_almaMinDq[minH % dqCap] < b - flLookBack + 1) minH++;
+      }
+
+      for (int i = firstOutput; i<rates_total && !IsStopped(); i++)
       {
          double price = iFilter(getPrice(AlmaPrice,open,close,high,low,rates_total,i),pfilter,fperiod,i,rates_total,0);
                 MaBuffer[i] = iFilter(iAlma(price,AlmaPeriod,AlmaSigma,AlmaSample,rates_total,i),vfilter,fperiod,i,rates_total,1);
-                double min = MaBuffer[i];
-                double max = MaBuffer[i];
-                  for (int k=1; k<flLookBack && i-k>=0; k++)
-                  {
-                     min = MathMin(MaBuffer[i-k],min);
-                     max = MathMax(MaBuffer[i-k],max);
-                  }
+                //--- Push MaBuffer[i] onto max/min deques
+                while (maxT > maxH && MaBuffer[g_almaMaxDq[(maxT - 1) % dqCap]] <= MaBuffer[i]) maxT--;
+                g_almaMaxDq[maxT % dqCap] = i; maxT++;
+                while (maxH < maxT && g_almaMaxDq[maxH % dqCap] < i - flLookBack + 1) maxH++;
+                while (minT > minH && MaBuffer[g_almaMinDq[(minT - 1) % dqCap]] >= MaBuffer[i]) minT--;
+                g_almaMinDq[minT % dqCap] = i; minT++;
+                while (minH < minT && g_almaMinDq[minH % dqCap] < i - flLookBack + 1) minH++;
+                double min = MaBuffer[g_almaMinDq[minH % dqCap]];
+                double max = MaBuffer[g_almaMaxDq[maxH % dqCap]];
                 double range = max-min;
                 levup[i] = min+flLevelUp*range/100.0;
                 levdn[i] = min+flLevelDown*range/100.0;

@@ -82,24 +82,41 @@ int OnCalculate(const int rates_total,
       ArrayInitialize(ExtBufferTMP,0);
      }
      
-//--- calculation Chaikin Money Flow
-   for(int i=limit;i>=0;i--)
+//--- refresh Money Flow Multiplier for all bars being recalculated
+   for(int k=limit;k>=0;k--)
      {
-      //--- find the Money Flow Multiplier and calculate Money Flow Volume (MFM * Volume)
-      ExtBufferTMP[i]=((close[i]==high[i] && close[i]==low[i]) || high[i]==low[i] ? 0 : ((2*close[i]-low[i]-high[i])/(high[i]-low[i]))*(InpVolume==VOLUME_TICK ? tick_volume[i] : volume[i]));
-      int count=length;
-      if(i+count>rates_total-1)
-         count=rates_total-1-i;
-      if(count==0)
-         continue;
-      //--- sum MFM and volume directly (avoids per-bar ArrayCopy + vector allocation)
-      double sum_mfm=0, sum_mfv=0;
-      for(int j=0; j<count; j++)
+      ExtBufferTMP[k]=((close[k]==high[k] && close[k]==low[k]) || high[k]==low[k] ? 0 : ((2*close[k]-low[k]-high[k])/(high[k]-low[k]))*(InpVolume==VOLUME_TICK ? tick_volume[k] : volume[k]));
+     }
+
+//--- running-sum sliding window (window = bars [i, i+count-1], count capped at length)
+   double sum_mfm=0, sum_mfv=0;
+   int    window_size=0;
+   int    init_count=(int)length;
+   if(limit+init_count>rates_total-1)
+      init_count=rates_total-1-limit;
+   if(init_count<0)
+      init_count=0;
+   for(int k=0; k<init_count; k++)
+     {
+      sum_mfm += ExtBufferTMP[limit+k];
+      sum_mfv += (double)(InpVolume==VOLUME_TICK ? tick_volume[limit+k] : volume[limit+k]);
+     }
+   window_size=init_count;
+   if(window_size>0)
+      ExtBufferCMF[limit]=sum_mfm/(sum_mfv!=0 ? sum_mfv : 1.0);
+
+   for(int i=limit-1; i>=0; i--)
+     {
+      sum_mfm += ExtBufferTMP[i];
+      sum_mfv += (double)(InpVolume==VOLUME_TICK ? tick_volume[i] : volume[i]);
+      window_size++;
+      if(window_size>(int)length)
         {
-         sum_mfm += ExtBufferTMP[i+j];
-         sum_mfv += (double)(InpVolume==VOLUME_TICK ? tick_volume[i+j] : volume[i+j]);
+         int old_idx=i+(int)length;
+         sum_mfm -= ExtBufferTMP[old_idx];
+         sum_mfv -= (double)(InpVolume==VOLUME_TICK ? tick_volume[old_idx] : volume[old_idx]);
+         window_size--;
         }
-      //--- calculate the CMF
       ExtBufferCMF[i]=sum_mfm/(sum_mfv!=0 ? sum_mfv : 1.0);
      }
       
