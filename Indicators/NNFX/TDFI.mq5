@@ -54,12 +54,15 @@ enum enMaTypes
 input int        trendPeriod = 20;       // Period
 
 input enMaTypes  trendMaType = ma_ema;   // Moving average method
-input enPrices   trendPrice  = pr_close; // Price 
+input enPrices   trendPrice  = pr_close; // Price
 input double     SmoothLength = 20;      // Smoothing period
 input double     SmoothPhase  = 0;       // Smoothing phase
 input double    dead_zone    =  0.05;   // Dead-zone
 
 double TrendBuffer[],MMABuffer[],SMMABuffer[],TDFBuffer[];
+
+//--- Monotone max-deque over |TDFBuffer| for O(1) amortized sliding window max
+int g_absDq[];
 
 //------------------------------------------------------------------
 //
@@ -78,6 +81,8 @@ int OnInit()
    SetIndexBuffer(3,TDFBuffer,  INDICATOR_CALCULATIONS);
    IndicatorSetInteger(INDICATOR_LEVELS,0);
    IndicatorSetString(INDICATOR_SHORTNAME,"trend direction and force ("+(string)trendPeriod+")");
+   int dqCap = trendPeriod * 3 + 1;
+   if(ArrayResize(g_absDq, dqCap) == -1) return INIT_FAILED;
    return(0);
 }
 
@@ -101,15 +106,25 @@ int OnCalculate(const int rates_total,const int prev_calculated,
                 const int &Spread[])
 {
    if (Bars(_Symbol,_Period)<rates_total) return(-1);
-   
-   //
-   //
-   //
-   //
-   //
-    
-   double alpha = 2.0 /(trendPeriod+1.0); 
-   for (int i=(int)fmax(prev_calculated-1,0); i<rates_total; i++)
+
+   //--- Monotone max-deque over |TDFBuffer| for O(1) amortized sliding max
+   int dqCap = trendPeriod * 3 + 1;
+   int window = trendPeriod * 3;
+   int firstOutput = (int)fmax(prev_calculated - 1, 0);
+   int startBar    = (int)fmax(firstOutput - window + 1, 0);
+   int maxH = 0, maxT = 0;
+
+   //--- Pre-warmup: seed deque using already-computed TDFBuffer[] values
+   for (int b = startBar; b < firstOutput; b++)
+   {
+      double va = MathAbs(TDFBuffer[b]);
+      while (maxT > maxH && MathAbs(TDFBuffer[g_absDq[(maxT - 1) % dqCap]]) <= va) maxT--;
+      g_absDq[maxT % dqCap] = b; maxT++;
+      while (maxH < maxT && g_absDq[maxH % dqCap] < b - window + 1) maxH++;
+   }
+
+   double alpha = 2.0 /(trendPeriod+1.0);
+   for (int i = firstOutput; i < rates_total && !IsStopped(); i++)
    {
        double price  = getPrice(trendPrice,open,close,high,low,i,rates_total);
        MMABuffer[i]  = iCustomMa(trendMaType,price,trendPeriod,i,rates_total,0);
@@ -121,39 +136,20 @@ int OnCalculate(const int rates_total,const int prev_calculated,
               double averimpet = (impetmma+impetsmma)/(2*ptSize);
         TDFBuffer[i] = divma*MathPow(averimpet,3);
 
-               //
-               //
-               //
-               //
-               //
-               
-               double absValue = absHighest(TDFBuffer,trendPeriod*3,i,rates_total);
-               if (absValue > 0)
-                     TrendBuffer[i] = iSmooth(TDFBuffer[i]/absValue,SmoothLength,SmoothPhase,i,rates_total,0);
-               else  TrendBuffer[i] = iSmooth(0.00,                 SmoothLength,SmoothPhase,i,rates_total,0);
-               
-               TrendBuffer[i] = MathAbs(TrendBuffer[i]) - dead_zone;
-      
+        //--- Push |TDFBuffer[i]| onto max-deque and evict expired indices
+        double vi = MathAbs(TDFBuffer[i]);
+        while (maxT > maxH && MathAbs(TDFBuffer[g_absDq[(maxT - 1) % dqCap]]) <= vi) maxT--;
+        g_absDq[maxT % dqCap] = i; maxT++;
+        while (maxH < maxT && g_absDq[maxH % dqCap] < i - window + 1) maxH++;
+
+        double absValue = MathAbs(TDFBuffer[g_absDq[maxH % dqCap]]);
+        if (absValue > 0)
+              TrendBuffer[i] = iSmooth(TDFBuffer[i]/absValue,SmoothLength,SmoothPhase,i,rates_total,0);
+        else  TrendBuffer[i] = iSmooth(0.00,                 SmoothLength,SmoothPhase,i,rates_total,0);
+
+        TrendBuffer[i] = MathAbs(TrendBuffer[i]) - dead_zone;
    }
    return(rates_total);
-}
-
-//------------------------------------------------------------------
-//
-//------------------------------------------------------------------
-//
-//
-//
-//
-//
-
-double absHighest(double& array[], int length,int i, int bars)
-{
-   double result = 0.00;
-   for (int k=0; k<length && i-k>=0; k++)
-      if (result < MathAbs(array[i-k]))
-          result = MathAbs(array[i-k]);
-   return(result);          
 }
 
 //------------------------------------------------------------------

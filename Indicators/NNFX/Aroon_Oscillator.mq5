@@ -59,6 +59,11 @@ input int AroonShift = 0; // horizontal shift of the indicator in bars
 // will be used as indicator buffers
 double BullsAroonBuffer[];
 double BearsAroonBuffer[];
+
+//--- Monotone deques for O(1) amortized sliding-window HH/LL over AroonPeriod
+//--- Strict inequalities preserve original's "oldest wins on tie" semantics
+int g_maxDq[], g_minDq[];
+
 //+------------------------------------------------------------------+
 //| Custom indicator initialization function                         |
 //+------------------------------------------------------------------+
@@ -93,6 +98,10 @@ int OnInit()
    IndicatorSetString(INDICATOR_SHORTNAME,shortname);
 //--- determination of accuracy of displaying of the indicator values
    IndicatorSetInteger(INDICATOR_DIGITS,0);
+//--- Pre-allocate deques
+   int dqCap = AroonPeriod + 1;
+   if(ArrayResize(g_maxDq, dqCap) == -1 || ArrayResize(g_minDq, dqCap) == -1)
+      return INIT_FAILED;
 //----
    return INIT_SUCCEEDED;
   }
@@ -131,14 +140,34 @@ int OnCalculate(
 
    else first=prev_calculated-1; // starting number for calculation of new bars
 
-//---- main cycle of calculation of the indicator
-   for(bar=first; bar<rates_total; bar++)
-     {
-      //---- calculation of the indicator values
-      BULLS = 100 - getHighestIndex(high, bar) * 100.0 / AroonPeriod;
-      BEARS = 100 - getLowestIndex(low, bar) * 100.0 / AroonPeriod;
+//--- Monotone deque sliding window: O(1) amortized HH/LL over AroonPeriod
+//--- Strict `<` / `>` in eviction preserves original's "oldest wins on tie" semantics,
+//--- where front-of-deque holds the EARLIEST index at the current max/min value.
+   int dqCap = AroonPeriod + 1;
+   int startBar = (int)MathMax(first - AroonPeriod + 1, 0);
+   int maxH = 0, maxT = 0, minH = 0, minT = 0;
 
-      //---- initialization of cells of the indicator buffers with obtained values
+   for(bar = startBar; bar < rates_total && !IsStopped(); bar++)
+     {
+      int windowStart = bar - AroonPeriod + 1;
+      if(windowStart < 0) windowStart = 0;
+
+      //--- Push high[bar] onto max-deque (strict < keeps earlier ties at front)
+      while(maxT > maxH && high[g_maxDq[(maxT - 1) % dqCap]] < high[bar]) maxT--;
+      g_maxDq[maxT % dqCap] = bar; maxT++;
+      while(maxH < maxT && g_maxDq[maxH % dqCap] < windowStart) maxH++;
+
+      //--- Push low[bar] onto min-deque (strict > keeps earlier ties at front)
+      while(minT > minH && low[g_minDq[(minT - 1) % dqCap]] > low[bar]) minT--;
+      g_minDq[minT % dqCap] = bar; minT++;
+      while(minH < minT && g_minDq[minH % dqCap] < windowStart) minH++;
+
+      if(bar < first) continue; // seeding only
+
+      int hiIdx = g_maxDq[maxH % dqCap];
+      int loIdx = g_minDq[minH % dqCap];
+      BULLS = 100 - (bar - hiIdx) * 100.0 / AroonPeriod;
+      BEARS = 100 - (bar - loIdx) * 100.0 / AroonPeriod;
       BullsAroonBuffer[bar] = BULLS;
       BearsAroonBuffer[bar] = BEARS;
      }
@@ -146,37 +175,3 @@ int OnCalculate(
    return(rates_total);
   }
 //+------------------------------------------------------------------+
-
-int getHighestIndex(const double &high[], int startIndex){
-   double highestValue = -1;
-   int highestIndex = 0;
-   int loopStart = MathMax(startIndex - AroonPeriod + 1, 0);
-
-   for(int a=loopStart; a<=startIndex; a++){
-      double value = high[a];
-
-      if(value > highestValue){
-         highestIndex = startIndex - a;
-         highestValue = value;
-      }
-   }
-
-   return highestIndex;
-}
-
-int getLowestIndex(const double &low[], int startIndex){
-   double lowestValue = DBL_MAX;
-   int lowestIndex = 0;
-   int loopStart = MathMax(startIndex - AroonPeriod + 1, 0);
-
-   for(int a=loopStart; a<=startIndex; a++){
-      double value = low[a];
-
-      if(value < lowestValue){
-         lowestIndex = startIndex - a;
-         lowestValue = value;
-      }
-   }
-
-   return lowestIndex;
-}

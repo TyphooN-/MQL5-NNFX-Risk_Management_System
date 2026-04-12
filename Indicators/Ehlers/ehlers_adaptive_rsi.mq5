@@ -34,6 +34,9 @@ double highPassBuf[];
 double denomBuf[];
 double work[];
 
+//--- Prefix sums of |Δfilt|⁺ / |Δfilt|⁻ for O(1) window sums
+double g_cumPos[], g_cumNeg[];
+
 EhlersHPCoeffs  g_hp;
 EhlersLPCoeffs  g_lp;
 DominantCycleState g_dc;
@@ -67,6 +70,9 @@ int OnCalculate(const int rates_total,
    if (rates_total < hpPeriod + 3) return 0;
    if (ArrayRange(work, 0) != rates_total)
       if (ArrayResize(work, rates_total) == -1) return 0;
+   if (ArrayRange(g_cumPos, 0) != rates_total)
+      if (ArrayResize(g_cumPos, rates_total) == -1 ||
+          ArrayResize(g_cumNeg, rates_total) == -1) return 0;
 
    if (prev_calculated == 0) { ResetDominantCycle(g_dc); g_closesUpOld = 0; }
    int start = (int)MathMax(prev_calculated - 1, 0);
@@ -75,6 +81,17 @@ int OnCalculate(const int rates_total,
       work[i]        = getPrice(Price, open, close, high, low, i, rates_total);
       highPassBuf[i] = HighPass(g_hp, work, highPassBuf, i);
       filtBuf[i]     = LowPass(g_lp, highPassBuf, filtBuf, i);
+
+      //--- Incremental prefix sums of positive/negative filt deltas
+      double pd = 0, nd = 0;
+      if (i > 0)
+      {
+         double d = filtBuf[i] - filtBuf[i-1];
+         if (d > 0)      pd = d;
+         else if (d < 0) nd = -d;
+      }
+      g_cumPos[i] = (i > 0 ? g_cumPos[i-1] : 0) + pd;
+      g_cumNeg[i] = (i > 0 ? g_cumNeg[i-1] : 0) + nd;
 
       if (i <= hpPeriod + 1)
       {
@@ -87,13 +104,18 @@ int OnCalculate(const int rates_total,
       int rsiDomCycle = (int)(domCycle / 2.0 - 1.0);
       if (rsiDomCycle < 0) rsiDomCycle = 0;
 
-      double closeUp = 0, closeDown = 0;
-      for (int c = 0; c <= rsiDomCycle; c++)
+      //--- Window sum of posDelta/negDelta over [i-rsiDomCycle, i]
+      int lowIdx = i - rsiDomCycle - 1;
+      double closeUp, closeDown;
+      if (lowIdx >= 0)
       {
-         if (filtBuf[i-c] > filtBuf[i-c-1])
-            closeUp += filtBuf[i-c] - filtBuf[i-c-1];
-         if (filtBuf[i-c] < filtBuf[i-c-1])
-            closeDown += filtBuf[i-c-1] - filtBuf[i-c];
+         closeUp   = g_cumPos[i] - g_cumPos[lowIdx];
+         closeDown = g_cumNeg[i] - g_cumNeg[lowIdx];
+      }
+      else
+      {
+         closeUp   = g_cumPos[i];
+         closeDown = g_cumNeg[i];
       }
 
       denomBuf[i] = closeUp + closeDown;

@@ -47,6 +47,9 @@ int            weight_sum_bl;
 int            weight_sum_br;
 int            weight_sum_sbl;
 int            weight_sum_sbr;
+//--- Monotone deques for O(1) amortized HH/LL over period_ind (MODE_STO only)
+int            g_ashMaxDq[];
+int            g_ashMinDq[];
 //--- includes
 #include <MovingAverages.mqh>
 //+------------------------------------------------------------------+
@@ -80,6 +83,10 @@ int OnInit()
       Print("The iMA(1) object was not created: Error ",GetLastError());
       return INIT_FAILED;
      }
+//--- Pre-allocate deques for sliding HH/LL (MODE_STO)
+   int dqCap = period_ind + 1;
+   if(ArrayResize(g_ashMaxDq, dqCap) == -1 || ArrayResize(g_ashMinDq, dqCap) == -1)
+      return INIT_FAILED;
 //---
    return(INIT_SUCCEEDED);
   }
@@ -128,6 +135,23 @@ int OnCalculate(const int rates_total,
    copied=CopyBuffer(handle_ma,0,0,bars,BufferMA);
    if(copied!=bars) return 0;
 
+//--- Pre-warmup monotone deques from bars [start-period_ind+1, start-1] (MODE_STO)
+   int dqCap = period_ind + 1;
+   int maxH = 0, maxT = 0, minH = 0, minT = 0;
+   if(InpMode == MODE_STO)
+     {
+      int seedStart = (int)fmax(0, start - period_ind + 1);
+      for(int b = seedStart; b < start; b++)
+        {
+         while(maxT > maxH && high[g_ashMaxDq[(maxT - 1) % dqCap]] <= high[b]) maxT--;
+         g_ashMaxDq[maxT % dqCap] = b; maxT++;
+         while(maxH < maxT && g_ashMaxDq[maxH % dqCap] < b - period_ind + 1) maxH++;
+         while(minT > minH && low[g_ashMinDq[(minT - 1) % dqCap]]  >= low[b])  minT--;
+         g_ashMinDq[minT % dqCap] = b; minT++;
+         while(minH < minT && g_ashMinDq[minH % dqCap] < b - period_ind + 1) minH++;
+        }
+     }
+
    for(int i=start; i<rates_total && !IsStopped(); i++)
      {
       double Pr0=BufferMA[i];
@@ -140,12 +164,15 @@ int OnCalculate(const int rates_total,
         }
       else
         {
-         int bh=Highest(high,period_ind,i);
-         int bl=Lowest(low,period_ind,i);
-         if(bh==WRONG_VALUE || bl==WRONG_VALUE)
-            continue;
-         double max=high[bh];
-         double min=low[bl];
+         while(maxT > maxH && high[g_ashMaxDq[(maxT - 1) % dqCap]] <= high[i]) maxT--;
+         g_ashMaxDq[maxT % dqCap] = i; maxT++;
+         while(maxH < maxT && g_ashMaxDq[maxH % dqCap] < i - period_ind + 1) maxH++;
+         while(minT > minH && low[g_ashMinDq[(minT - 1) % dqCap]]  >= low[i])  minT--;
+         g_ashMinDq[minT % dqCap] = i; minT++;
+         while(minH < minT && g_ashMinDq[minH % dqCap] < i - period_ind + 1) minH++;
+
+         double max = high[g_ashMaxDq[maxH % dqCap]];
+         double min = low[g_ashMinDq[minH % dqCap]];
          BufferBL[i]=Pr0-min;
          BufferBR[i]=max-Pr0;
         }
@@ -200,35 +227,5 @@ int OnCalculate(const int rates_total,
 
 //--- return value of prev_calculated for next call
    return(rates_total);
-  }
-//+------------------------------------------------------------------+
-//| Returns index of highest value in lookback window (ascending)    |
-//+------------------------------------------------------------------+
-int Highest(const double &h[],const int count,const int start)
-  {
-   if(start<0) return WRONG_VALUE;
-   int idx=start;
-   double mx=h[start];
-   for(int i=1; i<count; i++)
-     {
-      if(start-i<0) break;
-      if(h[start-i]>mx) { mx=h[start-i]; idx=start-i; }
-     }
-   return idx;
-  }
-//+------------------------------------------------------------------+
-//| Returns index of lowest value in lookback window (ascending)     |
-//+------------------------------------------------------------------+
-int Lowest(const double &l[],const int count,const int start)
-  {
-   if(start<0) return WRONG_VALUE;
-   int idx=start;
-   double mn=l[start];
-   for(int i=1; i<count; i++)
-     {
-      if(start-i<0) break;
-      if(l[start-i]<mn) { mn=l[start-i]; idx=start-i; }
-     }
-   return idx;
   }
 //+------------------------------------------------------------------+

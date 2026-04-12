@@ -56,6 +56,10 @@ double g_calcOne[];
 double g_calcTwo[];
 // CrossOver state (reset on full recalc to avoid stale values)
 double g_swValue=0, g_swValue1=0, g_swFish=0;
+// Precomputed per-bar max(high) / min(low) over [workBar, workBar+period-1] (series)
+double g_maxHighBuf[], g_minLowBuf[];
+// Monotone deques for O(1) amortized sliding HH/LL
+int g_maxDq[], g_minDq[];
 //--- References for Indicator Coloring ----------
 enum EnumPlotClrs          { ENUM_LONG_CLR,     ENUM_SHORT_CLR };
 //
@@ -81,6 +85,8 @@ int OnInit()
    ArraySetAsSeries(g_calcZero,true);
    ArraySetAsSeries(g_calcOne,true);
    ArraySetAsSeries(g_calcTwo,true);
+   ArraySetAsSeries(g_maxHighBuf,true);
+   ArraySetAsSeries(g_minLowBuf, true);
    //
    IndicatorSetInteger(INDICATOR_DIGITS,_Digits+1);
    SetIndexBuffer(0,g_windLine,INDICATOR_DATA);
@@ -92,6 +98,10 @@ int OnInit()
    SetIndexBuffer(4,g_calcZero,INDICATOR_CALCULATIONS);
    SetIndexBuffer(5,g_calcOne,INDICATOR_CALCULATIONS);
    SetIndexBuffer(6,g_calcTwo,INDICATOR_CALCULATIONS);
+   //--- Pre-allocate monotone deques (size period+1)
+   int dqCap = period + 1;
+   if(ArrayResize(g_maxDq, dqCap) == -1 || ArrayResize(g_minDq, dqCap) == -1)
+      return INIT_FAILED;
    //---- initialization done
    return retCode;
  }
@@ -193,6 +203,27 @@ bool RunTheIndicator(const int& firstWorkBar) // main indicator calculations
       ArraySetAsSeries(lowBuf, true);
       if (CopyHigh(_Symbol, 0, 0, needBars, highBuf) < needBars) return false;
       if (CopyLow(_Symbol, 0, 0, needBars, lowBuf) < needBars) return false;
+      //--- Precompute window max/min via monotone deques (O(1) amortized per bar)
+      if (ArraySize(g_maxHighBuf) < needBars)
+         if (ArrayResize(g_maxHighBuf, needBars) == -1) return false;
+      if (ArraySize(g_minLowBuf) < needBars)
+         if (ArrayResize(g_minLowBuf, needBars) == -1) return false;
+      int dqCap = period + 1;
+      int maxH = 0, maxT = 0, minH = 0, minT = 0;
+      for (int b = firstWorkBar + period - 1; b >= 0; b--)
+      {
+         while (maxT > maxH && highBuf[g_maxDq[(maxT - 1) % dqCap]] <= highBuf[b]) maxT--;
+         g_maxDq[maxT % dqCap] = b; maxT++;
+         while (maxH < maxT && g_maxDq[maxH % dqCap] > b + period - 1) maxH++;
+         while (minT > minH && lowBuf[g_minDq[(minT - 1) % dqCap]]  >= lowBuf[b])  minT--;
+         g_minDq[minT % dqCap] = b; minT++;
+         while (minH < minT && g_minDq[minH % dqCap] > b + period - 1) minH++;
+         if (b <= firstWorkBar)
+         {
+            g_maxHighBuf[b] = highBuf[g_maxDq[maxH % dqCap]];
+            g_minLowBuf[b]  = lowBuf[g_minDq[minH % dqCap]];
+         }
+      }
       SetCrossOverValue( firstWorkBar, g_calcZero, g_calcOne, highBuf, lowBuf );
       MakeWindLine( firstWorkBar, g_calcOne, g_calcTwo, g_windLine, g_windLineClrIdx, g_histogram, g_histogramClrIdx);
       //
@@ -230,13 +261,8 @@ void DoTheCrossOverCalc(const int& workBar, double& calcZero[], double& calcOne[
  {
    double &Value=g_swValue, &Value1=g_swValue1, &Fish=g_swFish;
    double price, MinL, MaxH;
-   MaxH = highBuf[workBar];
-   MinL = lowBuf[workBar];
-   for (int k = 1; k < period; k++)
-   {
-      if (highBuf[workBar + k] > MaxH) MaxH = highBuf[workBar + k];
-      if (lowBuf[workBar + k] < MinL) MinL = lowBuf[workBar + k];
-   }
+   MaxH = g_maxHighBuf[workBar];
+   MinL = g_minLowBuf[workBar];
    price = (highBuf[workBar] + lowBuf[workBar]) / 2;
    if(MaxH - MinL > 0)
       Value = 0.33*2*((price-MinL)/(MaxH-MinL)-0.5) + 0.67*Value1;

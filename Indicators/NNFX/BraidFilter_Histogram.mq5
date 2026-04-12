@@ -83,6 +83,9 @@ int                     period1;
 int                     period2;
 int                     period3;
 int                     percofatr;
+//--- Shared monotone deques for O(1) amortized sliding HH/LL (KIJUN/AEMA/CAMA/CVMA)
+int                     g_bfMaxDq[];
+int                     g_bfMinDq[];
 //+------------------------------------------------------------------+
 //| Custom indicator initialization function                         |
 //+------------------------------------------------------------------+
@@ -137,6 +140,10 @@ int OnInit()
 //--- sets drawing lines to empty value
    PlotIndexSetDouble(0, PLOT_EMPTY_VALUE, EMPTY_VALUE);
    PlotIndexSetDouble(1, PLOT_EMPTY_VALUE, EMPTY_VALUE);
+//--- Pre-allocate shared monotone deques to fit the largest period
+   int dqCap = (int)fmax(period1, fmax(period2, period3)) + 2;
+   if(ArrayResize(g_bfMaxDq, dqCap) == -1 || ArrayResize(g_bfMinDq, dqCap) == -1)
+      return INIT_FAILED;
 //--- initialization succeeded
    return(INIT_SUCCEEDED);
   }
@@ -557,18 +564,30 @@ int maBryantAdaptive(const int rates_total,
       bar_index = 0;
    else
       bar_index = prev_calculated - 1;
-//--- main loop
+//--- main loop: O(1) running sum of |deltas| (seed once, then slide)
+   double run_noise = 0;
+   bool   noise_valid = false;
    for(int i = bar_index; i < rates_total && !_StopFlag; i++)
      {
       if(i < value_length)
          result_bama[i] = source_price[i];
       else
         {
-         double noise = 0.0;
-         for(int k = 0; k < value_length; k++)
-            noise += fabs(source_price[i - k] - source_price[i - k - 1]);
+         if(!noise_valid)
+           {
+            run_noise = 0;
+            for(int k = 0; k < value_length; k++)
+               run_noise += fabs(source_price[i - k] - source_price[i - k - 1]);
+            noise_valid = true;
+           }
+         else
+           {
+            double newD = fabs(source_price[i] - source_price[i - 1]);
+            double oldD = fabs(source_price[i - value_length] - source_price[i - value_length - 1]);
+            run_noise += newD - oldD;
+           }
          double signal = fabs(source_price[i] - source_price[i - value_length]);
-         double efficiency_ratio = noise != 0.0 ? signal / noise : 0.0;
+         double efficiency_ratio = run_noise != 0.0 ? signal / run_noise : 0.0;
          double variable_efficiency_ratio = pow(efficiency_ratio - (2.0 * efficiency_ratio - 1.0) / 2.0 * (1.0 - value_trend_parameter) + 0.5, 2.0);
          double variable_length = (double(value_length) - variable_efficiency_ratio + 1.0) / variable_efficiency_ratio;
          double variable_alpha = 2.0 / (1.0 + variable_length);
@@ -734,18 +753,25 @@ int maElasticVolumeWeighted(const int rates_total,
       bar_index = 0;
    else
       bar_index = prev_calculated - 1;
-//--- main loop
+//--- main loop: O(1) running sum of volume window
+   double run_vol = 0;
+   bool   vol_valid = false;
    for(int i = bar_index; i < rates_total && !_StopFlag; i++)
      {
       if(i < value_length)
          result_evwma[i] = source_price[i];
       else
         {
-         double sum = 0.0;
-         for(int k = 0; k < value_length; k++)
-            sum += double(source_volume[i - k]);
-         if (sum != 0)
-            result_evwma[i] = (result_evwma[i - 1] * (sum - double(source_volume[i])) / sum) + (double(source_volume[i]) * source_price[i] / sum);
+         if(!vol_valid)
+           {
+            run_vol = 0;
+            for(int k = 0; k < value_length; k++) run_vol += (double)source_volume[i - k];
+            vol_valid = true;
+           }
+         else
+            run_vol += (double)source_volume[i] - (double)source_volume[i - value_length];
+         if (run_vol != 0)
+            result_evwma[i] = (result_evwma[i - 1] * (run_vol - double(source_volume[i])) / run_vol) + (double(source_volume[i]) * source_price[i] / run_vol);
          else
             result_evwma[i] = source_price[i];
         }
@@ -1002,7 +1028,9 @@ int maIntegralEndpoint2(const int rates_total,
       bar_index = 0;
    else
       bar_index = prev_calculated - 1;
-//--- main loop
+//--- main loop: O(1) LSMA via running sums (same derivation as maLeastSquares)
+   double A = 0, B = 0;
+   bool   sum_valid = false;
    for(int i = bar_index; i < rates_total && !_StopFlag; i++)
      {
       if(i < value_length)
@@ -1012,19 +1040,31 @@ int maIntegralEndpoint2(const int rates_total,
         }
       else
         {
-         double sumx = 0.0, sumy = 0.0, sumxy = 0.0, sumxx = 0.0;
-         for(int k = 0; k < value_length; k++)
+         if(!sum_valid)
            {
-            sumx += (i - k);
-            sumy += source_price[i - k];
-            sumxy += (i - k) * source_price[i - k];
-            sumxx += (i - k) * (i - k);
+            A = 0; B = 0;
+            for(int j = i - value_length + 1; j <= i; j++)
+              {
+               A += source_price[j];
+               B += (double)j * source_price[j];
+              }
+            sum_valid = true;
            }
+         else
+           {
+            double addS = source_price[i];
+            double dropS = source_price[i - value_length];
+            A += addS - dropS;
+            B += (double)i * addS - (double)(i - value_length) * dropS;
+           }
+         double sumx  = double(value_length) * (2.0 * i - value_length + 1.0) / 2.0;
+         double hi = (double)i, lo = (double)(i - value_length);
+         double sumxx = (hi * (hi + 1.0) * (2.0 * hi + 1.0) - lo * (lo + 1.0) * (2.0 * lo + 1.0)) / 6.0;
          double lsma_denom = double(value_length) * sumxx - sumx * sumx;
-         double slope = (lsma_denom != 0) ? (double(value_length) * sumxy - sumx * sumy) / lsma_denom : 0;
-         double intercept = (sumy / double(value_length)) - slope * (sumx / double(value_length));
+         double slope = (lsma_denom != 0) ? (double(value_length) * B - sumx * A) / lsma_denom : 0;
+         double intercept = (A / double(value_length)) - slope * (sumx / double(value_length));
          temp_lsma[i] = slope * i + intercept;
-         double sma = sumy / double(value_length);
+         double sma = A / double(value_length);
          double m = temp_lsma[i] - temp_lsma[i - 1] + sma;
          result_ie2[i] = (m + temp_lsma[i]) / 2.0;
         }
@@ -1157,18 +1197,30 @@ int maKaufmanAdaptive(const int rates_total,
       bar_index = 0;
    else
       bar_index = prev_calculated - 1;
-//--- main loop
+//--- main loop: O(1) running sum of |deltas| (seed once, then slide)
+   double run_noise = 0;
+   bool   noise_valid = false;
    for(int i = bar_index; i < rates_total && !_StopFlag; i++)
      {
       if(i < value_length)
          result_kama[i] = source_price[i];
       else
         {
-         double noise = 0.0;
-         for(int k = 0; k < value_length; k++)
-            noise += fabs(source_price[i - k] - source_price[i - k - 1]);
+         if(!noise_valid)
+           {
+            run_noise = 0;
+            for(int k = 0; k < value_length; k++)
+               run_noise += fabs(source_price[i - k] - source_price[i - k - 1]);
+            noise_valid = true;
+           }
+         else
+           {
+            double newD = fabs(source_price[i] - source_price[i - 1]);
+            double oldD = fabs(source_price[i - value_length] - source_price[i - value_length - 1]);
+            run_noise += newD - oldD;
+           }
          double signal = fabs(source_price[i] - source_price[i - value_length]);
-         double eff_ratio = noise != 0.0 ? signal / noise : 0.0;
+         double eff_ratio = run_noise != 0.0 ? signal / run_noise : 0.0;
          double smooth = pow(eff_ratio * (fast - slow) + slow, 2.0);
          result_kama[i] = result_kama[i - 1] + smooth * (source_price[i] - result_kama[i - 1]);
         }
@@ -1190,19 +1242,34 @@ int maKijunLine(const int rates_total,
       bar_index = 0;
    else
       bar_index = prev_calculated - 1;
-//--- main loop
+//--- main loop: O(1) amortized via monotone deques over source_price window
+   int dqCap = value_length + 1;
+   int maxH = 0, maxT = 0, minH = 0, minT = 0;
+   int seedStart = (int)fmax(0, bar_index - value_length + 1);
+   for(int b = seedStart; b < bar_index; b++)
+     {
+      while(maxT > maxH && source_price[g_bfMaxDq[(maxT - 1) % dqCap]] <= source_price[b]) maxT--;
+      g_bfMaxDq[maxT % dqCap] = b; maxT++;
+      while(maxH < maxT && g_bfMaxDq[maxH % dqCap] < b - value_length + 1) maxH++;
+      while(minT > minH && source_price[g_bfMinDq[(minT - 1) % dqCap]] >= source_price[b]) minT--;
+      g_bfMinDq[minT % dqCap] = b; minT++;
+      while(minH < minT && g_bfMinDq[minH % dqCap] < b - value_length + 1) minH++;
+     }
    for(int i = bar_index; i < rates_total && !_StopFlag; i++)
      {
+      while(maxT > maxH && source_price[g_bfMaxDq[(maxT - 1) % dqCap]] <= source_price[i]) maxT--;
+      g_bfMaxDq[maxT % dqCap] = i; maxT++;
+      while(maxH < maxT && g_bfMaxDq[maxH % dqCap] < i - value_length + 1) maxH++;
+      while(minT > minH && source_price[g_bfMinDq[(minT - 1) % dqCap]] >= source_price[i]) minT--;
+      g_bfMinDq[minT % dqCap] = i; minT++;
+      while(minH < minT && g_bfMinDq[minH % dqCap] < i - value_length + 1) minH++;
+
       if(i < value_length)
          result_kijun[i] = source_price[i];
       else
         {
-         double max_price = -DBL_MAX, min_price = DBL_MAX;
-         for(int k = 0; k < value_length; k++)
-           {
-            max_price = source_price[i - k] > max_price ? source_price[i - k] : max_price;
-            min_price = source_price[i - k] < min_price ? source_price[i - k] : min_price;
-           }
+         double max_price = source_price[g_bfMaxDq[maxH % dqCap]];
+         double min_price = source_price[g_bfMinDq[minH % dqCap]];
          result_kijun[i] = (max_price + min_price) * 0.5;
         }
      }
@@ -1223,24 +1290,38 @@ int maLeastSquares(const int rates_total,
       bar_index = 0;
    else
       bar_index = prev_calculated - 1;
-//--- main loop
+//--- main loop: O(1) via running sums A=Σsrc, B=Σj·src; sumx/sumxx are closed-form
+   double A = 0, B = 0;
+   bool   sum_valid = false;
    for(int i = bar_index; i < rates_total && !_StopFlag; i++)
      {
       if(i < value_length)
          result_lsma[i] = source_price[i];
       else
         {
-         double sumx = 0.0, sumy = 0.0, sumxy = 0.0, sumxx = 0.0;
-         for(int k = 0; k < value_length; k++)
+         if(!sum_valid)
            {
-            sumx += (i - k);
-            sumy += source_price[i - k];
-            sumxy += (i - k) * source_price[i - k];
-            sumxx += (i - k) * (i - k);
+            A = 0; B = 0;
+            for(int j = i - value_length + 1; j <= i; j++)
+              {
+               A += source_price[j];
+               B += (double)j * source_price[j];
+              }
+            sum_valid = true;
            }
+         else
+           {
+            double addS = source_price[i];
+            double dropS = source_price[i - value_length];
+            A += addS - dropS;
+            B += (double)i * addS - (double)(i - value_length) * dropS;
+           }
+         double sumx  = double(value_length) * (2.0 * i - value_length + 1.0) / 2.0;
+         double hi = (double)i, lo = (double)(i - value_length);
+         double sumxx = (hi * (hi + 1.0) * (2.0 * hi + 1.0) - lo * (lo + 1.0) * (2.0 * lo + 1.0)) / 6.0;
          double lsma_denom = double(value_length) * sumxx - sumx * sumx;
-         double slope = (lsma_denom != 0) ? (double(value_length) * sumxy - sumx * sumy) / lsma_denom : 0;
-         double intercept = (sumy / double(value_length)) - slope * (sumx / double(value_length));
+         double slope = (lsma_denom != 0) ? (double(value_length) * B - sumx * A) / lsma_denom : 0;
+         double intercept = (A / double(value_length)) - slope * (sumx / double(value_length));
          result_lsma[i] = slope * i + intercept;
         }
      }
@@ -1298,21 +1379,36 @@ int maLinearWeighted(const int rates_total,
       bar_index = 0;
    else
       bar_index = prev_calculated - 1;
-//--- main loop
+//--- main loop: O(1) via two running sums A=Σsrc[j], B=Σj·src[j]
+//--- Numerator = Σ(L-k)·src[i-k] = (L-i)·A + B; denom is constant L·(L+1)/2
+   double A = 0, B = 0;
+   bool   sum_valid = false;
+   double sum_w = double(value_length) * double(value_length + 1) / 2.0;
    for(int i = bar_index; i < rates_total && !_StopFlag; i++)
      {
       if(i < value_length)
          result_lwma[i] = source_price[i];
       else
         {
-         double weight = 0.0, sum_weight = 0.0, sum_weight_price = 0.0;
-         for(int k = 0; k < value_length; k++)
+         if(!sum_valid)
            {
-            weight = double(value_length - k);
-            sum_weight += weight;
-            sum_weight_price += weight * source_price[i - k];
+            A = 0; B = 0;
+            for(int j = i - value_length + 1; j <= i; j++)
+              {
+               A += source_price[j];
+               B += (double)j * source_price[j];
+              }
+            sum_valid = true;
            }
-         result_lwma[i] = sum_weight_price / sum_weight;
+         else
+           {
+            double addS = source_price[i];
+            double dropS = source_price[i - value_length];
+            A += addS - dropS;
+            B += (double)i * addS - (double)(i - value_length) * dropS;
+           }
+         double num = (double)(value_length - i) * A + B;
+         result_lwma[i] = num / sum_w;
         }
      }
    return(rates_total);
@@ -1471,17 +1567,24 @@ int maSimple(const int rates_total,
       bar_index = 0;
    else
       bar_index = prev_calculated - 1;
-//--- main loop
+//--- main loop: O(1) sliding sum (seed once, then slide)
+   double run_sum = 0;
+   bool   run_valid = false;
    for(int i = bar_index; i < rates_total && !_StopFlag; i++)
      {
       if(i < value_length)
          result_sma[i] = source_price[i];
       else
         {
-         double sum = 0.0;
-         for(int k = 0; k < value_length; k++)
-            sum += source_price[i - k];
-         result_sma[i] = sum / double(value_length);
+         if(!run_valid)
+           {
+            run_sum = 0;
+            for(int j = i - value_length + 1; j <= i; j++) run_sum += source_price[j];
+            run_valid = true;
+           }
+         else
+            run_sum += source_price[i] - source_price[i - value_length];
+         result_sma[i] = run_sum / double(value_length);
         }
      }
    return(rates_total);
