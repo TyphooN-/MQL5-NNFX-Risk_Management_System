@@ -389,19 +389,34 @@ int maAdaptiveExponential(const int rates_total,
       bar_index = 0;
    else
       bar_index = prev_calculated - 1;
-//--- main loop
+//--- main loop: O(1) amortized HH/LL via monotone deques
+   int dqCap = value_length + 1;
+   int maxH = 0, maxT = 0, minH = 0, minT = 0;
+   int seedStart = (int)fmax(0, bar_index - value_length + 1);
+   for(int b = seedStart; b < bar_index; b++)
+     {
+      while(maxT > maxH && source_high[g_bfMaxDq[(maxT - 1) % dqCap]] <= source_high[b]) maxT--;
+      g_bfMaxDq[maxT % dqCap] = b; maxT++;
+      while(maxH < maxT && g_bfMaxDq[maxH % dqCap] < b - value_length + 1) maxH++;
+      while(minT > minH && source_low[g_bfMinDq[(minT - 1) % dqCap]]  >= source_low[b])  minT--;
+      g_bfMinDq[minT % dqCap] = b; minT++;
+      while(minH < minT && g_bfMinDq[minH % dqCap] < b - value_length + 1) minH++;
+     }
    for(int i = bar_index; i < rates_total && !_StopFlag; i++)
      {
+      while(maxT > maxH && source_high[g_bfMaxDq[(maxT - 1) % dqCap]] <= source_high[i]) maxT--;
+      g_bfMaxDq[maxT % dqCap] = i; maxT++;
+      while(maxH < maxT && g_bfMaxDq[maxH % dqCap] < i - value_length + 1) maxH++;
+      while(minT > minH && source_low[g_bfMinDq[(minT - 1) % dqCap]]  >= source_low[i])  minT--;
+      g_bfMinDq[minT % dqCap] = i; minT++;
+      while(minH < minT && g_bfMinDq[minH % dqCap] < i - value_length + 1) minH++;
+
       if(i < value_length)
          result_aema[i] = source_price[i];
       else
         {
-         double hh = -DBL_MAX, ll = DBL_MAX;
-         for(int k = 0; k < value_length; k++)
-           {
-            hh = source_high[i - k] > hh ? source_high[i - k] : hh;
-            ll = source_low[i - k] < ll ? source_low[i - k] : ll;
-           }
+         double hh = source_high[g_bfMaxDq[maxH % dqCap]];
+         double ll = source_low[g_bfMinDq[minH % dqCap]];
          double hl_range = hh - ll;
          double mltp2 = (hl_range > 0) ? fabs((source_price[i] - ll) - (hh - source_price[i])) / hl_range : 0;
          result_aema[i] = value_length == 1 ? source_price[i] : result_aema[i - 1] + mltp1 * (1 + mltp2) * (source_price[i] - result_aema[i - 1]);
@@ -617,7 +632,19 @@ int maChandeVariable(const int rates_total,
       bar_index = 0;
    else
       bar_index = prev_calculated - 1;
-//--- main loop
+//--- main loop: O(1) amortized HH/LL over temp_iS via monotone deques
+   int dqCap = value_length + 1;
+   int maxH = 0, maxT = 0, minH = 0, minT = 0;
+   int seedStart = (int)fmax(0, bar_index - value_length + 1);
+   for(int b = seedStart; b < bar_index; b++)
+     {
+      while(maxT > maxH && temp_iS[g_bfMaxDq[(maxT - 1) % dqCap]] <= temp_iS[b]) maxT--;
+      g_bfMaxDq[maxT % dqCap] = b; maxT++;
+      while(maxH < maxT && g_bfMaxDq[maxH % dqCap] < b - value_length + 1) maxH++;
+      while(minT > minH && temp_iS[g_bfMinDq[(minT - 1) % dqCap]]  >= temp_iS[b])  minT--;
+      g_bfMinDq[minT % dqCap] = b; minT++;
+      while(minH < minT && g_bfMinDq[minH % dqCap] < b - value_length + 1) minH++;
+     }
    for(int i = bar_index; i < rates_total && !_StopFlag; i++)
      {
       if(i < value_length)
@@ -647,12 +674,18 @@ int maChandeVariable(const int rates_total,
          double d = fabs(temp_pdiS[i] - temp_mdiS[i]);
          double s1 = temp_pdiS[i] + temp_mdiS[i];
          temp_iS[i] = (s1 != 0) ? ((1 - k) * temp_iS[i - 1] + k * (d / s1)) : temp_iS[i - 1];
-         double hhv = -DBL_MAX, llv = DBL_MAX;
-         for(int m = 0; m < value_length; m++)
-           {
-            hhv = temp_iS[i - m] > hhv ? temp_iS[i - m] : hhv;
-            llv = temp_iS[i - m] < llv ? temp_iS[i - m] : llv;
-           }
+        }
+      //--- Push temp_iS[i] onto deques (whether bar is warmup or not)
+      while(maxT > maxH && temp_iS[g_bfMaxDq[(maxT - 1) % dqCap]] <= temp_iS[i]) maxT--;
+      g_bfMaxDq[maxT % dqCap] = i; maxT++;
+      while(maxH < maxT && g_bfMaxDq[maxH % dqCap] < i - value_length + 1) maxH++;
+      while(minT > minH && temp_iS[g_bfMinDq[(minT - 1) % dqCap]]  >= temp_iS[i])  minT--;
+      g_bfMinDq[minT % dqCap] = i; minT++;
+      while(minH < minT && g_bfMinDq[minH % dqCap] < i - value_length + 1) minH++;
+      if(i >= value_length)
+        {
+         double hhv = temp_iS[g_bfMaxDq[maxH % dqCap]];
+         double llv = temp_iS[g_bfMinDq[minH % dqCap]];
          double d1 = hhv - llv;
          double vI = (d1 != 0) ? (temp_iS[i] - llv) / d1 : 0;
          result_cvma[i] = k == 1 ? k * vI * source_price[i] : (1.0 - k * vI) * result_cvma[i - 1] + k * vI * source_price[i];
@@ -679,23 +712,48 @@ int maCongAdaptive(const int rates_total,
       bar_index = 0;
    else
       bar_index = prev_calculated - 1;
-//--- main loop
+//--- main loop: O(1) amortized HH/LL via deques + running sum of true range
+   int dqCap = value_length + 1;
+   int maxH = 0, maxT = 0, minH = 0, minT = 0;
+   double run_tr = 0;
+   bool   tr_valid = false;
+   int seedStart = (int)fmax(0, bar_index - value_length + 1);
+   //--- Ensure temp_true_range is populated over the seed window (for running sum seed)
+   for(int b = seedStart; b < bar_index; b++)
+     {
+      while(maxT > maxH && source_high[g_bfMaxDq[(maxT - 1) % dqCap]] <= source_high[b]) maxT--;
+      g_bfMaxDq[maxT % dqCap] = b; maxT++;
+      while(maxH < maxT && g_bfMaxDq[maxH % dqCap] < b - value_length + 1) maxH++;
+      while(minT > minH && source_low[g_bfMinDq[(minT - 1) % dqCap]]  >= source_low[b])  minT--;
+      g_bfMinDq[minT % dqCap] = b; minT++;
+      while(minH < minT && g_bfMinDq[minH % dqCap] < b - value_length + 1) minH++;
+     }
    for(int i = bar_index; i < rates_total && !_StopFlag; i++)
      {
       temp_true_range[i] = i < 1 ? source_high[i] - source_low[i] : fmax(source_high[i] - source_low[i], fmax(fabs(source_high[i] - source_close[i - 1]), fabs(source_low[i] - source_close[i - 1])));
+      while(maxT > maxH && source_high[g_bfMaxDq[(maxT - 1) % dqCap]] <= source_high[i]) maxT--;
+      g_bfMaxDq[maxT % dqCap] = i; maxT++;
+      while(maxH < maxT && g_bfMaxDq[maxH % dqCap] < i - value_length + 1) maxH++;
+      while(minT > minH && source_low[g_bfMinDq[(minT - 1) % dqCap]]  >= source_low[i])  minT--;
+      g_bfMinDq[minT % dqCap] = i; minT++;
+      while(minH < minT && g_bfMinDq[minH % dqCap] < i - value_length + 1) minH++;
+
       if(i < value_length)
          result_cama[i] = source_price[i];
       else
         {
-         double effort = 0.0, hh = -DBL_MAX, ll = DBL_MAX;
-         for(int k = 0; k < value_length; k++)
+         if(!tr_valid)
            {
-            effort += temp_true_range[i - k];
-            hh = source_high[i - k] > hh ? source_high[i - k] : hh;
-            ll = source_low[i - k] < ll ? source_low[i - k] : ll;
+            run_tr = 0;
+            for(int j = i - value_length + 1; j <= i; j++) run_tr += temp_true_range[j];
+            tr_valid = true;
            }
+         else
+            run_tr += temp_true_range[i] - temp_true_range[i - value_length];
+         double hh = source_high[g_bfMaxDq[maxH % dqCap]];
+         double ll = source_low[g_bfMinDq[minH % dqCap]];
          double result = hh - ll;
-         double alpha = (effort > 0) ? result / effort : 1.0;
+         double alpha = (run_tr > 0) ? result / run_tr : 1.0;
          result_cama[i] = alpha == 1.0 ? alpha * source_price[i] : alpha * source_price[i] + (1.0 - alpha) * result_cama[i - 1];
         }
      }
@@ -969,7 +1027,15 @@ int maHull(const int rates_total,
       bar_index = 0;
    else
       bar_index = prev_calculated - 1;
-//--- main loop
+//--- main loop: O(1) via three pairs of running sums for the 3 LWMA legs
+//--- Each LWMA numerator = (P-i)·A + B where A=Σsrc, B=Σj·src; denom is constant
+   int halfL = (int)floor((double)value_length / 2.0);
+   int sqrtL = (int)floor(sqrt((double)value_length));
+   double sumW_1 = (double)halfL * (double)(halfL + 1) / 2.0;
+   double sumW_2 = (double)value_length * (double)(value_length + 1) / 2.0;
+   double sumW_3 = (double)sqrtL * (double)(sqrtL + 1) / 2.0;
+   double A1 = 0, B1 = 0, A2 = 0, B2 = 0, A3 = 0, B3 = 0;
+   bool   sums_valid = false;
    for(int i = bar_index; i < rates_total && !_StopFlag; i++)
      {
       if(i < value_length)
@@ -977,38 +1043,59 @@ int maHull(const int rates_total,
          temp_wma_1[i] = source_price[i];
          temp_wma_2[i] = source_price[i];
          result_hma[i] = source_price[i];
+         continue;
+        }
+      //--- Seed or slide A1/A2 / B1/B2
+      if(!sums_valid)
+        {
+         A1 = 0; B1 = 0; A2 = 0; B2 = 0;
+         for(int j = i - halfL + 1; j <= i; j++)
+           {
+            A1 += source_price[j];
+            B1 += (double)j * source_price[j];
+           }
+         for(int j = i - value_length + 1; j <= i; j++)
+           {
+            A2 += source_price[j];
+            B2 += (double)j * source_price[j];
+           }
         }
       else
         {
-         double weight = 0.0, sum_weight = 0.0, sum_weight_price = 0.0;
-         for(int k = 0; k < int(floor(double(value_length) / 2.0)); k++)
-           {
-            weight = int(floor(double(value_length) / 2.0)) - k;
-            sum_weight += weight;
-            sum_weight_price += weight * source_price[i - k];
-           }
-         temp_wma_1[i] = (sum_weight != 0) ? sum_weight_price / sum_weight : source_price[i];
-         weight = 0.0;
-         sum_weight = 0.0;
-         sum_weight_price = 0.0;
-         for(int k = 0; k < value_length; k++)
-           {
-            weight = value_length - k;
-            sum_weight += weight;
-            sum_weight_price += weight * source_price[i - k];
-           }
-         temp_wma_2[i] = sum_weight_price / sum_weight;
-         weight = 0.0;
-         sum_weight = 0.0;
-         sum_weight_price = 0.0;
-         for(int k = 0; k < int(floor(sqrt(value_length))); k++)
-           {
-            weight = int(floor(sqrt(value_length))) - k;
-            sum_weight += weight;
-            sum_weight_price += weight * (2 * temp_wma_1[i - k] - temp_wma_2[i - k]);
-           }
-         result_hma[i] = value_length == 1 ? source_price[i] : sum_weight_price / sum_weight;
+         double addS1 = source_price[i];
+         double dropS1 = source_price[i - halfL];
+         A1 += addS1 - dropS1;
+         B1 += (double)i * addS1 - (double)(i - halfL) * dropS1;
+         double addS2 = source_price[i];
+         double dropS2 = source_price[i - value_length];
+         A2 += addS2 - dropS2;
+         B2 += (double)i * addS2 - (double)(i - value_length) * dropS2;
         }
+      double num1 = (double)(halfL - i) * A1 + B1;
+      temp_wma_1[i] = (sumW_1 != 0) ? num1 / sumW_1 : source_price[i];
+      double num2 = (double)(value_length - i) * A2 + B2;
+      temp_wma_2[i] = num2 / sumW_2;
+      double synth_i = 2.0 * temp_wma_1[i] - temp_wma_2[i];
+      //--- Seed or slide A3/B3 over synthetic (2·wma1 − wma2) window
+      if(!sums_valid)
+        {
+         A3 = 0; B3 = 0;
+         for(int j = i - sqrtL + 1; j <= i; j++)
+           {
+            double s = 2.0 * temp_wma_1[j] - temp_wma_2[j];
+            A3 += s;
+            B3 += (double)j * s;
+           }
+         sums_valid = true;
+        }
+      else
+        {
+         double dropS3 = 2.0 * temp_wma_1[i - sqrtL] - temp_wma_2[i - sqrtL];
+         A3 += synth_i - dropS3;
+         B3 += (double)i * synth_i - (double)(i - sqrtL) * dropS3;
+        }
+      double num3 = (double)(sqrtL - i) * A3 + B3;
+      result_hma[i] = value_length == 1 ? source_price[i] : (sumW_3 != 0 ? num3 / sumW_3 : source_price[i]);
      }
    return(rates_total);
   }
@@ -1342,23 +1429,36 @@ int maLeo(const int rates_total,
       bar_index = 0;
    else
       bar_index = prev_calculated - 1;
-//--- main loop
+//--- main loop: O(1) via running sums A=Σsrc, B=Σj·src (LMA = 2·LWMA − SMA)
+   double A = 0, B = 0;
+   bool   sum_valid = false;
+   double sum_w = double(value_length) * double(value_length + 1) / 2.0;
    for(int i = bar_index; i < rates_total && !_StopFlag; i++)
      {
       if(i < value_length)
          result_lma[i] = source_price[i];
       else
         {
-         double weight = 0.0, sum_weight = 0.0, sum_weight_price = 0.0, sum_price = 0.0;
-         for(int k = 0; k < value_length; k++)
+         if(!sum_valid)
            {
-            weight = double(value_length - k);
-            sum_weight += weight;
-            sum_weight_price += weight * source_price[i - k];
-            sum_price += source_price[i - k];
+            A = 0; B = 0;
+            for(int j = i - value_length + 1; j <= i; j++)
+              {
+               A += source_price[j];
+               B += (double)j * source_price[j];
+              }
+            sum_valid = true;
            }
-         double lwma = sum_weight_price / sum_weight;
-         double sma = sum_price / double(value_length);
+         else
+           {
+            double addS = source_price[i];
+            double dropS = source_price[i - value_length];
+            A += addS - dropS;
+            B += (double)i * addS - (double)(i - value_length) * dropS;
+           }
+         double num  = (double)(value_length - i) * A + B;
+         double lwma = num / sum_w;
+         double sma  = A / double(value_length);
          result_lma[i] = 2.0 * lwma - sma;
         }
      }
@@ -1507,21 +1607,38 @@ int maPivotPointWeighted(const int rates_total,
       bar_index = 0;
    else
       bar_index = prev_calculated - 1;
-//--- main loop
+//--- main loop: weight(k) = 2L−1−3k is linear in k, so num = c0·A − 3·(i·A − B)
+//---                                                         = (c0−3i)·A + 3·B
+//--- where c0 = 2L−1, A = Σsrc, B = Σj·src; sum_w = L·(L+1)/2 (constant)
+   double A = 0, B = 0;
+   bool   sum_valid = false;
+   double sum_w = double(value_length) * double(value_length + 1) / 2.0;
+   double c0 = 2.0 * (double)value_length - 1.0;
    for(int i = bar_index; i < rates_total && !_StopFlag; i++)
      {
       if(i < value_length)
          result_ppwma[i] = source_price[i];
       else
         {
-         double weight = 0.0, sum_weight = 0.0, sum_weight_price = 0.0;
-         for(int k = 0; k < value_length; k++)
+         if(!sum_valid)
            {
-            weight = 3.0 * (double(value_length) - k) - double(value_length) - 1.0;
-            sum_weight += weight;
-            sum_weight_price += weight * source_price[i - k];
+            A = 0; B = 0;
+            for(int j = i - value_length + 1; j <= i; j++)
+              {
+               A += source_price[j];
+               B += (double)j * source_price[j];
+              }
+            sum_valid = true;
            }
-         result_ppwma[i] = (sum_weight != 0) ? sum_weight_price / sum_weight : source_price[i];
+         else
+           {
+            double addS = source_price[i];
+            double dropS = source_price[i - value_length];
+            A += addS - dropS;
+            B += (double)i * addS - (double)(i - value_length) * dropS;
+           }
+         double num = (c0 - 3.0 * (double)i) * A + 3.0 * B;
+         result_ppwma[i] = (sum_w != 0) ? num / sum_w : source_price[i];
         }
      }
    return(rates_total);
@@ -1799,22 +1916,33 @@ int maVolumeWeighted(const int rates_total,
       bar_index = 0;
    else
       bar_index = prev_calculated - 1;
-//--- main loop
+//--- main loop: O(1) via two running sums (Σp·v and Σv)
+   double run_pv = 0, run_v = 0;
+   bool   sums_valid = false;
    for(int i = bar_index; i < rates_total && !_StopFlag; i++)
      {
       if(i < value_length)
          result_vwma[i] = source_price[i];
       else
         {
-         double sma_price_volume = 0.0, sma_volume = 0.0, sum_price_volume = 0.0, sum_volume = 0.0;
-         for(int k = 0; k < value_length; k++)
+         if(!sums_valid)
            {
-            sum_price_volume += source_price[i - k] * double(source_volume[i - k]);
-            sum_volume += double(source_volume[i - k]);
+            run_pv = 0; run_v = 0;
+            for(int k = 0; k < value_length; k++)
+              {
+               run_pv += source_price[i - k] * double(source_volume[i - k]);
+               run_v  += double(source_volume[i - k]);
+              }
+            sums_valid = true;
            }
-         sma_price_volume = sum_price_volume / double(value_length);
-         sma_volume = sum_volume / double(value_length);
-         result_vwma[i] = (sma_volume != 0) ? sma_price_volume / sma_volume : source_price[i];
+         else
+           {
+            double addV = (double)source_volume[i];
+            double dropV = (double)source_volume[i - value_length];
+            run_pv += source_price[i] * addV - source_price[i - value_length] * dropV;
+            run_v  += addV - dropV;
+           }
+         result_vwma[i] = (run_v != 0) ? run_pv / run_v : source_price[i];
         }
      }
    return(rates_total);

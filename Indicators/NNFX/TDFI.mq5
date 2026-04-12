@@ -184,11 +184,37 @@ double iCustomMa(int mode, double price, double length, int r, int bars, int ins
 double workSma[][_maWorkBufferx1];
 double iSma(double price, int period, int r, int _bars, int instanceNo=0)
 {
-   if (ArrayRange(workSma,0)!= _bars) { if (ArrayResize(workSma,_bars)==-1) return(0); } int k=1;
+   if (ArrayRange(workSma,0)!= _bars) { if (ArrayResize(workSma,_bars)==-1) return(0); }
 
-   workSma[r][instanceNo+0] = price;
-   double avg = price; for(; k<period && (r-k)>=0; k++) avg += workSma[r-k][instanceNo+0];  avg /= (double)k;
-   return(avg);
+   //--- O(1) running sum (instanceNo=0 fast path; non-zero falls back to O(period))
+   static double s_sum = 0;
+   static int    s_lastR = -2;
+   static int    s_period = -1;
+   if (instanceNo == 0)
+     {
+      if (s_period != period || r != s_lastR + 1)
+        {
+         s_sum = 0;
+         int start = MathMax(0, r - period + 1);
+         for (int j = start; j < r; j++) s_sum += workSma[j][0];
+         s_sum += price;
+         s_period = period;
+        }
+      else
+        {
+         s_sum += price;
+         if (r - period >= 0) s_sum -= workSma[r - period][0];
+        }
+      workSma[r][0] = price;
+      s_lastR = r;
+      int n = (r + 1 < period) ? (r + 1) : period;
+      return s_sum / (double)n;
+     }
+   //--- Fallback (O(period)) for non-default instanceNo
+   workSma[r][instanceNo] = price;
+   double avg = price; int k = 1;
+   for (; k<period && (r-k)>=0; k++) avg += workSma[r-k][instanceNo];
+   return avg / (double)k;
 }
 
 //
@@ -235,18 +261,60 @@ double workLwma[][_maWorkBufferx1];
 double iLwma(double price, double period, int r, int _bars, int instanceNo=0)
 {
    if (ArrayRange(workLwma,0)!= _bars) { if (ArrayResize(workLwma,_bars)==-1) return(0); }
-   
-   workLwma[r][instanceNo] = price; if (period<1) return(price);
-      double sumw = period;
-      double sum  = period*price;
+   if (period<1) { workLwma[r][instanceNo] = price; return(price); }
 
-      for(int k=1; k<period && (r-k)>=0; k++)
-      {
-         double weight = period-k;
-                sumw  += weight;
-                sum   += weight*workLwma[r-k][instanceNo];  
-      }             
-      return(sum/sumw);
+   //--- O(1) via two running sums: A=Σwork[j], B=Σj·work[j] over window
+   //--- numerator = Σ(period-k)·work[r-k] = (period-r)·A + B
+   int iper = (int)period;
+   static double s_A = 0, s_B = 0;
+   static int    s_lastR = -2;
+   static int    s_period = -1;
+   if (instanceNo == 0)
+     {
+      if (s_period != iper || r != s_lastR + 1)
+        {
+         s_A = 0; s_B = 0;
+         int start = MathMax(0, r - iper + 1);
+         for (int j = start; j < r; j++)
+           {
+            s_A += workLwma[j][0];
+            s_B += (double)j * workLwma[j][0];
+           }
+         s_A += price;
+         s_B += (double)r * price;
+         s_period = iper;
+        }
+      else
+        {
+         s_A += price;
+         s_B += (double)r * price;
+         if (r - iper >= 0)
+           {
+            double drop = workLwma[r - iper][0];
+            s_A -= drop;
+            s_B -= (double)(r - iper) * drop;
+           }
+        }
+      workLwma[r][0] = price;
+      s_lastR = r;
+      int n_used = (r + 1 < iper) ? (r + 1) : iper;
+      //--- Partial window (r < period-1): sumw = (n+1)·(2·period-n)/2 with n=r
+      //--- Full window    (r >= period-1): sumw = period·(period+1)/2
+      double sumw = (double)n_used * (2.0 * period - (double)(n_used - 1)) / 2.0;
+      double num  = (period - (double)r) * s_A + s_B;
+      return num / sumw;
+     }
+   //--- Fallback (O(period)) for non-default instanceNo
+   workLwma[r][instanceNo] = price;
+   double sumw = period;
+   double sum  = period*price;
+   for(int k=1; k<period && (r-k)>=0; k++)
+     {
+      double weight = period-k;
+      sumw  += weight;
+      sum   += weight*workLwma[r-k][instanceNo];
+     }
+   return sum / sumw;
 }
 
 //------------------------------------------------------------------
