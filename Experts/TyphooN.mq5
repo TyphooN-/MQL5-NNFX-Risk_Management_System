@@ -20,7 +20,7 @@
  **/
 #property copyright "Copyright 2023 TyphooN (MarketWizardry.org)"
 #property link      "https://www.marketwizardry.org/"
-#property version   "1.450"
+#property version   "1.451"
 #property description "TyphooN's MQL5 Risk Management System"
 #include <Controls\Dialog.mqh>
 #include <Controls\Button.mqh>
@@ -71,12 +71,14 @@ input double          Risk                       = 0.5;
 input group           "[DYNAMIC RISK MODE]";
 input double          MinAccountBalance          = 96100;
 input int             LossesToMinBalance         = 10;
-input group           "[ACCOUNT PROTECTION SETTINGS]";
+input group           "[POSITION MANAGEMENT SETTINGS]";
 input bool            EnableUpdateEmptySLTP      = false;
+input group           "[RISK MANAGEMENT SETTINGS]";
 input bool            EnableEquityTP             = false;
 input double          TargetEquityTP             = 110200;
 input bool            EnableEquitySL             = false;
 input double          TargetEquitySL             = 98000;
+input double          AccountMarginTrimPct       = 50;   // Auto-trim managed positions when account margin level drops below this % (0=off)
 input group           "[MARTINGALE MODE SETTINGS]"
 input bool            EnableMartingale = false;       // Enable Martingale (master switch)
 input double          MartingaleEquityTP = 0;         // $ profit target (0 = disabled)
@@ -247,6 +249,11 @@ int OnInit()
    if (MarginBufferPercent < 0 || MarginBufferPercent >= 100)
    {
       Print("MarginBufferPercent must be >= 0 and < 100");
+      return INIT_FAILED;
+   }
+   if (AccountMarginTrimPct < 0)
+   {
+      Print("AccountMarginTrimPct must be >= 0");
       return INIT_FAILED;
    }
    if (VaRConfidence <= 0 || VaRConfidence >= 1)
@@ -549,6 +556,199 @@ bool IsTradeAllowed(const string symbol)
    }
    return true;
 }
+int FindManagedSymbolIndex(string &symbols[], int count, const string symbol)
+{
+   for (int i = 0; i < count; i++)
+   {
+      if (symbols[i] == symbol)
+         return i;
+   }
+   return -1;
+}
+int GetVolumeDigitsForSymbol(const string symbol)
+{
+   double volumeStep = SymbolInfoDouble(symbol, SYMBOL_VOLUME_STEP);
+   string volumeStepStr = DoubleToString(volumeStep, 8);
+   int decimalPos = StringFind(volumeStepStr, ".");
+   int digits = 0;
+   if (decimalPos >= 0)
+   {
+      digits = StringLen(volumeStepStr) - decimalPos - 1;
+      while (digits > 0 && StringSubstr(volumeStepStr, StringLen(volumeStepStr) - 1, 1) == "0")
+      {
+         volumeStepStr = StringSubstr(volumeStepStr, 0, StringLen(volumeStepStr) - 1);
+         digits--;
+      }
+   }
+   return MathMax(digits, 0);
+}
+double NormalizeVolumeForSymbol(const string symbol, double volume, bool roundUp = false)
+{
+   double step = SymbolInfoDouble(symbol, SYMBOL_VOLUME_STEP);
+   double minVol = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN);
+   if (step <= 0) step = (minVol > 0) ? minVol : 0.01;
+   if (minVol <= 0) minVol = step;
+   double steps = roundUp ? MathCeil((volume / step) - 1e-9) : MathFloor((volume / step) + 1e-9);
+   double normalized = steps * step;
+   if (normalized < minVol)
+      normalized = minVol;
+   return NormalizeDouble(normalized, GetVolumeDigitsForSymbol(symbol));
+}
+bool ProcessAccountMarginTrim(double marginLevel = -1)
+{
+   if (AccountMarginTrimPct <= 0)
+      return false;
+   double currentMarginLevel = (marginLevel >= 0) ? marginLevel : CalculateMarginLevelPct();
+   if (currentMarginLevel >= AccountMarginTrimPct)
+      return false;
+   double equity = AccountInfoDouble(ACCOUNT_EQUITY);
+   double currentMargin = AccountInfoDouble(ACCOUNT_MARGIN);
+   if (equity <= 0 || currentMargin <= 0.01)
+      return false;
+   double targetMargin = equity / (AccountMarginTrimPct / 100.0);
+   double excessMargin = currentMargin - targetMargin;
+   if (excessMargin <= 0)
+      return false;
+   int total = PositionsTotal();
+   if (total <= 0)
+      return false;
+   string managedSymbols[];
+   double managedLongLots[];
+   double managedShortLots[];
+   if (ArrayResize(managedSymbols, total) == -1
+      || ArrayResize(managedLongLots, total) == -1
+      || ArrayResize(managedShortLots, total) == -1)
+   {
+      Print("ArrayResize failed in ProcessAccountMarginTrim");
+      return false;
+   }
+   int symbolCount = 0;
+   int managedPositions = 0;
+   for (int i = 0; i < total; i++)
+   {
+      ulong ticket = PositionGetTicket(i);
+      if (ticket == 0 || !PositionSelectByTicket(ticket))
+         continue;
+      if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
+         continue;
+      string symbol = PositionGetString(POSITION_SYMBOL);
+      int idx = FindManagedSymbolIndex(managedSymbols, symbolCount, symbol);
+      if (idx < 0)
+      {
+         idx = symbolCount;
+         managedSymbols[idx] = symbol;
+         managedLongLots[idx] = 0;
+         managedShortLots[idx] = 0;
+         symbolCount++;
+      }
+      double volume = PositionGetDouble(POSITION_VOLUME);
+      int posType = (int)PositionGetInteger(POSITION_TYPE);
+      if (posType == POSITION_TYPE_BUY)
+         managedLongLots[idx] += volume;
+      else if (posType == POSITION_TYPE_SELL)
+         managedShortLots[idx] += volume;
+      managedPositions++;
+   }
+   if (managedPositions == 0)
+      return false;
+   ulong bestTicket = 0;
+   string bestSymbol = "";
+   double bestVolume = 0;
+   double bestLongLots = 0;
+   double bestShortLots = 0;
+   double bestMarginPerLot = -1;
+   int bestPositionType = -1;
+   for (int i = 0; i < total; i++)
+   {
+      ulong ticket = PositionGetTicket(i);
+      if (ticket == 0 || !PositionSelectByTicket(ticket))
+         continue;
+      if (!ManageAllPositions && PositionGetInteger(POSITION_MAGIC) != MagicNumber)
+         continue;
+      string symbol = PositionGetString(POSITION_SYMBOL);
+      int idx = FindManagedSymbolIndex(managedSymbols, symbolCount, symbol);
+      if (idx < 0)
+         continue;
+      double symbolLongLots = managedLongLots[idx];
+      double symbolShortLots = managedShortLots[idx];
+      int posType = (int)PositionGetInteger(POSITION_TYPE);
+      bool reducesNetExposure = ((posType == POSITION_TYPE_BUY && symbolLongLots > symbolShortLots + 1e-8)
+                              || (posType == POSITION_TYPE_SELL && symbolShortLots > symbolLongLots + 1e-8));
+      if (!reducesNetExposure)
+         continue;
+      ENUM_ORDER_TYPE orderType = (posType == POSITION_TYPE_BUY) ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
+      double refPrice = (posType == POSITION_TYPE_BUY)
+                      ? SymbolInfoDouble(symbol, SYMBOL_ASK)
+                      : SymbolInfoDouble(symbol, SYMBOL_BID);
+      if (refPrice <= 0)
+      {
+         refPrice = (posType == POSITION_TYPE_BUY)
+                  ? SymbolInfoDouble(symbol, SYMBOL_BID)
+                  : SymbolInfoDouble(symbol, SYMBOL_ASK);
+      }
+      double marginPerLot = 0;
+      if (!OrderCalcMargin(orderType, symbol, 1.0, refPrice, marginPerLot) || marginPerLot <= 0)
+         marginPerLot = SymbolInfoDouble(symbol, SYMBOL_MARGIN_INITIAL);
+      if (marginPerLot <= 0)
+         continue;
+      double volume = PositionGetDouble(POSITION_VOLUME);
+      bool better = false;
+      if (bestTicket == 0)
+         better = true;
+      else if (marginPerLot > bestMarginPerLot + 0.01)
+         better = true;
+      else if (MathAbs(marginPerLot - bestMarginPerLot) <= 0.01 && volume > bestVolume)
+         better = true;
+      if (better)
+      {
+         bestTicket = ticket;
+         bestSymbol = symbol;
+         bestVolume = volume;
+         bestLongLots = symbolLongLots;
+         bestShortLots = symbolShortLots;
+         bestMarginPerLot = marginPerLot;
+         bestPositionType = posType;
+      }
+   }
+   if (bestTicket == 0 || bestMarginPerLot <= 0)
+      return false;
+   double minVolume = SymbolInfoDouble(bestSymbol, SYMBOL_VOLUME_MIN);
+   if (minVolume <= 0)
+      minVolume = SymbolInfoDouble(bestSymbol, SYMBOL_VOLUME_STEP);
+   if (minVolume <= 0)
+      minVolume = 0.01;
+   double lotsNeeded = NormalizeVolumeForSymbol(bestSymbol, excessMargin / bestMarginPerLot, true);
+   if (lotsNeeded < minVolume)
+      lotsNeeded = minVolume;
+   bool closeEntire = (bestVolume <= lotsNeeded + 1e-8);
+   double closeVolume = closeEntire ? bestVolume : lotsNeeded;
+   double remainingVolume = bestVolume - closeVolume;
+   if (!closeEntire && remainingVolume > 1e-8 && remainingVolume < minVolume - 1e-8)
+   {
+      closeEntire = true;
+      closeVolume = bestVolume;
+   }
+   bool result = closeEntire ? Trade.PositionClose(bestTicket)
+                             : Trade.PositionClosePartial(bestTicket, closeVolume);
+   if (!result)
+   {
+      Print("Account margin trim failed on #", bestTicket, " error ", GetLastError());
+      return false;
+   }
+   double newMarginLevel = CalculateMarginLevelPct();
+   string side = (bestPositionType == POSITION_TYPE_BUY) ? "BUY" : "SELL";
+   double netLots = MathAbs(bestLongLots - bestShortLots);
+   double trimmedLots = closeEntire ? bestVolume : closeVolume;
+   Print("Account margin trim: ML ", DoubleToString(currentMarginLevel, 1), "% < ",
+         DoubleToString(AccountMarginTrimPct, 1), "% | closed ", side, " #", bestTicket,
+         " on ", bestSymbol, " (", DoubleToString(trimmedLots, GetVolumeDigitsForSymbol(bestSymbol)),
+         " of ", DoubleToString(bestVolume, GetVolumeDigitsForSymbol(bestSymbol)), " lots)",
+         " | net on symbol: ", DoubleToString(netLots, GetVolumeDigitsForSymbol(bestSymbol)),
+         " | est $/lot: ", DoubleToString(bestMarginPerLot, 2),
+         " | target margin: $", DoubleToString(targetMargin, 2),
+         " | ML now: ", DoubleToString(newMarginLevel, 1), "%");
+   return true;
+}
 void OnTick()
 {
    Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
@@ -562,13 +762,7 @@ void OnTick()
    AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
    AccountEquity = AccountInfoDouble(ACCOUNT_EQUITY);
    bool priceChanged = (Bid != prevBidPrice || Ask != prevAskPrice);
-   if (priceChanged)
-   {
-      ProcessMartingale();
-      ProcessPyramid();
-      prevBidPrice = Bid;
-      prevAskPrice = Ask;
-   }
+   bool riskActionTaken = false;
    double total_risk = 0;
    double total_pl = 0;
    double total_tp = 0;
@@ -583,6 +777,7 @@ void OnTick()
         EquityTPCalled = true;
         AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
         Alert("EquityTP closed all positions on all symbols. New account balance: " + DoubleToString(AccountBalance, 2));
+        riskActionTaken = true;
       }
    }
    if (AccountEquity < TargetEquitySL && EnableEquitySL && !EquitySLCalled)
@@ -593,7 +788,32 @@ void OnTick()
          EquitySLCalled = true;
          AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
          Alert("EquitySL closed all positions on all symbols. New account balance: " + DoubleToString(AccountBalance, 2));
+         riskActionTaken = true;
       }
+   }
+   AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
+   AccountEquity = AccountInfoDouble(ACCOUNT_EQUITY);
+   double accountMarginLevel = CalculateMarginLevelPct();
+   bool accountMarginTrimTriggered = (AccountMarginTrimPct > 0 && accountMarginLevel < AccountMarginTrimPct);
+   bool accountMarginTrimmed = false;
+   if (!riskActionTaken && accountMarginTrimTriggered)
+   {
+      accountMarginTrimmed = ProcessAccountMarginTrim(accountMarginLevel);
+      if (accountMarginTrimmed)
+      {
+         riskActionTaken = true;
+         AccountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
+         AccountEquity = AccountInfoDouble(ACCOUNT_EQUITY);
+      }
+   }
+   if (priceChanged)
+   {
+      if (!riskActionTaken)
+         ProcessMartingale();
+      if (!riskActionTaken && !accountMarginTrimTriggered)
+         ProcessPyramid();
+      prevBidPrice = Bid;
+      prevAskPrice = Ask;
    }
    // Reset per-direction break-even flags before the position loop
    breakEvenFoundLong = false;

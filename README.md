@@ -111,9 +111,9 @@ Indicators and EAs communicate through **MT5 GlobalVariables** — a shared key-
 
 ## Expert Advisors
 
-### TyphooN Risk Management EA (v1.405)
+### TyphooN Risk Management EA (v1.451)
 
-A manual trading EA with a GUI panel for order placement, position management, and risk monitoring. Supports four risk modes, martingale hedging with TRIM/HARVEST/PROTECT tiers, equity protection, and Discord trade announcements.
+A manual trading EA with a GUI panel for order placement, position management, and risk monitoring. Supports four risk modes, martingale hedging with TRIM/HARVEST/PROTECT tiers, equity and margin protection, and Discord trade announcements.
 
 ![Expert_Panel](Images/Expert_Panel.png)
 ![Expert_InfoText](Images/Expert_InfoText.png)
@@ -183,14 +183,19 @@ A manual trading EA with a GUI panel for order placement, position management, a
 | MinAccountBalance | 96100 | Floor balance for risk calculation |
 | LossesToMinBalance | 10 | `Risk = (Balance - MinBalance) / LossesToMinBalance` |
 
-##### Account Protection
+##### Position Management
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | EnableUpdateEmptySLTP | false | Auto-copy SL/TP from another same-direction position |
+
+##### Risk Management
+| Parameter | Default | Description |
+|-----------|---------|-------------|
 | EnableEquityTP | false | Close all positions when equity >= target |
 | TargetEquityTP | 110200 | Equity take-profit level |
 | EnableEquitySL | false | Close all positions when equity < target |
 | TargetEquitySL | 98000 | Equity stop-loss level |
+| AccountMarginTrimPct | 50 | Auto-trim managed positions when account margin level drops below this % (`0` = off) |
 
 ##### Martingale Mode
 | Parameter | Default | Description |
